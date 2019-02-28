@@ -15,8 +15,7 @@ The Visual Studio 2015 project MT_RRT.sln contains five projects:
 
 -MT_RRT/Problem_01,Problem_02,Problem_03,Problem_04 are examples solved by making use of the multithreading strategies available in the library.
 
--When recompiling unzip MT_RRT/Lib to gain the .lib of the library
-Problem 4, the Eigen folder must be unzipped
+-When recompiling unzip MT_RRT/Lib to gain the .lib of the library and for Problem 4, the folder Problem_04/Eigen must be also unzipped
 
 The example provided read files in relative folder: always launch the exe from their folder location. In Debug mode, the planner when expanding the search tree(s) display also the iterations reached.
 
