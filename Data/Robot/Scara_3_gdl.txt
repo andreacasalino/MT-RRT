@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Robot>
+  <DH>
+     0 0 150 0
+	 0 0 150 0
+	 0 0 150 0
+  </DH>
+  <Base>
+     1  0 0
+     0  1 0
+     0  0 1
+     0  0 0
+  </Base>
+  <Q_max>
+     3.141593e+00 3.141593e+00 3.141593e+00
+  </Q_max>
+  <Q_min>
+    -3.141593e+00 -3.141593e+00 -3.141593e+00
+  </Q_min>
+  <Capsule_rays>
+	5
+  </Capsule_rays>
+ </Robot>
