@@ -9,6 +9,8 @@ All the functionalities are contained in MT_RRT:
 
 -MT_RRT/Lib contains the compiled libraries: MT_RRT.lib for Release version; MT_RRTd.lib for Debug (after unzipping)
 
+Sooner, all the sources (.cpp files) will be available.
+
 The Visual Studio 2015 project MT_RRT.sln contains five projects:
 
 -MT_RRT/MT_RRT; which contains a Basic usage example (Basic_sample.cpp) , showing the functionalities of the library For this example only the serial standard RRT planners are considered
