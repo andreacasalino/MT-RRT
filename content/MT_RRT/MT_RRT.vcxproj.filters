@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header">
+      <UniqueIdentifier>{5afcd4af-0544-40f0-8bd8-331b7aba4cc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{0fa17356-4c2a-422b-b304-045510ee0434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source_Planner">
+      <UniqueIdentifier>{2a51ee54-5135-40f0-86b6-91428ad8e50a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Problem_description.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tree.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Extensions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_MT.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_canonical.cpp">
+      <Filter>Source_Planner</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_query_parall.cpp">
+      <Filter>Source_Planner</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_shared_parall.cpp">
+      <Filter>Source_Planner</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_copied_parall.cpp">
+      <Filter>Source_Planner</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Planner_multi_agents.cpp">
+      <Filter>Source_Planner</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Problem_path_basic.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\json.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header\Problem_description.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Tree.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Extensions.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Planner.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Planner_MT.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Problem_path_basic.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\json.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
