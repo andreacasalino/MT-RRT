@@ -28,62 +28,89 @@
 
 class I_Stream_Socket {
 public:
-	~I_Stream_Socket();
-// methods
-	virtual void InitConnection() = 0;
+	virtual ~I_Stream_Socket();
 
-	void Recv(char* recvbuf, const int& N_byte);
-	void Send(const char* sendbuf, const int& N_byte);
+	/* Initialization of the connection. This is a blocking operation: the hosting thread is blocked until the connection is established.
+	*/
+	virtual void InitConnection();
 
-	void Recv(int* data);
-	void Send(const int& data);
+	/* Blocking receive of an int (4 byte buffer)
+	*/	
+	int  		Recv_int();
+	/* Non blocking send of an int (4 byte buffer)
+	*/	
+	void 		Send_int(const int& data);
 
-	void Recv(std::string* buff_rcv);
-	void Send(const std::string& buffer_snd);
+	/* Blocking receive of a string. This is a two steps receive.
+	Firstly an int is received explaining the length of the string to receive and then the string
+	buffer is actually received.
+	*/	
+	std::string Recv_str();
+	/* Non blocking send of a string. This is a two steps send.
+	Firstly an int is sent explaining the length of the string to send and then the string
+	buffer is actually sent.
+	*/	
+	void        Send_str(const std::string& buffer_snd);
+
+    I_Stream_Socket(const I_Stream_Socket&) = delete;
+	void operator=(const I_Stream_Socket&) = delete;
 protected:
-#ifdef _WIN32
+	I_Stream_Socket(const std::string& server_address, const int& port);
 
+	void 		Recv(char* recvbuf, const int& N_byte);
+	void 		Send(const char* sendbuf, const int& N_byte);
 
-	I_Stream_Socket(const std::string& server_address, const int& port) :
-		mAddress_server(server_address), mPort(std::to_string(port)), mConnection(INVALID_SOCKET) {};
 // data
+#ifdef _WIN32
 	SOCKET			mConnection; 
 	std::string		mAddress_server;
 	std::string		mPort;
-
-
 #else
-
-
-	I_Stream_Socket(const std::string& server_address, const int& port_to_use) : 
-		mAddress_server(server_address) , port(port_to_use) {};
-// data
 	std::string		mAddress_server;
-	int port;
-	int sockfd;
-
-
+	int 			port;
+	int 			sockfd;
 #endif
+	bool			initialized;
 };
 
 
 
+/* Connection toward a server
+*/
 class Stream_to_Server : public I_Stream_Socket {
 public:
-	Stream_to_Server(const std::string& server_address, const int& port):
-		I_Stream_Socket(server_address, port) {}; //use "" for local host
-	Stream_to_Server(const int& port) : Stream_to_Server("", port) {}; //localhost is assumed
+	/* Create a connection to a server.
+	server_address -> the address of the server. Pass "" for localhost
+	port           -> the port of the connection
+	connection_trials -> number of times for which the connection is tried to be established in InitConnection. When passing 0, an infinite loop is considered and can terminate only after establishing the connection
+	*/
+	Stream_to_Server(const std::string& server_address, const int& port, const size_t& connection_trials = 0):
+		I_Stream_Socket(server_address, port), Connection_trials(connection_trials) {};
+
+	/* Similar to Stream_to_Server(const std::string& server_address, const int& port, const size_t& connection_trials), but
+	assuming localhost as address for the server.
+	*/
+	Stream_to_Server(const int& port, const size_t& connection_trials = 0) 
+	: Stream_to_Server("", port, connection_trials) {};
 
 	void InitConnection();
+
+private:
+	size_t 		    Connection_trials;
 };
 
 
 
+/* Connection toward a client
+*/
 class Stream_to_Client : public I_Stream_Socket {
 public:
+	/*  Create a connection to a client.
+	port -> the port of the connection
+	*/
 	Stream_to_Client(const int& port) : I_Stream_Socket("", port) {};
 
 	void InitConnection();
 };
 
-#endif // !__SOCKET_MY_H__
+#endif

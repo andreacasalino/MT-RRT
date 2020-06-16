@@ -1,10 +1,9 @@
 all: build_lib build_samples
 
 build_lib:
-	mkdir -p bin
-	mkdir -p bin/src_JS
+	rm    bin -r
+	mkdir bin
 	cp ./Samples/src_JS ./bin/src_JS -r
-	mkdir -p bin/src_Py
 	cp ./Samples/src_Py ./bin/src_Py -r
 	g++ -c ./MT_RRT/Source/json.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Problem_description.cpp -O3 -Wall
@@ -47,7 +46,7 @@ Sample_Planar_single:
 	mkdir -p ./bin/Sample_02_Planar_Robots/01_Single_arm/Results
 	cp ./Samples/02_Planar_Robots/print_result.js ./bin/Sample_02_Planar_Robots/01_Single_arm/Results/print_result.js -r
 	cp ./Samples/02_Planar_Robots/00_GUI/front_JS/src/Robot.js ./bin/Sample_02_Planar_Robots/01_Single_arm/Results/Robot.js -r
-	g++ -o ./bin/Sample_02_Planar_Robots/01_Single_arm/01_Single_arm ./Samples/02_Planar_Robots/01_Single_arm/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.lib -fopenmp -pthread -O3 -Wall
+	g++ -o ./bin/Sample_02_Planar_Robots/01_Single_arm/01_Single_arm ./Samples/02_Planar_Robots/01_Single_arm/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 	
 Sample_Planar_multi:
 	mkdir -p ./bin/Sample_02_Planar_Robots/02_Multiple_arms
@@ -55,33 +54,33 @@ Sample_Planar_multi:
 	mkdir -p ./bin/Sample_02_Planar_Robots/02_Multiple_arms/Results
 	cp ./Samples/02_Planar_Robots/print_result.js ./bin/Sample_02_Planar_Robots/02_Multiple_arms/Results/print_result.js -r
 	cp ./Samples/02_Planar_Robots/00_GUI/front_JS/src/Robot.js ./bin/Sample_02_Planar_Robots/02_Multiple_arms/Results/Robot.js -r
-	g++ -o ./bin/Sample_02_Planar_Robots/02_Multiple_arms/02_Multiple_arms ./Samples/02_Planar_Robots/02_Multiple_arms/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.lib -fopenmp -pthread -O3 -Wall
+	g++ -o ./bin/Sample_02_Planar_Robots/02_Multiple_arms/02_Multiple_arms ./Samples/02_Planar_Robots/02_Multiple_arms/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 	
 Sample_Planar_GUI:
 	mkdir -p ./bin/Sample_02_Planar_Robots/00_GUI
 	mkdir -p ./bin/Sample_02_Planar_Robots/00_GUI/front_JS
 	cp  ./Samples/02_Planar_Robots/00_GUI/front_JS ./bin/Sample_02_Planar_Robots/00_GUI/front_JS -r
 	cp ./Samples/02_Planar_Robots/00_GUI/launcher.bat ./bin/Sample_02_Planar_Robots/00_GUI/launcher.bat -r
-	g++ -o ./bin/Sample_02_Planar_Robots/00_GUI/back_Cpp ./Samples/02_Planar_Robots/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.lib -fopenmp -pthread -lws2_32 -O3
+	g++ -o ./bin/Sample_02_Planar_Robots/00_GUI/back_Cpp ./Samples/02_Planar_Robots/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3
 
 Sample_Navigation:
 	mkdir -p ./bin/Sample_03_Navigation/01_Navigation
 	cp ./Samples/03_Navigation/01_Navigation/problem.json ./bin/Sample_03_Navigation/01_Navigation/problem.json -r
 	mkdir -p ./bin/Sample_03_Navigation/01_Navigation/Results
 	cp ./Samples/03_Navigation/print_result.js ./bin/Sample_03_Navigation/01_Navigation/Results/print_result.js -r
-	g++ -o ./bin/Sample_03_Navigation/01_Navigation/01_Navigation ./Samples/03_Navigation/01_Navigation/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.lib -fopenmp -pthread -O3 -Wall
+	g++ -o ./bin/Sample_03_Navigation/01_Navigation/01_Navigation ./Samples/03_Navigation/01_Navigation/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 
 Sample_Navigation_cluttered:
-	mkdir -p .\bin\Sample_03_Navigation\02_Navigation_cluttered -r
-	cp .\Samples\03_Navigation\02_Navigation_cluttered\problem.json .\bin\Sample_03_Navigation\02_Navigation_cluttered\problem.json -r
-	mkdir -p .\bin\Sample_03_Navigation\02_Navigation_cluttered\Results
-	cp .\Samples\03_Navigation\print_result.js .\bin\Sample_03_Navigation\02_Navigation_cluttered\Results\print_result.js -r
-	g++ -o ./bin/Sample_03_Navigation/02_Navigation_cluttered/02_Navigation_cluttered ./Samples/03_Navigation/02_Navigation_cluttered/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.lib -fopenmp -pthread -O3 -Wall
+	mkdir -p ./bin/Sample_03_Navigation/02_Navigation_cluttered
+	cp ./Samples/03_Navigation/02_Navigation_cluttered/problem.json ./bin/Sample_03_Navigation/02_Navigation_cluttered/problem.json -r
+	mkdir -p ./bin/Sample_03_Navigation/02_Navigation_cluttered/Results
+	cp ./Samples/03_Navigation/print_result.js ./bin/Sample_03_Navigation/02_Navigation_cluttered/Results/print_result.js -r
+	g++ -o ./bin/Sample_03_Navigation/02_Navigation_cluttered/02_Navigation_cluttered ./Samples/03_Navigation/02_Navigation_cluttered/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 
 Sample_Navigation_GUI:
 	mkdir -p .\bin\Sample_03_Navigation\00_GUI
 	mkdir -p .\bin\Sample_03_Navigation\00_GUI\front_JS
 	cp  .\Samples\03_Navigation\00_GUI\front_JS .\bin\Sample_03_Navigation\00_GUI\front_JS -r
 	cp  .\Samples\03_Navigation\00_GUI\launcher.bat .\bin\Sample_03_Navigation\00_GUI\launcher.bat -r
-	g++ -o ./bin/Sample_03_Navigation/00_GUI/back_Cpp ./Samples/03_Navigation/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.lib -fopenmp -pthread -lws2_32 -O3
+	g++ -o ./bin/Sample_03_Navigation/00_GUI/back_Cpp ./Samples/03_Navigation/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3
 	

@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
-Cpp_Conn =  Stream_to_Server('127.0.0.1' , 430)
+Cpp_Conn =  Stream_to_Server('127.0.0.1' , 2001)
 Cpp_Conn.InitConnection()
 print("socket connection done")
 

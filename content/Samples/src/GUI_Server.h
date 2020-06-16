@@ -13,6 +13,8 @@
 #include <fstream>
 #include <iostream>
 
+#define CONNECTION_PORT 2001
+
 class GUI_Server {
 public:
 	struct I_Responder {
@@ -117,15 +119,15 @@ std::string GUI_Server::I_Responder::profile(const profile_info& info, const std
 	return move(response);
 }
 
-GUI_Server::GUI_Server(I_Responder& responder) : Connection(430), Resp(responder) { this->Connection.InitConnection(); }
+GUI_Server::GUI_Server(I_Responder& responder) : Connection(CONNECTION_PORT), Resp(responder) { this->Connection.InitConnection(); }
 
 void GUI_Server::Serve_forever() {
 
 	std::string  request_head, request_body, response;
 
 	while (true) {
-		this->Connection.Recv(&request_head);
-		this->Connection.Recv(&request_body);
+		request_head = this->Connection.Recv_str();
+		request_body = this->Connection.Recv_str();
 		std::cout << "-----------------------------------\n";
 		std::cout << "-->header: " << request_head << std::endl;
 		std::cout << "-->  body: " << request_body << std::endl;
@@ -133,7 +135,7 @@ void GUI_Server::Serve_forever() {
 		response = this->Resp.compute_response(request_head, request_body);
 
 		std::cout << "-->response: " << response << std::endl << std::endl;
-		Connection.Send(response);
+		Connection.Send_str(response);
 	}
 
 }

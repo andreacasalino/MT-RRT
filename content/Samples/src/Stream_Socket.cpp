@@ -4,15 +4,41 @@
 *
 * report any bug to andrecasa91@gmail.com.
  **/
- 
+
+/////////////////////////////////////////
+//          raised exceptions          //
+
+#define ALREADY_INITIALIZED 			0
+
+#define RECV_ZEROBYTEBUFFER 			1
+#define RECV_ERROR 						2
+
+#define SEND_ZEROBYTEBUFFER 			3
+#define SEND_ERROR 						4
+
+#define DANGEROUS_PORT 					5
+
+#define CLIENT_NOTOPENED 				6
+#define CLIENT_SERVERNOTFOUND 			7
+#define CLIENT_FAILEDCONNECTION 		8
+
+#define SERVER_NOTOPENED 				6
+#define SERVER_NOTBINDED 			    7
+#define SERVER_NOTACCEPTED 				8
+#define SERVER_OPTIONREFUSED 			9
+#define SERVER_LISTENFAIL 			    10
+
+//                                     //
+/////////////////////////////////////////
+
+
 #include "Stream_Socket.h"
 #include <iostream>
-#include <malloc.h>
+#include <math.h> //for sending float
 using namespace std;
 
 #ifdef _WIN32
 #elif  __linux__
-#include "Stream_Socket.h"
 #include <strings.h> //only for bzero
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -22,6 +48,7 @@ using namespace std;
 #include <unistd.h>
 #include <iostream>
 #include <malloc.h>
+#include <arpa/inet.h>
 #else
 #error Os not supported: only Windows and Linux are supported
 #endif
@@ -32,8 +59,12 @@ using namespace std;
 #endif
 #endif
 
-
 #ifdef _WIN32
+I_Stream_Socket::I_Stream_Socket(const std::string& server_address, const int& port) : 
+mAddress_server(server_address), mPort(std::to_string(port)), mConnection(INVALID_SOCKET), initialized(false) { 
+	if(port < 2000) throw DANGEROUS_PORT; //port below 2001 should not be used"; 
+};
+
 I_Stream_Socket::~I_Stream_Socket() {
 	// cleanup
 	closesocket(this->mConnection);
@@ -41,97 +72,79 @@ I_Stream_Socket::~I_Stream_Socket() {
 }
 
 void I_Stream_Socket::Recv(char* recvbuf, const int& N_byte) {
-
-	if (N_byte <= 0) {
-		std::cout << "N_byte cannot be less than 0 \n";
-		abort();
-	}
+	if (N_byte <= 0) throw RECV_ZEROBYTEBUFFER;
 
 	int iResult = recv(this->mConnection, recvbuf, N_byte, 0);
-	if (iResult < 0) throw 0;
-
+	if (iResult < 0) throw RECV_ERROR;
 }
 
 void I_Stream_Socket::Send(const char* sendbuf, const int& N_byte) {
-
-	if (N_byte <= 0) {
-		std::cout << "N_byte cannot be less than 0 \n";
-		abort();
-	}
+	if (N_byte <= 0) throw SEND_ZEROBYTEBUFFER;
 
 	int iSendResult = send(this->mConnection, sendbuf, N_byte, 0);
-	if (iSendResult == SOCKET_ERROR) throw 0;
-
+	if (iSendResult == SOCKET_ERROR) throw SEND_ERROR;
 }
 #elif  __linux__
+I_Stream_Socket::I_Stream_Socket(const std::string& server_address, const int& port_to_use) : 
+		mAddress_server(server_address) , port(port_to_use), initialized(false) { if(port < 2000) throw DANGEROUS_PORT; }; //port below 2001 should not be used"; 
+
 I_Stream_Socket::~I_Stream_Socket() {
-	// cleanup
-	//TODO
-	cout << "Clean up not implemented when destroying the socket\n";
+	close(this->sockfd);
 }
 
 void I_Stream_Socket::Recv(char* recvbuf, const int& N_byte) {
-
-	if (N_byte <= 0) cerr << "N_byte cannot be less than 0 \n";
+	if (N_byte <= 0)  throw RECV_ZEROBYTEBUFFER;
 
 	int nbytes = recv(this->sockfd, &recvbuf[0], N_byte, 0);
-	if (nbytes < 0) cerr << "ERROR reading from socket";
-
+	if (nbytes < 0) throw RECV_ERROR;
 }
 
 void I_Stream_Socket::Send(const char* sendbuf, const int& N_byte) {
-
-	if (N_byte <= 0)  cerr << "N_byte cannot be less than 0 \n";
+	if (N_byte <= 0)  throw SEND_ZEROBYTEBUFFER;
 
 	int nbytes = send(this->sockfd, &sendbuf[0], N_byte, 0);
-	if (nbytes < 0) cerr << "ERROR sending to socket";
-
+	if (nbytes < 0) throw SEND_ERROR;
 }
 #endif
 
-void I_Stream_Socket::Recv(int* data) {
+void I_Stream_Socket::InitConnection(){
+	if(this->initialized) throw ALREADY_INITIALIZED;
+	this->initialized = true;
+}
 
+int I_Stream_Socket::Recv_int() {
 	char Bytes[4];
 
 	// Receiving current node
 	this->Recv(&Bytes[0], 4);
-	*data = 0;
-	*data = 0x000000FF & Bytes[3];
-	*data = ((*data << 8) & 0x0000FFFF) | (0x000000FF & Bytes[2]);
-	*data = ((*data << 8) & 0x00FFFFFF) | (0x000000FF & Bytes[1]);
-	*data = ((*data << 8) & 0xFFFFFFFF) | (0x000000FF & Bytes[0]);
-
+	int data = 0;
+	data = 0x000000FF & Bytes[3];
+	data = ((data << 8) & 0x0000FFFF) | (0x000000FF & Bytes[2]);
+	data = ((data << 8) & 0x00FFFFFF) | (0x000000FF & Bytes[1]);
+	data = ((data << 8) & 0xFFFFFFFF) | (0x000000FF & Bytes[0]);
+	return data;
 }
 
-void I_Stream_Socket::Send(const int& data) {
-
+void I_Stream_Socket::Send_int(const int& data) {
 	char Bytes[4];
 	int myint = data;
 
 	// Sending delta
-	for (int i = 0; i < 4; i++) Bytes[i] = (myint >> 8 * i) & 0xFF;
+	for (int i = 0; i < 4; ++i) Bytes[i] = (myint >> 8 * i) & 0xFF;
 	this->Send(&Bytes[0], 4);
-
 }
 
-void I_Stream_Socket::Recv(std::string* buff_rcv) {
-
-	int buff_size;
-	this->Recv(&buff_size);
-	buff_rcv->resize(buff_size);
-	char* temp = (char*)malloc(buff_size * sizeof(char));
-	this->Recv(&temp[0], buff_size);
-	for (size_t k = 0; k < buff_size; k++)
-		(*buff_rcv)[k] = temp[k];
-	free(temp);
-
+std::string I_Stream_Socket::Recv_str() {
+	int buff_size = this->Recv_int();
+	string buff_rcv;
+	buff_rcv.resize(buff_size);
+	this->Recv(&buff_rcv[0], buff_size);
+	return move(buff_rcv);
 }
 
-void I_Stream_Socket::Send(const std::string& buff_snd) {
-
-	this->Send((int)buff_snd.size());
+void I_Stream_Socket::Send_str(const std::string& buff_snd) {
+	this->Send_int((int)buff_snd.size());
 	this->Send(buff_snd.c_str(), (int)buff_snd.size());
-
 }
 
 
@@ -139,96 +152,71 @@ void I_Stream_Socket::Send(const std::string& buff_snd) {
 #ifdef _WIN32
 void Stream_to_Server::InitConnection() {
 
-	while (true) { //blocking operation: retry the connection to the server till succeed
+	this->I_Stream_Socket::InitConnection();
 
-		WSADATA wsaData; //Create a WSADATA object called wsaData.
-		//Call WSAStartup and return its value as an integer and check for errors.
-		this->mConnection = INVALID_SOCKET;
-		//CREATING A SOCKET FOR THE CLIENT
-		/*Declare an addrinfo object that contains a sockaddr structure and initialize these values.
-		For this application, the Internet address family is unspecified so that either an IPv6 or IPv4 address can be
-		returned. The application requests the socket type to be a stream socket for the TCP protocol.*/
-		struct addrinfo* result = NULL, * ptr = NULL, hints;
-		//Send and recv functions used by the client once a connection is established.
-		/*The send and recv functions both return an integer value of the number of bytes
-		sent or received, respectively, or an error. Each function also takes the same parameters:
-		the active socket, a char buffer, the number of bytes to send or receive, and any flags to use.*/
-		int iResult;
-		// Initialize Winsock
-		iResult = WSAStartup(MAKEWORD(2, 2), &wsaData); //WSAStartup function initiates use of the Winsock DLL by a process.
-		if (iResult != 0) {
-			printf("WSAStartup failed with error: %d\n", iResult);
-			abort();
-		}
-		ZeroMemory(&hints, sizeof(hints));
-		hints.ai_family = AF_UNSPEC; //AF_UNSPEC either an IPv6 or IPv4 address can be returned.
-		hints.ai_socktype = SOCK_STREAM; //The application requests the socket type to be a stream socket for the TCP protocol
-		hints.ai_protocol = IPPROTO_TCP; //TCP protocol
-		if (this->mAddress_server.compare("") == 0) //loaclhost
-			iResult = getaddrinfo("127.0.0.1", this->mPort.c_str(), &hints, &result);
-		else
-			iResult = getaddrinfo(this->mAddress_server.c_str(), this->mPort.c_str(), &hints, &result);
-		if (iResult != 0) {
-			printf("getaddrinfo failed with error: %d\n", iResult);
-			WSACleanup();
-			abort();
-		}
-		/*Call the socket function and return its value to the ConnectSocket variable. For this application, use the
-		first IP address returned by the call to getaddrinfo that matched the address family, socket type, and protocol
-		specified in the hints parameter. In this example, a TCP stream socket was specified with a socket type of
-		SOCK_STREAM and a protocol of IPPROTO_TCP. The address family was left unspecified (AF_UNSPEC), so the returned
-		IP address could be either an IPv6 or IPv4 address for the server.*/
+	size_t trial = 0;
+	int last_raised = -1;
+	bool keep_try = true;
+	while (keep_try){
+		try {
+			last_raised = -1;
 
-		/*If the client application wants to connect using only IPv6 or IPv4, then the address family needs to be set
-		to AF_INET6 for IPv6 or AF_INET for IPv4 in the hints parameter.*/ //SEE LINE 44
+			WSADATA wsaData; //Create a WSADATA object called wsaData.
+			this->mConnection = INVALID_SOCKET;
+			struct addrinfo* result = NULL, * ptr = NULL, hints;
+			int iResult;
+			// Initialize Winsock
+			iResult = WSAStartup(MAKEWORD(2, 2), &wsaData); //WSAStartup function initiates use of the Winsock DLL by a process.
+			if (iResult != 0) throw CLIENT_NOTOPENED; 
 
-		// Attempt to connect to an addres until one succeds
-		for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+			ZeroMemory(&hints, sizeof(hints));
+			hints.ai_family = AF_UNSPEC; //AF_UNSPEC either an IPv6 or IPv4 address can be returned.
+			hints.ai_socktype = SOCK_STREAM; //The application requests the socket type to be a stream socket for the TCP protocol
+			hints.ai_protocol = IPPROTO_TCP; //TCP protocol
+			if (this->mAddress_server.compare("") == 0) //localhost
+				iResult = getaddrinfo("127.0.0.1", this->mPort.c_str(), &hints, &result);
+			else
+				iResult = getaddrinfo(this->mAddress_server.c_str(), this->mPort.c_str(), &hints, &result);
+			if (iResult != 0) throw CLIENT_NOTOPENED; 
 
-			// Create a SOCKET for connecting to server
-			this->mConnection = socket(ptr->ai_family, ptr->ai_socktype,
-				ptr->ai_protocol);
+			// Attempt to connect to an addres until one succeds
+			for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+				// Create a SOCKET for connecting to server
+				this->mConnection = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+				if (this->mConnection == INVALID_SOCKET) throw CLIENT_NOTOPENED;
 
-			//Check for errors to ensure that the socket is a valid socket.
-			/*If the socket call fails, it returns INVALID_SOCKET. The if statement in the previous code is used to catch
-			any errors that may have occurred while creating the socket. WSAGetLastError returns an error number associated
-			with the last error that occurred.*/
-			if (this->mConnection == INVALID_SOCKET) {
-				printf("socket failed with error: %ld\n", WSAGetLastError());
-				//freeaddrinfo(result);
-				WSACleanup(); //WSACleanup is used to terminate the use of the WS2_32 DLL.
-				abort();
+				// Connect to server.
+				iResult = connect(this->mConnection, ptr->ai_addr, (int)ptr->ai_addrlen);
+				if (iResult == SOCKET_ERROR) {
+					closesocket(this->mConnection);
+					this->mConnection = INVALID_SOCKET;
+					continue;
+				}
+				break;
 			}
 
-			// Connect to server.
-			iResult = connect(this->mConnection, ptr->ai_addr, (int)ptr->ai_addrlen);
-			if (iResult == SOCKET_ERROR) {
-				closesocket(this->mConnection);
-				this->mConnection = INVALID_SOCKET;
-				continue;
-			}
+			freeaddrinfo(result);
+			if (this->mConnection == INVALID_SOCKET) throw CLIENT_SERVERNOTFOUND;
 
-			break;
+			keep_try = false;
 		}
-
-		// Should really try the next address returned by getaddrinfo
-		// if the connect call failed
-		// But for this simple example we just free the resources
-		// returned by getaddrinfo and print an error message
-
-		freeaddrinfo(result);
-
-		if (this->mConnection == INVALID_SOCKET) {
-			//printf("Unable to connect to server!\n");
+		catch(const int& e) {
+			closesocket(this->mConnection);
+			this->mConnection = INVALID_SOCKET;
 			WSACleanup();
-		}
-		else break;
 
+			last_raised = e;
+			if(this->Connection_trials > 0){
+				++trial;
+				if(trial >= this->Connection_trials) keep_try = false;
+			}
+		}
 	}
-
+	if(last_raised != -1) throw last_raised;
 }
 
 void Stream_to_Client::InitConnection() {
+	this->I_Stream_Socket::InitConnection();
 
 	WSADATA wsaData;
 	int iResult;
@@ -241,10 +229,7 @@ void Stream_to_Client::InitConnection() {
 
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		printf("WSAStartup failed with error: %d\n", iResult);
-		abort();
-	}
+	if (iResult != 0) throw SERVER_NOTOPENED;
 
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -253,15 +238,14 @@ void Stream_to_Client::InitConnection() {
 	hints.ai_flags = AI_PASSIVE;
 
 	// Resolve the server address and port
-	if (this->mAddress_server.compare("") == 0) //loaclhost
+	if (this->mAddress_server.compare("") == 0) //localhost
 		iResult = getaddrinfo(NULL, this->mPort.c_str(), &hints, &result);
 	else
 		iResult = getaddrinfo(this->mAddress_server.c_str(), this->mPort.c_str(), &hints, &result);
 
 	if (iResult != 0) {
-		printf("getaddrinfo failed with error: %d\n", iResult);
 		WSACleanup();
-		abort();
+		throw SERVER_NOTOPENED;
 	}
 
 	// Create a SOCKET for connecting to server
@@ -276,73 +260,90 @@ void Stream_to_Client::InitConnection() {
 	// Setup the TCP listening socket
 	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
 	if (iResult == SOCKET_ERROR) {
-		printf("bind failed with error: %d\n", WSAGetLastError());
 		freeaddrinfo(result);
 		closesocket(ListenSocket);
 		WSACleanup();
-		abort();
+		throw SERVER_NOTBINDED;
 	}
 
 	freeaddrinfo(result);
 
 	iResult = listen(ListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) {
-		printf("listen failed with error: %d\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
-		abort();
+		throw SERVER_LISTENFAIL;
 	}
 
 	// Accept a client socket
 	this->mConnection = accept(ListenSocket, NULL, NULL);
 	if (this->mConnection == INVALID_SOCKET) {
-		printf("accept failed with error: %d\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
-		abort();
+		throw SERVER_NOTACCEPTED;
 	}
 
 	// No longer need server socket
 	closesocket(ListenSocket);
 
 }
+
 #elif __linux__
-#include <strings.h> //only for bzero
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <netdb.h> 
-#include <unistd.h>
-#include <arpa/inet.h>
 
 void Stream_to_Server::InitConnection() {
-	
-    struct sockaddr_in serv_addr; 
-	this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->sockfd < 0) cerr << "ERROR opening socket";
-	
-	bzero((char*)&serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	if(inet_pton(AF_INET, this->mAddress_server.c_str(), &serv_addr.sin_addr)<=0) cerr << "Server not found";
-	serv_addr.sin_port = htons(this->port);	
-	if(connect(this->sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) cerr << "Connection failed";
-	
+	this->I_Stream_Socket::InitConnection();
+
+	if(this->mAddress_server.compare("") == 0) this->mAddress_server = "127.0.0.1";
+
+	size_t trial = 0;
+	int last_raised = -1;
+	bool keep_try = true;
+	while (keep_try){
+		try {
+			last_raised = -1;
+
+			struct sockaddr_in serv_addr; 
+			this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			if (this->sockfd < 0) throw CLIENT_NOTOPENED;
+			
+			bzero((char*)&serv_addr, sizeof(serv_addr));
+			serv_addr.sin_family = AF_INET;
+			if(inet_pton(AF_INET, this->mAddress_server.c_str(), &serv_addr.sin_addr)<=0)  throw CLIENT_SERVERNOTFOUND;
+			serv_addr.sin_port = htons(this->port);	
+			if(connect(this->sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)  throw CLIENT_FAILEDCONNECTION;
+
+			keep_try = false;
+		}
+		catch(const int& e) {
+			close(this->sockfd);
+
+			last_raised = e;
+			if(this->Connection_trials > 0){
+				++trial;
+				if(trial >= this->Connection_trials) keep_try = false;
+			}
+		}
+	}
+	if(last_raised != -1) throw last_raised;
 };
 
 void Stream_to_Client::InitConnection() {
-#ifdef PRINT_CONNECTION_INFO
-	cout << "Creating a new strem\n";
-#endif
+	this->I_Stream_Socket::InitConnection();
 
 	struct sockaddr_in serv_addr, cli_addr;
 
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) cerr << "ERROR opening socket";
+	int new_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (new_sockfd < 0) throw SERVER_NOTOPENED;
+
 	//disable Nagle algorithm
 	int flag = 1;
-	int result = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
-	if (result < 0) cerr << "ERROR setting option socket";
+	int result = setsockopt(new_sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
+	if (result < 0) throw SERVER_OPTIONREFUSED;
+
+	// resue address of server
+	int enable = 1;
+	result = setsockopt(new_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+	if (result < 0) throw SERVER_OPTIONREFUSED;
 
 	bzero((char*)&serv_addr, sizeof(serv_addr));
 	//portno = atoi(argv[1]);
@@ -350,18 +351,15 @@ void Stream_to_Client::InitConnection() {
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(this->port);
 	socklen_t clilen;
-#ifdef PRINT_CONNECTION_INFO
-	cout << "Waiting for the client to ask the connection\n";
-#endif
-	if (bind(sockfd, (struct sockaddr*) & serv_addr, sizeof(serv_addr)) < 0) cerr << "ERROR on binding";
 
-	listen(sockfd, 5);
+
+	if (bind(new_sockfd, (struct sockaddr*) & serv_addr, sizeof(serv_addr)) < 0) throw SERVER_NOTBINDED;
+
+	listen(new_sockfd, 5);
 	clilen = sizeof(cli_addr);
-	this->sockfd = accept(sockfd, (struct sockaddr*) & cli_addr, &clilen);
-	if (this->sockfd < 0) cerr << "ERROR on accept";
+	this->sockfd = accept(new_sockfd, (struct sockaddr*) & cli_addr, &clilen);
+	if (this->sockfd < 0) throw SERVER_NOTACCEPTED;
 
-#ifdef PRINT_CONNECTION_INFO
-	cout << "Connection done\n";
-#endif
+	close(new_sockfd);
 }
 #endif
