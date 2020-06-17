@@ -55,10 +55,11 @@ function remove(Collection, to_remove){
 }
 
 function open_in_new_tab(url){
-    let temp = document.createElement("a");
-    temp.setAttribute("href", url);
-    temp.setAttribute("target", "_blank");
-    temp.click();
+    // let temp = document.createElement("a");
+    // temp.setAttribute("href", url);
+    // temp.setAttribute("target", "_blank");
+    // temp.click();
+    window.open(url);
 }
 
 function set_bord(div, color = "black"){

@@ -59,6 +59,7 @@ class Stream_to_Client(I_Stream_Socket):
 
     def InitConnection(self):
         self.__socket_init =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__socket_init.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__socket_init.bind((self._address, self._port))
         self.__socket_init.listen(0)
         self._socket = self.__socket_init.accept()  

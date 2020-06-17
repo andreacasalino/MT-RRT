@@ -125,9 +125,28 @@ void GUI_Server::Serve_forever() {
 
 	std::string  request_head, request_body, response;
 
-	while (true) {
-		request_head = this->Connection.Recv_str();
-		request_body = this->Connection.Recv_str();
+	bool life = true;
+	while (life) {
+		try { request_head = this->Connection.Recv_str(); }
+		catch(const std::exception& e) { 
+			life = false;
+			continue;
+		}
+		catch(const int& e){
+			life = false;
+			continue;
+		}
+
+		try { request_body = this->Connection.Recv_str(); }
+		catch(const std::exception& e) { 
+			life = false;
+			continue;
+		}
+		catch(const int& e){
+			life = false;
+			continue;
+		}
+		
 		std::cout << "-----------------------------------\n";
 		std::cout << "-->header: " << request_head << std::endl;
 		std::cout << "-->  body: " << request_body << std::endl;
@@ -135,7 +154,16 @@ void GUI_Server::Serve_forever() {
 		response = this->Resp.compute_response(request_head, request_body);
 
 		std::cout << "-->response: " << response << std::endl << std::endl;
-		Connection.Send_str(response);
+		
+		try { Connection.Send_str(response); }
+		catch(const std::exception& e) { 
+			life = false;
+			continue;
+		}
+		catch(const int& e){
+			life = false;
+			continue;
+		}
 	}
 
 }

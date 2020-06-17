@@ -32,6 +32,7 @@ class Request_Handler(http.server.BaseHTTPRequestHandler):
 
 class HttpServer(socketserver.TCPServer):
     def __init__(self, PORT, comm_handler):
+        socketserver.TCPServer.allow_reuse_address = True
         super().__init__(("", PORT), Request_Handler)
         self.Bind_key = None
         self.Comm_resolver = comm_handler

@@ -1,4 +1,4 @@
-gnome-terminal -x sh -c "./back_Cpp; bash"
-gnome-terminal -x sh -c "python ../../src_Py/main.py; bash"
+gnome-terminal -x sh -c "./back_Cpp"
+gnome-terminal -x sh -c "python3 ../../src_Py/main.py"
 
-browse ./front_JS/index.html
+xdg-open ./front_JS/index.html

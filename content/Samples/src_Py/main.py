@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
+print("Http server python ")
 Cpp_Conn =  Stream_to_Server('127.0.0.1' , 2001)
 Cpp_Conn.InitConnection()
 print("socket connection done")
@@ -14,11 +15,11 @@ print("socket connection done")
 def Ask_file():
     root = tk.Tk()
     root.withdraw()
-    return filedialog.askopenfilename()
+    return filedialog.askopenfilename(parent=root)
 def Ask_folder():
     root = tk.Tk()
     root.withdraw()
-    return filedialog.asksaveasfile()
+    return filedialog.asksaveasfile(parent=root)
 
 class Read_handler(I_Comm_handler):
     def handle_comm(self, request):
@@ -49,5 +50,5 @@ class Read_handler(I_Comm_handler):
 
 
 comm = Read_handler()
-run_server(500 , comm)
+run_server(3001 , comm)
 

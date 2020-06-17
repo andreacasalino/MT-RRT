@@ -16,7 +16,7 @@ class Scene{
 
         let this_ref = this;
         new Promise((res)=>{
-            if(use_conn) this_ref.__connection = new Connection( 500, res);
+            if(use_conn) this_ref.__connection = new Connection( 3001, res);
             else res();
         }).then(()=>{
             this_ref.__init_head_body();
