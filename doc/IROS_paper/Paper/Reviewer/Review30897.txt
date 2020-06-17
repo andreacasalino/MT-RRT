@@ -1,0 +1,33 @@
+Reviewer 16 of IROS 2019 submission 806
+
+Comments to the author
+======================
+
+This paper addresses multithreading strategies for RRT,
+bidirectional RRT or RRT*. In detail, it presents the
+efficiency of parallelization (normalized speed up) for
+four cases with four multithreading strategies. The
+multithreading strategies consist of 1) querying
+activities, 2) a shared tree, 3) copied trees and 4)
+blinded multiagents explorations. Its result is that the
+multithreading strategy with blinded multiagents
+explorations is most efficient.
+
+Comments
+1)	In the bidirectional version, expansions are made
+in forward and backward trees. So, it seems that Eq. (2) is
+the same as Eq. (1).
+2)	In parallel exploration on a shared tree, authors
+use the term, critical region, which is not clearly
+defined. It seems like the critical region is shown as the
+relation, || xs – xf || <= Threshold in Algorithm 4.
+3)	In the results, authors present methods for the
+simulations to compare the efficiency of multithreading
+strategies. In Fig. 5, 6, 7 and 8, it seems like the bars
+in those graphs represent the standard deviation. So,
+authors should indicate the meaning of the bars. If they
+indicate the standard deviation, authors should present how
+many simulations are made with 2500 iterations.
+4)	It is more desirable that authors additionally
+present a mean computation time (including a standard
+deviation) required to get a solution for each strategy.

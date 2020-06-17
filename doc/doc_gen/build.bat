@@ -1,0 +1,1 @@
+g++ -o DocGen Main.cpp File_Modifier.cpp -O3

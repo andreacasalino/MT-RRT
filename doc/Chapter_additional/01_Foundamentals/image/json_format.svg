@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="419.34189mm"
+   height="248.97809mm"
+   viewBox="0 0 419.34189 248.97809"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="json_format.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="1314.3121"
+     inkscape:cy="111.58136"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Livello 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(154.65459,47.113361)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.76874828px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14421871"
+       x="-283.92615"
+       y="-7.1038213"
+       id="text817"
+       transform="scale(0.54507859,1.8345978)"><tspan
+         sodipodi:role="line"
+         id="tspan815"
+         x="-283.92615"
+         y="-7.1038213"
+         style="stroke-width:0.14421871">\footnotesize{Solution:$\lbrace x_1, \hdots, x_j,\hdots, x_M \rbrace$}</tspan></text>
+    <image
+       y="-22.368637"
+       x="-38.028088"
+       id="image827"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF0AAAA6CAYAAADSgFUhAAAABHNCSVQICAgIfAhkiAAAA1RJREFU
+eJztnOFxqzAMx8W7N4DTEUwmoB3BI9CO4BFyGYF2Aq4j0A1cRnA6gekIJhvofWhLi0NKXhIswOju
+/4Gkd7V+EbaQZSJEhLlaXdf4/v4OAAC3t7cR8XAai+YMfbVa4X6/BwAAIQS8vr6OAvwf6gH4srIs
+4eXlZRQRNmvo2+22dS2lJBqJY4g4azHGEAAaZVmG1GMihzK08jxvQQcAtNaSgieH4kOc8xb0NE0X
+6ENLa30Q7UVRkIEnB+JLm82mBZ0xRjbNzDpPdy2O4+ZhCQAgSRLY7Xbec/dZp4yuKaVa129vb/D4
++Og/6qhve9/qymZ8z+/kECgkhDgAr7X2Bp4cAIWsteimkYwxNMZ4AR/UQvrTqqrC9Xrd+owxBlpr
+iON40MU1qIX0p8VxHLkL636/h7u7O6iqathIpL7VqaWUOpjfGWODzvGA+PHg4M5xiwCVUoOA73xE
+XvStIaqSC/QTJIS4askAEBGklOSOjV3XnOdbKWNd198XAZu1Fp6enuD5+fngOyklZFkGq9Xq/LRy
+qBV6DuoqGcBn1Od5fnbUkzs2dmmtj2Z2SZKcleGQOzUVufX4S+CTOzMlGWMwSZKj8DnnJ0075I5M
+UUVR9D5Mpml6NPrJHZiy8jxHt8Wja9GVUrZ+APKBz0GnwP/6Aay1GGyV8ZrGOQfOee/fffVVkkfJ
+lHXK3A6f2U2e500pgXzgU5TW+tcspgv0T5E7MCVZazFN019hbzab3m0/ckemot8WS8bYf5WAyZ0Z
+u6y12NU98AX7nBoMuVNjllLqaHRfsrlB7thYlWVZJ2whxMWtGs0/WPZI+3VJObcFfdmu6xfn/KqN
+SMsTaY+laQpVVUVXbUBCROjLPUPVUOeTgt8jLcsSHh4eDj4vigLu7++Haa+jzhIoZYzpTAmHajLq
+jPSQrK5r5Jx/V/4+TWs9+JH2YBdSIcQBcKWUn3cIUN/iFOpqrvJ5GoMcgG8VReEtS1mg40fxyl04
+KQ7ykoPwKbdayDn3Djwo6F0FLF9njIKEbowhn8eDgz6WaSUY6F3Zis8zo0FCd/cJpJSkwGcP3e0v
+p3zzRTDQ3Sgfw6ukEGde8IqiqHGOcw5VVY3iFYF/qQcwpBljoCxLuLm5ASEE9XAa+wfG38M70bTk
+sAAAAABJRU5ErkJggg==
+"
+       preserveAspectRatio="none"
+       height="15.345834"
+       width="24.606251" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.43217468px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.18580437"
+       x="111.91348"
+       y="-27.402487"
+       id="text832"
+       transform="scale(0.70225276,1.4239887)"><tspan
+         sodipodi:role="line"
+         id="tspan830"
+         x="111.91348"
+         y="-27.402487"
+         style="stroke-width:0.18580437">\footnotesize{json version}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.44448376px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.1111121"
+       x="-341.2113"
+       y="6.4853792"
+       id="text817-9"
+       transform="scale(0.41995123,2.3812289)"><tspan
+         sodipodi:role="line"
+         id="tspan815-4"
+         x="-341.2113"
+         y="6.4853792"
+         style="stroke-width:0.1111121">\footnotesize{$x_j \in \mathbb{R}^n \rightarrow \begin{bmatrix} x_j^1 \\ \vdots  \\  x_j^n \end{bmatrix}$}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.11288738px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.17782219"
+       x="0.14777538"
+       y="-8.4430542"
+       id="text856"
+       transform="scale(0.67208389,1.4879095)"><tspan
+         sodipodi:role="line"
+         id="tspan854"
+         x="0.14777538"
+         y="-8.4430542"
+         style="stroke-width:0.17782219">\footnotesize{$&quot;\bigg [ [x_1^1,\hdots ,x_1^n],\hdots , [x_M^1,\hdots ,x_M^n]\bigg ]&quot;$}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.76874828px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14421871"
+       x="-281.94049"
+       y="53.164051"
+       id="text817-3"
+       transform="scale(0.5450786,1.8345978)"><tspan
+         sodipodi:role="line"
+         id="tspan815-9"
+         x="-281.94049"
+         y="53.164051"
+         style="stroke-width:0.14421871">\footnotesize{Trees:$\bigg [ Tree_1 \bigg ]$, or $\bigg [ Tree_1, Tree_2 \bigg ]$}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.76874828px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.14421871"
+       x="-282.26672"
+       y="64.990097"
+       id="text817-3-6"
+       transform="scale(0.5450786,1.8345978)"><tspan
+         sodipodi:role="line"
+         id="tspan815-9-0"
+         x="-282.26672"
+         y="64.990097"
+         style="stroke-width:0.14421871">\footnotesize{$Tree=\lbrace x_{t1}, x_{t2}, \hdots, x_{tT} \rbrace$}</tspan></text>
+    <image
+       y="108.57863"
+       x="-37.599262"
+       id="image827-1"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF0AAAA6CAYAAADSgFUhAAAABHNCSVQICAgIfAhkiAAAA1RJREFU eJztnOFxqzAMx8W7N4DTEUwmoB3BI9CO4BFyGYF2Aq4j0A1cRnA6gekIJhvofWhLi0NKXhIswOju /4Gkd7V+EbaQZSJEhLlaXdf4/v4OAAC3t7cR8XAai+YMfbVa4X6/BwAAIQS8vr6OAvwf6gH4srIs 4eXlZRQRNmvo2+22dS2lJBqJY4g4azHGEAAaZVmG1GMihzK08jxvQQcAtNaSgieH4kOc8xb0NE0X 6ENLa30Q7UVRkIEnB+JLm82mBZ0xRjbNzDpPdy2O4+ZhCQAgSRLY7Xbec/dZp4yuKaVa129vb/D4 +Og/6qhve9/qymZ8z+/kECgkhDgAr7X2Bp4cAIWsteimkYwxNMZ4AR/UQvrTqqrC9Xrd+owxBlpr iON40MU1qIX0p8VxHLkL636/h7u7O6iqathIpL7VqaWUOpjfGWODzvGA+PHg4M5xiwCVUoOA73xE XvStIaqSC/QTJIS4askAEBGklOSOjV3XnOdbKWNd198XAZu1Fp6enuD5+fngOyklZFkGq9Xq/LRy qBV6DuoqGcBn1Od5fnbUkzs2dmmtj2Z2SZKcleGQOzUVufX4S+CTOzMlGWMwSZKj8DnnJ0075I5M UUVR9D5Mpml6NPrJHZiy8jxHt8Wja9GVUrZ+APKBz0GnwP/6Aay1GGyV8ZrGOQfOee/fffVVkkfJ lHXK3A6f2U2e500pgXzgU5TW+tcspgv0T5E7MCVZazFN019hbzab3m0/ckemot8WS8bYf5WAyZ0Z u6y12NU98AX7nBoMuVNjllLqaHRfsrlB7thYlWVZJ2whxMWtGs0/WPZI+3VJObcFfdmu6xfn/KqN SMsTaY+laQpVVUVXbUBCROjLPUPVUOeTgt8jLcsSHh4eDj4vigLu7++Haa+jzhIoZYzpTAmHajLq jPSQrK5r5Jx/V/4+TWs9+JH2YBdSIcQBcKWUn3cIUN/iFOpqrvJ5GoMcgG8VReEtS1mg40fxyl04 KQ7ykoPwKbdayDn3Djwo6F0FLF9njIKEbowhn8eDgz6WaSUY6F3Zis8zo0FCd/cJpJSkwGcP3e0v p3zzRTDQ3Sgfw6ukEGde8IqiqHGOcw5VVY3iFYF/qQcwpBljoCxLuLm5ASEE9XAa+wfG38M70bTk sAAAAABJRU5ErkJggg== "
+       preserveAspectRatio="none"
+       height="15.345835"
+       width="24.606253" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:6.83823156px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.17095579"
+       x="-8.9375992"
+       y="77.013458"
+       id="text929"
+       transform="scale(0.64613215,1.547671)"><tspan
+         sodipodi:role="line"
+         id="tspan927"
+         x="-8.9375992"
+         y="77.013458"
+         style="stroke-width:0.17095579">\footnotesize{$&quot;\bigg[\lbrace &quot;E&quot;:[x_{t1}^1,\hdots,x_{t1}^n],&quot;S&quot;:[x_{Fath(t1)}^1,\hdots,x_{Fath(t1)}^n] \rbrace$}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:6.83823109px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.17095579"
+       x="-9.0417747"
+       y="94.135231"
+       id="text929-8"
+       transform="scale(0.64613215,1.547671)"><tspan
+         sodipodi:role="line"
+         id="tspan927-2"
+         x="-9.0417747"
+         y="94.135231"
+         style="stroke-width:0.17095579">\footnotesize{$, \lbrace &quot;E&quot;:[x_{t2}^1,\hdots,x_{t2}^n],&quot;S&quot;:[x_{Fath(t2)}^1,\hdots,x_{Fath(t2)}^n] \rbrace$}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:6.83823109px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.17095579"
+       x="-8.2144833"
+       y="129.01891"
+       id="text929-8-2"
+       transform="scale(0.64613216,1.547671)"><tspan
+         sodipodi:role="line"
+         id="tspan927-2-6"
+         x="-8.2144833"
+         y="129.01891"
+         style="stroke-width:0.17095579">\footnotesize{$, \lbrace &quot;E&quot;:[x_{tT}^1,\hdots,x_{tT}^n],&quot;S&quot;:[x_{Fath(tT)}^1,\hdots,x_{Fath(tT)}^n] \rbrace \bigg]&quot;$}</tspan></text>
+    <image
+       y="163.21426"
+       x="65.153625"
+       id="image975"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAqCAYAAACKnsqLAAAABHNCSVQICAgIfAhkiAAAAJ9JREFU
+OI3tksENhDAMBDfoCjCUQC2uJbVQArVQA6KDtJAWhgdKjnsE8TqdTqy0j8gjx7Y2ACpKKbFtmyTJ
+3dX3fahFQIBijEj68DRNlHoTKp7nGUDKOTchSYzjeIDLslyCx3SoG4ZBtwTIzJrd3J26TOt7MyPn
+/AYBreuKu2NmmBkxxgoBCueDX6m7t8mfga/z48lj8ZPHXwef4H45uDtHm5oYkooIMQAAAABJRU5E
+rkJggg==
+"
+       preserveAspectRatio="none"
+       height="11.1125"
+       width="2.6458333" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.43217468px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.18580437"
+       x="114.87478"
+       y="62.939316"
+       id="text832-1"
+       transform="scale(0.70225277,1.4239887)"><tspan
+         sodipodi:role="line"
+         id="tspan830-0"
+         x="114.87478"
+         y="62.939316"
+         style="stroke-width:0.18580437">\footnotesize{json version}</tspan></text>
+  </g>
+</svg>

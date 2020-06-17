@@ -1,0 +1,236 @@
+\chapter{Customize your own planning problem}
+\label{chap:custom}
+
+MT$\_$RRT can be deployed to solve each possible problems for which RRT can be used. The only thing to do is to derive a specific object from the interface called Node::I$\_$Node$\_$factory to have an object describing your particular problem. The methods contained in this object are in charge of sampling new random states in $\mathcal{X}$ or computing the optimal trajectories $\tau$, which is the pre-requisite for performing steering operations (Figure \ref{fig:Steer}).
+Such functions are problem-specific and for this reason they must be implemented every time a new kind of problem must be solved.
+\\
+In order to help the user in understanding how to implement a derivation to Node::I$\_$Node$\_$factory, three main kind of examples are part of the library. In the following Sections, they will be briefly reviewed.
+
+\section{Planar maze problem}
+
+The state space characterizing this problem is a two dimensional one, having $x_{1,2}$ as coordinates. The aim is to connect two 2D coordinates while avoiding the rectangular obstacles depicted in Figure \ref{fig:Maze_problem}.
+The state space is bounded by two corners describing the maximum and minimum possible $x_1$ and $x_2$, see Figure \ref{fig:Maze_problem}.
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.85 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Maze_problem.pdf_tex} 
+	 \caption{Example of maze problem.}
+ \label{fig:Maze_problem}
+ \end{figure}
+
+\subsection{Sampling}
+
+A sampled state $x_R$ lies in the square delimited by the spatial bounds, i.e.:
+\begin{eqnarray}
+x_R = \begin{bmatrix} x_{R1} \sim U(x_{1min}, x_{1max}) \\ x_{R2} \sim U(x_{2min}, x_{2max})  \end{bmatrix}
+\end{eqnarray}
+
+\subsection{Optimal trajectory and constraints}
+\label{sec:traj_maze}
+
+The optimal trajectory $\tau_{i \rightarrow k}$ between two states in $\mathcal{X}$ is simply the segment connecting that states. 
+The cost $C(\tau_{i \rightarrow k})$ is assumed to be the length of such segment:
+\begin{eqnarray}
+C(\tau_{i \rightarrow k}) = \left \| x_i - x_k \right \|
+\end{eqnarray}
+The admissible region $\underline{\mathcal{X}}$ is obtained subtracting the points pertaining to the obstacles. In other words, the segment connecting the states in the tree should not traverse any rectangular obstacle, refer to the right part of Figure \ref{fig:Maze_problem}.
+
+\subsection{Steer procedure}
+
+The steering procedure is done as similarly described in Section \ref{sec:steer_articulated}, checking a close state $x_{steered}$ that lies on the segment departing from the state to steer.
+
+\section{Articulated arm problem}
+
+This is for sure one of the most common problem that can be solved using MT$\_$RRT. Consider a cell having a group of articulated serial robots.
+$Q^{i}$ will denote the vector describing the configuration of the $i^{th}$ robot, i.e. the positional values assumed by each of its joint.
+A generic state $x_i$ is characterized by the series of poses assumed by all the robots in the cell:
+\begin{eqnarray}
+x_i = Q_i = \begin{bmatrix} (Q^1_i)^T & \hdots & (Q^n_i)^T \end{bmatrix}^T
+\end{eqnarray}
+refer also to Figure \ref{fig:q_example}.
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.8 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{robot_joint.pdf_tex} 
+	 \caption{Rotating joints of two articulated manipulators.}
+ \label{fig:q_example}
+ \end{figure}
+
+These kind of problems consist in finding a path in the configurational space that leads the set of robots from an initial state $Q_o$ to and ending one $Q_f$, while avoiding the obstacles populating the scene, i.e. avoid collisions between any object in the cell and any part of the robots as well as cross-collision between all the robot parts. Here the term path, refer to a series of intermediate waypoints $Q_{1,\hdots,m}$ to traverse to lead the robot from $Q_o$ to $Q_f$. 
+
+\subsection{Sampling}
+
+The $i^{th}$ joint of the $k^{th}$ robot, denoted as $Q^{ki}$, is subjected to some kinematic limitations prescribing that its positional value must remain always within a compact interval $Q^{ki} \in [Q^{ki}_{min} , Q^{ki}_{max}]$. Therefore, the sampling of a random configuration $Q_R$ is done as follows:
+\begin{eqnarray}
+Q_R = \begin{bmatrix} 
+Q^{11}_R \sim U(Q^{11}_{min},Q^{11}_{max}) \\
+Q^{12}_R \sim U(Q^{11}_{min},Q^{11}_{max}) \\
+\vdots \\ 
+Q^{21}_R \sim U(Q^{21}_{min},Q^{21}_{max}) \\
+Q^{22}_R \sim U(Q^{21}_{min},Q^{21}_{max}) \\
+\vdots \\
+Q^{n1}_R \sim U(Q^{n1}_{min},Q^{n1}_{max}) \\
+Q^{n2}_R \sim U(Q^{n1}_{min},Q^{n1}_{max}) \\
+\vdots
+\end{bmatrix}
+\end{eqnarray}
+
+\subsection{Optimal trajectory and constraints}
+
+Similarly to the problem described in Section \ref{sec:traj_maze}, $\tau_{i \rightarrow k}$ is assumed to be a segment in the configurational space and the cost $C$ is the Euclidean distance of a pair of states.
+The admissible region $\underline{X}$ is made by all the configurations $Q$ for which a collision is not present.
+
+\subsection{Steer procedure}
+\label{sec:steer_articulated}
+
+The trajectory going from $Q_i$ to $Q_k$ can be parametrized in order to characterize all the possible configurations pertaining to $\tau_{i \rightarrow k}$:
+\begin{eqnarray}
+ Q(s) = \tau_{i \rightarrow k}(s) = Q_i + s \bigg ( Q_k - Q_i \bigg )
+\end{eqnarray}
+$s$ is a parameter spanning $\tau_{i \rightarrow k}$ and can assume a value inside $[0,1]$.
+Ideally, the steer process has the aim of determine that state $Q(s_{steered})$ that is furthest from $Q_i$ and at the same time contained in $\underline{X}$ (Figure \ref{fig:Steer}). Anyway, determine the exact value of $s_{steered}$ would be too much computationally demanding. Therefore, in real situations, two main approaches are adopted: a tunneled check collision or the bubble of free configuration.
+
+\subsubsection{Tunneled check collision}
+
+This approach consider as steered state $Q_{steered}$ the following quantity:
+\begin{eqnarray}
+Q_{steered} = \left\{\begin{matrix}
+\textit{if} (\left \| Q_k - Q_i \right \| \leq \epsilon) \Rightarrow Q_k 
+\\ 
+\textit{else} \Rightarrow Q_i + s_{\Delta} ( Q_k - Q_i ) \textit{   s.t.   } s_{\Delta} \left \| Q_k - Q_i  \right \| = \epsilon
+\end{matrix}\right.
+\end{eqnarray}
+with $\epsilon$ in the order of few degrees. $Q_{steered}$ is checked to be or not in $\underline{X}$ and is consequently marked as $VALID$ or $INVALID$. The class Tunneled$\_$check$\_$collision is in charge of implementing such an extension strategy. It absorbs an object of type I$\_$Collision$\_$checker to check whether for a certain state are present or not collisions. I$\_$Collision$\_$checker is just an interface: you can integrate your own collision checker (using for example \cite{Bullet} or \cite{React}) by deriving an object from this interface.
+\\
+Clearly, multiple tunneled check, starting from $Q_i$, can be done in order to get as close as possible to $Q_k$. This process can be arrested when reaching $Q_k$ or an intermediate state for which a collision check is not passed. This behaviour can be obtained by using Node$\_$factory$\_$multiple$\_$steer, absorbing a Tunneled$\_$check$\_$collision object.
+\\
+Figure \ref{fig:Tunnel_check} summarizes the above considerations.
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.45 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Tunneled_check_collision.pdf_tex} 
+	 \caption{Steer extension along the segment connecting two states in the configuration space. On the left a single steer approach, on the right a multiple one.}
+ \label{fig:Tunnel_check}
+ \end{figure}
+
+\subsubsection{Bubble of free configuration}
+
+This approach was first proposed in \cite{Bubble} and is based on the definition of a so called bubble of free configuration $\mathcal{B}$. Such a bubble is a region of the configurational space that is built around a state $Q_i$. More formally, $\mathcal{B}(Q_i)$ is defined as follows:
+\begin{eqnarray}
+\mathcal{B}(\bar{Q} = \begin{bmatrix} \bar{Q}^{1T} & \hdots & \bar{Q}^{nT} \end{bmatrix}^T) = \bigg \lbrace 
+\bar{Q} \bigg | & \forall & j \in \lbrace 1,\hdots,n \rbrace \sum_i r^{ji} | Q^{ji} - \bar{Q}^{ji} | \leq d^j_{min} \,\,\,
+ \textit{and} \nonumber\\
+ & \forall & j,k \in \lbrace 1,\hdots,n \rbrace \sum_i r^{ji} | Q^{ji} - \bar{Q}^{ji} | + \sum_i r^{ki} | Q^{ki} - \bar{Q}^{ki} | \leq d^{jk}_{min}
+ \bigg \rbrace 
+\end{eqnarray}
+where $d^j_{min}$ is the minimum distance between the $i^{th}$ robot and all the obstacles in the scene, while $d^{jk}_{min}$ is the minimum distance between the $i^{th}$ and the $k^{th}$ robot. $r^{ki}$ is the distance of the furthest point of the shape of the $k^{th}$ robot to its $i^{th}$ axis of rotation. Refer also to Figure \ref{fig:dist_ray}.
+\\
+Each configuration $Q \in \mathcal{B}$ is guaranteed to be inside the admitted region $\underline{X}$. This fact can be exploited for performing steering operation.
+Indeed, we can take as $Q_{steered}$ the pose at the border of $\mathcal{B}(Q_i)$ along the segment connecting $Q_i$ to $Q_k$. It is not difficult to prove that such a state is equal to:
+\begin{eqnarray}
+Q_{steered} &=& \begin{bmatrix} Q_{steered}^{1T} & \hdots & Q_{steered}^{nT} \end{bmatrix}^T =  Q_i + s_{steered} (Q_k - Q_i) \nonumber\\
+s_{steered} &=& min \bigg \lbrace s_A, s_B \bigg \rbrace  \nonumber\\
+s_A &=& min_{j\in \lbrace 1,\hdots,n \rbrace, q} \bigg \lbrace 
+\frac{d^j_{min}}{r^{jq} | Q^{jq}_i - Q^{jq}_k |} 
+\bigg \rbrace \nonumber\\
+s_B &=& min_{j, k\in \lbrace 1,\hdots,n \rbrace, q,q_2} \bigg \lbrace 
+\frac{d^{jk}_{min}}{r^{jq} | Q^{jq}_i - Q^{jq}_k | + r^{kq2} | Q^{kq_2}_i - Q^{kq_2}_k |}
+\bigg \rbrace
+\end{eqnarray}
+Also in this case a multiple steer approach is possible for this strategy, by using Node$\_$factory$\_$multiple$\_$steer, absorbing a Bubbles$\_$free$\_$configuration object, refer also to Figure \ref{fig:bubbles}.
+\\
+Bubbles$\_$free$\_$configuration contains the functionalities for performing steering operations using the bubble of free configuration. Then, you have to deploy your own geometric engine in order to compute the distances $d^j_{min}$, $d^{jk}_{min}$ as well as the radii $r^{ki}$, deriving an object from I$\_$Proximity$\_$calculator.
+Robots$\_$info stored in these kind of objects is a structure containing the distance $d^j_{min}$, as well as the radii $r^{ki}$ (with an order that goes from the base to the end effector), while Robot$\_$distance$\_$pairs is a buffer of distances storing all the possible $d^{jk}_{min}$, with the order indicated in Figure \ref{fig:cross_distances}.
+
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.85 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{distances_rays.pdf_tex} 
+	 \caption{The quantities involved in the computation of the bubble $\mathcal{B}$.}
+ \label{fig:dist_ray}
+ \end{figure}
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.45 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Bubble_steer.pdf_tex} 
+	 \caption{Single (left) and multiple (right) steer using the bubbles of free configurations.}
+ \label{fig:bubbles}
+ \end{figure}
+
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.45 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{cross_distances.pdf_tex} 
+	 \caption{Values stored in Robot$\_$distance$\_$pairs.}
+ \label{fig:cross_distances}
+ \end{figure}
+
+
+\section{Navigation problem}
+
+This problem is typical when considering autonomous vehicle. We have a 2D map in which a cart must move. In order to simplify the collision check task, a bounding box $\mathcal{L}$ is assumed to contain the entire shape of the vehicle, Figure \ref{fig:vehicle}. The cart moves at a constant velocity when advancing on a straight line and cannot change instantaneously its cruise direction. Indeed, the cart has a steer, which allows to do a change direction by moving on a portion of a circle, refer to Figure \ref{fig:vehicle}. In order to simplify the problem, we assume that the steering radius must be constant and equal to a certain value $R$ and the velocity of the cart while performing the steering maneuver is constant too. 
+\\
+Since the cart is a rigid body, its position and orientation in the plane can be completely described using three quantities: the coordinates $p_x,p_y$ of its center of gravity and the absolute angle $\theta$. Therefore, a configuration $x_i \in \mathcal{X}$ is a vector defined as follows: $x_j = \begin{bmatrix} p_{xi} & p_{yi} & \theta _i  \end{bmatrix}$. The admitted region $\underline{\mathcal{X}}$  is made by all the configurations $x$ for which the vehicle results to be not in collision with any obstacles populating the scene.
+
+ \begin{figure}
+\begin{tabular}{cc}
+\begin{minipage}[t]{0.49\textwidth}
+	 \centering
+ \def\svgwidth{0.85 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Vehicle.pdf_tex} 
+\end{minipage}
+ & 
+\begin{minipage}[t]{0.49\textwidth}
+	 \centering
+ \def\svgwidth{0.85 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Vehicle_traj.pdf_tex} 
+\end{minipage}
+\end{tabular} 
+	 \caption{Vehicle motion in a planar environment.}
+ \label{fig:vehicle}
+ \end{figure}
+ 
+\subsection{Sampling}
+
+The environment where the vehicle can move is assumed to be finite and equal to a bounding box $\mathcal{E}$ with certain sizes, right portion of Figure \ref{fig:vehicle}. The sampling of a random configuration for the vehicle is done in this way:
+\begin{eqnarray}
+x_R = \begin{bmatrix} (p_{xi} , p_{yi}) \sim \mathcal{E} \\ \theta \sim U(-\pi, \pi) \end{bmatrix}
+\end{eqnarray}
+
+\subsection{Optimal trajectory and constraints}
+
+The optimal trajectory connecting two configurations $x_i, x_j$ is made of three parts (refer to the examples in the right part of Figure \ref{fig:vehicle} and the top part of Figure \ref{fig:traj_feas}):
+\begin{itemize}
+\item a straight line starting from $x_i$
+\item a circular portion motion used to get from $\theta_i$ to $\theta_j$
+\item a straight line ending in $x_j$
+\end{itemize}
+The cost $C(\tau)$ is assumed to be the total length of $\tau$. It is worthy to remark that not for every pair of configurations exists a trajectory connecting them, refer to Figure \ref{fig:traj_feas}. Therefore, in case the trajectory $\tau_{i \rightarrow j}$ does not exists, $C(\tau_{i \rightarrow j})$ is assumed equal to $+\infty$.
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.65 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{traj_feasibility.pdf_tex} 
+	 \caption{Examples of feasible, top, and non feasible trajectories, bottom. The different parts of the feasible trajectories are highlighted with different colors. }
+ \label{fig:traj_feas}
+ \end{figure}
+
+\subsection{Steer procedure}
+
+The steering from a state $x_i$ toward another $x_j$ is done by moving along the trajectory $\tau_{i \rightarrow j}$, advancing every time of a little quantity of space (also when traversing the circular part of the trajectory).
+The procedure is arrested when a configuration not lying in $\underline{\mathcal{X}}$ is found or $x_j$ is reached. Figure \ref{fig:vehicle_steer} summarizes the steering procedure.
+
+ \begin{figure}
+	 \centering
+ \def\svgwidth{0.35 \columnwidth}
+ \import{../Chapter_additional/02_Customize_problems/image/}{Vehicle_steer.pdf_tex} 
+	 \caption{Steering procedure for a planar navigation problem.}
+ \label{fig:vehicle_steer}
+ \end{figure}
+

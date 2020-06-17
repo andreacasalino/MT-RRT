@@ -1,0 +1,116 @@
+Multiprocess (MP) programs aim at exploiting a set of concurrent processes to get in a faster way a solution to a complex problem. Every process has its own private variables and some unified protocol (METTERE ref a MPI o ad altri interprocess comm) can be exploited to let processed exchange informations, synchronizing their efforts.
+For this reason the strategies METTERE le prime due MT are very difficult to be translated in MP environments; while the strategy METTERE can be in principle extended to MP, considering to exploit the communication between processes to notify the results found by a process to the others.
+However, this approach would absorb much more computation time than a multithreading one, when considering the same number of threads/processes, since the communication time between processes is much higher than the same for threads (since threads are able to create variables and then directly add them to a container possessed by another thread).
+\\
+Therefore such an approach will not be followed in this work.        
+
+\subsection{A master-slave strategy}
+
+The MP strategy we propose, aims at exploiting a big number of concurrent processes \footnote{Since launching a big number of concurrent processes is preferable than launching the same number of concurrent threads}, with a reduced synchronizing necessity.
+To this purpose it is possible to exploit a master-slaves scheme: the master process is the only one having the entire knowledge of the search tree, while many other slave processes receive every time new roots to expand, ignoring the states computed by the other slaves.
+Results from slaves are collected by the master.
+The behaviour of the slaves resembles the one of many exploring ants, which reports data about the exploration to a unique centralized database (the Anthill experience).  The pseuocode in Algorithm \ref{alg:RRT_master_slave} describes this approach (the Procedure RRT search in Slave work is the same of METTERE ). The total amount of iterations $I$, is split into $C$ duty cycles. For every cycle the slaves expand the received newer roots for a maximum of $N_b$ iterations.
+Clearly $I=N_b (P-1) C$ 
+
+\begin{algorithm}
+\caption{master-slaves RRT}\label{alg:RRT_master_slave}
+\begin{algorithmic}[1]
+\Procedure{Master work}{$P$}
+\State $T(x_o)={x_o}$; 
+\For{\texttt{kp=1:$P-1$}}
+\State \texttt{launch} $process_{kp}$ (Slave work);
+\EndFor
+\State $k=0$;
+\While{$k < I$}
+	\For{\texttt{kp=1:$P-1$}}
+	\State Sample one $x_{kp}$ from $T$);
+	\State Send $x_{kp}$ to slave $kp$;
+	\EndFor
+	\State Wait results from slaves;
+	\For{\texttt{kp=1:$P-1$}}
+	\State \Comment{process results from slave $kp$};
+	\State $S_{kp} = {x^{kp}_{1}, \cdots ,x^{kp}_{S}}$; 
+	\For{\texttt{$x^{kp}_{s} \in S_{kp}$}}
+		\State $x_{new} = x^{kp}_{s}$;
+		\State $Fath(x_{new}) = Fath(x^{kp}_{s})$;
+		\State Insert($T$, $x_{new}$);
+		\If{\texttt{$\Vert x_{new} - x_f \Vert \leq \epsilon$}}
+		\State $Path=$ Path to root$(x_{new}) \cup x_f$;
+		\State Kill all slaves();
+		\State \Return;
+		\EndIf
+	\EndFor
+	\EndFor
+	\State $k=k+N_b(P-1)$;
+\EndWhile
+\EndProcedure
+\\
+\Procedure{Slave work}{}
+\While{\texttt{TRUE}}
+\State Wait a newer root $x_{new\,root}$ to expand from Master();
+\State $T=x_{new\,root}$;
+\State RRT search(); \Comment{with $I=N_b$};
+\State Send all nodes in $T$ to Master;
+\EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Notice that the computed newer states must be copied from every slave to the master (through an interprocess communication stream), but not from a certain slave to the other ones. This drastically reduce the traffic over the net of processes. 
+When considering this approach a bidirectional search is not implementable, while the RRT* can be extended as reported in Algorithm METTERE.
+
+\begin{algorithm}
+\caption{master-slaves RRT*}\label{alg:RRT_star_master_slave}
+\begin{algorithmic}[1]
+\Procedure{Master work}{$P$}
+\State $T(x_o)={x_o}$; 
+\For{\texttt{kp=1:$P-1$}}
+\State \texttt{launch $process_{kp}$ executing \textbf{Slave work}};
+\EndFor
+\State $k=0$;
+\State $Sol = \emptyset$;
+\State $k=0$;
+\While{$k < I$}
+	\For{\texttt{kp=1:$P-1$}}
+	\State Sample one $x_{kp}$ from $T$);
+	\State Send $x_{kp}$ to slave $kp$;
+	\EndFor
+	\State Wait results from slaves;
+	\For{\texttt{kp=1:$P-1$}}
+	\State \Comment{process results from slave $kp$};
+	\State $S_{kp} = {x^{kp}_{1}, \cdots ,x^{kp}_{S}}$; 
+	\For{\texttt{$x^{kp}_{s} \in S_{kp}$}}
+		\State $x_{new} = x^{kp}_{s}$;
+		\State Insert star($T$, $x_new$);
+		\If{\texttt{$\Vert x_{new} - x_f \Vert \leq \epsilon$}}
+		\State $Sol = Sol \cup x_{new}$;
+		\EndIf
+	\EndFor
+	\EndFor
+	\State $k=k+N_b(P-1)$;
+\EndWhile
+\State $x_{best} = argmin_{x_S \in Sol} ($ Cost to root$(x_S) ) $;
+\State \Return Path to root$(x_{best}) \cup x_f$;
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Essentially, the rewirds are never executed by slaves (which don't have the complete knowledge of the tree), but is the master that compute the rewirds step, at the time of collecting data from slaves. For improving the efficiency, the list of results coming from the slaves can be checked for rewirds in a parallel way, exploiting threads, therefore combining multiprocess with multithreading (the results reported in Section METTERE, was obtained applied this method).
+
+
+Clearly, when considering this formulation, we are modifying the behaviour of an RRT algorithm, since slaves explore new roots, ignoring all the other nodes. However, we empirically found that the global behaviour of the path search is similar to the canonical one. In particular, the properties of the RRT* are preserved, see Figure METTERE.
+
+METTERE esempio di albero trovato con colori diversi per slave diversi e mostrare come costo della soluzione RRT* master-slave sia lo stesso di quella RRT* seriale normale, sullo use-case del robot 
+a 3 gdl.
+
+Regarding the computational issue, the mean computation time of this kind of strategy can be estimated as follows ($P_{T}$ is the number of threads adopted to parallelize the rewird operations on the list of nodes collected from slaves):
+\begin{eqnarray}
+\textit{ RRT  \,\,} T &\propto & \frac{(N_b+1)N_b}{2(P-1)} t_{\tau} 
++ \frac{I}{P-1} t_V + \frac{I}{P-1} t_M
+\nonumber\\
+\textit{ RRT*  \,\,} T &\propto & \frac{(N_b+1)N_b}{2}(\frac{1}{P-1} + \frac{1}{P_T}) t_{\tau} 
++ (\frac{I}{P-1} + \cdots \nonumber\\
+&+& \frac{\gamma log(I)^{\frac{1}{d}}}{I\,P_{T}}) t_V + \frac{I}{P-1} t_M
+\end{eqnarray}
+
+The quantity $t_M$ takes into account also the time spent for communicating the results from the slaves to the master and therefore is higher than the same for the method proposed in Section METTERE. However, the mean time spent for the Nearest Neighbour search is considerably lower, since this operation is performed by the slaves processes, which reason only about its own local trees. 

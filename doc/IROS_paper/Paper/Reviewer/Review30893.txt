@@ -1,0 +1,16 @@
+Reviewer 14 of IROS 2019 submission 806
+
+Comments to the author
+======================
+
+This work describes a multithreading implementation to
+speed up RRTs. I have 2 major comments:
+1)	The references section is not complete. A better
+coverage of RRTs should be carried out.
+2)	As this is an experimental work, a thorough
+analysis of performance of the 4 strategies is required. A
+table showing the performance of the multithreaded
+strategies in terms of computational time as well as
+computational space. The results should be compared with
+the original RRT and fast implementations of RRT such as
+RRG, RRT*, and LBT-RRT.

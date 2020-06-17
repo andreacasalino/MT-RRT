@@ -1,0 +1,202 @@
+The aim of this Section is to show how the RRT algorithms are parallelized by making use of MT-RRT.
+As already exposed, the proposed library exploits a multithreading environment, whose peculiarity is the presence of a common memory shared by threads. This characteristic requires to design accurately the critical sections, i.e. those parts of the program where threads are allowed to modify (one at a time) the values of the shared variables. 
+In the following, the four possible strategies adopted by MT-RRT will be exposed.
+
+\subsection{Parallelization of the querying activities}
+\label{subsec:MT_01}
+
+By the analysis of equations (\ref{eq:T_serial_single}), (\ref{eq:T_serial_bid}) and (\ref{eq:T_serial_star}), it is clear that the querying operations (i.e. the ones requiring to scan the entire list of elements of a tree) are computationally demanding. Therefore, the first possible strategy for a parallelization could simply consist in executing collectively (among threads) the Nearest Neighbour search and the determination of the Near set.
+Clearly, it is inefficient to re-open and close a new parallel region every time a new collective search is required, but it is more convenient to launch a pool of threads at the beginning of the algorithm and then use a shared barrier to notify to threads the need to execute a newer collective search \footnote{Which is implemented as a parallel for, with a subsequent reduction operation.}. 
+The maintenance operations on the search tree are executed always by the main thread.
+The mean computation time expected when considering a perfect parallelization and adopting $P$ threads can be estimated as follows:
+\begin{eqnarray}
+T(P) &=& \frac{T_{\tau}}{P} + T_V \nonumber\\
+\textit{for RRT*  \,\,\,\,\,} T(P) &=& \frac{T_{\tau}}{P} + T_V + T_{Rew} 
+\end{eqnarray}
+%Therefore, this strategy is expected to be beneficial only for those cases for which $t_{\tau}$ is much more greater than $t_V$.
+  
+\subsection{Parallel exploration on a shared tree}
+\label{subsec:MT_02}
+
+Another way to obtain a parallelization is to actually do simultaneously, every single step of the algorithms detailed in Section \ref{sec:cap_02}. Therefore, we can imagine having threads sharing a common tree, executing in parallel every step of the expansion process. Some critical sections must be designed to allow the threads executing the maintenance of the shared tree (inserting new nodes or executing new rewirds) one at a time.
+Ideally, the computation time of this solution can be estimated as follows:
+\begin{eqnarray}
+T(P) &=& \frac{T_{\tau} + T_V }{P} \nonumber\\
+\textit{for RRT*  \,\,\,\,\,} T(P) &=& \frac{T_{\tau} + T_V + T_{Rew} }{P}
+\label{eq:T_parall_02}
+\end{eqnarray}
+However, the presence of the critical sections can severely compromise the efficiency of the parallelization for certain planning problem, enlarging the total overhead times. Indeed, the computational times obtained by adopting this strategy could be far beyond the time described by equation (\ref{eq:T_parall_02}) (see Section \ref{sec:cap_04}).
+
+\subsection{Parallel expansions of copied trees}
+\label{subsec:MT_03}
+
+To limit as much as possible the overheads induced by the presence of critical sections, we can consider a version similar to the one proposed in the previous Section, in which every thread has a private copy of the search tree. After a new node is added by a thread to its own tree, $P-1$ copies are computed and dispatched to the other threads. At every iteration, all the threads take into account the list of nodes received from the others and insert some of them into their private trees. This mechanism is able to avoid the
+simultaneous modification of a tree by two different threads, avoiding the use of critical sections. 
+The pseudocode of this solution is reported in Algorithm \ref{alg:RRT_single_MT_02}.
+
+\begin{algorithm}
+\caption{}\label{alg:RRT_single_MT_02}
+\begin{algorithmic}[1]
+\Procedure{Tree copies search}{$x_o$, $x_f$, $P$}
+\State $Path = \emptyset$;
+\For{\texttt{kp=1:$P$}} 
+\State $T_{kp}=\lbrace x_o \rbrace$;
+\State $J^{kp}=\emptyset$;
+\State $C_{kp}=0$;
+\State \texttt{launch thread}( Thread search($kp$));
+\EndFor
+\State \Return $Path$;
+\EndProcedure
+\\
+\Procedure{Thread search}{$th_{id}$}
+\For{\texttt{k=1:$\frac{I}{P}$}}
+	\If{$Path \neq \emptyset$} 
+	\Return;
+	\EndIf
+	\State $S=size(J^{th_{id}})$;
+	\For{\texttt{kj=1:($S-C_{th_{id}}$)}}
+		\State $C_{th_{id}}=C_{th_{id}}+1$;
+		\State $T_{th_{id}} = T_{th_{id}} \cup J^{th_{id}}_{kj}$;
+	\EndFor
+	\State \texttt{sample a}\,\,\, $x_R \in  \mathcal{X}$;
+	\State $x_s =$ Expand($T_{th_{id}} , x_R$) ;
+	\If{\texttt{$x_s \in \underline{\mathcal{X}}$ } AND \texttt{$\Vert x_s - x_f \Vert \leq Threshold$}}
+		\State \texttt{critical section begin}
+		\State $Path=$ Path to root$(x_s) \cup x_f$;	
+		\State \texttt{critical section end}
+			\For{\texttt{kp=1:$P$}}
+			\If{\texttt{kp != $th_{id}$}}
+			\State $j_{kp}=x_s$; \Comment copy this node
+			\State $J_{kp}= J_{kp} \cup j_{kp}$;
+			\EndIf
+			\EndFor
+		\State \Return;
+	\EndIf
+\EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+When considering the bidirectional strategy, the mechanism is analogous but introducing for every thread  a private copy of both the searching trees. Instead, for the RRT* formulation, every thread communicates to the others not just the new states found, but also the rewirds executed.
+Moreover, a common list of solutions found is maintained during the expansions. At the end of all the explorations, the path in that list minimizing the cost $C(\tau)$ is returned.
+In this way, when following this approach, there is no need to synchronize threads for executing rewirds.
+Assuming to $t_M$ equal the time required to copy a node inserted in the tree, the expected computation time of this strategy turns out to be:
+\begin{eqnarray}
+T(P) &=& \frac{T_{\tau} + T_V }{P} + T_M  \nonumber\\
+\textit{for RRT*  \,\,\,\,\,}  T(P) &=& \frac{T_{\tau} + T_V + T_{Rew} }{P} + T_M \nonumber\\
+T_M  & = & \mathcal{O} \left(  \frac{I(P-1)}{P} t_M \right)
+\end{eqnarray}  
+
+\subsection{Blinded multiagents explorations}
+\label{subsec:MT_04}
+
+The strategy proposed in this Section aims at exploiting a significant number of threads, with both a  reduced synchronizing need and allocation memory requirements.
+To this purpose, we have developed a variant of the RRT for which every exploring thread has not the entire knowledge of the tree, but it is conscious of a small portion of it. Therefore, we can deploy many threads to simultaneously explore the region $\underline{X}$ (ignoring the results found by the other agents) for a certain amount of iterations $N_b$. After completing this sub-exploration, all data incoming from the agents are collected and stored in a centralized data base while the agents wait to begin a new explorative batch, completely forgetting the nodes found at the previous iteration. 
+The described behaviour resembles one of many exploring ants, which reports the exploring data to a unique anthill.  The pseudocode in Algorithm \ref{alg:RRT_agents} details the proposed approach. The total amount of iterations $I$ is split into $C$ cycles of $N_b$ explorations for every agent(thread). 
+Clearly $I \simeq N_b (P-1) C$.
+
+\begin{algorithm}
+\caption{Multi Agent RRT}\label{alg:RRT_agents}
+\begin{algorithmic}[1]
+\Procedure{Background}{$x_o$, $x_f$, $P$}
+\State $T_M=\lbrace x_o \rbrace$; 
+\For{\texttt{kp=1:$P$}}
+\State $T_{kp} = \emptyset$;
+\State \texttt{launch thread}(Agent work($kp$));
+\EndFor
+\State $k=0$;
+\While{$k < I$}
+	\For{\texttt{kp=1:$P$}}
+	\State \texttt{sample a} $x_R \in T_M \vert \mathbb{P}(x_i) \propto \frac{1}{1+C(\tau_{i \rightarrow f})}$;
+	\State $T_{kp} = \lbrace x_{R} \rbrace$;
+	\EndFor
+	\State \texttt{threads barrier};
+	\State $T_M = \lbrace T \cup T_1, \cdots, T_P \rbrace$;
+	\If{\texttt{$\exists x_i \in T_M s.t. \Vert x_i - x_f \Vert \leq \epsilon$}}
+		\State \texttt{Kill agents};
+		\State \Return Path to root($x_i$)$ \cup x_f$;	
+	\EndIf
+	\State $k=k+N_b \cdot P$;
+\EndWhile
+	\State \texttt{Kill agents};
+\EndProcedure
+\\
+\Procedure{Agent work}{$th_{id}$}
+\While{\texttt{TRUE}}
+	\State \texttt{threads barrier};
+	\If{$T_{th_{id}} = \emptyset$}
+	\State \texttt{break};
+	\EndIf
+\State RRT search(); \Comment{on $T_{th_{id}}$, with $I=N_b$};
+	\State \texttt{threads barrier};
+\EndWhile
+\EndProcedure
+\\
+\Procedure{Kill agents}{}
+	\For{\texttt{kp=1:$P$}}
+	\State $T_{kp} = \emptyset$;
+	\EndFor
+	\State \texttt{threads barrier};
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Notice that there is no need to physically copy the states computed by the agents when inserting them into $T_M$, since threads share a common memory: a reference to the newer states is simply added to $T_M$. When considering this approach a bidirectional search is not implementable, while the RRT* can be extended as reported in Algorithm \ref{alg:RRT_agents_star}.
+
+
+\begin{algorithm}
+\caption{Multi Agent RRT*}\label{alg:RRT_agents_star}
+\begin{algorithmic}[1]
+\Procedure{Multi Agent search *}{$x_o$, $x_f$, $P$}
+\State $T_M={x_o}$; 
+\For{\texttt{kp=1:$P$}}
+\State $T_{kp} = \emptyset$;
+\State \texttt{launch thread}(Agent work * ($kp$) );
+\EndFor
+\State $Sol = \emptyset$;
+\State $k=0$;
+\While{$k < I$}
+	\For{\texttt{kp=1:$P$}}
+	\State \texttt{sample a} $x_R \in T_M \vert \mathbb{P}(x_i) \propto \frac{1}{1+C(\tau_{i \rightarrow f})}$;
+	\State $T_{kp} = \lbrace x_{kp} \rbrace$;
+	\State $Near^{kp}=\lbrace x_i \in T_M | C(\tau_{i \rightarrow s}) <= \gamma {(\frac{log(N)}{N})}^{\frac{1}{d}}  \rbrace$;
+	\State $T_{kp}=\lbrace T_{kp} \cup$ Path to root($x^{kp}$) $ \,\,\,\, \forall x^{kp} \in Near^{kp} \rbrace$
+	\EndFor
+	\State \texttt{threads barrier};
+	\State \texttt{threads barrier};
+	\State $T_M = \lbrace T \cup T_1, \cdots, T_P \rbrace$;
+	\For{$x_m \in \lbrace x | x \in T_p \bigwedge \Vert x - x_f \Vert \leq \epsilon \,\,\, \forall p=1, \cdots, P \rbrace$}
+		\State $Sol = Sol \cup x_m$;	
+	\EndFor
+	\State $k=k+N_b \cdot P$;
+\EndWhile
+	\State \texttt{Kill agents};
+	\State $x_{best} = \underset{x_S \in Sol}{\operatorname{argmin}}$( Cost to root$(x_S)$ );
+	\State \Return Path to root$(x_{best}) \cup x_f$;
+\EndProcedure
+\\
+\Procedure{Agent work *($th_{id}$)}{}
+\While{\texttt{TRUE}}
+	\State \texttt{threads barrier};
+	\If{$T_{kp} = {\emptyset}$}
+	\State \texttt{break};
+	\EndIf
+\State RRT* search(); \Comment{on $T_{kp}$, with $I=N_b$};
+	\State \texttt{threads barrier};
+\EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+When considering this formulation, we are modifying the canonical behaviour of an RRT algorithm, since agents explore every time some new roots, ignoring all the previously computed nodes. However, we empirically found that the global behaviour of the path search is not deteriorated. In particular, the optimality properties of the RRT* seems to be preserved, see Figure \ref{fig:Problem_A_04}.
+
+The mean computation time of this kind of strategy can be estimated as follows:
+\begin{eqnarray}
+T(P) &=& \frac{T_{\tau} + T_V}{P} \nonumber\\
+\textit{for RRT* \,\,\,\,\,}   
+T(P) &=& \frac{T_{\tau} + T_V + T_{Rew}}{P}   \nonumber\\
+T_{\tau} & = & \mathcal{O} \left( C (N_b+1)N_b t_{\tau} \right) \nonumber\\
+T_{Rew}  & = & \mathcal{O} \left( C \gamma t_V \sum_{i=1}^{N_b} \left( \frac{log(i)}{i}^{\frac{1}{d}} \right) \right)  
+\end{eqnarray}
+ 
+The mean time spent for the querying operations is considerably lower, since such operations are performed by agents considering only their own local reduced size trees. 
