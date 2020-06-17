@@ -1,7 +1,7 @@
 all: build_lib build_samples
 
 build_lib:
-	rm    bin -r
+	rm -f -r bin
 	mkdir bin
 	cp ./Samples/src_JS ./bin/src_JS -r
 	cp ./Samples/src_Py ./bin/src_Py -r
@@ -78,9 +78,9 @@ Sample_Navigation_cluttered:
 	g++ -o ./bin/Sample_03_Navigation/02_Navigation_cluttered/02_Navigation_cluttered ./Samples/03_Navigation/02_Navigation_cluttered/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 
 Sample_Navigation_GUI:
-	mkdir -p .\bin\Sample_03_Navigation\00_GUI
-	mkdir -p .\bin\Sample_03_Navigation\00_GUI\front_JS
-	cp  .\Samples\03_Navigation\00_GUI\front_JS .\bin\Sample_03_Navigation\00_GUI\front_JS -r
-	cp  .\Samples\03_Navigation\00_GUI\launcher.bat .\bin\Sample_03_Navigation\00_GUI\launcher.bat -r
+	mkdir -p ./bin/Sample_03_Navigation/00_GUI
+	mkdir -p ./bin/Sample_03_Navigation/00_GUI/front_JS
+	cp  ./Samples/03_Navigation/00_GUI/front_JS ./bin/Sample_03_Navigation/00_GUI/front_JS -r
+	cp  ./Samples/03_Navigation/00_GUI/launcher.bat ./bin/Sample_03_Navigation/00_GUI/launcher.bat -r
 	g++ -o ./bin/Sample_03_Navigation/00_GUI/back_Cpp ./Samples/03_Navigation/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3
 	

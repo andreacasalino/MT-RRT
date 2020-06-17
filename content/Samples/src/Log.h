@@ -7,6 +7,7 @@
  
 #include <string>
 #include <fstream>
+#include <iostream>
 
 void replacer(std::string& involved, const char& to_find, const char& to_set) {
 	size_t K = involved.size();
@@ -20,12 +21,12 @@ void Log_creator(const std::string& template_location, const std::string& destin
 
 	std::ifstream fi(template_location);
 	if (!fi.is_open()) {
-		system("echo template file not found");
+		cout << "template file not found\n";
 		throw 0;
 	}
 	std::ofstream fo(destination);
 	if (!fo.is_open()) {
-		system("echo impossible to create destination file");
+		cout << "echo impossible to create destination file\n";
 		throw 1;
 	}
 

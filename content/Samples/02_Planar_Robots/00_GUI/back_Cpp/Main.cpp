@@ -2,6 +2,7 @@
 #include "../../../src/GUI_Server.h"
 #include <float.h>
 #include <math.h>
+#include <iostream>
 using namespace std;
 
 
@@ -18,7 +19,7 @@ private:
 
 int main() {
 
-	system("echo Server C++");
+	cout << "Server C++\n";
 
 	Responder resp;
 	GUI_Server Server(resp);

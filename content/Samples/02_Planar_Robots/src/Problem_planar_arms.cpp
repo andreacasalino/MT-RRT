@@ -10,12 +10,13 @@
 #include <cmath>
 #include <float.h>
 #include <list>
+#include <iostream>
 using namespace std;
 
 
 Circle::Circle(const float& cx, const float& cy, const float& ray) : radius(ray) {
 	if (ray < 0) {
-		system("echo negative ray");
+		cout << "negative ray\n";
 		throw 0;
 	}
 	this->center[0] = cx; this->center[1] = cy;
@@ -30,19 +31,19 @@ Robot_info::Robot_info(const float& bx, const float& by, const float* distances_
 	this->Base[1] = by;
 
 	if (DOF == 0) {
-		system("echo null DOF");
+		cout << "null DOF\n";
 		throw 0;
 	}
 	this->Link_distances.reserve(DOF);
 	this->Link_Rays.reserve(DOF);
 	for (size_t k = 0; k < DOF; k++) {
 		if (distances_buffer[k] < 0) {
-			system("echo negative distance link");
+			cout << "negative distance link\n";
 			throw 1;
 		}
 		this->Link_distances.push_back(distances_buffer[k]);
 		if (rays_buffer[k] < 0) {
-			system("echo negative ray link");
+			cout << "negative ray link\n";
 			throw 2;
 		}
 		this->Link_Rays.push_back(rays_buffer[k]);

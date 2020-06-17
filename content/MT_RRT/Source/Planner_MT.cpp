@@ -8,6 +8,7 @@
 #include "../Header/Planner_MT.h"
 #include <ctime>
 #include <omp.h>
+#include <iostream>
 using namespace std;
 
 namespace MT_RTT
@@ -26,7 +27,7 @@ namespace MT_RTT
 		else				this->Thread_numbers = Threads;
 
 		if (this->Thread_numbers < 2) throw 0;
-		if (this->Thread_numbers > 100) system("echo warning: number of threads required is suspiciously high");
+		if (this->Thread_numbers > 100) cout << "warning: number of required threads is suspiciously high\n";
 
 	}
 
