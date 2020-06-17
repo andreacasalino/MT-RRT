@@ -21,12 +21,12 @@ void Log_creator(const std::string& template_location, const std::string& destin
 
 	std::ifstream fi(template_location);
 	if (!fi.is_open()) {
-		cout << "template file not found\n";
+		std::cout << "template file not found\n";
 		throw 0;
 	}
 	std::ofstream fo(destination);
 	if (!fo.is_open()) {
-		cout << "echo impossible to create destination file\n";
+		std::cout << "echo impossible to create destination file\n";
 		throw 1;
 	}
 
