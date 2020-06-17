@@ -35,12 +35,14 @@ build_lib:
 build_samples: Sample_Points Sample_Planar_single Sample_Planar_multi Sample_Planar_GUI Sample_Navigation Sample_Navigation_cluttered Sample_Navigation_GUI
 
 Sample_Points:
+	rm -f -r ./bin/Sample_01_Points
 	mkdir -p ./bin/Sample_01_Points
 	mkdir -p ./bin/Sample_01_Points/Results
 	cp  ./Samples/01_Points/print_result.js ./bin/Sample_01_Points/Results/print_result.js -r
 	g++ -o ./bin/Sample_01_Points/Sample_01_Points ./Samples/01_Points/Main.cpp  ./Samples/01_Points/src/Problem_points.cpp  ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 	
 Sample_Planar_single:
+	rm -f -r ./bin/Sample_02_Planar_Robots/01_Single_arm
 	mkdir -p ./bin/Sample_02_Planar_Robots/01_Single_arm
 	cp ./Samples/02_Planar_Robots/01_Single_arm/problem.json ./bin/Sample_02_Planar_Robots/01_Single_arm/problem.json -r
 	mkdir -p ./bin/Sample_02_Planar_Robots/01_Single_arm/Results
@@ -49,6 +51,7 @@ Sample_Planar_single:
 	g++ -o ./bin/Sample_02_Planar_Robots/01_Single_arm/01_Single_arm ./Samples/02_Planar_Robots/01_Single_arm/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 	
 Sample_Planar_multi:
+	rm -f -r ./bin/Sample_02_Planar_Robots/02_Multiple_arms
 	mkdir -p ./bin/Sample_02_Planar_Robots/02_Multiple_arms
 	cp ./Samples/02_Planar_Robots/02_Multiple_arms/problem.json ./bin/Sample_02_Planar_Robots/02_Multiple_arms/problem.json -r
 	mkdir -p ./bin/Sample_02_Planar_Robots/02_Multiple_arms/Results
@@ -57,13 +60,14 @@ Sample_Planar_multi:
 	g++ -o ./bin/Sample_02_Planar_Robots/02_Multiple_arms/02_Multiple_arms ./Samples/02_Planar_Robots/02_Multiple_arms/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 	
 Sample_Planar_GUI:
+	rm -f -r ./bin/Sample_02_Planar_Robots/00_GUI
 	mkdir -p ./bin/Sample_02_Planar_Robots/00_GUI
-	mkdir -p ./bin/Sample_02_Planar_Robots/00_GUI/front_JS
 	cp  ./Samples/02_Planar_Robots/00_GUI/front_JS ./bin/Sample_02_Planar_Robots/00_GUI/front_JS -r
-	cp ./Samples/02_Planar_Robots/00_GUI/launcher.bat ./bin/Sample_02_Planar_Robots/00_GUI/launcher.bat -r
+	cp ./Samples/02_Planar_Robots/00_GUI/launcher.sh ./bin/Sample_02_Planar_Robots/00_GUI/launcher.sh -r
 	g++ -o ./bin/Sample_02_Planar_Robots/00_GUI/back_Cpp ./Samples/02_Planar_Robots/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/02_Planar_Robots/src/Problem_planar_arms.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3
 
 Sample_Navigation:
+	rm -f -r ./bin/Sample_03_Navigation/01_Navigation
 	mkdir -p ./bin/Sample_03_Navigation/01_Navigation
 	cp ./Samples/03_Navigation/01_Navigation/problem.json ./bin/Sample_03_Navigation/01_Navigation/problem.json -r
 	mkdir -p ./bin/Sample_03_Navigation/01_Navigation/Results
@@ -71,6 +75,7 @@ Sample_Navigation:
 	g++ -o ./bin/Sample_03_Navigation/01_Navigation/01_Navigation ./Samples/03_Navigation/01_Navigation/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 
 Sample_Navigation_cluttered:
+	rm -f -r ./bin/Sample_03_Navigation/02_Navigation_cluttered
 	mkdir -p ./bin/Sample_03_Navigation/02_Navigation_cluttered
 	cp ./Samples/03_Navigation/02_Navigation_cluttered/problem.json ./bin/Sample_03_Navigation/02_Navigation_cluttered/problem.json -r
 	mkdir -p ./bin/Sample_03_Navigation/02_Navigation_cluttered/Results
@@ -78,9 +83,9 @@ Sample_Navigation_cluttered:
 	g++ -o ./bin/Sample_03_Navigation/02_Navigation_cluttered/02_Navigation_cluttered ./Samples/03_Navigation/02_Navigation_cluttered/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3 -Wall
 
 Sample_Navigation_GUI:
+	rm -f -r ./bin/Sample_03_Navigation/00_GUI
 	mkdir -p ./bin/Sample_03_Navigation/00_GUI
-	mkdir -p ./bin/Sample_03_Navigation/00_GUI/front_JS
 	cp  ./Samples/03_Navigation/00_GUI/front_JS ./bin/Sample_03_Navigation/00_GUI/front_JS -r
-	cp  ./Samples/03_Navigation/00_GUI/launcher.bat ./bin/Sample_03_Navigation/00_GUI/launcher.bat -r
+	cp  ./Samples/03_Navigation/00_GUI/launcher.sh ./bin/Sample_03_Navigation/00_GUI/launcher.sh -r
 	g++ -o ./bin/Sample_03_Navigation/00_GUI/back_Cpp ./Samples/03_Navigation/00_GUI/back_Cpp/Main.cpp ./Samples/src/geometry.cpp ./Samples/03_Navigation/src/Problem_Navigation.cpp ./Samples/src/Stream_Socket.cpp ./bin/MT_RRT.a -fopenmp -pthread -O3
 	
