@@ -1,1 +1,0 @@
-g++ -o Debug_random_traj ./Main.cpp ../src/Problem_Navigation.cpp ../../src/geometry.cpp ../../../MT_RRT/Source/json.cpp -O3
