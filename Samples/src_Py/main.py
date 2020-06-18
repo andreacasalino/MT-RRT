@@ -32,12 +32,14 @@ class Read_handler(I_Comm_handler):
         if(nam == "kill"):
             exit()
         elif(nam == "exp"):
+            print("export request")
             location = Ask_folder()
             f = open(location.name, "w")
             f.write(json.dumps(J_req['B']))
             f.close()
             return ""
         elif(nam == "imp"):
+            print("import request")
             location = Ask_file()
             f = open(location, "r")
             return f.read()

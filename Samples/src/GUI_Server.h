@@ -51,7 +51,7 @@ void replace_line(const std::string& file, const std::string& line_before_to_rep
 	}
 	lines.emplace_back();
 	std::getline(f, lines.back());
-	lines.back() = std::move(new_line_to_put);
+	lines.back() = new_line_to_put;
 	while (!f.eof()) {
 		lines.emplace_back();
 		std::getline(f, lines.back());
@@ -116,7 +116,7 @@ std::string GUI_Server::I_Responder::profile(const profile_info& info, const std
 	replace_line("../../src_JS/profile.html", "let time_data =", response, "./front_JS/profile.html");
 
 	response = "Done";
-	return move(response);
+	return response;
 }
 
 GUI_Server::GUI_Server(I_Responder& responder) : Connection(CONNECTION_PORT), Resp(responder) { this->Connection.InitConnection(); }
