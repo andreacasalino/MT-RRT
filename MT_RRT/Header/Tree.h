@@ -96,7 +96,7 @@ namespace MT_RTT
 		which is in charge of destroying it when this object is destroyed. Otherwise the passed handler is used and will be not destroyed 
 		when destroying this object.
 		*/
-		Tree_concrete(const Node_State& root_state, Node::I_Node_factory* handler, const bool& clone_handler);
+		Tree_concrete(const Array& root_state, Node::I_Node_factory* handler, const bool& clone_handler);
 		
 		/** \brief Similar to Tree_concrete::Tree_concrete(const Node_State& root_state, Node::I_Node_factory* handler, const bool& clone_handler),
 		but without inserting an initial root node.

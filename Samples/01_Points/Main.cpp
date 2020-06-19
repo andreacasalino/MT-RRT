@@ -22,9 +22,9 @@ int main() {
 //initialize a random scene with some random obstacles
 // The Problem_points object is allocated with new since will be absorbed by a Node_factory_multiple_steer
 	Problem_points* Scene = new Problem_points(5, 30, Point_2D(0.f, 0.f), Point_2D(1.f, 1.f));
-	problem = move(unique_ptr<Node::I_Node_factory>(Scene));
+	problem = unique_ptr<Node::I_Node_factory>(Scene);
 #ifdef USE_MULTIPLE_STEER
-	problem = move(unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(problem, 6)));
+	problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(problem, 6));
 #endif
 
 	

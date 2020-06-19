@@ -57,6 +57,6 @@ vector<float> import_config(const vector<json_parser::field>& fields, const stri
 	Config.emplace_back((*data)[0][0]);
 	Config.emplace_back((*data)[0][1]);
 	Config.emplace_back((*data)[0][2]);
-	return move(Config);
+	return Config;
 
 }

@@ -41,9 +41,8 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		size_t Thread = (size_t)(*params)[0][2];
 
 		auto solver = I_Planner::Get_multi_ag_parall(det_coeff, Iterations, Problem.get(), Thread, 0.05f);
-		solver->RRT_star(Node_State(&Qo[0], Qo.size()), Node_State(&Qf[0], Qf.size()));
-		list<Node_State> Waypoints;
-		solver->Get_solution(&Waypoints);
+		solver->RRT_star(Array(&Qo[0], Qo.size()), Array(&Qf[0], Qf.size()));
+		list<Array> Waypoints = solver->Get_solution();
 
 		if (Waypoints.empty()) response = "null";
 		else {
@@ -70,10 +69,10 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		profile_data.problem = Problem.get();
 		for (size_t k = 0; k < (*params)[1].size(); k++) profile_data.Threads.emplace_back((size_t)(*params)[1][k]);
 
-		this->profile(profile_data, Qo, Qf);
+		response = this->profile(profile_data, Qo, Qf);
 	}
 
-	return move(response);
+	return response;
 }
 
 unique_ptr<Navigator> Responder::parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf) {
@@ -81,5 +80,5 @@ unique_ptr<Navigator> Responder::parse_scene(const vector<json_parser::field>& s
 	*Qo = { (*pt_temp)[0][0], (*pt_temp)[0][1], (*pt_temp)[0][2] };
 	pt_temp = json_parser::get_field(scene_json, "Q_trgt");
 	*Qf = { (*pt_temp)[0][0], (*pt_temp)[0][1], (*pt_temp)[0][2] };
-	return move(unique_ptr<Navigator>(new Navigator(scene_json)));
+	return unique_ptr<Navigator>(new Navigator(scene_json));
 }

@@ -12,17 +12,6 @@ using namespace std;
 namespace MT_RTT
 {
 
-	void copy_solution(list<Node_State>& receiving, const list<Node_State>& sending) {
-
-		receiving.clear();
-		auto it_end = sending.end();
-		for (auto it = sending.begin(); it != it_end; it++)
-			receiving.emplace_back(*it);
-
-	}
-
-
-
 	I_Planner::I_Planner(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler) :
 		Handler(handler), Deterministic_coefficient(det_coeff), Iterations_Max(max_iter), Cumulate_sol(false), Last_solution(nullptr) {
 
@@ -45,10 +34,17 @@ namespace MT_RTT
 	void I_Planner::__clean_trees() {
 		
 		auto it_end = this->Last_solution->Trees.end();
-		for (auto it = this->Last_solution->Trees.begin(); it != it_end; it++){
+		for (auto it = this->Last_solution->Trees.begin(); it != it_end; ++it){
 			delete *it;
 		}
 		this->Last_solution->Trees.clear();
+
+	}
+
+	void copy_solution(list<Array>& clone, const list<Array>& to_copy){
+
+		clone.clear();
+		for(auto it=to_copy.begin(); it!=to_copy.end(); ++it) clone.emplace_back(*it);
 
 	}
 
@@ -72,12 +68,12 @@ namespace MT_RTT
 
 	}
 
-	void I_Planner::Get_solution(std::list<Node_State>* result) {
-
+	list<Array> I_Planner::Get_solution() {
+		
+		list<Array> temp;
 		if (this->Last_solution != nullptr)
-			copy_solution(*result, this->Last_solution->Solution);
-		else
-			result->clear();
+			copy_solution(temp, this->Last_solution->Solution);
+		return temp;
 
 	}
 
@@ -91,18 +87,18 @@ namespace MT_RTT
 				auto it = this->Last_solution->Trees.begin();
 				JSON += (*it)->Get_Tree_as_JSON();
 				JSON += "}\n";
-				it++;
+				++it;
 				auto it_end = this->Last_solution->Trees.end();
 				while (it != it_end) {
 					JSON += ",{\"Tree\":";
 					JSON += (*it)->Get_Tree_as_JSON();
 					JSON += "}\n";
-					it++;
+					++it;
 				}
 			}
 			JSON += "]";
 		}
-		return move(JSON);
+		return JSON;
 
 	}
 
@@ -116,41 +112,41 @@ namespace MT_RTT
 			JSON += "[\n";
 			if (this->Last_solution->Solution.empty()) {
 				JSON += "]";
-				return move(JSON);
+				return JSON;
 			}
 			else if (this->Last_solution->Solution.size() == 1)
 				JSON += json_parser::load_JSON(&this->Last_solution->Solution.front().operator[](0), State_size);
 			else {
 				auto it = this->Last_solution->Solution.begin();
 				size_t K = this->Last_solution->Solution.size() - 1;
-				for (size_t k = 0; k < K; k++) {
+				for (size_t k = 0; k < K; ++k) {
 					JSON += json_parser::load_JSON(&it->operator[](0), State_size);
 					JSON += ",\n";
-					it++;
+					++it;
 				}
 				JSON += json_parser::load_JSON(&it->operator[](0), State_size);
 				JSON += "\n";
 			}
 			JSON += "]";
 		}
-		return move(JSON);
+		return JSON;
 
 	}
 
-	void	I_Planner::RRT_basic(const Node_State& start, const Node_State& end) {
+	void	I_Planner::RRT_basic(const Array& start, const Array& end) {
 
 		this->_RRT_basic(start, end);
 
 	}
 
-	void	I_Planner::RRT_bidirectional(const Node_State& start, const Node_State& end) {
+	void	I_Planner::RRT_bidirectional(const Array& start, const Array& end) {
 
 		if (!this->Handler->Get_symm_flag()) throw 0;
 		this->_RRT_bidirectional(start, end);
 
 	}
 
-	void	I_Planner::RRT_star(const Node_State& start, const Node_State& end) {
+	void	I_Planner::RRT_star(const Array& start, const Array& end) {
 
 		bool temp = this->Cumulate_sol;
 		this->Cumulate_sol = true;

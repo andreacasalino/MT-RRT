@@ -39,7 +39,7 @@ private:
 /* This function solves the passed problem using the three possible strategies: RRT single tree, RRT bidirectionl and RRT star and creates a json log file (containing the trees computed
 and the solutions found) at the location specified by  file_name.
 */
-std::string Solve_using_strategies(std::unique_ptr< MT_RTT::I_Planner>& solver, const MT_RTT::Node_State& Start, const MT_RTT::Node_State& End) {
+std::string Solve_using_strategies(std::unique_ptr< MT_RTT::I_Planner>& solver, const MT_RTT::Array& Start, const MT_RTT::Array& End) {
 
 	std::string f = "";
 
@@ -73,7 +73,7 @@ std::string Solve_using_strategies(std::unique_ptr< MT_RTT::I_Planner>& solver, 
 	f += "}";
 
 	f += "}";
-	return move(f);
+	return f;
 
 }
 
@@ -84,8 +84,8 @@ is created in the folder at the location specified by folder.
 std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Iteration_max, const float& deterministic_coeff, MT_RTT::Node::I_Node_factory* planning_problem, const std::vector<float>& Start, const std::vector<float>& End) {
 
 // build the starting and ending node according to the passed state
-	MT_RTT::Node_State Start_state(&Start[0], Start.size());
-	MT_RTT::Node_State End_state(&End[0], End.size());
+	MT_RTT::Array Start_state(&Start[0], Start.size());
+	MT_RTT::Array End_state(&End[0], End.size());
 	
 	time_counter Counter;
 	std::unique_ptr<MT_RTT::I_Planner> solver;
@@ -99,7 +99,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 		// build the solver
 		solver = MT_RTT::I_Planner::Get_canonical(deterministic_coeff, Iteration_max, planning_problem);
 		// compute a solution for the problem
-		results.emplace_back(move(Solve_using_strategies(solver, Start_state, End_state)));
+		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
 		std::cout << "done, elapsed  time "  << Counter.get_elapsed_from_previous() << std::endl;
 	}
 
@@ -110,7 +110,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used
 		solver = MT_RTT::I_Planner::Get_query___parall(deterministic_coeff, Iteration_max, planning_problem);
 		// compute a solution for the problem
-		results.emplace_back(move(Solve_using_strategies(solver, Start_state, End_state)));
+		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
 		std::cout << "done, elapsed  time " << Counter.get_elapsed_from_previous() << std::endl;
 	}
 
@@ -121,7 +121,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used
 		solver = MT_RTT::I_Planner::Get_shared__parall(deterministic_coeff, Iteration_max, planning_problem);
 		// compute a solution for the problem
-		results.emplace_back(move(Solve_using_strategies(solver, Start_state, End_state)));
+		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
 		std::cout << "done, elapsed  time " << Counter.get_elapsed_from_previous() << std::endl;
 	}
 
@@ -132,7 +132,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
 		solver = MT_RTT::I_Planner::Get_copied__parall(deterministic_coeff, Iteration_max, planning_problem);
 		// compute a solution for the problem
-		results.emplace_back(move(Solve_using_strategies(solver, Start_state, End_state)));
+		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
 		std::cout << "done, elapsed  time " << Counter.get_elapsed_from_previous() << std::endl;
 	}
 
@@ -143,11 +143,11 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
 		solver = MT_RTT::I_Planner::Get_multi_ag_parall(deterministic_coeff, Iteration_max, planning_problem);
 		// compute a solution for the problem
-		results.emplace_back(move(Solve_using_strategies(solver, Start_state, End_state)));
+		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
 		std::cout << "done, elapsed  time " << Counter.get_elapsed_from_previous() << std::endl;
 	}
 
-	return move(results);
+	return results;
 
 };
 
@@ -156,7 +156,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 std::vector<float> Solve_using_trials(MT_RTT::I_Planner* solver, const size_t& N_trial, const std::vector<float>& Qo, const std::vector<float>& Qf, const size_t& strategy) {
 
 	std::vector<float> times;
-	MT_RTT::Node_State No(&Qo[0], Qo.size()), Nf(&Qf[0], Qf.size());
+	MT_RTT::Array No(&Qo[0], Qo.size()), Nf(&Qf[0], Qf.size());
 	time_counter counter;
 	for (size_t k = 0; k < N_trial; k++) {
 		counter.get_elapsed_from_previous();
@@ -172,7 +172,7 @@ std::vector<float> Solve_using_trials(MT_RTT::I_Planner* solver, const size_t& N
 
 		std::cout << "\r trial: " << k;
 	}
-	return move(times);
+	return times;
 
 }
 
@@ -189,7 +189,7 @@ std::vector<std::vector<float >> Solve_using_trials_threads(MT_RTT::I_Planner_MT
 		solver->set_Threads(*it);
 		temp.push_back(Solve_using_trials(solver, N_trial, Qo, Qf, strategy));
 	}
-	return move(temp);
+	return temp;
 
 }
 
@@ -204,7 +204,7 @@ std::vector<float> import_pose(const std::vector<std::vector<float>>& vals) {
 		for (auto it2 = it->begin(); it2 != it->end(); it2++)
 			v.emplace_back(*it2 * 3.14159f / 180.f);
 	}
-	return std::move(v);
+	return v;
 
 }
 

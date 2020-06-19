@@ -129,7 +129,7 @@ public:
 	*/
 	Navigator(const Navigator& o);
 
-	virtual std::unique_ptr<I_Node_factory>			copy() { return move(std::unique_ptr<I_Node_factory>(new Navigator(*this))); };
+	virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Navigator(*this)); };
 	virtual void									Random_node(float* random_state);
 	virtual void									Cost_to_go(float* result, const float* start_state, const float* ending_state);
 	virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state);

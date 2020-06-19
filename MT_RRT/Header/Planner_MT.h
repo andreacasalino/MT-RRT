@@ -35,7 +35,7 @@ namespace MT_RTT
 		\details Each of the element in the battery will be manipulated by a single thread. Therefore, the elements in the 
 		battery will be concurrently extended.
 		*/
-		void Init_Single_Extension_battery(std::vector<Single_Extension_job>* battery , const std::vector<I_Tree*>&  T, const Node_State& target);
+		void Init_Single_Extension_battery(std::vector<Single_Extension_job>* battery , const std::vector<I_Tree*>&  T, const Array& target);
 
 		/** \brief This method initializes a battery of bidirectional extenders (see Bidirectional_Extension_job).
 		\details Each of the element in the battery will be manipulated by a single thread. Therefore, the elements in the 
@@ -49,7 +49,7 @@ namespace MT_RTT
 			std::vector<I_Tree*> temp;
 			temp.reserve(to_cast.size());
 			auto it_end = to_cast.end();
-			for (auto it = to_cast.begin(); it != it_end; it++)
+			for (auto it = to_cast.begin(); it != it_end; ++it)
 				temp.emplace_back(*it);
 			return temp;
 

@@ -19,15 +19,15 @@ namespace MT_RTT
 		Planner_multi_agents(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler, const size_t& N_threads, const float& reallignement_percentage)
 			: I_Planner_MT(det_coeff, max_iter, handler, N_threads), Reallignement_prctg(reallignement_percentage) {};
 	protected:
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end);
-		virtual void			  _RRT_bidirectional(const Node_State& start, const Node_State& end) { throw 0;  };//not implementable
-		virtual void					   _RRT_star(const Node_State& start, const Node_State& end);
+		virtual void					  _RRT_basic(const Array& start, const Array& end);
+		virtual void			  _RRT_bidirectional(const Array& start, const Array& end) { throw 0;  };//not implementable
+		virtual void					   _RRT_star(const Array& start, const Array& end);
 	private:
 		class Tree_master : public Tree_concrete {
 		public:
-			Tree_master(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads);
+			Tree_master(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads);
 			~Tree_master() { 
-				for (size_t k = 0; k < this->Slaves.size(); k++) 
+				for (size_t k = 0; k < this->Slaves.size(); ++k) 
 					delete this->Slaves[k]; 
 			};
 
@@ -42,9 +42,9 @@ namespace MT_RTT
 
 		class Tree_master_star : public Tree_master {
 		public:
-			Tree_master_star(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads);
+			Tree_master_star(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads);
 			~Tree_master_star() {
-				for (auto it = this->Slaves_star.begin(); it != this->Slaves_star.end(); it++) {
+				for (auto it = this->Slaves_star.begin(); it != this->Slaves_star.end(); ++it) {
 					Get_Nodes_o(*it)->clear();
 					delete* it;
 				}
@@ -57,7 +57,7 @@ namespace MT_RTT
 			vector<list<Tree_star::Node2Node_Traj>>				Detected_rewirds;
 		};
 
-		void	_get_solution(Tree_master* Master, const Node_State& end) {
+		void	_get_solution(Tree_master* Master, const Array& end) {
 
 			vector<Single_Extension_job> Battery_solver;
 			this->Init_Single_Extension_battery(&Battery_solver, Master->get_slaves(), end);
@@ -102,7 +102,7 @@ num_threads(Threads)
 			Single_Extension_job::Get_best_solution(&info.Solution, Battery_solver);
 			info.Trees = { Master };
 			this->Set_Solution(info);
-			for (int k = 0; k < Threads; k++) Battery_solver[k].Remove_Trees();
+			for (int k = 0; k < Threads; ++k) Battery_solver[k].Remove_Trees();
 
 		};
 
@@ -112,12 +112,12 @@ num_threads(Threads)
 
 
 
-	Planner_multi_agents::Tree_master::Tree_master(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads) :
+	Planner_multi_agents::Tree_master::Tree_master(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads) :
 		Tree_concrete(root_state, handler, false) {
 
 		this->Slaves.reserve(N_threads);
 		this->Slaves.emplace_back(new Tree_concrete(handler, false));
-		for (size_t k = 1; k < N_threads; k++)
+		for (size_t k = 1; k < N_threads; ++k)
 			this->Slaves.emplace_back(new Tree_concrete(handler, true));
 
 	}
@@ -129,12 +129,12 @@ num_threads(Threads)
 			list<Node*>::iterator it2, it2_end;
 			list<Node*>* Nodes_slave;
 			auto it_end = this->Slaves.end();
-			for (auto it = this->Slaves.begin(); it != it_end; it++) {
+			for (auto it = this->Slaves.begin(); it != it_end; ++it) {
 				Nodes_slave = Get_Nodes_o(*it);
 				it2 = Nodes_slave->begin();
-				it2++;
+				++it2;
 				it2_end = Nodes_slave->end();
-				for (it2 = it2; it2 != it2_end; it2++)
+				for (it2 = it2; it2 != it2_end; ++it2)
 					Nodes->emplace_back(*it2);
 				Nodes_slave->clear();
 			}
@@ -145,7 +145,7 @@ num_threads(Threads)
 	void Planner_multi_agents::Tree_master::Dispatch_roots_to_slaves() {
 
 		Node*  new_root;
-		for (auto it = this->Slaves.begin(); it != this->Slaves.end(); it++) {
+		for (auto it = this->Slaves.begin(); it != this->Slaves.end(); ++it) {
 			auto Problem = this->Get_Problem_Handler();
 			Node temp = Problem->Random_node();
 			new_root = this->Nearest_Neighbour(&temp);
@@ -154,12 +154,12 @@ num_threads(Threads)
 
 	}
 
-	Planner_multi_agents::Tree_master_star::Tree_master_star(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads):
+	Planner_multi_agents::Tree_master_star::Tree_master_star(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads):
 		Tree_master(root_state, handler, N_threads) {
 
 		this->Slaves_star.reserve(N_threads);
 		this->Detected_rewirds.reserve(N_threads);
-		for (auto it = this->Slaves.begin(); it != this->Slaves.end(); it++) {
+		for (auto it = this->Slaves.begin(); it != this->Slaves.end(); ++it) {
 			this->Slaves_star.emplace_back(new Tree_star(new Tree_concrete((*it)->Get_Problem_Handler(), false), true));
 			this->Detected_rewirds.emplace_back();
 		}
@@ -169,7 +169,7 @@ num_threads(Threads)
 	void round_robin_rewird_gather(std::vector<std::list<Tree_star::Node2Node_Traj>>& Rewirds) {
 
 		std::list<std::list<Tree_star::Node2Node_Traj>*> active;
-		for (size_t k = 0; k < Rewirds.size(); k++)
+		for (size_t k = 0; k < Rewirds.size(); ++k)
 			active.emplace_back(&Rewirds[k]);
 
 		std::list<std::list<Tree_star::Node2Node_Traj>*>::iterator it_active;
@@ -182,7 +182,7 @@ num_threads(Threads)
 					temp_trj = &(*it_active)->front();
 					temp_trj->end->Set_Father(temp_trj->start, temp_trj->cost);
 					(*it_active)->pop_front();
-					it_active++;
+					++it_active;
 				}
 			}
 		}
@@ -197,12 +197,12 @@ num_threads(Threads)
 		list<Tree_star::Node2Node_Traj> temp_rew;
 		list<Tree_star::Node2Node_Traj>::iterator it_temp_rew, it_temp_rew_end;
 		auto it = Nodes_slave->begin();
-		it++;
-		for (it=it; it != Nodes_slave->end(); it++) {
+		++it;
+		for (it=it; it != Nodes_slave->end(); ++it) {
 			Nodes_slave_star->emplace_back(*it);
 			this->Slaves_star[th_id]->Connect_to_best_Father_and_eval_Rewirds(&temp_rew, *it);
 			it_temp_rew_end = temp_rew.end();
-			for (it_temp_rew = temp_rew.begin(); it_temp_rew != it_temp_rew_end; it_temp_rew++)
+			for (it_temp_rew = temp_rew.begin(); it_temp_rew != it_temp_rew_end; ++it_temp_rew)
 				this->Detected_rewirds[th_id].emplace_back(*it_temp_rew);
 		}
 
@@ -216,14 +216,14 @@ num_threads(Threads)
 
 
 
-	void Planner_multi_agents::_RRT_basic(const Node_State& start, const Node_State& end) {
+	void Planner_multi_agents::_RRT_basic(const Array& start, const Array& end) {
 
 		auto Master = new Tree_master(start, this->Handler, this->get_Threads());
 		this->_get_solution(Master, end);
 
 	}
 
-	void Planner_multi_agents::_RRT_star(const Node_State& start, const Node_State& end) {
+	void Planner_multi_agents::_RRT_star(const Array& start, const Array& end) {
 
 		auto Master = new Tree_master_star(start, this->Handler, this->get_Threads());
 		this->_get_solution(Master, end);

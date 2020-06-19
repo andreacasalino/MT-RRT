@@ -19,9 +19,9 @@ namespace MT_RTT
 		Planner_copied_parall(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler, const size_t& N_threads, const float& reallignement_percentage) : 
 			I_Planner_MT(det_coeff, max_iter, handler, N_threads), Reallignement_prctg(reallignement_percentage) {};
 	protected:
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end);
-		virtual void		_RRT_bidirectional(const Node_State& start, const Node_State& end);
-		virtual void						 _RRT_star(const Node_State& start, const Node_State& end);
+		virtual void					  _RRT_basic(const Array& start, const Array& end);
+		virtual void		_RRT_bidirectional(const Array& start, const Array& end);
+		virtual void						 _RRT_star(const Array& start, const Array& end);
 	private:
 
 		template<typename Tree>
@@ -32,7 +32,7 @@ namespace MT_RTT
 			void Absorb_from_others(const int& th_id) {
 
 				auto it_end = this->batteries.end();
-				for (auto it = this->batteries.begin(); it != it_end; it++) 
+				for (auto it = this->batteries.begin(); it != it_end; ++it) 
 					(*it)[th_id]->Absorb_from_others();
 
 			}
@@ -91,22 +91,22 @@ num_threads(Threads)
 
 				size_t K = buffers.size(), k, k2;
 			//create Incoming buffers
-				for (k = 0; k < K; k++) {
+				for (k = 0; k < K; ++k) {
 					buffers[k]->Incomings.reserve(K-1);
 					buffers[k]->Outgoings.reserve(K-1);
-					for (k2 = 1; k2 < K; k2++) 
+					for (k2 = 1; k2 < K; ++k2) 
 						buffers[k]->Incomings.emplace_back();
 				}
 			//link incomings to outgoings
 				vector<size_t> inc_used;
 				inc_used.reserve(K);
-				for (k = 0; k < K; k++)
+				for (k = 0; k < K; ++k)
 					inc_used.emplace_back(0);
-				for (k = 0; k < K; k++) {
-					for (k2 = 0; k2 < K; k2++) {
+				for (k = 0; k < K; ++k) {
+					for (k2 = 0; k2 < K; ++k2) {
 						if (k2 != k) {
 							buffers[k]->Outgoings.emplace_back(&buffers[k2]->Incomings[inc_used[k2]]);
-							inc_used[k2]++;
+							++inc_used[k2];
 						}
 					}
 				}
@@ -123,7 +123,7 @@ num_threads(Threads)
 		public:
 			class Node_linked : public Node {
 			public:
-				static void	create_linked_roots(const Node_State& root_state, const vector<Tree_linked*>& trees);
+				static void	create_linked_roots(const Array& root_state, const vector<Tree_linked*>& trees);
 				static void	dispatch_last_added(Tree_linked* tree);
 
 				const std::vector<Node_linked*>* Get_Copies() const { return &this->Copies; };
@@ -135,7 +135,7 @@ num_threads(Threads)
 				std::vector<Node_linked*>			Copies;
 			};
 
-			static vector<Tree_linked*>				Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
+			static vector<Tree_linked*>				Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
 			void									Absorb_from_others();
 		private:
 			Tree_linked(Node::I_Node_factory* handler, const bool& clone_handler, const size_t& th_id) : Tree_concrete(handler, clone_handler), Th_id(th_id) {  };
@@ -146,15 +146,15 @@ num_threads(Threads)
 
 		class Tree_star_linked : public Tree_star, public linked_buffers<Tree_star::Node2Node_Traj> {
 		public:
-			static vector<Tree_star_linked*>		Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
+			static vector<Tree_star_linked*>		Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
 			void									Absorb_from_others();
 
 			class Extension_star_linked : public Single_Extension_job {
 			public:
-				Extension_star_linked(I_Tree* to_extend, const Node_State& target, const float* det_coeff, const bool* cumul_sol) :
+				Extension_star_linked(I_Tree* to_extend, const Array& target, const float* det_coeff, const bool* cumul_sol) :
 					Single_Extension_job(to_extend, target, det_coeff, cumul_sol) {};
 			private:
-				virtual void						__Get_best_solution(std::list<Node_State>* solution, const std::list<single_solution>& solutions);
+				virtual void						__Get_best_solution(std::list<Array>* solution, const std::list<single_solution>& solutions);
 				const Node*							Get_best_Father(const Node* attual);
 			};
 		private:
@@ -173,22 +173,22 @@ num_threads(Threads)
 		auto it2 = this->Incomings.begin()->begin();
 		auto it2_end = it2;
 		auto it_end = this->Incomings.end();
-		for (auto it = this->Incomings.begin(); it != it_end; it++) {
+		for (auto it = this->Incomings.begin(); it != it_end; ++it) {
 			it2_end = it->end();
-			for (it2 = it->begin(); it2 != it2_end; it2++)
+			for (it2 = it->begin(); it2 != it2_end; ++it2)
 				Nodes->emplace_back(*it2);
 			it->clear();
 		}
 
 	}
 
-	void Planner_copied_parall::Tree_linked::Node_linked::create_linked_roots(const Node_State& root_state, const vector<Tree_linked*>& trees) {
+	void Planner_copied_parall::Tree_linked::Node_linked::create_linked_roots(const Array& root_state, const vector<Tree_linked*>& trees) {
 
 		vector<Node_linked*> battery;
 		size_t K = trees.size();
 		battery.reserve(K);
 		auto problem = trees.front()->Get_Problem_Handler();
-		for (size_t k = 0; k < K; k++) {
+		for (size_t k = 0; k < K; ++k) {
 			Node root = problem->New_root(root_state);
 			Node_linked* temp = new Node_linked(root);
 			battery.emplace_back(temp);
@@ -209,7 +209,7 @@ num_threads(Threads)
 		size_t kf = 0;
 		const float& cost = node->Get_Cost_from_father();
 		auto problem = generating_tree->Get_Problem_Handler();
-		for (size_t k = 0; k < N; k++) {
+		for (size_t k = 0; k < N; ++k) {
 			if (k == generating_tree->Th_id)  
 				battery.emplace_back(nullptr);
 			else {
@@ -217,7 +217,7 @@ num_threads(Threads)
 				temp.Set_Father((*fathers)[kf], cost);
 				battery.emplace_back(new Node_linked(temp));
 				generating_tree->Outgoings[kf]->emplace_back(battery.back());
-				kf++;
+				++kf;
 			}
 		}
 		battery[generating_tree->Th_id] = new Node_linked(*node);
@@ -230,9 +230,9 @@ num_threads(Threads)
 	void Planner_copied_parall::Tree_linked::Node_linked::__link(vector<Node_linked*>& battery) {
 
 		size_t k, K = battery.size(), k2;
-		for (k = 0; k < K; k++) {
+		for (k = 0; k < K; ++k) {
 			battery[k]->Copies.reserve(K - 1);
-			for (k2 = 0; k2 < K; k2++) {
+			for (k2 = 0; k2 < K; ++k2) {
 				if (k != k2) battery[k]->Copies.emplace_back(battery[k2]);
 			}
 		}
@@ -278,15 +278,15 @@ num_threads(Threads)
 				fathers = static_cast<Tree_linked::Node_linked*>(new_father)->Get_Copies();
 				copies = added->Get_Copies();
 				const float& c = added->Get_Cost_from_father();
-				for (k = 0; k < K; k++) 
+				for (k = 0; k < K; ++k) 
 					(*copies)[k]->Set_Father((*fathers)[k], c); //rewird can be done here because these nodes are not already inserted in the others thread tree
 			}
 
 			auto it_end = rewird_to_do.end();
-			for (auto it = rewird_to_do.begin(); it != it_end; it++) {
+			for (auto it = rewird_to_do.begin(); it != it_end; ++it) {
 				//fathers = static_cast<Tree_linked::Node_linked*>(it->start)->Get_Copies();
 				//copies = static_cast<Tree_linked::Node_linked*>(it->end)->Get_Copies();
-				//for (k = 0; k < K; k++) {
+				//for (k = 0; k < K; ++k) {
 				//	this->Outgoings[k]->emplace_back();
 				//	this->Outgoings[k]->back().cost = it->cost;
 				//	this->Outgoings[k]->back().start = (*fathers)[k];
@@ -300,7 +300,7 @@ num_threads(Threads)
 
 	}
 
-	void	Planner_copied_parall::Tree_star_linked::Extension_star_linked::__Get_best_solution(std::list<Node_State>* solution, const std::list<single_solution>& solutions) {
+	void	Planner_copied_parall::Tree_star_linked::Extension_star_linked::__Get_best_solution(std::list<Array>* solution, const std::list<single_solution>& solutions) {
 
 		solution->clear();
 		if (solutions.empty()) return;
@@ -327,7 +327,7 @@ num_threads(Threads)
 		float best_cost, att_cost;
 		attual->Cost_to_root(&best_cost);
 		size_t K = attual_clone->size();
-		for (size_t k = 0; k < K; k++) {
+		for (size_t k = 0; k < K; ++k) {
 			(*attual_clone)[k]->Cost_to_root(&att_cost);
 			if (att_cost < best_cost) {
 				best_cost = att_cost;
@@ -338,12 +338,12 @@ num_threads(Threads)
 
 	}
 
-	vector<Planner_copied_parall::Tree_linked*>	Planner_copied_parall::Tree_linked::Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
+	vector<Planner_copied_parall::Tree_linked*>	Planner_copied_parall::Tree_linked::Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
 
 		vector<Planner_copied_parall::Tree_linked*> Battery;
 		Battery.reserve(N_threads);
 		Battery.emplace_back(new Tree_linked(problem_handler, false, 0));
-		for (size_t k = 1; k < N_threads; k++)
+		for (size_t k = 1; k < N_threads; ++k)
 			Battery.emplace_back(new Tree_linked(problem_handler, true, k));
 		linked_buffers<Node*>::bind_buffers(Battery);
 		Node_linked::create_linked_roots(root_state, Battery);
@@ -351,12 +351,12 @@ num_threads(Threads)
 
 	}
 
-	vector<Planner_copied_parall::Tree_star_linked*> Planner_copied_parall::Tree_star_linked::Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
+	vector<Planner_copied_parall::Tree_star_linked*> Planner_copied_parall::Tree_star_linked::Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
 
 		auto temp = Planner_copied_parall::Tree_linked::Init_Battery(root_state, problem_handler, N_threads);
 		vector<Planner_copied_parall::Tree_star_linked*> Battery;
 		Battery.reserve(N_threads);
-		for (size_t k = 0; k < N_threads; k++)
+		for (size_t k = 0; k < N_threads; ++k)
 			Battery.emplace_back(new Tree_star_linked(temp[k]));
 		linked_buffers<Tree_star::Node2Node_Traj>::bind_buffers(Battery);
 		return Battery;
@@ -365,7 +365,7 @@ num_threads(Threads)
 
 
 
-	void Planner_copied_parall::_RRT_basic(const Node_State& start, const Node_State& end) {
+	void Planner_copied_parall::_RRT_basic(const Array& start, const Array& end) {
 
 		auto T_battery = Tree_linked::Init_Battery(start, this->Handler, this->get_Threads());
 		vector<Single_Extension_job> Battery_solver;
@@ -376,7 +376,7 @@ num_threads(Threads)
 
 	}
 
-	void Planner_copied_parall::_RRT_bidirectional(const Node_State& start, const Node_State& end) {
+	void Planner_copied_parall::_RRT_bidirectional(const Array& start, const Array& end) {
 
 		auto T_battery_A = Tree_linked::Init_Battery(start, this->Handler, this->get_Threads());
 		auto T_battery_B = Tree_linked::Init_Battery(end, this->Handler, this->get_Threads());
@@ -389,13 +389,13 @@ num_threads(Threads)
 
 	}
 
-	void Planner_copied_parall::_RRT_star(const Node_State& start, const Node_State& end) {
+	void Planner_copied_parall::_RRT_star(const Array& start, const Array& end) {
 
 		auto T_battery = Tree_star_linked::Init_Battery(start, this->Handler, this->get_Threads());
 
 		vector<Tree_star_linked::Extension_star_linked> Battery_solver;
 		Battery_solver.reserve(T_battery.size());
-		for (size_t k = 0; k < T_battery.size(); k++)
+		for (size_t k = 0; k < T_battery.size(); ++k)
 			Battery_solver.emplace_back(T_battery[k], end, &this->Deterministic_coefficient, &this->Cumulate_sol);
 
 		Absorber<Tree_star_linked> Ab;

@@ -51,23 +51,23 @@ namespace MT_RTT
 		/** \brief Returns the best cost solution found so far.
 		* @param[out] solution the list of states representing the solution. Values are copied from the correspoding node states.
 		*/
-		void							Get_best_solution(std::list<Node_State>* solution) { this->__Get_best_solution(solution , this->Solutions_found); };
+		void							Get_best_solution(std::list<Array>* solution) { this->__Get_best_solution(solution , this->Solutions_found); };
 
-		/** \brief Similar to Get_best_solution(std::list<Node_State>* solution), but taking the best solution among the ones contained
+		/** \brief Similar to Get_best_solution(std::list<Array>* solution), but taking the best solution among the ones contained
 		in the passed array of extenders.
 		\details Ext should be something deriving from I_Extension_job<Sol_found>.
 		* @param[in] battery the array of extender to consider
 		* @param[out] solution the list of states representing the solution. Values are copied from the correspoding node states.
 		*/
 		template<typename Ext>
-		static void						Get_best_solution(std::list<Node_State>* solution, std::vector<Ext>& battery) {
+		static void						Get_best_solution(std::list<Array>* solution, std::vector<Ext>& battery) {
 
 			std::list<Sol_found> solutions;
 			size_t K = battery.size();
-			for (size_t k = 0; k < K; k++) {
+			for (size_t k = 0; k < K; ++k) {
 				I_Extension_job<Sol_found>* pt = &battery[k];
 				auto it_end = pt->Solutions_found.end();
-				for (auto it = pt->Solutions_found.begin(); it != it_end; it++)
+				for (auto it = pt->Solutions_found.begin(); it != it_end; ++it)
 					solutions.emplace_back(*it);
 			}
 			I_Extension_job<Sol_found>* pt = &battery[0];
@@ -86,14 +86,14 @@ namespace MT_RTT
 		};
 
 		void							Check_Extension() { if ((this->A_solution_was_found) && (!this->Cumulate_sol)) throw 0; }
-		virtual void					__Get_best_solution(std::list<Node_State>* solution, const std::list<Sol_found>& solutions) = 0;
+		virtual void					__Get_best_solution(std::list<Array>* solution, const std::list<Sol_found>& solutions) = 0;
 		static const Sol_found*				get_best_solution(const std::list<Sol_found>& solutions) {
 
 			auto it = solutions.begin();
 			auto it_end = solutions.end();
 			const Sol_found* best = &(*it);
-			it++;
-			for (it = it; it != it_end; it++) {
+			++it;
+			for (it = it; it != it_end; ++it) {
 				if (*it < *best)
 					best = &(*it);
 			}
@@ -134,8 +134,8 @@ namespace MT_RTT
 		* @param[in] cumul_sol same as in I_Extension_job::I_Extension_job 
 		* @param[in] del_trg when passed true, the absorbed target is deleted in the constructor of this object
 		*/
-		Single_Extension_job(I_Tree* to_extend, const Node_State& target, const float* det_coeff, const bool* cumul_sol) :
-			I_Extension_job<single_solution>(det_coeff, cumul_sol), T(to_extend), Target(new Node(std::move(to_extend->Get_Problem_Handler()->New_root(target))))  { };
+		Single_Extension_job(I_Tree* to_extend, const Array& target, const float* det_coeff, const bool* cumul_sol) :
+			I_Extension_job<single_solution>(det_coeff, cumul_sol), T(to_extend), Target(new Node(to_extend->Get_Problem_Handler()->New_root(target)))  { };
 
 		~Single_Extension_job() { delete this->T; delete this->Target; };
 
@@ -143,7 +143,7 @@ namespace MT_RTT
 
 		virtual	std::list<I_Tree*>		Remove_Trees();
 	protected:
-		virtual void					__Get_best_solution(std::list<Node_State>* solution, const std::list<single_solution>& solutions);
+		virtual void					__Get_best_solution(std::list<Array>* solution, const std::list<single_solution>& solutions);
 	// data
 		I_Tree*							T;
 		Node*							Target;
@@ -189,7 +189,7 @@ namespace MT_RTT
 	protected:
 		void							compute_sol(bidir_solution& sol, const Node* N1, const Node* N2, const bool& caso);
 		void							compute_cost(bidir_solution& sol);
-		virtual void					__Get_best_solution(std::list<Node_State>* solution, const std::list<bidir_solution>& solutions);
+		virtual void					__Get_best_solution(std::list<Array>* solution, const std::list<bidir_solution>& solutions);
 	// data
 		I_Tree*								T_a;
 		I_Tree*								T_b;

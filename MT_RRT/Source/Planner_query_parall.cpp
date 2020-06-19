@@ -19,9 +19,9 @@ namespace MT_RTT
 	public:
 		Planner_query_parall(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler, const size_t& N_threads) : I_Planner_MT(det_coeff, max_iter, handler, N_threads) {};
 	protected:
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end);
-		virtual void		      _RRT_bidirectional(const Node_State& start, const Node_State& end);
-		virtual void					   _RRT_star(const Node_State& start, const Node_State& end);
+		virtual void					  _RRT_basic(const Array& start, const Array& end);
+		virtual void		      _RRT_bidirectional(const Array& start, const Array& end);
+		virtual void					   _RRT_star(const Array& start, const Array& end);
 	private:
 
 		class I_Query {
@@ -44,7 +44,7 @@ namespace MT_RTT
 			template<typename Q>
 			void	Set_job_battery(vector<Q>& new_battery) {
 				size_t K = this->Battery.size();
-				for (size_t k = 0; k < K; k++)
+				for (size_t k = 0; k < K; ++k)
 					this->Battery[k] = &new_battery[k];
 #pragma omp barrier
 				this->Battery[0]->operator()();
@@ -57,7 +57,7 @@ namespace MT_RTT
 
 		class Tree_master : public Tree_concrete {
 		public:
-			Tree_master(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man);
+			Tree_master(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man);
 			~Tree_master();
 
 			const vector<Node::I_Node_factory*>&  Get_Problem_handlers() { return this->Problem_handlers;};
@@ -87,7 +87,7 @@ namespace MT_RTT
 
 		class Tree_master_star : public Tree_star {
 		public:
-			Tree_master_star(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man);
+			Tree_master_star(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man);
 
 		private:
 			virtual void						  Near_set(std::list<Node*>* near_set, const Node* state);
@@ -142,7 +142,7 @@ num_threads(Number_threads)
 	Planner_query_parall::Query_manager::Query_manager(const size_t& N_threads) {
 
 		this->Battery.reserve(N_threads);
-		for (size_t k = 0; k < N_threads; k++)
+		for (size_t k = 0; k < N_threads; ++k)
 			this->Battery.push_back(nullptr);
 
 	}
@@ -160,12 +160,12 @@ num_threads(Number_threads)
 
 	void Planner_query_parall::Query_manager::Terminate() {
 		size_t K = this->Battery.size();
-		for (size_t k = 1; k < K; k++)
+		for (size_t k = 1; k < K; ++k)
 			this->Battery[k] = nullptr;
 #pragma omp barrier
 	}
 
-	Planner_query_parall::Tree_master::Tree_master(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man):
+	Planner_query_parall::Tree_master::Tree_master(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager* man):
 	Tree_concrete(root_state, handler, false){
 
 		this->Query_man = man;
@@ -174,7 +174,7 @@ num_threads(Number_threads)
 		
 		this->Problem_handlers.emplace_back(handler);
 		this->Nearest_neighbour_query.emplace_back(this, handler);
-		for (size_t k = 1; k < N_threads; k++) {
+		for (size_t k = 1; k < N_threads; ++k) {
 			auto clone = handler->copy();
 			Node::I_Node_factory* temp_pt = clone.get();
 			clone.release();
@@ -188,7 +188,7 @@ num_threads(Number_threads)
 	Planner_query_parall::Tree_master::~Tree_master() {
 	
 		size_t K = this->Problem_handlers.size();
-		for (size_t k = 1; k < K; k++)
+		for (size_t k = 1; k < K; ++k)
 			delete this->Problem_handlers[k];
 
 	}
@@ -196,11 +196,11 @@ num_threads(Number_threads)
 	Node* Planner_query_parall::Tree_master::Nearest_Neighbour(const Node* state) {
 
 		size_t K = this->Nearest_neighbour_query.size(), k;
-		for (k = 0; k < K; k++)
+		for (k = 0; k < K; ++k)
 			this->Nearest_neighbour_query[k].target = state;
 		this->Query_man->Set_job_battery(this->Nearest_neighbour_query);
 
-		for (k = 1; k < K; k++) {
+		for (k = 1; k < K; ++k) {
 			if (this->Nearest_neighbour_query[k].nearest_cost < this->Nearest_neighbour_query[0].nearest_cost) {
 				this->Nearest_neighbour_query[0].nearest = this->Nearest_neighbour_query[k].nearest;
 				this->Nearest_neighbour_query[0].nearest_cost = this->Nearest_neighbour_query[k].nearest_cost;
@@ -237,12 +237,12 @@ num_threads(Number_threads)
 
 	}
 
-	Planner_query_parall::Tree_master_star::Tree_master_star(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager*man):
+	Planner_query_parall::Tree_master_star::Tree_master_star(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads, Query_manager*man):
 	Tree_star(new Tree_master(root_state, handler, N_threads, man), true) {
 
 		auto handlers = static_cast<Tree_master*>(this->Get_Wrapped())->Get_Problem_handlers();
 		this->Near_set_query.reserve(N_threads);
-		for (size_t k = 0; k < N_threads; k++)
+		for (size_t k = 0; k < N_threads; ++k)
 			this->Near_set_query.emplace_back(this , handlers[k]);
 
 	}
@@ -250,15 +250,15 @@ num_threads(Number_threads)
 	void		Planner_query_parall::Tree_master_star::Near_set(std::list<Node*>* near_set, const Node* state) {
 
 		size_t K = this->Near_set_query.size(), k;
-		for (k = 0; k < K; k++)
+		for (k = 0; k < K; ++k)
 			this->Near_set_query[k].target = state;
 		static_cast<Tree_master*>(this->Get_Wrapped())->Get_manager()->Set_job_battery(this->Near_set_query);
 
 		list<Node*>::iterator it, it_end;
-		*near_set = move(this->Near_set_query[0].result);
-		for (k = 1; k < K; k++) {
+		*near_set = this->Near_set_query[0].result;
+		for (k = 1; k < K; ++k) {
 			it_end = this->Near_set_query[k].result.end();
-			for (it = this->Near_set_query[k].result.begin(); it != it_end; it++)
+			for (it = this->Near_set_query[k].result.begin(); it != it_end; ++it)
 				near_set->emplace_back(*it);
 		}
 
@@ -297,7 +297,7 @@ num_threads(Number_threads)
 	}
 
 
-	void Planner_query_parall::_RRT_basic(const Node_State& start, const Node_State& end) {
+	void Planner_query_parall::_RRT_basic(const Array& start, const Array& end) {
 
 		Query_manager man(this->get_Threads());
 		auto Master = new Tree_master(start, this->Handler, this->get_Threads(), &man);
@@ -306,7 +306,7 @@ num_threads(Number_threads)
 
 	}
 
-	void Planner_query_parall::_RRT_bidirectional(const Node_State& start, const Node_State& end) {
+	void Planner_query_parall::_RRT_bidirectional(const Array& start, const Array& end) {
 
 		Query_manager man(this->get_Threads());
 		auto Master_A = new Tree_master(start, this->Handler, this->get_Threads(), &man);
@@ -316,7 +316,7 @@ num_threads(Number_threads)
 
 	}
 
-	void Planner_query_parall::_RRT_star(const Node_State& start, const Node_State& end) {
+	void Planner_query_parall::_RRT_star(const Array& start, const Array& end) {
 
 		Query_manager man(this->get_Threads());
 		auto Master = new Tree_master_star(start, this->Handler, this->get_Threads(), &man);

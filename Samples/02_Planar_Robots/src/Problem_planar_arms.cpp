@@ -205,16 +205,16 @@ Scene_Proximity_calculator::Scene_Proximity_calculator(const std::vector<json_pa
 void norm_dist(float* res, const float* P1, const float* P2) {
 	*res = sqrtf( (P1[0] - P2[0])*(P1[0] - P2[0]) + (P1[1] - P2[1]) * (P1[1] - P2[1]));
 };
-void compute_radii(vector<float>* radii, const float* pos, const size_t& dof) {
+void compute_radii(float* radii, const float* pos, const size_t& dof) {
 
 	size_t k2;
 	float temp;
 	for (size_t k = 0; k < dof; k++) {
-		(*radii)[k] = 0.f;
+		radii[k] = 0.f;
 		for (k2 = (k + 1); k2 < (dof + 1); k2++) {
 			norm_dist(&temp , &pos[2 * k], &pos[2 * k2]);
-			if (temp > (*radii)[k])
-				(*radii)[k] = temp;
+			if (temp > radii[k])
+				radii[k] = temp;
 		}
 	}
 
@@ -230,14 +230,14 @@ void	Scene_Proximity_calculator::Recompute_Proximity_Info(const float* Q_state) 
 
 		this->Robots_info[k].Distance_to_fixed_obstacles = min_dist_chain_obstacles(&this->Joint_positions[k][0], &(*this->Robots[k].get_rays())[0], this->Robots[k].get_distances()->size(), this->Obstacle);
 
-		compute_radii(&this->Robots_info[k].Radii , &this->Joint_positions[k][0], this->Robots[k].get_distances()->size());
+		compute_radii(&this->Robots_info[k].Radii[0] , &this->Joint_positions[k][0], this->Robots[k].get_distances()->size());
 	}
 
 	// distances between robots
 	size_t k_dist = 0, k2;
 	for (k = 0; k < K; k++) {
 		for (k2 = k + 1; k2 < K; k2++) {
-			this->Robot_distance_pairs[k_dist] = 
+			(*this->Robot_distance_pairs)[k_dist] = 
 				min_dist_chain_chain(&this->Joint_positions[k][0] ,  &(*this->Robots[k].get_rays())[0], this->Robots[k].get_distances()->size(), 
 									 &this->Joint_positions[k2][0], &(*this->Robots[k2].get_rays())[0], this->Robots[k2].get_distances()->size());
 			k_dist++;
@@ -253,7 +253,7 @@ std::vector<size_t>	 Scene_Proximity_calculator::Get_Dofs() const {
 	dofs.reserve(K);
 	for (size_t k = 0; k < K; k++) 
 		dofs.push_back(this->Robots[k].get_distances()->size());
-	return move(dofs);
+	return dofs;
 
 }
 
@@ -279,11 +279,11 @@ bool	Scene_Collision_checker::Collision_present(const float* Q_state) {
 		if (it->Distance_to_fixed_obstacles == 0.f) return true;
 	}
 
-	const vector<float>& Robot_distance_pairs = this->Prox_calc.Get_distances_pairs();
-	for (auto it = Robot_distance_pairs.begin(); it != Robot_distance_pairs.end(); it++) {
-		if (*it == 0.f) return true;
+	const float* Robot_distance_pairs = &(*this->Prox_calc.Get_distances_pairs())[0];
+	size_t K = this->Prox_calc.Get_distances_pairs()->size();
+	for(size_t k=0; k<K; ++k){
+		if(Robot_distance_pairs[k] == 0.f) return true;
 	}
-
 	return false;
 
 }

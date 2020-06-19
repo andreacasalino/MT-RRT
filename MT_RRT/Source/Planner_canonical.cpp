@@ -17,9 +17,9 @@ namespace MT_RTT
 	public:
 		Planner_canonical(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler) : I_Planner(det_coeff, max_iter, handler) {};
 	protected:
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end);
-		virtual void		_RRT_bidirectional(const Node_State& start, const Node_State& end);
-		virtual void						 _RRT_star(const Node_State& start, const Node_State& end);
+		virtual void					  _RRT_basic(const Array& start, const Array& end);
+		virtual void		_RRT_bidirectional(const Array& start, const Array& end);
+		virtual void						 _RRT_star(const Array& start, const Array& end);
 	private:
 		template<typename Solver>
 		void						_get_solution(Solver* solver) {
@@ -39,7 +39,7 @@ namespace MT_RTT
 	};
 	unique_ptr<I_Planner>	 I_Planner::Get_canonical(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler) { return unique_ptr < I_Planner>(new Planner_canonical(det_coeff, max_iter, handler)); };
 
-	void	 Planner_canonical::_RRT_basic(const Node_State& start, const Node_State& end) {
+	void	 Planner_canonical::_RRT_basic(const Array& start, const Array& end) {
 
 		Tree_concrete* T = new Tree_concrete(start, this->Handler, false);
 		Single_Extension_job solver(T, end, &this->Deterministic_coefficient, &this->Cumulate_sol);
@@ -47,7 +47,7 @@ namespace MT_RTT
 
 	}
 
-	void	 Planner_canonical::_RRT_star(const Node_State& start, const Node_State& end) {
+	void	 Planner_canonical::_RRT_star(const Array& start, const Array& end) {
 
 		Tree_star* T = new Tree_star(new Tree_concrete(start, this->Handler, false), true);
 		Single_Extension_job solver(T, end, &this->Deterministic_coefficient, &this->Cumulate_sol);
@@ -55,7 +55,7 @@ namespace MT_RTT
 
 	}
 
-	void Planner_canonical::_RRT_bidirectional(const Node_State& start, const Node_State& end) {
+	void Planner_canonical::_RRT_bidirectional(const Array& start, const Array& end) {
 
 		Tree_concrete* T1 = new Tree_concrete(start, this->Handler, false);
 		Tree_concrete* T2 = new Tree_concrete(end, this->Handler, false);

@@ -54,6 +54,6 @@ std::string get_content_of_file(const std::string& file) {
 		tot += temp + "\n";
 	}
 	f.close();
-	return std::move(tot);
+	return tot;
 
 }

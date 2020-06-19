@@ -13,31 +13,48 @@ using namespace std;
 namespace MT_RTT
 {
 
-	Node_State::Node_State(const float* vals, const size_t& size) {
-		if (size == 0) throw 0;
-		this->Size = size;		
-		this->Vals = new float[size];
-		for (size_t k = 0; k < size; k++)
-			this->Vals[k] = vals[k];
+	void Array_copy(float* destination , const float* vals, const size_t& size){ for(size_t k=0; k<size; ++k) destination[k] = vals[k];	}
+
+	Array::Array(const float* vals, const size_t& size) : Size(size){
+
+		if(size == 0) throw 0;
+		this->pbuffer = new float[size];
+		Array_copy(this->pbuffer , vals, this->Size);
+
 	}
 
-	Node_State::Node_State(const Node_State& to_copy) :
-		Node_State(to_copy.Vals, to_copy.Size) { };
+	Array::Array(const float& val_to_repeat, const size_t& size) : Size(size){
 
-	const float& Node_State::operator[](const size_t& pos) const {
+
+		if(size == 0) throw 0;
+		this->pbuffer = new float[size];
+		for(size_t k =0; k<this->Size; k++) this->pbuffer[k] = val_to_repeat;
+
+	}
+
+	Array::Array(const Array& o) : Size(o.Size){
+
+		this->pbuffer = new float[this->Size];
+		Array_copy(this->pbuffer , o.pbuffer, this->Size);
+
+	}
+
+	Array& Array::operator=(const Array& o){
+
+		if(o.Size != this->Size) throw 0;
+		Array_copy(this->pbuffer , o.pbuffer, this->Size);
+		return *this;
+
+	}
+
+	float& Array::operator[](const size_t& pos) const{
+
 		if (pos > this->Size) throw 0;
-		return this->Vals[pos];
+		return this->pbuffer[pos];
+
 	}
 
-	Node_State::~Node_State() { delete[] this->Vals; };
 
-
-
-	Node::~Node() {
-
-		delete[] this->State; 
-
-	};
 
 	Node::Node(Node&& o) {
 
@@ -56,7 +73,7 @@ namespace MT_RTT
 		size_t k = 0;
 		const Node* att_node = this;
 		while (att_node != nullptr) {
-			k++;
+			++k;
 			if (k == I_max) throw 0;
 			* result += att_node->Cost_traj_from_father;
 			att_node = att_node->Father;
@@ -80,7 +97,7 @@ namespace MT_RTT
 
 		auto random_state = this->Alloc_state();
 		this->Random_node(random_state);
-		return move(Node(random_state));
+		return Node(random_state);
 
 	};
 
@@ -92,10 +109,10 @@ namespace MT_RTT
 		if (cost == FLT_MAX) {
 			delete[] steered_state;
 			*trg_reached = false;
-			return move(Node(nullptr));
+			return Node(nullptr);
 		}
 		else 
-			return move(Node(start, cost, steered_state));
+			return Node(start, cost, steered_state);
 
 	};
 
@@ -104,30 +121,24 @@ namespace MT_RTT
 		const float* state = o.Get_State();
 		size_t S = this->Get_State_size();
 		float* state_clone = this->Alloc_state();
-		for (size_t k = 0; k < S; k++)
-			state_clone[k] = state[k];
-		return move(Node(o.Get_Father(), o.Get_Cost_from_father(), state_clone));
+		for (size_t k = 0; k < S; ++k) state_clone[k] = state[k];
+		return Node(o.Get_Father(), o.Get_Cost_from_father(), state_clone);
 
 	}
 
-	Node Node::I_Node_factory::New_root(const Node_State& state) {
+	Node Node::I_Node_factory::New_root(const Array& state) {
 
 		size_t S = this->Get_State_size();
 		if (state.size() != S) throw 0;
 
 		float* state_cloned = this->Alloc_state();
-		for (size_t k = 0; k < S; k++)
-			state_cloned[k] = state[k];
+		for (size_t k = 0; k < S; ++k) state_cloned[k] = state[k];
 
-		return move(Node(state_cloned));
+		return Node(state_cloned);
 
 	};
 
-	float* Node::I_Node_factory::Alloc_state() {
-
-		return new float[this->Get_State_size()];
-
-	}
+	float* Node::I_Node_factory::Alloc_state() { return new float[this->Get_State_size()]; }
 
 
 
@@ -154,7 +165,7 @@ namespace MT_RTT
 		float delta_cost;
 		const float* to_steer = start_state;
 		*cost_steered = 0.f;
-		for (size_t k = 0; k < this->Maximum_trial; k++) {
+		for (size_t k = 0; k < this->Maximum_trial; ++k) {
 			steered.push_back(this->Alloc_state());
 			this->Get_Wrapped()->Steer(&delta_cost, steered.back(), to_steer, target_state, trg_reached);
 
@@ -176,10 +187,10 @@ namespace MT_RTT
 			*cost_steered = FLT_MAX;
 		else {
 			size_t k, K=this->Get_State_size();
-			for (k = 0; k < K; k++)
+			for (k = 0; k < K; ++k)
 				steered_state[k] = steered.back()[k];
 			auto it_end = steered.end();
-			for (auto it = steered.begin(); it != it_end; it++)
+			for (auto it = steered.begin(); it != it_end; ++it)
 				delete[] *it;
 		}
 

@@ -9,7 +9,7 @@ namespace MT_RTT
 	bool not_in_L(const T& to_find, const std::list<T>& L) {
 		
 		auto it_end = L.end();
-		for (auto it = L.begin(); it != it_end; it++) {
+		for (auto it = L.begin(); it != it_end; ++it) {
 			if (*it == to_find)
 				return false;
 		}
@@ -26,7 +26,7 @@ namespace MT_RTT
 		float delta_cost;
 		const Node* temp = nullptr;
 		auto Problem = this->T->Get_Problem_Handler();
-		for (size_t k = 0; k < Iterations; k++) {
+		for (size_t k = 0; k < Iterations; ++k) {
 			if ((float)rand() / (float)RAND_MAX < *this->Deterministic_coefficient) {
 				temp = T->Extend_deterministic(this->Target);
 				if (T->Get_target_reached_flag()) {
@@ -47,7 +47,7 @@ namespace MT_RTT
 			}
 			else  T->Extend_random();
 
-			this->Iterations_done++;
+			++this->Iterations_done;
 #ifdef _DISPLAY_ITERATIONS
 			cout << "iteration " << this->Iterations_done << endl;
 #endif // _DISPLAY_ITERATIONS
@@ -55,7 +55,7 @@ namespace MT_RTT
 
 	};
 
-	void Single_Extension_job::__Get_best_solution(std::list<Node_State>* solution, const std::list<single_solution>& solutions) {
+	void Single_Extension_job::__Get_best_solution(std::list<Array>* solution, const std::list<single_solution>& solutions) {
 
 		solution->clear();
 		if (solutions.empty()) return;
@@ -141,7 +141,7 @@ namespace MT_RTT
 			caso = !caso;
 			N_target = Slave->Get_root();
 
-			this->Iterations_done++;
+			++this->Iterations_done;
 #ifdef _DISPLAY_ITERATIONS
 			cout << "iteration " << this->Iterations_done << endl;
 #endif // _DISPLAY_ITERATIONS
@@ -149,7 +149,7 @@ namespace MT_RTT
 
 	};
 
-	void Bidirectional_Extension_job::__Get_best_solution(std::list<Node_State>* solution, const std::list<bidir_solution>& solutions) {
+	void Bidirectional_Extension_job::__Get_best_solution(std::list<Array>* solution, const std::list<bidir_solution>& solutions) {
 
 		solution->clear();
 		if (solutions.empty()) return;

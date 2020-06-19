@@ -36,6 +36,6 @@ void Interp_solutions(std::string& result, Navigator* handler) {
 		else to_reprint += temp + "\n";
 	}
 
-	result = move(to_reprint);
+	result = to_reprint;
 
 }

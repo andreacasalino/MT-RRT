@@ -297,7 +297,7 @@ std::string Problem_points::Get_as_JSON() const {
 	JSON += "[\n";
 	if (this->Obstacles.empty()) {
 		JSON += "]";
-		return move(JSON);
+		return JSON;
 	}
 	else if (this->Obstacles.size() == 1)
 		append_box(&JSON, this->Obstacles.front());
@@ -314,6 +314,6 @@ std::string Problem_points::Get_as_JSON() const {
 	}
 
 	JSON += "]";
-	return move(JSON);
+	return JSON;
 
 }

@@ -54,7 +54,7 @@ namespace MT_RTT
 		JSON += ",\"S\":";
 		JSON += json_parser::load_JSON(&(*it)->Get_State()[0], State_size);
 		JSON += "}\n";
-		it++;
+		++it;
 		auto it_end = nodes->end();
 		while (it != it_end) {
 			JSON += ",{\"E\":";
@@ -62,10 +62,10 @@ namespace MT_RTT
 			JSON += ",\"S\":";
 			JSON += json_parser::load_JSON(&(*it)->Get_Father()->Get_State()[0], State_size);
 			JSON += "}\n";
-			it++;
+			++it;
 		}
 		JSON += "]";
-		return move(JSON);
+		return JSON;
 
 	}
 
@@ -85,7 +85,7 @@ namespace MT_RTT
 
 	};
 
-	Tree_concrete::Tree_concrete(const Node_State& root_state, Node::I_Node_factory* handler, const bool& clone_handler ) :
+	Tree_concrete::Tree_concrete(const Array& root_state, Node::I_Node_factory* handler, const bool& clone_handler ) :
 	Tree_concrete(handler, clone_handler) {
 
 		this->Nodes.push_back(new Node(handler->New_root(root_state)));
@@ -96,7 +96,7 @@ namespace MT_RTT
 
 		if (this->Problem_handler_was_cloned)  delete this->Problem_handler;
 		auto it_end = this->Nodes.end();
-		for (auto it = this->Nodes.begin(); it != it_end; it++) 
+		for (auto it = this->Nodes.begin(); it != it_end; ++it) 
 			delete* it;
 		this->Nodes.clear();
 
@@ -111,14 +111,14 @@ namespace MT_RTT
 		Node* nearest = *it_N;
 		float dist_min, dist_att;
 		Problem->Cost_to_go(&dist_min, *it_N, state);
-		it_N++;
-		for (size_t k = 1; k < Nodes_size; k++) {
+		++it_N;
+		for (size_t k = 1; k < Nodes_size; ++k) {
 			Problem->Cost_to_go(&dist_att, *it_N, state);
 			if (dist_att < dist_min) {
 				dist_min = dist_att;
 				nearest = *it_N;
 			}
-			it_N++;
+			++it_N;
 		}
 		return nearest;
 
@@ -164,7 +164,7 @@ namespace MT_RTT
 				if (dist_att <= ray)
 					near_set->emplace_back(*itN);
 			}
-			itN++;
+			++itN;
 		}
 
 	};
@@ -178,7 +178,7 @@ namespace MT_RTT
 			std::list<Node2Node_Traj> rewird_to_do;
 			this->Connect_to_best_Father_and_eval_Rewirds(&rewird_to_do, added);
 			auto it_end = rewird_to_do.end();
-			for (auto it = rewird_to_do.begin(); it != it_end; it++)
+			for (auto it = rewird_to_do.begin(); it != it_end; ++it)
 				it->end->Set_Father(it->start , it->cost);
 		}
 		return added;
@@ -213,7 +213,7 @@ namespace MT_RTT
 		possible_rewirds->back().end = last_added;
 		possible_rewirds->back().cost = last_added->Get_Cost_from_father();
 		c_min += possible_rewirds->back().cost;
-		it_Near++;
+		++it_Near;
 		auto best_traj = possible_rewirds->begin();
 		while (it_Near != Near_set.end()){
 			possible_rewirds->emplace_back();
@@ -239,7 +239,7 @@ namespace MT_RTT
 				}
 			}
 			else possible_rewirds->pop_back();
-			it_Near++;
+			++it_Near;
 		}
 
 		if (best_traj != possible_rewirds->begin()) {
@@ -265,7 +265,7 @@ namespace MT_RTT
 					if (cost_to_root_candidate < (it_traj->cost + cost_to_root_last))
 						it_traj = possible_rewirds->erase(it_traj);
 					else
-						it_traj++;
+						++it_traj;
 				}
 				else it_traj = possible_rewirds->erase(it_traj);
 			}

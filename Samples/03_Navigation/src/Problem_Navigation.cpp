@@ -360,7 +360,7 @@ std::vector<std::vector<float>>	 Navigator::Compute_interpolated_path(const std:
 		}
 		it_prev++;
 	}
-	return move(path);
+	return path;
 
 }
 

@@ -15,44 +15,49 @@
 namespace MT_RTT
 {
 
-	/** \brief Used for externally represent a state x \in \mathcal{X}, Section 1.2.1 of the documentation.
+	/** \brief Used for storing an invariant size array of numbers.
 	\details It cannot be empty.
 	*/
-	struct Node_State {
+	class Array{
 	public:
 		/** \brief The values in vals are copied and stored in Node_State::Vals.
 		* @param[in] vals a pointer to the array of numbers describing the state to represent
 		* @param[in] size the number of values in vals
 		*/
-		Node_State(const float* vals, const size_t& size);
-		/** \brief Copy constructor.
-		*/
-		Node_State(const Node_State& to_copy);
-		~Node_State();
+		Array(const float* vals, const size_t& size);
 
-		Node_State() = delete;
-		Node_State& operator=(const Node_State& ) = delete;
+		Array(const float& val_to_repeat, const size_t& size);
+
+		Array(const Array& o);
+
+		Array& operator=(const Array& o);
+
+		~Array() { delete[] this->pbuffer; };
+
+		Array() = delete;
 
 		/** \brief Access the value at position equal to pos.
 		* @param[in] pos the position of the value to acess in Node_State::Vals
 		* @param[out] return the value at pos position
 		*/
-		const float& operator[](const size_t& pos) const;
+		float& operator[](const size_t& pos) const;
+
 		/** \brief Returns the size of the represented state.
 		*/
 		const size_t& size()const { return this->Size; };
 	private:
 	// data
-		float*		Vals;
-		size_t		Size;
+		float* 		pbuffer;
+		size_t      Size;
 	};
+
 
 
 	/** \brief Used internally by a tree (see Tree.h) for representing a state  x \in \underline{\mathcal{X}}, Section 1.2.1 of the documentation.
 	*/
 	class Node {
 	public:
-		virtual ~Node();
+		virtual ~Node() { delete[] this->State;  };
 
 		/** \brief Moving constructor.
 		* \details State of o is put to NULL, before trasferring the pointer to the Node to build.
@@ -177,7 +182,7 @@ namespace MT_RTT
 		* @param[in] state the state that will be contained in the root to create.
 		* @param[out] return the created root  (the result is returned by internally using move: it is not copied). 
 		*/
-		Node											New_root(const Node_State& state);
+		Node											New_root(const Array& state);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //methods to customize for the specific planning problem to address
@@ -240,7 +245,7 @@ namespace MT_RTT
 		* @param[in] traj_symm_flag a flag explaining whether the problem is symmetric or not, see Node::I_Node_factory::Get_symm_flag()
 		*/
 		Node_factory_concrete(const size_t& X_size, const float& gamma, const bool& traj_symm_flag) :
-			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma) {};
+			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma) { if(X_size == 0) throw 0; };
 	private:
 	// data
 		size_t										State_size;

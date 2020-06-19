@@ -32,7 +32,7 @@ int main() {
 //check the behaviour of this function to understand how to use the planning algorithms
 	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, Scene.get(), Qo, Qf);
 
-	//interpolate the solutions before logging the result
+//interpolate the solutions before logging the result
 	Interp_solutions(Log_results[0], Scene.get());
 	Log_creator("../../src_JS/Result_template.html", "Results/Serial.html", Scene_raw, Log_results[0]);
 	Interp_solutions(Log_results[1], Scene.get());
@@ -57,6 +57,6 @@ vector<float> import_config(const vector<json_parser::field>& fields, const stri
 	Config.emplace_back((*data)[0][0]);
 	Config.emplace_back((*data)[0][1]);
 	Config.emplace_back((*data)[0][2]);
-	return move(Config);
+	return Config;
 
 }

@@ -23,8 +23,6 @@ namespace MT_RTT
 	*/
 	class Manipulator_path_handler : public Node_factory_concrete {
 	public:
-		~Manipulator_path_handler() { delete[] this->Max_Q_vals; delete[] this->Min_Q_vals; delete[] this->Delta_Q_vals; };
-
 		/** \brief The hypercube delimited by the maximal and minimum possible joint excursions is sampled.
 		*/
 		virtual void									Random_node(float* random_state);
@@ -42,21 +40,15 @@ namespace MT_RTT
 		* @param[in] Q_max the maximal values allowed for each joint of the robot(s)
 		* @param[in] Q_min the minimum values allowed for each joint of the robot(s)
 		*/
-		Manipulator_path_handler(const float& Gamma, const float* Q_max, const float* Q_min, const size_t& Q_size);
+		Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min);
 
-		/** \brief Constructor.
-		\details Similar to Manipulator_path_handler(const float& Gamma, const float* Q_max, const float* Q_min, const size_t& Q_size)
-		but passing some vectors insted of row buffers
-		*/
-		Manipulator_path_handler(const float& Gamma, const std::vector<float>& Q_max, const std::vector<float>& Q_min) : Manipulator_path_handler(Gamma, &Q_max[0], &Q_min[0], Q_max.size()) {};
-
-		const float*									Get_max() const { return this->Max_Q_vals; };
-		const float*									Get_min() const { return this->Min_Q_vals; };
+		const Array&									Get_max() const { return this->Max_Q_vals; };
+		const Array&									Get_min() const { return this->Min_Q_vals; };
 	private:
 	// data
-		float*				Max_Q_vals;
-		float*				Min_Q_vals;
-		float*				Delta_Q_vals;
+		Array				Max_Q_vals;
+		Array				Min_Q_vals;
+		Array				Delta_Q_vals;
 	};
 
 
@@ -70,6 +62,8 @@ namespace MT_RTT
 		*/
 		class I_Collision_checker {
 		public:
+			virtual ~I_Collision_checker(){};
+
 			/** \brief It is mainly used when copying the Tunneled_check_collision object that contains this checker.
 			\details All the parameters inside the object must be copied, since the copied object will be used by a different thread.
 			* @param[out] return a copy of this object inside a smart pointer
@@ -94,15 +88,13 @@ namespace MT_RTT
 		* @param[in] Q_max same meaning as in Manipulator_path_handler::Manipulator_path_handler
 		* @param[in] Q_min same meaning as in Manipulator_path_handler::Manipulator_path_handler
 		*/					
-		Tunneled_check_collision(const float& Gamma, const float& steer_degree, const Node_State& Q_max, const Node_State& Q_min, std::unique_ptr<I_Collision_checker>& coll_checker);
+		Tunneled_check_collision(const float& Gamma, const float& steer_degree, const Array& Q_max, const Array& Q_min, std::unique_ptr<I_Collision_checker>& coll_checker);
 
 		/** \brief Constructor.
 		\details Similar to Tunneled_check_collision::Tunneled_check_collision(const float& Gamma, const float& steer_degree, const Node_State& Q_max, const Node_State& Q_min, std::unique_ptr<I_Collision_checker>& coll_checker),
 		but assuming that Q_max (and Q_min) have all the same values equal to q_max and has a size equal to dof.
 		*/
 		Tunneled_check_collision(const float& Gamma, const float& steer_degree, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Collision_checker>& coll_checker);
-
-		~Tunneled_check_collision() { delete[] this->__state_temp; delete[] this->__delta; };
 
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Tunneled_check_collision(*this)); };
 		
@@ -118,14 +110,12 @@ namespace MT_RTT
 		virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state);
 	private:
 		Tunneled_check_collision(Tunneled_check_collision& o);
-
-		void											__init();
 	// data
 		float											 Steer_degree;
 		std::unique_ptr<I_Collision_checker>			 Collision_checker;
 	// cache for checking cost to go with constraints
-		float*											 __state_temp; 
-		float*											 __delta;
+		Array											 __state_temp; 
+		Array											 __delta;
 	};
 
 
@@ -139,6 +129,8 @@ namespace MT_RTT
 		*/
 		class I_Proximity_calculator {
 		public:
+			virtual ~I_Proximity_calculator(){ delete this->Robot_distance_pairs; };
+
 			/** \brief It is mainly used when copying the Bubbles_free_configuration object that contains this calculator.
 			\details All the parameters inside the object must be copied, since the copied object will be used by a different thread.
 			* @param[out] return a copy of this object
@@ -155,7 +147,9 @@ namespace MT_RTT
 			*/			
 			struct single_robot_prox {
 				float											Distance_to_fixed_obstacles; //the minimum distance d^i from robot i to all the obstacles, Section 2.2.3 of the documentation.
-				std::vector<float>								Radii; //radius {r^i1, r^i2, ... } to compute for determine a bubble of free configurations, Section 2.2.3 of the documentation.
+				Array								            Radii; //radius {r^i1, r^i2, ... } to compute for determine a bubble of free configurations, Section 2.2.3 of the documentation.
+
+				single_robot_prox(const size_t& dof): Radii(0.f , dof) {};
 			};
 			
 			/** \brief Get the last computed distances w.r.t the obstacles and robot
@@ -164,12 +158,12 @@ namespace MT_RTT
 
 			/** \brief Get the last reciprocal computed distances between the robots
 			*/						
-			const std::vector<float>&								Get_distances_pairs() const { return this->Robot_distance_pairs; };			
+			const Array*								            Get_distances_pairs() const { return this->Robot_distance_pairs; };			
 		protected:
 			I_Proximity_calculator(const std::vector<size_t>& Dof);
 		// data
 			std::vector<single_robot_prox>						Robots_info;
-			std::vector<float>									Robot_distance_pairs; //distance d^ik between the robots, Section 2.2.3 of the documentation.
+			Array*											    Robot_distance_pairs; //distance d^ik between the robots, Section 2.2.3 of the documentation. It can be NULL when a single robot populates the scene.
 		};
 		I_Proximity_calculator*									   Get_proxier() { return this->Proximity_calculator.get(); };
 
@@ -179,15 +173,13 @@ namespace MT_RTT
 		* @param[in] Q_max same meaning as in Manipulator_path_handler::Manipulator_path_handler
 		* @param[in] Q_min same meaning as in Manipulator_path_handler::Manipulator_path_handler
 		*/	
-		Bubbles_free_configuration(const float& Gamma, const Node_State& Q_max, const Node_State& Q_min, std::unique_ptr<I_Proximity_calculator>& prox_calc);
+		Bubbles_free_configuration(const float& Gamma, const Array& Q_max, const Array& Q_min, std::unique_ptr<I_Proximity_calculator>& prox_calc);
 
 		/** \brief Constructor.
 		\details Similar to Bubbles_free_configuration(const float& Gamma, const Node_State& Q_max, const Node_State& Q_min, std::unique_ptr<I_Proximity_calculator>& prox_calc),
 		but assuming that Q_max (and Q_min) have all the same values equal to q_max and has a size equal to dof.
 		*/
 		Bubbles_free_configuration(const float& Gamma, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Proximity_calculator>& prox_calc);
-
-		~Bubbles_free_configuration() { delete[] this->fake_steered; };
 
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Bubbles_free_configuration(*this)); };
 
@@ -212,7 +204,7 @@ namespace MT_RTT
 		float											Min_dist_for_accept_steer;
 		std::unique_ptr<I_Proximity_calculator>         Proximity_calculator;
 	// cache
-		float*											fake_steered;
+		Array											fake_steered;
 	};
 
 };

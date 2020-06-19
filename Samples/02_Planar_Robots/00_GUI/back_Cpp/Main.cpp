@@ -10,7 +10,7 @@ struct Responder : public GUI_Server::I_Responder {
 	virtual std::string compute_response(const std::string& request_head, const std::string& request_body);
 private:
 	unique_ptr<Node::I_Node_factory> parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf);
-	list<Node_State>				 interpolate(list<Node_State>& path);
+	list<Array>				         interpolate(list<Array>& path);
 // data
 	vector<float>				Qo;
 	vector<float>				Qf;
@@ -44,11 +44,10 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		size_t Iterations = (size_t)(*params)[0][2];
 		size_t Thread = (size_t)(*params)[0][3];
 
-		if (mult_steer > 1) Problem = move(unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer)));
+		if (mult_steer > 1) Problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer));
 		auto solver = I_Planner::Get_multi_ag_parall(det_coeff, Iterations, Problem.get(), Thread, 0.05f);
-		solver->RRT_star(Node_State(&Qo[0], Qo.size()), Node_State(&Qf[0], Qf.size()));
-		list<Node_State> Q_waypoints;
-		solver->Get_solution(&Q_waypoints);
+		solver->RRT_star(Array(&Qo[0], Qo.size()), Array(&Qf[0], Qf.size()));
+		list<Array> Q_waypoints =  solver->Get_solution();
 
 		if (Q_waypoints.empty()) response = "null";
 		else {
@@ -81,9 +80,9 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		for (size_t k = 0; k < (*params)[1].size(); k++) profile_data.Threads.emplace_back((size_t)(*params)[1][k]);
 
 		size_t mult_steer = (size_t)(*params)[0][1];
-		if (mult_steer > 1) Problem = move(unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer)));
+		if (mult_steer > 1) Problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer));
 
-		this->profile(profile_data, Qo, Qf);
+		response = this->profile(profile_data, Qo, Qf);
 
 	}
 
@@ -107,7 +106,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		if (checker.Collision_present(&Qo[0])) response = "1";
 		else							       response = "0";
 	}
-	return move(response);
+	return response;
 }
 
 unique_ptr<Node::I_Node_factory> Responder::parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf) {
@@ -116,11 +115,11 @@ unique_ptr<Node::I_Node_factory> Responder::parse_scene(const vector<json_parser
 	unique_ptr<Bubbles_free_configuration::I_Proximity_calculator> scene(new Scene_Proximity_calculator(scene_json));
 	unique_ptr<Node::I_Node_factory> hndl(new Bubbles_free_configuration(10.f, 4.712385f, -4.712385f, 
 		dynamic_cast<Scene_Proximity_calculator*>(scene.get())->Get_Dof_tot(), scene));
-	return move(hndl);
+	return hndl;
 }
 
-list<Node_State> Responder::interpolate(list<Node_State>& path) {
-	list<Node_State> temp;
+list<Array> Responder::interpolate(list<Array>& path) {
+	list<Array> temp;
 	auto it = path.begin();
 	auto it_prev = it;
 	auto it_end = path.end();
@@ -145,7 +144,7 @@ list<Node_State> Responder::interpolate(list<Node_State>& path) {
 				cout << " " << Q_temp[k];
 			}
 			cout << endl;
-			temp.emplace_back(Node_State(&Q_temp[0], K));
+			temp.emplace_back(Array(&Q_temp[0], K));
 		}
 		temp.emplace_back(*it);
 
@@ -153,6 +152,6 @@ list<Node_State> Responder::interpolate(list<Node_State>& path) {
 	}
 	delete[] Delta;
 	delete[] Q_temp;
-	return move(temp);
+	return temp;
 }
 

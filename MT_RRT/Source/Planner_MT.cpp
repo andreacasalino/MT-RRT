@@ -31,10 +31,10 @@ namespace MT_RTT
 
 	}
 
-	void I_Planner_MT::Init_Single_Extension_battery(std::vector<Single_Extension_job>* battery, const std::vector<I_Tree*>& T, const Node_State& target) {
+	void I_Planner_MT::Init_Single_Extension_battery(std::vector<Single_Extension_job>* battery, const std::vector<I_Tree*>& T, const Array& target) {
 
 		battery->reserve(T.size());
-		for (size_t k = 0; k < T.size(); k++) 
+		for (size_t k = 0; k < T.size(); ++k) 
 			battery->emplace_back(T[k], target, &this->Deterministic_coefficient, &this->Cumulate_sol);
 
 	};
@@ -44,7 +44,7 @@ namespace MT_RTT
 		if (A.size() != B.size()) throw 0;
 
 		battery->reserve(A.size());
-		for (size_t k = 0; k < A.size(); k++)
+		for (size_t k = 0; k < A.size(); ++k)
 			battery->emplace_back(A[k], B[k], &this->Deterministic_coefficient, &this->Cumulate_sol);
 
 	};
@@ -56,7 +56,7 @@ namespace MT_RTT
 
 		std::vector<unsigned int> S;
 		S.reserve(N_seeds);
-		for (size_t k = 0; k < N_seeds; k++)
+		for (size_t k = 0; k < N_seeds; ++k)
 			S.emplace_back((unsigned int)rand());
 		return S;
 

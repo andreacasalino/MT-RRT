@@ -43,7 +43,7 @@ namespace MT_RTT
 		* @param[in] start the staring state of the problem to solve
 		* @param[in] end   the ending state of the problem to solve
 		*/
-		void									RRT_basic(const Node_State& start, const Node_State& end);
+		void									RRT_basic(const Array& start, const Array& end);
 		
 		/** \brief Tries to solve the problem by executing the bidirectional RRT version (Section 1.2.2 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
 		step C of the pipeline presented in Section 1.3 of the documentation.
@@ -53,7 +53,7 @@ namespace MT_RTT
 		* @param[in] start the staring state of the problem to solve
 		* @param[in] end   the ending state of the problem to solve
 		*/
-		void									RRT_bidirectional(const Node_State& start, const Node_State& end);
+		void									RRT_bidirectional(const Array& start, const Array& end);
 		
 		/** \brief Tries to solve the problem by executing the RRT* version (Section 1.2.3 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
 		step C of the pipeline presented in Section 1.3 of the documentation.
@@ -63,7 +63,7 @@ namespace MT_RTT
 		* @param[in] start the staring state of the problem to solve
 		* @param[in] end   the ending state of the problem to solve
 		*/		
-		void									RRT_star(const Node_State& start, const Node_State& end);
+		void									RRT_star(const Array& start, const Array& end);
 
 
 
@@ -81,7 +81,7 @@ namespace MT_RTT
 		\details An empty list is returned in case the solution was not found.
 		* @param[out] return the number of iterations done
 		*/	
-		void									Get_solution(std::list<Node_State>* result);
+		std::list<Array>					    Get_solution();
 		
 		/** \brief Returns a json structure describing the searching trees computed when solving the last specified planning problem,
 		step D.2 of the pipeline presented in Section 1.3 of the documentation.
@@ -169,17 +169,17 @@ namespace MT_RTT
 
 		/** \brief the method overrided by all the derived planner for performing an RRT search
 		*/			
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end) = 0;
+		virtual void					  _RRT_basic(const Array& start, const Array& end) = 0;
 		/** \brief the method overrided by all the derived planner for performing a bidirectionl search
 		*/			
-		virtual void					  _RRT_bidirectional(const Node_State& start, const Node_State& end) = 0;
+		virtual void					  _RRT_bidirectional(const Array& start, const Array& end) = 0;
 		/** \brief the method overrided by all the derived planner for performing an RRT* search
 		*/			
-		virtual void					  _RRT_star(const Node_State& start, const Node_State& end) = 0;
+		virtual void					  _RRT_star(const Array& start, const Array& end) = 0;
 
 		struct __last_solution_info {
 			size_t							Iteration_done;
-			std::list<Node_State>			Solution;
+			std::list<Array>				Solution;
 			std::list<I_Tree*>				Trees;
 		};
 		void								Set_Solution(const __last_solution_info& last_sol);

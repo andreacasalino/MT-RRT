@@ -43,9 +43,9 @@ int main() {
 
 #endif
 
-	problem = move(unique_ptr<Node::I_Node_factory>(Scene));
+	problem = unique_ptr<Node::I_Node_factory>(Scene);
 #ifdef USE_MULTIPLE_STEER
-	problem = move(unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(problem, 6)));
+	problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(problem, 6));
 #endif
 
 	Qo = import_pose(*json_parser::get_field(fields, "Q_curr"));

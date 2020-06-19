@@ -18,9 +18,9 @@ namespace MT_RTT
 		Planner_shared_parall(const float& det_coeff, const size_t& max_iter, Node::I_Node_factory* handler, const size_t& N_threads) :
 			I_Planner_MT( det_coeff, max_iter, handler, N_threads) {};
 	protected:
-		virtual void					  _RRT_basic(const Node_State& start, const Node_State& end);
-		virtual void		_RRT_bidirectional(const Node_State& start, const Node_State& end);
-		virtual void						 _RRT_star(const Node_State& start, const Node_State& end);
+		virtual void					  _RRT_basic(const Array& start, const Array& end);
+		virtual void		_RRT_bidirectional(const Array& start, const Array& end);
+		virtual void						 _RRT_star(const Array& start, const Array& end);
 	private:
 		template<typename Solver>
 		void						_get_solution(vector<Solver>& Battery_solver) {
@@ -71,17 +71,17 @@ num_threads(Number_threads)
 
 		class Tree_critical : public I_Tree_decorator {
 		public:
-			static vector<Tree_critical*>	   Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
+			static vector<Tree_critical*>	   Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
 		private:
 			Tree_critical(Tree_concrete* concrete_to_wrap, const bool& destroy_wrap) :
 				I_Tree_decorator(concrete_to_wrap, destroy_wrap) {};
 
 			class Tree_concrete_critical : public Tree_concrete {
 			public:
-				Tree_concrete_critical(const Node_State& root_state, Node::I_Node_factory* handler, const size_t& N_threads) : Tree_concrete(root_state, handler, false) {
+				Tree_concrete_critical(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads) : Tree_concrete(root_state, handler, false) {
 					this->__infoes.reserve(N_threads);
 					this->__handlers.reserve(N_threads);
-					for (size_t k = 0; k < N_threads; k++) {
+					for (size_t k = 0; k < N_threads; ++k) {
 						this->__infoes.emplace_back();
 						this->__infoes.back().target_reached = false;
 						if (k == 0) this->__handlers.emplace_back(handler);
@@ -92,7 +92,7 @@ num_threads(Number_threads)
 						}
 					}
 				};
-				~Tree_concrete_critical() { for (size_t k = 1; k < this->__handlers.size(); k++) delete this->__handlers[k]; };
+				~Tree_concrete_critical() { for (size_t k = 1; k < this->__handlers.size(); ++k) delete this->__handlers[k]; };
 
 				virtual Node::I_Node_factory* Get_Problem_Handler() { int th_id = omp_get_thread_num();  return this->__handlers[th_id]; };
 			private:
@@ -114,7 +114,7 @@ num_threads(Number_threads)
 
 		class Tree_star_critical : public Tree_star  {
 		public:
-			static vector<Tree_star_critical*> Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
+			static vector<Tree_star_critical*> Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads);
 		private:
 			Tree_star_critical(Tree_critical* to_wrap) : Tree_star(to_wrap, true) {};
 			virtual	Node*					   Extend(const Node* target);
@@ -158,7 +158,7 @@ num_threads(Number_threads)
 			{
 				this->Connect_to_best_Father_and_eval_Rewirds(&rewird_to_do, added);
 				auto it_end = rewird_to_do.end();
-				for (auto it = rewird_to_do.begin(); it != it_end; it++)
+				for (auto it = rewird_to_do.begin(); it != it_end; ++it)
 					it->end->Set_Father(it->start, it->cost);
 			}
 		}
@@ -166,24 +166,24 @@ num_threads(Number_threads)
 
 	}
 
-	vector<Planner_shared_parall::Tree_critical*>	 Planner_shared_parall::Tree_critical::Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
+	vector<Planner_shared_parall::Tree_critical*>	 Planner_shared_parall::Tree_critical::Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
 
 		Tree_concrete_critical* T = new Tree_concrete_critical(root_state, problem_handler, N_threads);
 		vector<Tree_critical*>  Battery;
 		Battery.reserve(N_threads);
 		Battery.emplace_back(new Tree_critical(T, true));
-		for (size_t k = 1; k < N_threads; k++) 
+		for (size_t k = 1; k < N_threads; ++k) 
 			Battery.emplace_back(new Tree_critical(T, false));
 		return Battery;
 
 	}
 
-	vector<Planner_shared_parall::Tree_star_critical*>	 Planner_shared_parall::Tree_star_critical::Init_Battery(const Node_State& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
+	vector<Planner_shared_parall::Tree_star_critical*>	 Planner_shared_parall::Tree_star_critical::Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
 
 		auto temp = Tree_critical::Init_Battery(root_state, problem_handler, N_threads);
 		vector<Tree_star_critical*> Battery;
 		Battery.reserve(N_threads);
-		for (size_t k = 0; k < N_threads; k++)
+		for (size_t k = 0; k < N_threads; ++k)
 			Battery.emplace_back(new Tree_star_critical(temp[k]));
 		return Battery;
 
@@ -191,7 +191,7 @@ num_threads(Number_threads)
 
 
 
-	void Planner_shared_parall::_RRT_basic(const Node_State& start, const Node_State& end) {
+	void Planner_shared_parall::_RRT_basic(const Array& start, const Array& end) {
 
 		auto T_battery = Tree_critical::Init_Battery(start, this->Handler, this->get_Threads());
 		vector<Single_Extension_job> Battery_solver;
@@ -200,7 +200,7 @@ num_threads(Number_threads)
 
 	}
 
-	void Planner_shared_parall::_RRT_bidirectional(const Node_State& start, const Node_State& end) {
+	void Planner_shared_parall::_RRT_bidirectional(const Array& start, const Array& end) {
 
 		auto T_battery_A = Tree_critical::Init_Battery(start, this->Handler, this->get_Threads());
 		auto T_battery_B = Tree_critical::Init_Battery(end, this->Handler, this->get_Threads());
@@ -210,7 +210,7 @@ num_threads(Number_threads)
 
 	}
 
-	void Planner_shared_parall::_RRT_star(const Node_State& start, const Node_State& end) {
+	void Planner_shared_parall::_RRT_star(const Array& start, const Array& end) {
 
 		auto T_battery = Tree_star_critical::Init_Battery(start, this->Handler, this->get_Threads());
 		vector<Single_Extension_job> Battery_solver;
