@@ -32,13 +32,13 @@ namespace MT_RTT
 
 		/** \brief Performs decoding from an input string. 
 		* @param[in] JSON the string to decode
-		* @param[out] return the parsed array of nodes (the result is returned by internally using move: it is not copied).
+		* @param[out] return the parsed array of nodes.
 		*/
 		static std::vector<field> parse_JSON(const std::string& JSON);
 
 		/** \brief Read the json contained in a specified file. The returned result can be later parsed using parse_JSON.
 		* @param[in] file_location the file to read
-		* @param[out] return the content of the file to read (the result is returned by internally using move: they are not copied).
+		* @param[out] return the content of the file to read.
 		*/
 		static std::string		  get_JSON_from_file(const std::string& file_location);
 		
@@ -57,20 +57,20 @@ namespace MT_RTT
 
 		/** \brief Performs encoding. 
 		* @param[in] fields the data to encode
-		* @param[out] return the encoded json as a string (the result is returned by internally using move: it is not copied).
+		* @param[out] return the encoded json as a string.
 		*/
 		static std::string		  load_JSON(const std::vector<field>& fields);
 
 		/** \brief Performs encoding of a single numerical array.
 		* @param[in] buffer the buffer of numbers to encode
 		* @param[in] Size the size of the buffer of numbers to encode
-		* @param[out] return the encoded json (the result is returned by internally using move: they are not copied).
+		* @param[out] return the encoded json.
 		*/
 		static std::string		  load_JSON(const float* buffer, const size_t& Size);
 		
 		/** \brief Performs encoding of a single matrix of numbers (each row can have a different size).
 		* @param[in] values the matrix of numbers to encode
-		* @param[out] return the encoded json (the result is returned by internally using move: it is not copied).
+		* @param[out] return the encoded json.
 		*/
 		static std::string		  load_JSON(const std::vector<std::vector<float>>& values);
 		
@@ -78,7 +78,7 @@ namespace MT_RTT
 		a single buffer, whose row subdivision is expressed by Sizes.
 		* @param[in] buffer the matrix of numbers to encode
 		* @param[in] Sizes the size of each row
-		* @param[out] return the encoded json (the result is returned by internally using move: it is not copied).
+		* @param[out] return the encoded json.
 		*/
 		static std::string		  load_JSON(const float* buffer, const std::vector<size_t>& Sizes);
 	};

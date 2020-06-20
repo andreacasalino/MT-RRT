@@ -20,12 +20,16 @@ namespace MT_RTT
 	*/
 	class Array{
 	public:
-		/** \brief The values in vals are copied and stored in Node_State::Vals.
+		/** \brief The values in vals are copied and stored in Array::pbuffer.
 		* @param[in] vals a pointer to the array of numbers describing the state to represent
 		* @param[in] size the number of values in vals
 		*/
 		Array(const float* vals, const size_t& size);
 
+		/** \brief val_to_repeat is copied multiple times Array::pbuffer to create an array the specified size.
+		* @param[in] val_to_repeat the value to repeat in the buffer to create
+		* @param[in] size the size of the buffer to create
+		*/
 		Array(const float& val_to_repeat, const size_t& size);
 
 		Array(const Array& o);
@@ -37,7 +41,7 @@ namespace MT_RTT
 		Array() = delete;
 
 		/** \brief Access the value at position equal to pos.
-		* @param[in] pos the position of the value to acess in Node_State::Vals
+		* @param[in] pos the position of the value to acess in Array::pbuffer
 		* @param[out] return the value at pos position
 		*/
 		float& operator[](const size_t& pos) const;
@@ -127,7 +131,7 @@ namespace MT_RTT
 
 		/** \brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section 1.2.1 of the documentation.
 		\details This function is invoked for randomly growing a searching tree.
-		* @param[out] return the random node computed (the result is returned by internally using move: it is not copied). 
+		* @param[out] return the random node computed . 
 		*/
 		Node											Random_node();
 
@@ -151,7 +155,7 @@ namespace MT_RTT
 
 		/** \brief Performs a steering operation, Section 1.2.1 of the documentation, from a staring node to a target one.
 		\details The node returned contains the steered state. In case a steering operation is not possible, a Node with a NULL State is returned.
-		* @param[out] return the node with the steered configuration (the result is returned by internally using move: it is not copied). 
+		* @param[out] return the node with the steered configuration. 
 		* @param[in] start the starting node from which the steer operation must be tried
 		* @param[in] trg the target node to which the steer operation must be tried
 		* @param[out] trg_reached returns true in case the steering was possible and led to reach the target node. Otherwise false is returned.
@@ -160,7 +164,7 @@ namespace MT_RTT
 
 		//same father is assumed
 		/** \brief Generates a node with the same state and father of the node passed as input.
-		* @param[out] return the cloned node (the result is returned by internally using move: it is not copied). 
+		* @param[out] return the cloned node. 
 		* @param[in] o the node to clone
 		*/
 		Node											Clone_Node(const Node& o);
@@ -180,7 +184,7 @@ namespace MT_RTT
 		/** \brief Builds a new root for a tree.
 		\details The root is a node having a NULL father.
 		* @param[in] state the state that will be contained in the root to create.
-		* @param[out] return the created root  (the result is returned by internally using move: it is not copied). 
+		* @param[out] return the created root . 
 		*/
 		Node											New_root(const Array& state);
 

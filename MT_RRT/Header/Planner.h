@@ -86,14 +86,14 @@ namespace MT_RTT
 		/** \brief Returns a json structure describing the searching trees computed when solving the last specified planning problem,
 		step D.2 of the pipeline presented in Section 1.3 of the documentation.
 		\details An empty structure is returned in case no problems were solved at the time of invoking this function.
-		* @param[out] return a json structure describing the searching tree computed to solve the last problem (move is internally called when returning the result).
+		* @param[out] return a json structure describing the searching tree computed to solve the last problem .
 		*/	
 		std::string								Get_Trees_as_JSON();
 		
 		/** \brief Append to the passed string a json structure describing the sequence of states representing the last solution found,
 		step D.2 of the pipeline presented in Section 1.3 of the documentation.
 		\details An empty structure is returned in case no problems were solved at the time of invoking this function.
-		* @param[out] return a json structure with the waypoints representing the solution (move is internally called when returning the result).
+		* @param[out] return a json structure with the waypoints representing the solution.
 		*/	
 		std::string								Get_Solution_as_JSON();
 

@@ -41,7 +41,7 @@ namespace MT_RTT
 		/** \brief Create a json describing the nodes contained in this tree.
 		\details The json produced is an array of node, each having an array describing the state of the i^th node
 		and an array describing the state of its parent.
-		* @param[out] return the json structure describing the tree (the result is returned by internally using move: it is not copied). 
+		* @param[out] return the json structure describing the tree. 
 		*/
 		std::string										Get_Tree_as_JSON();
 
