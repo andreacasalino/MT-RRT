@@ -52,7 +52,7 @@ public:
 };
 
 Planar_trajectory::Planar_trajectory(const float& ray, const float& Startx, const float& Starty, const float& Start_angle,
-	const float& Endx, const float& Endy, const float& End_angle) : Cost(FLT_MAX), Path_found(NULL) {
+	const float& Endx, const float& Endy, const float& End_angle, const bool& force_solution) : Cost(FLT_MAX), Path_found(NULL) {
 
 	Segment VA;
 	float C_start = cosf(Start_angle), S_start = sinf(Start_angle);
@@ -65,9 +65,12 @@ Planar_trajectory::Planar_trajectory(const float& ray, const float& Startx, cons
 	VA.V2[1] = Starty + S_start;
 	VA.V2[2] = 0.f;
 
-	if (abs(Start_angle - End_angle) <= 0.01f) {
-		Line_VS_Point checker(VA , Point3D(Endx , Endy, End_angle));
-		if ((checker.get_s() >= 0.f) && (checker.Get_distance() <= 1e-2)) {
+	if (abs(Start_angle - End_angle) <= 0.035f) {
+		Line_VS_Point checker(VA , Point3D(Endx , Endy, 0.f));
+		float delta_SE[2];
+		delta_SE[0] = Endx - Startx;
+		delta_SE[1] = Endy - Starty;
+		if ((checker.get_s() >= 0.f) && (sqrtf( delta_SE[0]*delta_SE[0] + delta_SE[1] * delta_SE[1]) >= 0.1f)) {
 			auto p = new path_linear();
 			p->Start[0] = Startx;
 			p->Start[1] = Starty;
@@ -94,79 +97,92 @@ Planar_trajectory::Planar_trajectory(const float& ray, const float& Startx, cons
 		Line_VS_Line solver(VA, VB);
 		bool Solution_type;
 
-		if (solver.get_are_parallel()) return;
-		if (solver.get_a() >= 0.f && solver.get_b() <= 0.f) {
-			float angle_A = atan2f(-S_start, -C_start);
-			float angle_B = atan2f(   S_end,  C_end);
-			float l = abs (ray / tanf(0.5f * (angle_B - angle_A)));
+		if (!solver.get_are_parallel()) {
+			if (solver.get_a() >= 0.f && solver.get_b() <= 0.f) {
+				float angle_A = atan2f(-S_start, -C_start);
+				float angle_B = atan2f(S_end, C_end);
+				float l = abs(ray / tanf(0.5f * (angle_B - angle_A)));
 
-			path_linear*	p0 = new path_linear();
-			path_circular*	p1 = new path_circular();
-			path_linear*	p2 = new path_linear();
+				path_linear* p0 = new path_linear();
+				path_circular* p1 = new path_circular();
+				path_linear* p2 = new path_linear();
 
-			p0->Start[0] = Startx;
-			p0->Start[1] = Starty;
-			p2->Delta[0] = Endx;
-			p2->Delta[1] = Endy;
+				p0->Start[0] = Startx;
+				p0->Start[1] = Starty;
+				p2->Delta[0] = Endx;
+				p2->Delta[1] = Endy;
 
-			if ((l < solver.get_a()) && (l < abs(solver.get_b()))) {
-			//simple solution
-				Solution_type = true;
-				p0->Delta[0] = solver.Get_closest_in_shapeA()[0] - C_start * l;
-				p0->Delta[1] = solver.Get_closest_in_shapeA()[1] - S_start * l;
+				if ((l < solver.get_a()) && (l < abs(solver.get_b()))) {
+					//simple solution
+					Solution_type = true;
+					p0->Delta[0] = solver.Get_closest_in_shapeA()[0] - C_start * l;
+					p0->Delta[1] = solver.Get_closest_in_shapeA()[1] - S_start * l;
 
-				p2->Start[0] = solver.Get_closest_in_shapeA()[0] + C_end * l;
-				p2->Start[1] = solver.Get_closest_in_shapeA()[1] + S_end * l;
+					p2->Start[0] = solver.Get_closest_in_shapeA()[0] + C_end * l;
+					p2->Start[1] = solver.Get_closest_in_shapeA()[1] + S_end * l;
+				}
+				else {
+					//complex solution
+					Solution_type = false;
+					p0->Delta[0] = solver.Get_closest_in_shapeA()[0] + C_start * l;
+					p0->Delta[1] = solver.Get_closest_in_shapeA()[1] + S_start * l;
+
+					p2->Start[0] = solver.Get_closest_in_shapeA()[0] - C_end * l;
+					p2->Start[1] = solver.Get_closest_in_shapeA()[1] - S_end * l;
+				}
+				float d = sqrtf(l * l + ray * ray);
+
+				float coeff = abs(d / (l * cosf(0.5f * (angle_B - angle_A))));
+
+				p1->Center[0] = 0.5f * (p0->Delta[0] + p2->Start[0]) - solver.Get_closest_in_shapeA()[0];
+				p1->Center[0] *= coeff;
+				p1->Center[0] += solver.Get_closest_in_shapeA()[0];
+
+				p1->Center[1] = 0.5f * (p0->Delta[1] + p2->Start[1]) - solver.Get_closest_in_shapeA()[1];
+				p1->Center[1] *= coeff;
+				p1->Center[1] += solver.Get_closest_in_shapeA()[1];
+
+				float A[2]; A[0] = p0->Delta[0] - p1->Center[0]; A[1] = p0->Delta[1] - p1->Center[1];
+				float B[2]; B[0] = p2->Start[0] - p1->Center[0]; B[1] = p2->Start[1] - p1->Center[1];
+
+				p1->Angle_initial = atan2f(A[1], A[0]);
+				p1->Angle_delta = A[0] * B[0] + A[1] * B[1];
+				p1->Angle_delta = p1->Angle_delta / (sqrtf(A[0] * A[0] + A[1] * A[1]) * sqrtf(B[0] * B[0] + B[1] * B[1]));
+				p1->Angle_delta = acosf(p1->Angle_delta);
+				float cross = A[0] * B[1] - A[1] * B[0]; //A cross B
+				if (Solution_type) {
+					if (cross < 0.f) p1->Angle_delta = -p1->Angle_delta;
+				}
+				else {
+					p1->Angle_delta = 6.2832f - p1->Angle_delta;
+					if (cross > 0.f) p1->Angle_delta = -p1->Angle_delta;
+				}
+				p1->Length = ray * abs(p1->Angle_delta);
+				p1->Ray = ray;
+
+				p0->init();
+				p2->init();
+				p1->Orient_initial = p0->angle;
+
+				this->Path_found = p0;
+				p0->next = p1;
+				p1->next = p2;
+				p2->next = nullptr;
+				this->Cost = p0->Length + p1->Length + p2->Length;
 			}
-			else {
-			//complex solution
-				Solution_type = false;
-				p0->Delta[0] = solver.Get_closest_in_shapeA()[0] + C_start * l;
-				p0->Delta[1] = solver.Get_closest_in_shapeA()[1] + S_start * l;
-
-				p2->Start[0] = solver.Get_closest_in_shapeA()[0] - C_end * l;
-				p2->Start[1] = solver.Get_closest_in_shapeA()[1] - S_end * l;
-			}
-			float d = sqrtf(l * l + ray * ray);
-
-			float coeff =  abs( d / (l * cosf(0.5f * (angle_B - angle_A))) );
-
-			p1->Center[0] = 0.5f * (p0->Delta[0] + p2->Start[0]) - solver.Get_closest_in_shapeA()[0];
-			p1->Center[0] *= coeff;
-			p1->Center[0] += solver.Get_closest_in_shapeA()[0];
-
-			p1->Center[1] = 0.5f * (p0->Delta[1] + p2->Start[1]) - solver.Get_closest_in_shapeA()[1];
-			p1->Center[1] *= coeff;
-			p1->Center[1] += solver.Get_closest_in_shapeA()[1];
-
-			float A[2]; A[0] = p0->Delta[0] - p1->Center[0]; A[1] = p0->Delta[1] - p1->Center[1];
-			float B[2]; B[0] = p2->Start[0] - p1->Center[0]; B[1] = p2->Start[1] - p1->Center[1];
-
-			p1->Angle_initial = atan2f(A[1], A[0]);
-			p1->Angle_delta = A[0] * B[0] + A[1] * B[1];
-			p1->Angle_delta = p1->Angle_delta / (sqrtf(A[0] * A[0] + A[1] * A[1]) * sqrtf(B[0] * B[0] + B[1] * B[1]));
-			p1->Angle_delta = acosf(p1->Angle_delta);
-			float cross = A[0] * B[1] - A[1] * B[0]; //A cross B
-			if (Solution_type) {
-				if (cross < 0.f) p1->Angle_delta = -p1->Angle_delta;
-			}
-			else {
-				p1->Angle_delta = 6.2832f - p1->Angle_delta;
-				if (cross > 0.f) p1->Angle_delta = -p1->Angle_delta;
-			}
-			p1->Length = ray * abs(p1->Angle_delta);
-			p1->Ray = ray;
-
-			p0->init();
-			p2->init();
-			p1->Orient_initial = p0->angle;
-
-			this->Path_found = p0;
-			p0->next = p1;
-			p1->next = p2;
-			p2->next = nullptr;
-			this->Cost = p0->Length + p1->Length + p2->Length;
 		}
+	}
+
+	if (force_solution && (this->Path_found == NULL)) {
+		auto p = new path_linear();
+		p->Start[0] = Startx;
+		p->Start[1] = Starty;
+		p->Delta[0] = Endx;
+		p->Delta[1] = Endy;
+		p->init();
+		this->Path_found = p;
+		this->Cost = p->Length;
+		p->next = nullptr;
 	}
 
 }
@@ -350,7 +366,13 @@ std::vector<std::vector<float>>	 Navigator::Compute_interpolated_path(const std:
 	auto it_w_end = waypoints.end();
 	for (it_w = it_w; it_w != it_w_end; it_w++) {
 		Planar_trajectory traj(this->Traj_ray, (*it_prev)[0], (*it_prev)[1], (*it_prev)[2],
-											   (*it_w)[0], (*it_w)[1], (*it_w)[2]);
+											   (*it_w)[0], (*it_w)[1], (*it_w)[2], true);
+
+		//string temp = "echo " + to_string((*it_prev)[0]) + " " + to_string((*it_w)[0])
+		//	            + " " + to_string((*it_prev)[1]) + " " + to_string((*it_w)[1])
+		//	            + " " + to_string((*it_prev)[2]) + " " + to_string((*it_w)[2]);
+		//system(temp.c_str());
+
 		Planar_trajectory::iterator it_traj(&traj, this->Steer_degree);
 		const float* pos = it_traj.get_position();
 		++it_traj;

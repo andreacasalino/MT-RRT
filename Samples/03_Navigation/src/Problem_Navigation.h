@@ -30,7 +30,7 @@ public:
 	* @param[in] End_angle orientation of the vehicle in the ending configuration
 	*/
 	Planar_trajectory(const float& ray, const float& Startx, const float& Starty, const float& Start_angle,
-		const float& Endx, const float& Endy, const float& End_angle);
+		const float& Endx, const float& Endy, const float& End_angle, const bool& force_solution = false);
 	~Planar_trajectory() { delete this->Path_found; };
 
 	/** \brief return the lenght of the cost.
