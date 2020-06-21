@@ -9,7 +9,7 @@
 #ifndef __MT_RRT_PLANNER_H__
 #define __MT_RRT_PLANNER_H__
 
-#include "Tree.h"
+#include "Simplifier.h"
 
 namespace MT_RTT
 {
@@ -35,6 +35,17 @@ namespace MT_RTT
 		is selected at the end. This solution will be the one externally accesible.
 		*/
 		void									Cumulate_solutions() { this->Cumulate_sol = true; };
+
+		/** \brief Used to specify the post processer to use. By default no post processing is done.
+		 * \details The post processer tries to further improve a solution obtained with a call to
+		 * RRT_basic, RRT_bidirectional or RRT_star. The solution is improved and internally stored. 
+		 * It can be accessed using I_Planner::Get_solution.
+		*/
+		template<typename Processer = Brute_force_Simplifier>
+		void									Set_post_processer(){
+			delete this->Post_processer;
+			this->Post_processer = new Processer();
+		};
 
 		/** \brief Tries to solve the problem by executing the basic single tree RRT version (Section 1.2.1 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
 		step C of the pipeline presented in Section 1.3 of the documentation.
@@ -194,6 +205,7 @@ namespace MT_RTT
 
 	// data
 		__last_solution_info*								Last_solution;
+		I_Simplifier*										Post_processer;
 	};
 
 }

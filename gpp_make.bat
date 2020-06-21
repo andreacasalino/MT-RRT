@@ -15,6 +15,7 @@ g++ -c ./MT_RRT/Source/json.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Problem_description.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Tree.cpp -%OPT% -Wall -D_REW_DEBUG
 g++ -c ./MT_RRT/Source/Extensions.cpp -%OPT% -Wall
+g++ -c ./MT_RRT/Source/Simplifier.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Planner.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Planner_canonical.cpp -%OPT% -Wall -DDETER_SEED
 g++ -c ./MT_RRT/Source/Planner_MT.cpp  -fopenmp -%OPT% -Wall -DDETER_SEED
@@ -29,6 +30,7 @@ ar rvs ./bin/MT_RRT.lib ^
 	Problem_description.o ^
 	Tree.o ^
 	Extensions.o ^
+	Simplifier.o ^
 	Planner.o ^
 	Planner_canonical.o ^
 	Planner_MT.o ^

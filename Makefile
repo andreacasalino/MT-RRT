@@ -9,6 +9,7 @@ build_lib:
 	g++ -c ./MT_RRT/Source/Problem_description.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Tree.cpp -O3 -Wall -D_REW_DEBUG
 	g++ -c ./MT_RRT/Source/Extensions.cpp -O3 -Wall
+	g++ -c ./MT_RRT/Source/Simplifier.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Planner.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Planner_canonical.cpp -O3 -Wall -DDETER_SEED
 	g++ -c ./MT_RRT/Source/Planner_MT.cpp  -fopenmp -O3 -Wall -DDETER_SEED
@@ -22,6 +23,7 @@ build_lib:
 		Problem_description.o \
 		Tree.o \
 		Extensions.o \
+		Simplifier.o \
 		Planner.o \
 		Planner_canonical.o \
 		Planner_MT.o \

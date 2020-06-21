@@ -111,7 +111,7 @@ namespace MT_RTT
 		Node(Node* father, const float& cost, float* state) : Father(father), Cost_traj_from_father(cost), State(state) {};
 		
 		Node(float* state) : Node(nullptr, 0.f, state){};
-	private:
+		
 	// data
 		Node*							Father;
 		float							Cost_traj_from_father;

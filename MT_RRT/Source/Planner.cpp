@@ -20,6 +20,8 @@ namespace MT_RTT
 		if (this->Deterministic_coefficient < 0.f)
 			this->Deterministic_coefficient = 0.01f;
 
+		this->Post_processer = nullptr;
+
 	};
 
 	I_Planner::~I_Planner() {
@@ -28,6 +30,7 @@ namespace MT_RTT
 			this->__clean_trees();
 			delete this->Last_solution;
 		}
+		delete this->Post_processer;
 
 	}
 
@@ -58,6 +61,8 @@ namespace MT_RTT
 		this->Last_solution->Iteration_done = last_sol.Iteration_done;
 		copy_solution(this->Last_solution->Solution , last_sol.Solution);
 		this->Last_solution->Trees = last_sol.Trees;
+
+		if(this->Post_processer != nullptr) (*this->Post_processer)(&this->Last_solution->Solution , this->Handler);	
 
 	}
 
