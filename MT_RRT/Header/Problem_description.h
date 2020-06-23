@@ -38,6 +38,16 @@ namespace MT_RTT
 		*/
 		Array(const size_t& size);
 
+		/** \brief Variadic constructor accepting a variable number of floats.
+		* @param[in] args the variable number of floats to use for initializing this object
+		*/
+		template<typename ... Args>
+		static Array build_from_numbers(Args ... args){
+			size_t p_temp, Size = 0;
+			auto bf = __init_variadic_buffer(Size , p_temp, args...);
+			return Array(bf , Size);
+		};
+
 		Array(const Array& o);
 
 		Array& operator=(const Array& o);
@@ -62,6 +72,22 @@ namespace MT_RTT
 		*/
 		const size_t& size()const { return this->Size; };
 	private:
+		template<typename ... Args>
+		static float* __init_variadic_buffer(size_t& Size, size_t& pos, const float& val, Args ... args){
+			++Size;
+			auto bf = __init_variadic_buffer(Size, pos, args...);
+			--pos;
+			bf[pos] = val;
+			return bf;
+		};
+		static float* __init_variadic_buffer(size_t& Size, size_t& pos, const float& val){
+			++Size;
+			float* pbuffer = new float[Size];
+			pos = Size - 1;
+			pbuffer[pos] = val;
+			return pbuffer;
+		};
+
 	// data
 		float* 		pbuffer;
 		size_t      Size;

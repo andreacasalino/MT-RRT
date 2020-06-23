@@ -93,9 +93,13 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
     list<size_t> simple_pos;
     cursor = Path;
     while (cursor != nullptr) {
-        simple_pos.push_front(cursor->get_pos());
+        simple_pos.push_front(cursor->get_pos()); 
         cursor = static_cast<Waypoint*>(cursor->Get_Father());
     }
+
+    // string to_print = "echo pos: ";
+    // for(auto it=simple_pos.begin(); it!=simple_pos.end(); ++it) to_print += " " + to_string(*it);
+    // system(to_print.c_str());
 
 //do the simplification
     auto it_w = wayps->begin();
@@ -105,8 +109,8 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
     size_t k, K;
     for (it_pos; it_pos != simple_pos.end(); ++it_pos) {
         K = *it_pos - *it_pos_prev;
-        for (k = 1; k < K; k++) it_w = wayps->erase(it_w);
         ++it_w;
+        for (k = 1; k < K; ++k) it_w = wayps->erase(it_w);
         ++it_pos_prev;
     }
 
@@ -116,7 +120,8 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
 
 void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const{
 
-    system(string("echo " + to_string(wayps->size()) + "--------------------").c_str());
+    //system("echo got in simplifier");
+
     if(wayps->size() < 3) return;
 
     CostToGo_table table(wayps->size(), problem);
@@ -156,6 +161,5 @@ void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_fa
     }
 
     simplify(wayps , Best);
-    system(string("echo " + to_string(wayps->size())).c_str());
 
 }

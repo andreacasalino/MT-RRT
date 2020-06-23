@@ -231,6 +231,7 @@ void	Problem_points::Cost_to_go(float* result, const float* start_state, const f
 
 	*result = powf(start_state[0] - ending_state[0], 2);
 	*result += powf(start_state[1] - ending_state[1], 2);
+	*result = sqrtf(*result);
 
 }
 
