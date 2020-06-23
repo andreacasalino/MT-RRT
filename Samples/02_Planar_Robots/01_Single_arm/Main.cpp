@@ -52,7 +52,7 @@ int main() {
 	Qf = import_pose(*json_parser::get_field(fields, "Q_trgt"));
 
 //check the behaviour of this function to understand how to use the planning algorithms
-	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, problem.get(), Qo, Qf);
+	auto Log_results = Solve_using_planners_and_strategies<MT_RTT::Brute_force_Simplifier>(Iterations, 0.1f, problem.get(), Qo, Qf);
 
 	Log_creator("../../src_JS/Result_template.html", "Results/Serial.html", Scene_raw, Log_results[0]);
 	Log_creator("../../src_JS/Result_template.html", "Results/Parallel_query.html", Scene_raw, Log_results[1]);

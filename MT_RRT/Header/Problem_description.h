@@ -32,6 +32,12 @@ namespace MT_RTT
 		*/
 		Array(const float& val_to_repeat, const size_t& size);
 
+		/** \brief An array with the passed size is created, but the values are not initialized.
+		\details You can use the operator[] to initialize the values one by one after creating the object.
+		* @param[in] size the size of the buffer to create
+		*/
+		Array(const size_t& size);
+
 		Array(const Array& o);
 
 		Array& operator=(const Array& o);
@@ -44,7 +50,13 @@ namespace MT_RTT
 		* @param[in] pos the position of the value to acess in Array::pbuffer
 		* @param[out] return the value at pos position
 		*/
-		float& operator[](const size_t& pos) const;
+		float& operator[](const size_t& pos);
+
+		/** \brief Access the value at position equal to pos.
+		* @param[in] pos the position of the value to acess in Array::pbuffer
+		* @param[out] return the value at pos position
+		*/
+		const float& operator[](const size_t& pos) const;
 
 		/** \brief Returns the size of the represented state.
 		*/

@@ -15,29 +15,18 @@ namespace MT_RTT
 
 	void Array_copy(float* destination , const float* vals, const size_t& size){ for(size_t k=0; k<size; ++k) destination[k] = vals[k];	}
 
-	Array::Array(const float* vals, const size_t& size) : Size(size){
+	Array::Array(const float* vals, const size_t& size) : Array(size){ Array_copy(this->pbuffer , vals, this->Size); }
 
-		if(size == 0) throw 0;
-		this->pbuffer = new float[size];
-		Array_copy(this->pbuffer , vals, this->Size);
+	Array::Array(const float& val_to_repeat, const size_t& size) : Array(size){ for(size_t k =0; k<this->Size; k++) this->pbuffer[k] = val_to_repeat; }
 
-	}
+	Array::Array(const size_t& size) : Size(size) {
 
-	Array::Array(const float& val_to_repeat, const size_t& size) : Size(size){
-
-
-		if(size == 0) throw 0;
-		this->pbuffer = new float[size];
-		for(size_t k =0; k<this->Size; k++) this->pbuffer[k] = val_to_repeat;
-
-	}
-
-	Array::Array(const Array& o) : Size(o.Size){
-
+		if (size == 0) throw 0;
 		this->pbuffer = new float[this->Size];
-		Array_copy(this->pbuffer , o.pbuffer, this->Size);
 
 	}
+
+	Array::Array(const Array& o) : Array(o.Size){ Array_copy(this->pbuffer , o.pbuffer, this->Size); }
 
 	Array& Array::operator=(const Array& o){
 
@@ -47,7 +36,14 @@ namespace MT_RTT
 
 	}
 
-	float& Array::operator[](const size_t& pos) const{
+	float& Array::operator[](const size_t& pos) {
+
+		if (pos > this->Size) throw 0;
+		return this->pbuffer[pos];
+
+	}
+
+	const float& Array::operator[](const size_t& pos) const {
 
 		if (pos > this->Size) throw 0;
 		return this->pbuffer[pos];

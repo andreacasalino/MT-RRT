@@ -46,6 +46,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 
 		if (mult_steer > 1) Problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer));
 		auto solver = I_Planner::Get_multi_ag_parall(det_coeff, Iterations, Problem.get(), Thread, 0.05f);
+		solver->Set_post_processer<MT_RTT::Brute_force_Simplifier>();
 		solver->RRT_star(Array(&Qo[0], Qo.size()), Array(&Qf[0], Qf.size()));
 		list<Array> Q_waypoints =  solver->Get_solution();
 

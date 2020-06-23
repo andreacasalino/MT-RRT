@@ -3,14 +3,13 @@
 using namespace std;
 using namespace MT_RTT;
 
-class CostToGo_table;
+
+
 class Waypoint : public Node{
 public:
     ~Waypoint(){ this->State = nullptr; };
 
-    Waypoint(Array& raw_state): Node(&raw_state[0]) , position(0) { };
-
-    Waypoint(std::list<Array>& wayps, const size_t& pos, Waypoint* preceding, CostToGo_table* table);
+    Waypoint(float* state_buffer, const size_t& pos) : Node(state_buffer), position(pos) {};
 
     const size_t& get_pos() const { return this->position; };
 private:
@@ -20,9 +19,8 @@ private:
 
 class Waypoint_factory{
 public:
-    template<typename ... Args>
-    Waypoint* create(Args ... args){
-        this->created.emplace_back(args...);
+    Waypoint* create(float* state_buffer, const size_t& pos){
+        this->created.emplace_back(state_buffer, pos);
         return &this->created.back();
     };
 private:
@@ -41,15 +39,6 @@ private:
     std::vector<std::vector<float*>>  Table;
 };
 
-Waypoint::Waypoint(std::list<Array>& wayps, const size_t& pos, Waypoint* preceding, CostToGo_table* table):
-Node(preceding , 0.f, nullptr){ 
-    this->position = pos; 
-    auto it= wayps.begin();
-    advance(it, this->position);
-    this->State = &(*it)[0];
-    this->Set_Father(preceding , table->at(preceding , this));
-};
-
 CostToGo_table::CostToGo_table(const size_t& N_waypoints, Node::I_Node_factory* problem) : Problem(problem) {
 
     if(N_waypoints < 3) throw 0;
@@ -58,7 +47,6 @@ CostToGo_table::CostToGo_table(const size_t& N_waypoints, Node::I_Node_factory* 
     for(size_t k=1; k<N_waypoints; ++k){
         S2 = N_waypoints - k;
         this->Table.emplace_back();
-        this->Table.back().emplace_back(new float());
         for(size_t kk = 0; kk<S2; ++kk) this->Table.back().emplace_back(nullptr);
     }
     
@@ -101,17 +89,25 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
     }
     if(cursor->get_pos() != 0) throw 2;
     
-// simplify
+// get the simplified incidences
+    list<size_t> simple_pos;
     cursor = Path;
-    auto it_w = wayps->begin();
-    ++it_w;
-    size_t k,K;
-    while(cursor->Get_Father() != nullptr){
-        pos_prev = cursor->get_pos();
+    while (cursor != nullptr) {
+        simple_pos.push_front(cursor->get_pos());
         cursor = static_cast<Waypoint*>(cursor->Get_Father());
-        K = cursor->get_pos() - pos_prev - 1;
-        for(k=0; k<K; ++k) it_w = wayps->erase(it_w);
+    }
+
+//do the simplification
+    auto it_w = wayps->begin();
+    auto it_pos = simple_pos.begin();
+    auto it_pos_prev = it_pos;
+    ++it_pos;
+    size_t k, K;
+    for (it_pos; it_pos != simple_pos.end(); ++it_pos) {
+        K = *it_pos - *it_pos_prev;
+        for (k = 1; k < K; k++) it_w = wayps->erase(it_w);
         ++it_w;
+        ++it_pos_prev;
     }
 
 }
@@ -120,6 +116,7 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
 
 void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const{
 
+    system(string("echo " + to_string(wayps->size()) + "--------------------").c_str());
     if(wayps->size() < 3) return;
 
     CostToGo_table table(wayps->size(), problem);
@@ -128,7 +125,7 @@ void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_fa
     list<Waypoint*> explor_queue;
 
 // find best solutions
-    explor_queue.push_back(factory.create(wayps->front()));
+    explor_queue.push_back(factory.create(&wayps->front()[0] , 0));
     size_t k, k_start, K = wayps->size();
     Waypoint* Best = nullptr;
     float Best_cost = FLT_MAX;
@@ -143,14 +140,22 @@ void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_fa
             }
         } 
         else{
+            auto it_w = wayps->begin();
+            advance(it_w, k_start);
             for(k = k_start + 1; k<K; ++k){
-                Waypoint* temp = factory.create(*wayps , k, explor_queue.front(), &table);
-                if(temp->Get_Cost_from_father() != FLT_MAX) explor_queue.push_back(temp);
+                ++it_w;
+                Waypoint* temp = factory.create(&(*it_w)[0], k);
+                cost = table.at(explor_queue.front() , temp);
+                if (cost != FLT_MAX) {
+                    temp->Set_Father(explor_queue.front() , cost);
+                    explor_queue.push_back(temp);
+                }
             }
         }
         explor_queue.pop_front();
     }
 
     simplify(wayps , Best);
+    system(string("echo " + to_string(wayps->size())).c_str());
 
 }

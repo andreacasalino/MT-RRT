@@ -30,6 +30,7 @@
     <ClCompile Include="Source\Planner_shared_parall.cpp" />
     <ClCompile Include="Source\Problem_description.cpp" />
     <ClCompile Include="Source\Problem_path_basic.cpp" />
+    <ClCompile Include="Source\Simplifier.cpp" />
     <ClCompile Include="Source\Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +40,7 @@
     <ClInclude Include="Header\Planner_MT.h" />
     <ClInclude Include="Header\Problem_description.h" />
     <ClInclude Include="Header\Problem_path_basic.h" />
+    <ClInclude Include="Header\Simplifier.h" />
     <ClInclude Include="Header\Tree.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

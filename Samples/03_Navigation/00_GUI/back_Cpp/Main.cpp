@@ -41,6 +41,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		size_t Thread = (size_t)(*params)[0][2];
 
 		auto solver = I_Planner::Get_multi_ag_parall(det_coeff, Iterations, Problem.get(), Thread, 0.05f);
+		solver->Set_post_processer<MT_RTT::Brute_force_Simplifier>();
 		solver->RRT_star(Array(&Qo[0], Qo.size()), Array(&Qf[0], Qf.size()));
 		list<Array> Waypoints = solver->Get_solution();
 

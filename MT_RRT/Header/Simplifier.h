@@ -25,10 +25,14 @@ namespace MT_RTT
     };
 
 
+    class Neutral_Simplifier : public I_Simplifier {
+    public:
+        virtual void operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const {};
+    };
+
+
     class Brute_force_Simplifier : public I_Simplifier {
     public:
-        Brute_force_Simplifier() {};
-
         virtual void operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const;
     };
 

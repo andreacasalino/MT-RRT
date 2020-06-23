@@ -48,6 +48,9 @@
     <ClCompile Include="Source\json.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Simplifier.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\Problem_description.h">
@@ -69,6 +72,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Header\json.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Simplifier.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
