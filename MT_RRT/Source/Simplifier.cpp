@@ -107,7 +107,7 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
     auto it_pos_prev = it_pos;
     ++it_pos;
     size_t k, K;
-    for (it_pos; it_pos != simple_pos.end(); ++it_pos) {
+    for (it_pos = it_pos; it_pos != simple_pos.end(); ++it_pos) {
         K = *it_pos - *it_pos_prev;
         ++it_w;
         for (k = 1; k < K; ++k) it_w = wayps->erase(it_w);
