@@ -21,16 +21,12 @@ namespace MT_RTT
 	When considering multi-robot problems, the state Q of a single node in a tree is a buffer containing the poses of all the robots in a single array  as follows:
 	Q = [Q1^T, Q2^T, ..., Qn^T], where Qi is the pose of the i-th robot.
 	*/
-	class Manipulator_path_handler : public Node_factory_concrete {
-	public:
+	class Manipulator_path_handler : public Linear_traj_factory {
+	protected:
 		/** \brief The hypercube delimited by the maximal and minimum possible joint excursions is sampled.
 		*/
 		virtual void									Random_node(float* random_state);
-		
-		/** \brief The cost to go unconstrained is simply the euclidean distance (in the configurational space) between the two poses
-		*/		
-		virtual void									Cost_to_go(float* result, const float* start_state, const float* ending_state);
-	protected:
+
 		/** \brief Constructor. 
 		\details Q_min and Q_max are the joint limits, i.e. any pose must be Q_min < Q < Q_max (for each joint).
 		A consistency check is internally done to ensure that for each joint i: Q_max[i] >= Q_min[i].
@@ -40,7 +36,7 @@ namespace MT_RTT
 		* @param[in] Q_max the maximal values allowed for each joint of the robot(s)
 		* @param[in] Q_min the minimum values allowed for each joint of the robot(s)
 		*/
-		Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min);
+		Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min, const float& steer_degree);
 
 		const Array&									Get_max() const { return this->Max_Q_vals; };
 		const Array&									Get_min() const { return this->Min_Q_vals; };
@@ -78,7 +74,7 @@ namespace MT_RTT
 		};
 		/** \brief Returns the checker contained in this object.
 		*/
-		I_Collision_checker*								Get_checker() { return this->Collision_checker.get(); };
+		const I_Collision_checker*								Get_checker() const { return this->Collision_checker.get(); };
 
 		/** \brief Constructor.
 		* @param[in] coll_checker the object in charge of performing the collision check of a single pose
@@ -98,24 +94,12 @@ namespace MT_RTT
 
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Tunneled_check_collision(*this)); };
 		
-		/** \brief The steered pose lies in the segment connecting the nearest neighbour to the target node, at a 
-		distance (euclidean distance in the configurational space) which at most equal to steering degree.
-		*/		
-		virtual void									Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached);
-		
-		/** \brief The collisions are checked only for some equispace intermediate poses lying on the segment connectin the starting state to 
-		the ending one. If a collision is detected, FLT_MAX is set as result, while in the opposite case the euclidean distance of the two poses is returned.
-		\details The number of intermediate poses is chosen so as to realize that the intermediate poses are distant no more than the steering degree 
-		*/				
-		virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state);
 	private:
 		Tunneled_check_collision(Tunneled_check_collision& o);
+
+		virtual bool									Check_reached_in_cache();
 	// data
-		float											 Steer_degree;
 		std::unique_ptr<I_Collision_checker>			 Collision_checker;
-	// cache for checking cost to go with constraints
-		Array											 __state_temp; 
-		Array											 __delta;
 	};
 
 
@@ -165,7 +149,7 @@ namespace MT_RTT
 			std::vector<single_robot_prox>						Robots_info;
 			Array*											    Robot_distance_pairs; //distance d^ik between the robots, Section 2.2.3 of the documentation. It can be NULL when a single robot populates the scene.
 		};
-		I_Proximity_calculator*									   Get_proxier() { return this->Proximity_calculator.get(); };
+		const I_Proximity_calculator*									   Get_proxier() const { return this->Proximity_calculator.get(); };
 
 		/** \brief Constructor. The passed prox_calc is absorbed and destroyed when destroying this object
 		* @param[in] prox_calc the object in charge of computing the distances w.r.t to the obstacles and the reciprocal distances of the robots
@@ -183,15 +167,6 @@ namespace MT_RTT
 
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Bubbles_free_configuration(*this)); };
 
-		/** \brief The steering procedure is done considering the bubble of free configurations, Section 2.2.3 of the documentation.
-		*/	
-		virtual void									Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached);
-
-		/** \brief The collisions along an entire segment are checked by building the bubble of free configuration centered at the start_state.
-		In case the segment connecting the start_state and the ending_state is completely contained in the bubble, no collisions are present.
-		*/	
-		virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state);
-
 		/** \brief Set the threshold for accepting a steering operation.
 		\details When considering the bubble of free configuration, the steering is always possible, but can lead to obtain a configuration
 		very close to the nearest neighbour (when the robots are close to the obstacles). This function regulates the threashold that is used
@@ -200,11 +175,20 @@ namespace MT_RTT
 		void												Set_dist_for_accept_steer(const float& value);
 	private:
 		Bubbles_free_configuration(Bubbles_free_configuration& o);
+
+		class bubble_trajectory : public I_trajectory{
+		public:
+			bubble_trajectory(const float* start, const float* end, Bubbles_free_configuration* caller);
+
+			virtual float 								Cost_to_go();
+			virtual bool								Advance();
+		};
+		virtual void									Recompute_trajectory_in_cache(const float*  Start, const float*  End) { this->last_computed_traj = new bubble_trajectory(Start, End, this); };
+
+		virtual bool									Check_reached_in_cache();
 	// data
 		float											Min_dist_for_accept_steer;
 		std::unique_ptr<I_Proximity_calculator>         Proximity_calculator;
-	// cache
-		Array											fake_steered;
 	};
 
 };

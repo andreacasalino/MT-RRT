@@ -8,12 +8,13 @@
 #include "../Header/Problem_description.h"
 #include <list>
 #include <float.h>
+#include <math.h>
 using namespace std;
 
 namespace MT_RTT
 {
 
-	void Array_copy(float* destination , const float* vals, const size_t& size){ for(size_t k=0; k<size; ++k) destination[k] = vals[k];	}
+	void Array::Array_copy(float* destination , const float* vals, const size_t& size){ for(size_t k=0; k<size; ++k) destination[k] = vals[k];	}
 
 	Array::Array(const float* vals, const size_t& size) : Array(size){ Array_copy(this->pbuffer , vals, this->Size); }
 
@@ -97,18 +98,66 @@ namespace MT_RTT
 
 	};
 
+	void Node::I_Node_factory::Cost_to_go(float* result, const Node* start, const Node* ending_node){
+
+		delete this->last_computed_traj;
+		this->Recompute_trajectory_in_cache(start->Get_State() , ending_node->Get_State());
+		*result = this->last_computed_traj->Cost_to_go();
+
+	}
+
+	void Node::I_Node_factory::Cost_to_go_constraints(float* result, const Node* start, const Node* ending_node){
+
+		delete this->last_computed_traj;
+		this->Recompute_trajectory_in_cache(start->Get_State() , ending_node->Get_State());
+		*result = this->last_computed_traj->Cost_to_go();
+		if(*result == FLT_MAX)  return;
+		while(this->last_computed_traj->Advance()){
+			if(this->Check_reached_in_cache()) {
+				*result = FLT_MAX;
+				return;
+			}
+		}
+
+	}
+
 	Node Node::I_Node_factory::Steer(Node* start, const  Node* trg, bool* trg_reached) {
 
-		auto steered_state = this->Alloc_state();
+		delete this->last_computed_traj;
+		this->Recompute_trajectory_in_cache(start->Get_State() , trg->Get_State());
+		float cost2go =  this->last_computed_traj->Cost_to_go();
+		if(cost2go == FLT_MAX)  return Node(nullptr);
+
+		*trg_reached = false;
+		const float* steered = nullptr;
 		float cost;
-		this->Steer(&cost, steered_state, start->Get_State(), trg->Get_State(), trg_reached);
-		if (cost == FLT_MAX) {
-			delete[] steered_state;
-			*trg_reached = false;
-			return Node(nullptr);
+
+		size_t k=0;
+		while(true){
+			cost = this->last_computed_traj->Cost_to_go_Cumulated();			
+			if(!this->last_computed_traj->Advance()) {
+				*trg_reached = true;
+				steered = trg->Get_State();
+				cost = cost2go;
+				break;
+			}
+
+			if(this->Check_reached_in_cache()) {
+				steered = this->last_computed_traj->Get_state_previous();
+				break;
+			}
+			steered = trg->Get_State();
+			cost = this->last_computed_traj->Cost_to_go_Cumulated();
+
+			++k;
+			if(k == this->Steer_max_iteration) break;
 		}
-		else 
-			return Node(start, cost, steered_state);
+		if(k == 0) return Node(nullptr);
+		else{
+			float* temp = this->Alloc_state();
+			Array::Array_copy(temp , steered, this->State_size);
+			return Node(start , cost, temp);
+		}
 
 	};
 
@@ -138,57 +187,53 @@ namespace MT_RTT
 
 
 
+	float Linear_traj_factory::linear_trajectory::Cost_to_go(){
 
-	Node_factory_multiple_steer::Node_factory_multiple_steer(std::unique_ptr<I_Node_factory>& to_wrap, const size_t& max_numb_trials): I_Node_factory_decorator(to_wrap) {
+		float res = 0.f;
+		size_t K = this->Caller->Get_State_size();
+		for(size_t k=0; k<K; ++k) res += (this->Start[k] - this->End[k])*(this->Start[k] - this->End[k]); 
+		res = sqrtf(res);
+		return res;
 
-		this->Maximum_trial = max_numb_trials;
-		if (this->Maximum_trial < 2) throw 0;
+	}
 
-		this->Gamma_multiple = this->Get_Wrapped()->Get_Gamma() * this->Maximum_trial;
+	bool Linear_traj_factory::linear_trajectory::Advance(){
 
-	};
-
-	std::unique_ptr<Node::I_Node_factory>		Node_factory_multiple_steer::copy() {
-
-		unique_ptr<I_Node_factory> temp = this->Get_Wrapped()->copy();
-		return std::unique_ptr<I_Node_factory>(new Node_factory_multiple_steer(temp, this->Maximum_trial)); 
-	
-	};
-
-	void Node_factory_multiple_steer::Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) {
-
-		list<float*> steered;
-		float delta_cost;
-		const float* to_steer = start_state;
-		*cost_steered = 0.f;
-		for (size_t k = 0; k < this->Maximum_trial; ++k) {
-			steered.push_back(this->Alloc_state());
-			this->Get_Wrapped()->Steer(&delta_cost, steered.back(), to_steer, target_state, trg_reached);
-
-			if (delta_cost == FLT_MAX) {
-				delete[] steered.back();
-				steered.pop_back();
-				break;
+		size_t K = this->Caller->Get_State_size(), k;
+		if(this->Cursor_along_traj == nullptr){
+			this->step_max = 1;
+			this->step = 0;
+			size_t temp;
+			float* steer_degree = &static_cast<Linear_traj_factory*>(this->Caller)->Steer_degree;
+			for(k=0;k<K; ++k){
+				temp = (size_t)ceilf(abs(this->Start[k] - this->End[k]) / *steer_degree);
+				if(temp > this->step_max) this->step_max = temp;
 			}
+			float coeff = 1.f / (float)this->step_max;
+			this->Delta = new float[K];
+			for(k=0;k<K; ++k) this->Delta[k] = coeff * (this->End[k] - this->Start[k]);
 
-			*cost_steered += delta_cost;
+			this->Cursor_along_traj = new float[K];
+			Array::Array_copy(this->Cursor_along_traj , this->Delta, K);
 
-			if (*trg_reached)
-				break;
+			this->Delta_norm = 0.f;
+			for(k=0;k<K; ++k) this->Delta_norm += this->Delta[k] * this->Delta[k];
+			this->Delta_norm = sqrtf(this->Delta_norm);
+			this->Cumulated_cost = this->Delta_norm;
 
-			to_steer = steered.back();
+			this->Cursor_previous = new float[K];
+			Array::Array_copy( this->Cursor_previous, this->Start, K);
 		}
-
-		if (steered.empty()) 
-			*cost_steered = FLT_MAX;
-		else {
-			size_t k, K=this->Get_State_size();
-			for (k = 0; k < K; ++k)
-				steered_state[k] = steered.back()[k];
-			auto it_end = steered.end();
-			for (auto it = steered.begin(); it != it_end; ++it)
-				delete[] *it;
+		else{
+			for(k=0;k<K; ++k) {
+				this->Cursor_previous[k] = this->Cursor_along_traj[k];
+				this->Cursor_along_traj[k] += this->Delta[k];
+			}
+			this->Cumulated_cost += this->Delta_norm;
 		}
+		this->step++;
+
+		return (this->step < this->step_max);
 
 	}
 

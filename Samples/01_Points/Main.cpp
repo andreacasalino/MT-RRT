@@ -17,14 +17,11 @@ using namespace MT_RTT;
 int main() {
 
 	size_t Iterations = 2500;
-	unique_ptr<Node::I_Node_factory> problem;
 
 //initialize a random scene with some random obstacles
-// The Problem_points object is allocated with new since will be absorbed by a Node_factory_multiple_steer
-	Problem_points* Scene = new Problem_points(5, 30, Point_2D(0.f, 0.f), Point_2D(1.f, 1.f));
-	problem = unique_ptr<Node::I_Node_factory>(Scene);
+	Problem_points Scene(5, 30, Point_2D(0.f, 0.f), Point_2D(1.f, 1.f));
 #ifdef USE_MULTIPLE_STEER
-	problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(problem, 6));
+	Scene.Set_Steer_iterations(6);
 #endif
 
 	
@@ -32,10 +29,10 @@ int main() {
 	vector<float> S = { 0.f, 0.f };
 	vector<float> E = { 1.f, 1.f };
 
-	auto Scene_json = Scene->Get_as_JSON();
+	auto Scene_json = Scene.Get_as_JSON();
 
 //check the behaviour of this function to understand how to use the planning algorithms
-	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, problem.get(), S, E);
+	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, &Scene, S, E);
 	
 	Log_creator("../src_JS/Result_template.html", "Results/Serial.html", Scene_json, Log_results[0]);
 	Log_creator("../src_JS/Result_template.html", "Results/Parallel_query.html", Scene_json, Log_results[1]);

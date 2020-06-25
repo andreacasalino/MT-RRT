@@ -82,7 +82,7 @@ private:
 
 
 
-class Problem_points : public MT_RTT::Node_factory_concrete {
+class Problem_points : public MT_RTT::Linear_traj_factory {
 public:
 	/** \brief Constructor.
 	* @param[in] boxes the obstacles to consider
@@ -110,13 +110,10 @@ public:
 	std::string Get_as_JSON() const;
 
 	virtual std::unique_ptr<I_Node_factory>			copy();
-	virtual void									Random_node(float* random_state);
-	virtual void									Cost_to_go(float* result, const float* start_state, const float* ending_state);
-	virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state);
-	virtual void									Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached);
 private:
+	virtual void									Random_node(float* random_state);
+	virtual bool									Check_reached_in_cache();
 // data
-	float											Steer_degree;
 	std::list<Box>									Obstacles;
 	Box												Workspace;
 };

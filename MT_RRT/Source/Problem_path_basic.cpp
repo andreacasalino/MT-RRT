@@ -16,8 +16,8 @@ using namespace std;
 namespace MT_RTT
 {
 
-	Manipulator_path_handler::Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min) :
-		Node_factory_concrete(Q_max.size(), Gamma, true), Max_Q_vals(Q_max), Min_Q_vals(Q_min), Delta_Q_vals(Q_max) {
+	Manipulator_path_handler::Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min, const float& steer_degree) :
+		Linear_traj_factory(Q_max.size(), Gamma, steer_degree), Max_Q_vals(Q_max), Min_Q_vals(Q_min), Delta_Q_vals(Q_max) {
 
 		if(Q_max.size() != Q_min.size()) throw 0;
 
@@ -36,75 +36,24 @@ namespace MT_RTT
 
 	}
 
-	void	Manipulator_path_handler::Cost_to_go(float* result, const float* start_state, const float* ending_state) {
-
-		*result = 0.f;
-		auto S = this->Get_State_size();
-		for (size_t k = 0; k < S; ++k)
-			*result += (ending_state[k] - start_state[k]) * (ending_state[k] - start_state[k]);
-		*result = sqrtf(*result);
-
-	}
-
-
 
 
 	Tunneled_check_collision::Tunneled_check_collision(const float& Gamma, const float& steer_degree, const Array& Q_max, const Array& Q_min, unique_ptr<I_Collision_checker>& coll_checker):
-		Manipulator_path_handler( Gamma, Q_max, Q_min), Steer_degree(steer_degree), Collision_checker(move(coll_checker)), __state_temp(Q_max), __delta(Q_max) {}
+		Manipulator_path_handler( Gamma, Q_max, Q_min, steer_degree), Collision_checker(move(coll_checker)) {}
 
 	Tunneled_check_collision::Tunneled_check_collision(const float& Gamma, const float& steer_degree, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Collision_checker>& coll_checker) :
-		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof)), Steer_degree(steer_degree), Collision_checker(move(coll_checker)), __state_temp(q_max, dof), __delta(q_max, dof)  {};
+		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), steer_degree), Collision_checker(move(coll_checker)) {};
 
 	Tunneled_check_collision::Tunneled_check_collision(Tunneled_check_collision& o) :
-		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min()), Steer_degree(o.Steer_degree), Collision_checker(move(o.Collision_checker->copy_checker())), __state_temp(o.Get_max()), __delta(o.Get_max()) {};
+		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), o.Get_Steer_degree()), Collision_checker(move(o.Collision_checker->copy_checker())) {};
 
-	void	Tunneled_check_collision::Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) {
-
-		this->Cost_to_go(cost_steered, start_state, target_state);
-
-		auto S = this->Get_State_size();
-		if (*cost_steered <= this->Steer_degree) {
-			*trg_reached = true;
-			for (size_t k = 0; k < S; ++k)
-				steered_state[k] = target_state[k];
-		}
-		else {
-			*trg_reached = false;
-			float s = this->Steer_degree / (*cost_steered);
-			*cost_steered = this->Steer_degree;
-			float s2 = 1.f - s;
-			for (size_t k = 0; k < S; ++k) {
-				steered_state[k] = s * target_state[k];
-				steered_state[k] += s2 * start_state[k];
-			}
-			if (this->Collision_checker->Collision_present(steered_state)) *cost_steered = FLT_MAX;
-		}
-
+	bool Tunneled_check_collision::Check_reached_in_cache(){
+		
+		const float* reached = this->last_computed_traj->Get_state_current();
+		return this->Collision_checker->Collision_present(reached);
+		 
 	}
 
-	void	Tunneled_check_collision::Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state) {
-
-		this->Cost_to_go(result, start_state, ending_state);
-
-		if (*result < this->Steer_degree) return;
-
-		auto S = this->Get_State_size();
-		size_t N = (size_t)ceilf(*result / this->Steer_degree), k;
-		float rec_N = 1.f / (float)N;
-		for (k = 0; k < S; ++k) {
-			this->__state_temp[k] = start_state[k];
-			this->__delta[k] = rec_N * (ending_state[k] - start_state[k]);
-		}
-		for (size_t n = 1; n < N; ++n) { //n starts from 1 since the last pose should be ending_state, which is redundant to be checked
-			for (k = 0; k < S; ++k)
-				this->__state_temp[k] += this->__delta[k];
-
-			if (this->Collision_checker->Collision_present(&this->__state_temp[0])) {
-				*result = FLT_MAX;
-				return;
-			}
-		}
-	}
 
 
 
@@ -119,13 +68,13 @@ namespace MT_RTT
 	}
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const Array& Q_max, const Array& Q_min, unique_ptr<I_Proximity_calculator>& prox_calc) :
-		Manipulator_path_handler(Gamma, Q_max, Q_min), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), fake_steered(Q_max) {};
+		Manipulator_path_handler(Gamma, Q_max, Q_min, 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Proximity_calculator>& prox_calc):
-		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof)), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), fake_steered(q_max, dof) {};
+		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(Bubbles_free_configuration& o):
-		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min()), Min_dist_for_accept_steer(o.Min_dist_for_accept_steer), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())), fake_steered(o.fake_steered) {}
+		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), 1.f), Min_dist_for_accept_steer(o.Min_dist_for_accept_steer), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())) {}
 
 	void	Bubbles_free_configuration::Set_dist_for_accept_steer(const float& value) {
 
@@ -134,71 +83,78 @@ namespace MT_RTT
 
 	}
 
-	void	Bubbles_free_configuration::Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) {
+	bool    Bubbles_free_configuration::Check_reached_in_cache(){
 
-		*trg_reached = false;
+		const float* prev =this->last_computed_traj->Get_state_previous();
+		const float* att = this->last_computed_traj->Get_state_current();
 
-		this->Proximity_calculator->Recompute_Proximity_Info(start_state);
-		const std::vector<I_Proximity_calculator::single_robot_prox>& info_single = this->Proximity_calculator->Get_single_info();
-		const Array*	 info_pairs = this->Proximity_calculator->Get_distances_pairs();
-		vector<float> R;
-		R.reserve(info_single.size());
-		size_t k, K = info_single.size(), t = 0;
-		auto it_single_end = info_single.end();
-		for (auto it_single = info_single.begin(); it_single != it_single_end; ++it_single) {
-			R.emplace_back(0.f);
-			K = it_single->Radii.size();
-			for (k = 0; k < K; ++k) {
-				R.back() += it_single->Radii[k] * abs(start_state[t] - target_state[t]);
-				++t;
-			}
+		size_t K = this->Get_State_size();
+		for(size_t k=0; k<K; ++k){
+			if(abs(prev[k] - att[k]) >= this->Min_dist_for_accept_steer) return false;
+		}
+		return true;
+
+	}	
+
+	Bubbles_free_configuration::bubble_trajectory::bubble_trajectory(const float* start, const float* end, Bubbles_free_configuration* caller) : 
+	I_trajectory(start, end, caller) { };
+
+	bool Bubbles_free_configuration::bubble_trajectory::Advance(){
+
+		size_t S = this->Caller->Get_State_size();
+		Bubbles_free_configuration* proxier = static_cast<Bubbles_free_configuration*>(this->Caller);
+		if(this->Cursor_along_traj == nullptr){
+			this->Cursor_previous = new float[S];
+			Array::Array_copy( this->Cursor_previous, this->Start, S);
+
+			this->Cursor_along_traj = new float[S];
+		}
+		else Array::Array_copy(this->Cursor_previous , this->Cursor_along_traj, S);
+		proxier->Proximity_calculator->Recompute_Proximity_Info(this->Cursor_previous);
+
+		float s_min = 1.f, s_att;
+		const std::vector<I_Proximity_calculator::single_robot_prox>& single_info = proxier->Get_proxier()->Get_single_info();
+
+		size_t K, R = single_info.size(), r;
+		Array dot_radii_deltaQ(R);
+		size_t p=0;
+		for(r=0; r<R; ++r){
+			dot_radii_deltaQ[r] = 0.f;
+			K = single_info[r].Radii.size();
+			for(size_t k=0; k<K; ++k) dot_radii_deltaQ[r] += abs(this->Cursor_previous[p] - this->End[p]) * single_info[r].Radii[k];
+			p += K;
 		}
 
-		float s = 1.f, s2;
-		K = R.size();
-		for (k = 0; k < K;++k) {
-			s2 = info_single[k].Distance_to_fixed_obstacles / R[k];
-			if (s2 < s)
-				s = s2;
+		for(r=0; r<R; ++r){
+			s_att = single_info[r].Distance_to_fixed_obstacles / dot_radii_deltaQ[r];
+			if(s_att < s_min) s_min = s_att;
 		}
+		
+		const Array*	 info_pairs = proxier->Get_proxier()->Get_distances_pairs();
 		if(info_pairs != nullptr){
-			const float* pair_bf = &(*info_pairs)[0];
-			size_t pp = 0;
-			for (k = 0; k < K; ++k) {
-				for (t = (k+1); t < K; ++t) {
-					s2 = pair_bf[pp] / (R[k] + R[t]);
-					if (s2 < s)
-						s = s2;
-					++pp;
+			size_t r2;
+			p = 0;
+			for(r=0; r<(R-1); ++r){
+				for(r2 = r+1; r2 < R; ++r2){
+					s_att = (*info_pairs)[p] / (dot_radii_deltaQ[r] + dot_radii_deltaQ[r2]);
+					if(s_att < s_min) s_min = s_att;
+					++p;
 				}
 			}
 		}
 
-		if (s < DEFAULT_MIN_DIST_BUBBLE) {
-			*cost_steered = FLT_MAX;
-			return;
-		}
+		for(p=0; p<S; ++p) this->Cursor_along_traj[p] = s_min * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
+		linear_trajectory Temp(this->Start ,  this->Cursor_along_traj, nullptr);
+		this->Cumulated_cost = Temp.Cost_to_go();
 
-		K = this->Get_State_size();
-		if (s == 1.f) {
-			*trg_reached = true;
-			for (k = 0; k < K; ++k)
-				steered_state[k] = target_state[k];
-		}
-		else {
-			s2 = 1.f - s;
-			for (k = 0; k < K; ++k)
-				steered_state[k] = s2 * start_state[k] + s * target_state[k];
-		}
-		this->Cost_to_go(cost_steered, start_state, steered_state);
+		return (s_min < 1.f);
 
 	}
 
-	void	Bubbles_free_configuration::Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state) {
+	float Bubbles_free_configuration::bubble_trajectory::Cost_to_go(){
 
-		bool temp;
-		this->Steer(result , &this->fake_steered[0], start_state,  ending_state, &temp);
-		if (!temp) *result = FLT_MAX;
+		linear_trajectory Temp(this->Start ,  this->End, nullptr);
+		return Temp.Cost_to_go();
 
 	}
 

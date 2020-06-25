@@ -71,6 +71,11 @@ namespace MT_RTT
 		/** \brief Returns the size of the represented state.
 		*/
 		const size_t& size()const { return this->Size; };
+
+		/** \brief Used for cloning buffer of raw numbers. 
+		 * \details destination_buffer must be already allocated with the correct size
+		*/
+		static void Array_copy(float* destination_buffer , const float* origin_buffer, const size_t& size);
 	private:
 		template<typename ... Args>
 		static float* __init_variadic_buffer(size_t& Size, size_t& pos, const float& val, Args ... args){
@@ -163,7 +168,7 @@ namespace MT_RTT
 	*/
 	class Node::I_Node_factory {
 	public:
-		virtual											~I_Node_factory() {};
+		virtual											~I_Node_factory() { delete this->last_computed_traj; };
 		I_Node_factory(const I_Node_factory& o) = delete;
 		I_Node_factory& operator=(const I_Node_factory& o) = delete;
 
@@ -179,7 +184,7 @@ namespace MT_RTT
 		* @param[in] start the starting node in the trajectory whose cost is to evaluate
 		* @param[in] ending_node the ending node in the trajectory whose cost is to evaluate
 		*/
-		void											Cost_to_go(float* result, const Node* start, const Node* ending_node) { return this->Cost_to_go(result, start->Get_State(), ending_node->Get_State()); };
+		void											Cost_to_go(float* result, const Node* start, const Node* ending_node);
 
 		/** \brief Evaluates the constrained cost of the trajectory going from the starting node to the ending one, for two nodes not already connected.
 		\details This cost accounts for constraints. In case the constraints are violated along the nominal trajectory going from
@@ -189,7 +194,7 @@ namespace MT_RTT
 		* @param[in] start the starting node in the trajectory whose cost is to evaluate
 		* @param[in] ending_node the ending node in the trajectory whose cost is to evaluate
 		*/
-		void											Cost_to_go_constraints(float* result, const Node* start, const  Node* trg) { return this->Cost_to_go_constraints(result, start->Get_State(), trg->Get_State()); };
+		void											Cost_to_go_constraints(float* result, const Node* start, const  Node* trg);
 
 		/** \brief Performs a steering operation, Section 1.2.1 of the documentation, from a staring node to a target one.
 		\details The node returned contains the steered state. In case a steering operation is not possible, a Node with a NULL State is returned.
@@ -207,18 +212,6 @@ namespace MT_RTT
 		*/
 		Node											Clone_Node(const Node& o);
 
-		/** \brief Returns the cardinality of \mathcal{X}, Section 1.2.1 of the documentation, of the plannig problem handled by this object.
-		*/
-		virtual const size_t& Get_State_size() const = 0;
-
-		/** \brief Returns the \gamma parameter, Section 1.2.3 of the documentation, regulating the near set size, that RRT* versions must compute.
-		*/
-		virtual const float& Get_Gamma() const = 0;
-
-		/** \brief Returns true in case the planning problem handled by this object is symmetric, i.e. the cost to go from a node A to B is the same of the cost to go from B to A.
-		*/
-		virtual const bool& Get_symm_flag() const = 0;
-
 		/** \brief Builds a new root for a tree.
 		\details The root is a node having a NULL father.
 		* @param[in] state the state that will be contained in the root to create.
@@ -226,8 +219,27 @@ namespace MT_RTT
 		*/
 		Node											New_root(const Array& state);
 
+		/** \brief Returns the cardinality of \mathcal{X}, Section 1.2.1 of the documentation, of the plannig problem handled by this object.
+		*/
+		const size_t& 									Get_State_size() const { return this->State_size; };
+
+		/** \brief Returns the \gamma parameter, Section 1.2.3 of the documentation, regulating the near set size, that RRT* versions must compute.
+		*/
+		float 											Get_Gamma() const { return this->Gamma_coeff * this->Steer_max_iteration; };
+
+		/** \brief Returns true in case the planning problem handled by this object is symmetric, i.e. the cost to go from a node A to B is the same of the cost to go from B to A.
+		*/
+		const bool& 									Get_symm_flag() const { return this->Traj_symmetric; };
+
+		/** \brief Set the maximal number of iterations that are tried when steering a configuration.
+		\details By default this value is assumed equal to 1: a single point alogn the nominal trajectory is verified to be in the admitted region and possibly assumed as steered configuration.
+		When a greater value is set, multiple steering operations are tried, in order to get as much as possible close to the target one.
+		* @param[in] Iter_number the number of iterations to consider when doing the steering process. Pass 0 to set this value to infinity.
+		*/
+		void 											Set_Steer_iterations(const size_t& Iter_number) { this->Steer_max_iteration = Iter_number; };
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//methods to customize for the specific planning problem to address
+// To customize for the specific planning problem to solve
 
 		/** \brief used for cloning this object: a deep copy must be implemented.
 		\details This function is invoked by parallel planners for dispatching copies of this class to the other working threads.
@@ -237,115 +249,93 @@ namespace MT_RTT
 		*/
 		virtual std::unique_ptr<I_Node_factory>			copy() = 0;
 
+	protected:
 		/** \brief internally called by I_Node_factory::Random_node().
 		\details The passed random_state is an array of values already with the cardinality of \mathcal{X}, which must be
 		set to random values by this function.
 		*/
 		virtual void									Random_node(float* random_state) = 0;
 
-		/** \brief internally called by I_Node_factory::Cost_to_go(float* result, const Node* start, const  Node* trg).
-		\details This is function is actually in charge of computing C( \tau_{start -> ending_node} ), considering the passed
-		start_state and ending_state, which are array of values describing the staring and the ending state to consider.
-		*/
-		virtual void									Cost_to_go(float* result, const float* start_state, const float* ending_state) = 0;
+		class I_trajectory;
+		virtual void									Recompute_trajectory_in_cache(const float*  Start, const float*  End) = 0; //put the created trajectory in last_computed_traj
 
-		/** \brief internally called by I_Node_factory::Cost_to_go_constraints(float* result, const Node* start, const  Node* trg).
-		\details This function is actually in charge of computing max{  C( \tau_{start -> ending_node} )  ,  C_adm}, considering the passed
-		start_state and ending_state, which are array of values describing the staring and the ending state to consider.
-		*/
-		virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state) = 0;
-
-		/** \brief internally called by I_Node_factory::Steer(Node* start, const  Node* trg, bool* trg_reached).
-		\details This function is actually in charge of performing the steering operation, considering the passed
-		start_state and target_state, which are array of values describing the starting and target state to consider.
-		cost_steered must be returned equal to NULL in case the steering was not possible.
-		*/
-		virtual void									Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) = 0;
+		virtual bool									Check_reached_in_cache() = 0; //return true when the rached state in last_computed_traj is not valid
 
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
 
-	protected:
-		float*											Alloc_state();
-		
-		I_Node_factory() {};
-	};
+		class I_trajectory{
+		public:
+			virtual 									~I_trajectory(){ delete this->Cursor_along_traj; delete this->Cursor_previous; };
 
+			virtual float 								Cost_to_go() = 0; //FLT_MAX when the trajectory is impossible
 
+			virtual bool								Advance() = 0; //return false when End is reached, after calling this Advance
+			const float*  								Get_state_current() {  return this->Cursor_along_traj; };
+			const float*  								Get_state_previous() { return this->Cursor_previous; };
+			float&										Cost_to_go_Cumulated() { return this->Cumulated_cost; };
+		protected:
+			I_trajectory(const float* start, const float* end, I_Node_factory* caller) : 
+			Caller(caller) , Start(start), End(end), Cursor_along_traj(nullptr), Cursor_previous(nullptr), Cumulated_cost(0.f) {};
+		// data
+			I_Node_factory* Caller;
 
-	/** \brief Each handler describing a real planning problem must be derived from this class.
-	*/
-	class Node_factory_concrete : public Node::I_Node_factory {
-	public:
-		const size_t&									Get_State_size() const { return this->State_size; };
-		const float&									Get_Gamma() const { return this->Gamma_coeff; };
-		const bool&										Get_symm_flag() const { return this->Traj_symmetric; };
-	protected:
-		/** \brief Constructor of a new concrete problem
+			const float*  Start;
+			const float*  End;
+			
+			float*		  Cursor_along_traj;
+			float*		  Cursor_previous;
+			float		  Cumulated_cost;
+		};
+
+		/** \brief Constructor of a new problem
 		* @param[in] X_size the cardinality of the space where the planning problem lives
 		* @param[in] gamma the \gamma (see Node::I_Node_factory::Get_Gamma()) parameter used by RRT*
 		* @param[in] traj_symm_flag a flag explaining whether the problem is symmetric or not, see Node::I_Node_factory::Get_symm_flag()
 		*/
-		Node_factory_concrete(const size_t& X_size, const float& gamma, const bool& traj_symm_flag) :
-			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma) { if(X_size == 0) throw 0; };
+		I_Node_factory(const size_t& X_size, const float& gamma, const bool& traj_symm_flag) :
+			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma), Steer_max_iteration(1), last_computed_traj(nullptr) { if(X_size == 0) throw 0; };
+
 	private:
+		float*											Alloc_state();
+
 	// data
 		size_t										State_size;
 		bool										Traj_symmetric;
 		float										Gamma_coeff;
+		size_t										Steer_max_iteration;
+	protected:
+	// cache
+		I_trajectory*								last_computed_traj;
 	};
 
 
 
-	/** \brief Interface for the generic I_Node_factory decorator
+	/** \brief It describes a problem where the optimal trajectory connecting two states is simply a segment in the configurational space.
 	*/
-	class I_Node_factory_decorator : public Node::I_Node_factory {
-	public:
-		/** \brief The I_Node_factory is absorbed and destroyed by ~I_Node_factory_decorator.
-		\details Not familiar with the concept of decorator? Check https://en.wikipedia.org/wiki/Decorator_pattern.
-		*/
-		I_Node_factory_decorator(std::unique_ptr<I_Node_factory>& to_wrap) { this->Wrapped = move(to_wrap); };
+	class Linear_traj_factory : public Node::I_Node_factory {
+	protected:
+		Linear_traj_factory(const size_t& X_size, const float& gamma, const float& steer_degree) :  I_Node_factory(X_size, gamma, true), Steer_degree(steer_degree){ if(steer_degree <= 0.f) throw 0; };
 
-		virtual void									Random_node(float* random_state) { this->Wrapped->Random_node(random_state); };
-		virtual void									Cost_to_go(float* result, const float* start_state, const float* ending_state) { this->Wrapped->Cost_to_go(result, start_state, ending_state); };
-		virtual void									Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state) { this->Wrapped->Cost_to_go_constraints(result, start_state, ending_state); };
-		virtual void									Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) { this->Wrapped->Steer(cost_steered, steered_state, start_state, target_state, trg_reached); };
+		class linear_trajectory : public I_trajectory{
+		public:
+			~linear_trajectory(){ delete this->Delta; };
+			linear_trajectory(const float* start, const float* end, Linear_traj_factory* caller) : I_trajectory(start, end, caller), Delta(nullptr) {};
 
-		virtual const size_t&							Get_State_size() const { return this->Wrapped->Get_State_size(); };
-		virtual const float&							Get_Gamma() const { return this->Wrapped->Get_Gamma(); };
-		virtual const bool&								Get_symm_flag() const { return this->Wrapped->Get_symm_flag(); };
+			virtual float 								Cost_to_go();
+			virtual bool								Advance();
+		protected:
+			float*										Delta;
+			float										Delta_norm;
+			size_t										step;
+			size_t										step_max;
+		};
+		virtual void									Recompute_trajectory_in_cache(const float*  Start, const float*  End) { this->last_computed_traj = new linear_trajectory(Start, End, this); };
 
-		/** \brief 
-		* @param[out] return the contained Node_factory . 
-		*/
-		std::unique_ptr<I_Node_factory>&				Get_Wrapped() { return this->Wrapped; };
+		const float&									Get_Steer_degree() { return this->Steer_degree; };
 	private:
-		std::unique_ptr<I_Node_factory>					Wrapped;
-	};
-
-	
-
-	/** \brief Used for performing each steer operation multiple times, trying to reach faster the target node.
-	\details The \gamma parameter (see Node::I_Node_factory::Get_Gamma) is set equal to the one of the wrapped I_Node_factory times the number of maximal steering triala.
-	*/
-	class Node_factory_multiple_steer : public I_Node_factory_decorator {
-	public:
-		/**
-		* @param[in] to_wrap the I_Node_factory to absorb
-		* @param[in] max_numb_trials the maximum number of times for which the Steer must be tried 
-		*/
-		Node_factory_multiple_steer(std::unique_ptr<I_Node_factory>& to_wrap, const size_t& max_numb_trials);
-
-		virtual std::unique_ptr<I_Node_factory>		copy();
-
-		/** \brief The Steer function of the wrapped I_Node_factory is called for a maximum number of times equal to Maximum_trial in order to reach target_state.
-		\details The procedure is terminated before reaching the maximum trials, when a state not compliant with the constraints is reached. 
-		*/
-		virtual void								Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached);
-		virtual const float&						Get_Gamma() { return this->Gamma_multiple; };
-	private:
-		size_t									Maximum_trial;
-		float									Gamma_multiple;
+	// data
+		float											Steer_degree;
 	};
 
 }

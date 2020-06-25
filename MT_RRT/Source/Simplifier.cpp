@@ -163,3 +163,41 @@ void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_fa
     simplify(wayps , Best);
 
 }
+
+
+
+void Greedy_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const{
+
+    if(wayps->size() < 3) return;
+
+    CostToGo_table table(wayps->size(), problem);
+    Waypoint_factory factory;
+
+    list<Waypoint*> explor_queue;
+
+// find best solutions
+    explor_queue.push_back(factory.create(&wayps->front()[0] , 0));
+    size_t k, k_start, K = wayps->size();
+    float cost;
+    while(!explor_queue.empty()){
+        k_start=explor_queue.front()->get_pos();
+        if(k_start == (K-1)){
+            simplify(wayps, explor_queue.front());
+            return;
+        } 
+        else{
+            auto it_w = wayps->rbegin();
+            for(k = K-1; k>k_start;--k){
+                Waypoint* temp = factory.create(&(*it_w)[0], k);
+                cost = table.at(explor_queue.front() , temp);
+                if (cost != FLT_MAX) {
+                    temp->Set_Father(explor_queue.front() , cost);
+                    explor_queue.push_front(temp);
+                }
+                ++it_w;
+            }
+        }
+        explor_queue.pop_front();
+    }
+
+}

@@ -219,7 +219,7 @@ namespace MT_RTT
 			possible_rewirds->emplace_back();
 			possible_rewirds->back().start = *it_Near;
 			possible_rewirds->back().end = last_added;
-			Problem->Cost_to_go_constraints(&possible_rewirds->back().cost, (*it_Near)->Get_State(), last_added->Get_State());
+			Problem->Cost_to_go_constraints(&possible_rewirds->back().cost, *it_Near, last_added);
 			if (possible_rewirds->back().cost != FLT_MAX) {
 #ifdef _REW_DEBUG
 				try {

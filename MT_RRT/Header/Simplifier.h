@@ -36,6 +36,12 @@ namespace MT_RTT
         virtual void operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const;
     };
 
+
+    class Greedy_Simplifier : public I_Simplifier {
+    public:
+        virtual void operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const;
+    };
+
 }
 
 #endif

@@ -202,9 +202,7 @@ float get_distance(const Point_2D& limit_a, const Point_2D& limit_b) {
 };
 
 Problem_points::Problem_points( const std::list<Box>& boxes, const Point_2D& limit_a, const Point_2D& limit_b) :
-	Node_factory_concrete( 2, get_distance(limit_a, limit_b)*100.f, true) , Workspace(limit_a, limit_b) {
-
-	this->Steer_degree = get_distance(limit_a, limit_b) / 100.f;
+	Linear_traj_factory( 2, get_distance(limit_a, limit_b)*100.f, get_distance(limit_a, limit_b) / 100.f) , Workspace(limit_a, limit_b) {
 
 	this->Obstacles = boxes;
 
@@ -227,51 +225,14 @@ void Problem_points::Random_node(float* state) {
 
 }
 
-void	Problem_points::Cost_to_go(float* result, const float* start_state, const float* ending_state) { //squared Euclidean distance is assumed
+bool Problem_points::Check_reached_in_cache(){
 
-	*result = powf(start_state[0] - ending_state[0], 2);
-	*result += powf(start_state[1] - ending_state[1], 2);
-	*result = sqrtf(*result);
-
-}
-
-void	Problem_points::Cost_to_go_constraints(float* result, const float* start_state, const float* ending_state) {
-
-	Point_2D Seg_A(start_state[0], start_state[1]);
-	Point_2D Seg_B(ending_state[0], ending_state[1]);
-
-	for (auto it = this->Obstacles.begin(); it != this->Obstacles.end(); it++) {
-		if (it->collide_with_segment(Seg_A, Seg_B)) {
-			*result = FLT_MAX;
-			return;
-		}
+	Point_2D Seg_A(this->last_computed_traj->Get_state_previous()[0], this->last_computed_traj->Get_state_previous()[1]);
+	Point_2D Seg_B(this->last_computed_traj->Get_state_current()[0], this->last_computed_traj->Get_state_current()[1]);
+	for (auto it = this->Obstacles.begin(); it != this->Obstacles.end(); ++it) {
+		if (it->collide_with_segment(Seg_A, Seg_B)) return true;
 	}
-
-	this->Cost_to_go(result, start_state, ending_state);
-
-}
-
-void	Problem_points::Steer(float* cost_steered, float* steered_state, const float* start_state, const float* target_state, bool* trg_reached) {
-
-	*trg_reached = false;
-	this->Cost_to_go(cost_steered, start_state, target_state);
-
-	if ( *cost_steered <= this->Steer_degree) {
-		this->Cost_to_go_constraints(cost_steered, start_state, target_state);
-		if (*cost_steered == FLT_MAX) return;
-		*trg_reached = true;
-		steered_state[0] = target_state[0];
-		steered_state[1] = target_state[1];
-	}
-	else {
-		*cost_steered = (float)sqrt(this->Steer_degree / *cost_steered);
-		steered_state[0] = start_state[0] * (1.f - *cost_steered) + target_state[0] * *cost_steered;
-		steered_state[1] = start_state[1] * (1.f - *cost_steered) + target_state[1] * *cost_steered;
-
-		this->Cost_to_go_constraints(cost_steered, start_state, steered_state);
-		if (*cost_steered == FLT_MAX) return;
-
-	}
+	return false;
 
 }
 
