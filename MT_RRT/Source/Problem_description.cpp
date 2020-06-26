@@ -202,6 +202,28 @@ namespace MT_RTT
 
 	float* Node::I_Node_factory::Alloc_state() { return new float[this->Get_State_size()]; }
 
+	void Node::I_Node_factory::Interpolate(std::list<Array>& waypoints_to_interpolate) {
+
+		if (waypoints_to_interpolate.size() < 2) throw 0;
+
+		size_t S = this->Get_State_size();
+		auto it_w = waypoints_to_interpolate.begin();
+		if (it_w->size() != S) throw 1;
+		list<Array>::iterator it_prev;
+		++it_w;
+		for (it_w = it_w; it_w != waypoints_to_interpolate.end(); ++it_w) {
+			if (it_w->size() != S) throw 1;
+			it_prev = it_w;
+			--it_prev;
+			delete this->last_computed_traj;
+			this->Recompute_trajectory_in_cache(&(*it_prev)[0], &(*it_w)[0]);
+			if (this->last_computed_traj->Cost_to_go() == FLT_MAX) throw 2;
+			while (this->last_computed_traj->Advance()) 
+				waypoints_to_interpolate.insert(it_w , move(Array(this->last_computed_traj->Get_state_current() , S)));
+		}
+
+	}
+
 
 
 	float Linear_traj_factory::linear_trajectory::Euclidean_distance(const float* p1, const float* p2, const size_t& Size) {
@@ -258,6 +280,22 @@ namespace MT_RTT
 		++this->step;
 
 		return (this->step < this->step_max);
+
+	}
+
+	class Linear_factory_empty : public Linear_traj_factory {
+	public:
+		Linear_factory_empty(const size_t& X_size, const float& steer_degree) : Linear_traj_factory(X_size, 0.f, steer_degree){};
+	private:
+		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(); };
+		virtual void									Random_node(float* random_state) { };
+		virtual bool									Check_reached_in_cache() { return false; };
+	};
+	void Linear_traj_factory::Interpolate(std::list<Array>& waypoints_to_interpolate, const float& steer_degree) {
+
+		if (waypoints_to_interpolate.empty()) throw 0;
+		Linear_factory_empty temp(waypoints_to_interpolate.front().size() , steer_degree);
+		temp.I_Node_factory::Interpolate(waypoints_to_interpolate);
 
 	}
 

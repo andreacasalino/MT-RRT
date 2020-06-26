@@ -11,6 +11,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <list>
 
 namespace MT_RTT
 {
@@ -239,6 +240,11 @@ namespace MT_RTT
 		*/
 		void 											Set_Steer_iterations(const size_t& Iter_number) { this->Steer_max_iteration = Iter_number; };
 
+		/** \brief Takes a series of waypoints and interpolate it, adding some intermediate states along the optimal trajectories connecting the waypoints.
+		\details The additonal states are inserted in the passed list in the proper position.
+		*/
+		void											Interpolate(std::list<Array>& waypoints_to_interpolate);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // To customize for the specific planning problem to solve
 
@@ -335,6 +341,10 @@ namespace MT_RTT
 	/** \brief It describes any kind of problem where the optimal trajectory connecting two states is simply a segment in the configurational space, like the one described in 2.2.3.1
 	*/
 	class Linear_traj_factory : public Node::I_Node_factory {
+	public:
+		/** \brief Internally builds a Linear_traj_factory with the passed steer_degree and calls  I_Node_factory::Interpolate on this object.
+		*/
+		static void										Interpolate(std::list<Array>& waypoints_to_interpolate, const float& steer_degree);
 	protected:
 		/** \brief steer_degree is the value reported as \epsilon in the Figure 2.3 of the documentation
 		*/
