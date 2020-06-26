@@ -53,14 +53,14 @@ class Scene{
     //define all top commands panel
         let comms = [];
         let this_ref = this;
-        comms.push({testo:"Add circle", img:"../../../src_JS/image/circles.svg", action:()=> {keep_doing_action(()=>this_ref.__add_circle());} });
-        comms.push({testo:"Add robot", img:"image/robots.svg", action:()=>this_ref.__add_robot()});
+        comms.push({testo:"Add circle", img:"../../../src_JS/image/circles.svg", action:()=> {keep_doing_action(()=>this_ref.__add_circle());}, popup:"Left click to place and size new obstacles. Right click to stop adding futher obstacles. You can delete an already place obstacle by right clicking it." });
+        comms.push({testo:"Add robot", img:"image/robots.svg", action:()=>this_ref.__add_robot(), popup:"Left click to place the position of a new robot base. Then keep left clicking to set the links sizes (stop adding link by right clicking). After creation you can access the robot pendant by left clicking the robot base. The pendant is draggable. Go to the top panel of the pendant for more instructions. "});
         comms.push({testo:"Check collision", img:"image/check_coll.svg", action:function(){ 
             this_ref.__send_command("check_coll" , JSON.stringify(this_ref.__get_as_JSON()), (resp)=>{ 
                 if(resp == "1")   alert("collision detected");
                 else              alert("no collision present");
             }); 
-        }});
+        }, popup:"Check whether in the current configuration are present some collisions (all robots are checked)."});
         if(use_debug_bubble){
             comms.push({testo:"Debug bubble", img:"image/debug_bubble.svg", action:function(){
                 let Q_set = this_ref.__get_Q_target();
@@ -73,7 +73,7 @@ class Scene{
                         this_ref.__robots[r].robot.set_pose(Q_bubble[r]);
                     }
                 });
-            }});
+            }, popup:"Debug of bubble extension"});
         }
         comms.push({testo:"Compute path", img:"image/RRT.svg", action:function(){
             let Q_set = this_ref.__get_Q_target();
@@ -85,7 +85,7 @@ class Scene{
                 if(Q_resp == "null"){ console.log("solution not found"); return; }
                 this_ref.__add_motion_chain(JSON.parse(Q_resp));
             }); 
-        }});
+        }, popup:"Compute a path toward the actual target configuration (use the pendants for setting each robot target) using RRT*. Use the last button on the right to change the solver options."});
         comms.push({testo:"Profile solvers", img:"image/RRT.svg", action:function(){
             let Q_set = this_ref.__get_Q_target();
             if(Q_set == null) { alert("at least a robot misses the target pose"); return; };
@@ -101,10 +101,10 @@ class Scene{
                 console.log("profiling terminated");
                 open_in_new_tab("profile.html"); 
             }); 
-        }});
-        comms.push({testo:"Export as JSON", img:"../../../src_JS/image/exp.svg", action:()=>{ this_ref.__send_command("exp" , JSON.stringify(this_ref.__get_as_JSON())); }});
-        comms.push({testo:"Import from JSON", img:"../../../src_JS/image/imp.svg", action:()=>{ this_ref.__send_command("imp" , "null", (resp)=>{ this_ref.__set_from_JSON(resp); }); }});
-        comms.push({testo:"Settings", img:"../../../src_JS/image/set.svg",action:null });
+        }, popup:"The path toward the actual target (check Compute path) is compute multiple times, using the possible solvers contained in MT_RRT and different number of threads (may take a while). Results are showed in a new window (your browser may prevent the opening of new tabs and you have to manually allow it). Use the last button on the right to change the solver options. "});
+        comms.push({testo:"Export as JSON", img:"../../../src_JS/image/exp.svg", action:()=>{ this_ref.__send_command("exp" , JSON.stringify(this_ref.__get_as_JSON())); }, popup:"Export the actual scene in a .json file. The pop-up allowing you to browse your folders may be opened not in foreground: minimize all the windows to find it."});
+        comms.push({testo:"Import from JSON", img:"../../../src_JS/image/imp.svg", action:()=>{ this_ref.__send_command("imp" , "null", (resp)=>{ this_ref.__set_from_JSON(resp); }); }, popup:"Import a scene from a .json file. The pop-up allowing you to browse your folders may be opened not in foreground: minimize all the windows to find it."});
+        comms.push({testo:"Settings", img:"../../../src_JS/image/set.svg",action:null , popup:"Open a panel for setting the options. planner:Thread is the number of threads exploited when using Compute path, while profiler:Threads is the array of threads used to profile the solvers when calling Profile solvers."});
 
 
     //create all top commands panel
@@ -132,6 +132,8 @@ class Scene{
             this.__div.childNodes[0].appendChild(box);
             box.appendChild(txt);
             box.appendChild(img.__SVG_frame);
+
+            add_popup(box, comms[k].popup, null);
         }
     }
     __init_settings(){

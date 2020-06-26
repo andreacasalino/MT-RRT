@@ -56,6 +56,8 @@ class Pendant_floating {
         let handlers = new Pendant(this.__H_pendant, W-W_menu, this.__robot, "white", "#442d4f");
         handlers.attach(this.__div_float.get_body());  
 
+        add_popup(this.__div_float.get_header(), "This is the pendant. Use the below cursors to set each robot joint position. Click the right border to show additional commands (e.s. save new poses and se the target). Click again the robot base to hide the pendant.", null);
+
         let menu = new SVG_canvas([0,0,10,10]);
         menu.__SVG_frame.setAttributeNS(null, "preserveAspectRatio", "none");
         this.__div_float.get_body().appendChild(menu.__SVG_frame);
@@ -133,6 +135,7 @@ class Pendant_floating {
             ()=>{ this_ref.__show_poses = true; for(let k=0; k<this_ref.__saved_poses.length;k++) attach_pose(this_ref.__saved_poses[k]); },
             ()=>{ this_ref.__show_poses = false; for(let k=0; k<this_ref.__saved_poses.length;k++) detach_pose(this_ref.__saved_poses[k]); } 
         );
+        add_popup(temp, "Show all the saved poses. ", 200);
     }
     __init_comm_add(){
         let temp = get_div_with_image(["100%", "50%"], "./image/add_pose.svg");
@@ -152,12 +155,14 @@ class Pendant_floating {
             this_ref.__saved_poses.push(new_pose);
             if(this_ref.__show_poses) attach_pose(new_pose);
         };
+        add_popup(temp, "Add the current pose to the saved ones. Click a saved pose to make it the target (borders will be increased).", 200);
     }
     __init_comm_move(){
         let temp = get_div_with_image(["100%", "50%"], "./image/move_to_pose.svg");
         this.__div_comm2.appendChild(temp);
         let this_ref = this;
         temp.onclick = ()=>{ this_ref.__robot.set_pose(this_ref.__Q_target.get_pose()); }
+        add_popup(temp, "Move the robot to the actual target pose ", 200);
     }
     __init_comm_del(){
         let temp = get_div_with_image(["100%", "50%"], "./image/remove_pose.svg");
@@ -169,6 +174,7 @@ class Pendant_floating {
             this_ref.__Q_target = null;
             this_ref.__update_comm_panel();
         }
+        add_popup(temp, "Delete the actual target pose", 200);
     }
     __set_Q_target(pose){
         let shapes = pose.__get_SVG_shapes();
