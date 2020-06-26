@@ -191,6 +191,7 @@ namespace MT_RTT
 	// data
 		float											Min_dist_for_accept_steer;
 		std::unique_ptr<I_Proximity_calculator>         Proximity_calculator;
+		bool											Force_Check_reached_in_cache;
 	};
 
 };

@@ -67,13 +67,13 @@ namespace MT_RTT
 	}
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const Array& Q_max, const Array& Q_min, unique_ptr<I_Proximity_calculator>& prox_calc) :
-		Manipulator_path_handler(Gamma, Q_max, Q_min, 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)) {};
+		Manipulator_path_handler(Gamma, Q_max, Q_min, 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), Force_Check_reached_in_cache(false) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Proximity_calculator>& prox_calc):
-		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)) {};
+		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), Force_Check_reached_in_cache(false) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(Bubbles_free_configuration& o):
-		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), 1.f), Min_dist_for_accept_steer(o.Min_dist_for_accept_steer), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())) {}
+		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), 1.f), Min_dist_for_accept_steer(o.Min_dist_for_accept_steer), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())), Force_Check_reached_in_cache(false) {}
 
 	void	Bubbles_free_configuration::Set_dist_for_accept_steer(const float& value) {
 
@@ -83,6 +83,8 @@ namespace MT_RTT
 	}
 
 	bool    Bubbles_free_configuration::Check_reached_in_cache(){
+
+		if(this->Force_Check_reached_in_cache) return false;
 
 		const float* prev =this->last_computed_traj->Get_state_previous();
 		const float* att = this->last_computed_traj->Get_state_current();
@@ -147,7 +149,13 @@ namespace MT_RTT
 			}
 		}
 
-		for(p=0; p<S; ++p) this->Cursor_along_traj[p] = s_min * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
+		if(s_min == 1.f){
+			Array::Array_copy(this->Cursor_along_traj , this->End, S);
+			proxier->Force_Check_reached_in_cache = true;
+		}
+		else{
+			for(p=0; p<S; ++p) this->Cursor_along_traj[p] = s_min * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
+		}
 		this->Cumulated_cost = linear_trajectory::Euclidean_distance(this->Start , this->Cursor_along_traj, this->Caller->Get_State_size());
 
 		return (s_min < 1.f);
