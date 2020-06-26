@@ -279,11 +279,14 @@ bool	Scene_Collision_checker::Collision_present(const float* Q_state) {
 		if (it->Distance_to_fixed_obstacles == 0.f) return true;
 	}
 
-	const float* Robot_distance_pairs = &(*this->Prox_calc.Get_distances_pairs())[0];
-	size_t K = this->Prox_calc.Get_distances_pairs()->size();
-	for(size_t k=0; k<K; ++k){
-		if(Robot_distance_pairs[k] == 0.f) return true;
+	if (this->Prox_calc.Get_distances_pairs() != nullptr) {
+		const float* Robot_distance_pairs = &(*this->Prox_calc.Get_distances_pairs())[0];
+		size_t K = this->Prox_calc.Get_distances_pairs()->size();
+		for (size_t k = 0; k < K; ++k) {
+			if (Robot_distance_pairs[k] == 0.f) return true;
+		}
 	}
+
 	return false;
 
 }

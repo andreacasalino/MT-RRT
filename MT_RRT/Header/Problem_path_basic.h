@@ -176,6 +176,8 @@ namespace MT_RTT
 	private:
 		Bubbles_free_configuration(Bubbles_free_configuration& o);
 
+		/** \brief It implements the concept described in the Figure 2.5 of the documentation.
+		*/
 		class bubble_trajectory : public I_trajectory{
 		public:
 			bubble_trajectory(const float* start, const float* end, Bubbles_free_configuration* caller);

@@ -118,6 +118,10 @@ namespace MT_RTT
 				return;
 			}
 		}
+		if (this->Check_reached_in_cache()) {
+			*result = FLT_MAX;
+			return;
+		}
 
 	}
 
@@ -130,29 +134,42 @@ namespace MT_RTT
 
 		*trg_reached = false;
 		const float* steered = nullptr;
-		float cost;
+		float cost, cost_prev;
 
 		size_t k=0;
 		while(true){
-			cost = this->last_computed_traj->Cost_to_go_Cumulated();			
+			cost_prev = this->last_computed_traj->Cost_to_go_Cumulated();
 			if(!this->last_computed_traj->Advance()) {
-				*trg_reached = true;
-				steered = trg->Get_State();
-				cost = cost2go;
+				if (this->Check_reached_in_cache()) {
+					if (k > 0) {
+						steered = this->last_computed_traj->Get_state_previous();
+						cost = cost_prev;
+					}
+					break;
+				}
+				else {
+					*trg_reached = true;
+					float* temp = this->Alloc_state();
+					Array::Array_copy(temp, trg->Get_State(), this->State_size);
+					return Node(start, cost2go, temp);
+				}
+			}
+
+			if (this->Check_reached_in_cache()) {
+				if (k > 0) {
+					steered = this->last_computed_traj->Get_state_previous();
+					cost = cost_prev;
+				}
 				break;
 			}
 
-			if(this->Check_reached_in_cache()) {
-				steered = this->last_computed_traj->Get_state_previous();
-				break;
-			}
-			steered = trg->Get_State();
+			if(k == 0) steered = this->last_computed_traj->Get_state_current();
 			cost = this->last_computed_traj->Cost_to_go_Cumulated();
 
 			++k;
 			if(k == this->Steer_max_iteration) break;
 		}
-		if(k == 0) return Node(nullptr);
+		if(steered == nullptr) return Node(nullptr);
 		else{
 			float* temp = this->Alloc_state();
 			Array::Array_copy(temp , steered, this->State_size);
@@ -187,13 +204,18 @@ namespace MT_RTT
 
 
 
-	float Linear_traj_factory::linear_trajectory::Cost_to_go(){
+	float Linear_traj_factory::linear_trajectory::Euclidean_distance(const float* p1, const float* p2, const size_t& Size) {
 
 		float res = 0.f;
-		size_t K = this->Caller->Get_State_size();
-		for(size_t k=0; k<K; ++k) res += (this->Start[k] - this->End[k])*(this->Start[k] - this->End[k]); 
+		for (size_t k = 0; k < Size; ++k) res += (p1[k] - p2[k]) * (p1[k] - p2[k]);
 		res = sqrtf(res);
 		return res;
+
+	}
+
+	float Linear_traj_factory::linear_trajectory::Cost_to_go(){
+
+		return Euclidean_distance(this->Start , this->End, this->Caller->Get_State_size());
 
 	}
 
@@ -211,10 +233,11 @@ namespace MT_RTT
 			}
 			float coeff = 1.f / (float)this->step_max;
 			this->Delta = new float[K];
-			for(k=0;k<K; ++k) this->Delta[k] = coeff * (this->End[k] - this->Start[k]);
-
 			this->Cursor_along_traj = new float[K];
-			Array::Array_copy(this->Cursor_along_traj , this->Delta, K);
+			for (k = 0; k < K; ++k) {
+				this->Delta[k] = coeff * (this->End[k] - this->Start[k]);
+				this->Cursor_along_traj[k] = this->Start[k] + this->Delta[k];
+			}
 
 			this->Delta_norm = 0.f;
 			for(k=0;k<K; ++k) this->Delta_norm += this->Delta[k] * this->Delta[k];
@@ -225,13 +248,14 @@ namespace MT_RTT
 			Array::Array_copy( this->Cursor_previous, this->Start, K);
 		}
 		else{
-			for(k=0;k<K; ++k) {
-				this->Cursor_previous[k] = this->Cursor_along_traj[k];
-				this->Cursor_along_traj[k] += this->Delta[k];
-			}
+			float* temp = this->Cursor_previous;
+			this->Cursor_previous = this->Cursor_along_traj;
+			this->Cursor_along_traj = temp;
+			for(k=0;k<K; ++k) 
+				this->Cursor_along_traj[k] = this->Cursor_previous[k] + this->Delta[k];
 			this->Cumulated_cost += this->Delta_norm;
 		}
-		this->step++;
+		++this->step;
 
 		return (this->step < this->step_max);
 

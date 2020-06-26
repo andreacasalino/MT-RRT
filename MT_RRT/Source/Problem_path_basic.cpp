@@ -10,8 +10,7 @@
 #include <float.h>
 using namespace std;
 
-#define DEFAULT_MIN_DIST_BUBBLE 0.001f
-
+#define DEFAULT_MIN_DIST_BUBBLE 1.f * 3.141f / 180.f
 
 namespace MT_RTT
 {
@@ -103,13 +102,18 @@ namespace MT_RTT
 
 		size_t S = this->Caller->Get_State_size();
 		Bubbles_free_configuration* proxier = static_cast<Bubbles_free_configuration*>(this->Caller);
+
 		if(this->Cursor_along_traj == nullptr){
 			this->Cursor_previous = new float[S];
 			Array::Array_copy( this->Cursor_previous, this->Start, S);
 
 			this->Cursor_along_traj = new float[S];
 		}
-		else Array::Array_copy(this->Cursor_previous , this->Cursor_along_traj, S);
+		else {
+			float* temp = this->Cursor_previous;
+			this->Cursor_previous = this->Cursor_along_traj;
+			this->Cursor_along_traj = temp;
+		}
 		proxier->Proximity_calculator->Recompute_Proximity_Info(this->Cursor_previous);
 
 		float s_min = 1.f, s_att;
@@ -144,8 +148,7 @@ namespace MT_RTT
 		}
 
 		for(p=0; p<S; ++p) this->Cursor_along_traj[p] = s_min * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
-		linear_trajectory Temp(this->Start ,  this->Cursor_along_traj, nullptr);
-		this->Cumulated_cost = Temp.Cost_to_go();
+		this->Cumulated_cost = linear_trajectory::Euclidean_distance(this->Start , this->Cursor_along_traj, this->Caller->Get_State_size());
 
 		return (s_min < 1.f);
 
@@ -153,8 +156,7 @@ namespace MT_RTT
 
 	float Bubbles_free_configuration::bubble_trajectory::Cost_to_go(){
 
-		linear_trajectory Temp(this->Start ,  this->End, nullptr);
-		return Temp.Cost_to_go();
+		return linear_trajectory::Euclidean_distance(this->Start , this->End, this->Caller->Get_State_size());
 
 	}
 

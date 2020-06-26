@@ -41,6 +41,7 @@ int main() {
 	Log_creator("../src_JS/Result_template.html", "Results/Parallel_multiag.html", Scene_json, Log_results[4]);
 // you can use your favorite browser to open the .html file created in the Results folder
 
+
 	cout << "done\n";
 	return 0;
 }

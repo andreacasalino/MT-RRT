@@ -9,7 +9,7 @@ using namespace std;
 struct Responder : public GUI_Server::I_Responder {
 	virtual std::string compute_response(const std::string& request_head, const std::string& request_body);
 private:
-	unique_ptr<Node::I_Node_factory> parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf);
+	unique_ptr<Bubbles_free_configuration> parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf);
 	list<Array>				         interpolate(list<Array>& path);
 // data
 	vector<float>				Qo;
@@ -44,7 +44,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		size_t Iterations = (size_t)(*params)[0][2];
 		size_t Thread = (size_t)(*params)[0][3];
 
-		if (mult_steer > 1) Problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer));
+		if (mult_steer > 1) Problem->Set_Steer_iterations(mult_steer);
 		auto solver = I_Planner::Get_multi_ag_parall(det_coeff, Iterations, Problem.get(), Thread, 0.05f);
 		solver->Set_post_processer<MT_RTT::Brute_force_Simplifier>();
 		solver->RRT_star(Array(&Qo[0], Qo.size()), Array(&Qf[0], Qf.size()));
@@ -54,7 +54,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		else {
 			//interpolate the path
 			auto Q_interp = interpolate(Q_waypoints);
-			auto dofs = dynamic_cast<Scene_Proximity_calculator*>(dynamic_cast<Bubbles_free_configuration*>(Problem.get())->Get_proxier())->Get_Dofs();
+			auto dofs = dynamic_cast<const Scene_Proximity_calculator*>(Problem->Get_proxier())->Get_Dofs();
 			response = "[";
 			auto it_w = Q_interp.begin();
 			response += json_parser::load_JSON(&(*it_w)[0], dofs);
@@ -81,7 +81,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		for (size_t k = 0; k < (*params)[1].size(); k++) profile_data.Threads.emplace_back((size_t)(*params)[1][k]);
 
 		size_t mult_steer = (size_t)(*params)[0][1];
-		if (mult_steer > 1) Problem = unique_ptr<Node::I_Node_factory>(new Node_factory_multiple_steer(Problem, mult_steer));
+		if (mult_steer > 1) Problem->Set_Steer_iterations(mult_steer);
 
 		response = this->profile(profile_data, Qo, Qf);
 
@@ -91,12 +91,12 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		info = json_parser::parse_JSON(request_body);
 		auto Problem = parse_scene(info, &Qo, &Qf);
 
-		float cost;
 		bool trg_reached;
-		vector<float> steered = Qo;
-		Problem->Steer(&cost, &steered[0], &Qo[0], &Qf[0], &trg_reached);
-		if (cost == FLT_MAX) response = "null";
-		else				 response = json_parser::load_JSON(&steered[0], dynamic_cast<Scene_Proximity_calculator*>(dynamic_cast<Bubbles_free_configuration*>(Problem.get())->Get_proxier())->Get_Dofs());
+		Node Start = Problem->New_root(Array(&Qo[0], Qo.size()));
+		Node End   = Problem->New_root(Array(&Qf[0], Qf.size()));
+		Node Steered = Problem->Steer(&Start , &End, &trg_reached);
+		if (Steered.Get_State() == nullptr) response = "null";
+		else								response = json_parser::load_JSON(&Steered.Get_State()[0], dynamic_cast<const Scene_Proximity_calculator*>(Problem->Get_proxier())->Get_Dofs());
 	}
 
 	else if (request_head.compare("check_coll") == 0) {
@@ -110,13 +110,12 @@ std::string Responder::compute_response(const std::string& request_head, const s
 	return response;
 }
 
-unique_ptr<Node::I_Node_factory> Responder::parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf) {
+unique_ptr<Bubbles_free_configuration> Responder::parse_scene(const vector<json_parser::field>& scene_json, vector<float>* Qo, vector<float>* Qf) {
 	*Qo = import_pose(*json_parser::get_field(scene_json, "Q_curr"));
 	*Qf = import_pose(*json_parser::get_field(scene_json, "Q_trgt"));
 	unique_ptr<Bubbles_free_configuration::I_Proximity_calculator> scene(new Scene_Proximity_calculator(scene_json));
-	unique_ptr<Node::I_Node_factory> hndl(new Bubbles_free_configuration(10.f, 4.712385f, -4.712385f, 
-		dynamic_cast<Scene_Proximity_calculator*>(scene.get())->Get_Dof_tot(), scene));
-	return hndl;
+	Bubbles_free_configuration* hdl = new Bubbles_free_configuration(10.f, 4.712385f, -4.712385f, dynamic_cast<Scene_Proximity_calculator*>(scene.get())->Get_Dof_tot(), scene);
+	return unique_ptr<Bubbles_free_configuration>(hdl);
 }
 
 list<Array> Responder::interpolate(list<Array>& path) {

@@ -15,6 +15,8 @@
 namespace MT_RTT
 {
 
+    /** \brief A simplifier object implementing step F of the pipeline presented in Section 1.3 of the documentation.
+    */
     class I_Simplifier{
     public:
         virtual ~I_Simplifier(){};

@@ -202,7 +202,7 @@ float get_distance(const Point_2D& limit_a, const Point_2D& limit_b) {
 };
 
 Problem_points::Problem_points( const std::list<Box>& boxes, const Point_2D& limit_a, const Point_2D& limit_b) :
-	Linear_traj_factory( 2, get_distance(limit_a, limit_b)*100.f, get_distance(limit_a, limit_b) / 100.f) , Workspace(limit_a, limit_b) {
+	Linear_traj_factory( 2, get_distance(limit_a, limit_b)*10.f, get_distance(limit_a, limit_b) / 20.f) , Workspace(limit_a, limit_b) {
 
 	this->Obstacles = boxes;
 

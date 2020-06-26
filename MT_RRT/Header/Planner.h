@@ -88,14 +88,14 @@ namespace MT_RTT
 		size_t									Get_Iteration_done();
 		
 		/** \brief Access the number of iterations performed by the solver for trying to solve the last specified planning problem,
-		step D.1 of the pipeline presented in Section 1.3 of the documentation.
+		step E.1 of the pipeline presented in Section 1.3 of the documentation.
 		\details An empty list is returned in case the solution was not found.
 		* @param[out] return the number of iterations done
 		*/	
 		std::list<Array>					    Get_solution();
 		
 		/** \brief Returns a json structure describing the searching trees computed when solving the last specified planning problem,
-		step D.2 of the pipeline presented in Section 1.3 of the documentation.
+		step E.2 of the pipeline presented in Section 1.3 of the documentation.
 		\details An empty structure is returned in case no problems were solved at the time of invoking this function.
 		* @param[out] return a json structure describing the searching tree computed to solve the last problem .
 		*/	

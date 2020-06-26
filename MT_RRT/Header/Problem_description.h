@@ -231,10 +231,11 @@ namespace MT_RTT
 		*/
 		const bool& 									Get_symm_flag() const { return this->Traj_symmetric; };
 
-		/** \brief Set the maximal number of iterations that are tried when steering a configuration.
+		/** \brief Set the maximal number of iterations that are considered when doing a steering operation, Figure 2.3 of the documentation (even if the concept is applied to any kind of problem).
 		\details By default this value is assumed equal to 1: a single point alogn the nominal trajectory is verified to be in the admitted region and possibly assumed as steered configuration.
-		When a greater value is set, multiple steering operations are tried, in order to get as much as possible close to the target one.
-		* @param[in] Iter_number the number of iterations to consider when doing the steering process. Pass 0 to set this value to infinity.
+		When a greater value is set, multiple steering operations are tried, in order to get as much as possible close to the target configuration.
+		* @param[in] Iter_number the number of iterations to consider when doing the steering process. Pass 0 to set this value to infinity: the steering is tried till reaching the target or a configuration 
+		outside of the admitted region.
 		*/
 		void 											Set_Steer_iterations(const size_t& Iter_number) { this->Steer_max_iteration = Iter_number; };
 
@@ -263,16 +264,36 @@ namespace MT_RTT
 
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-
+		
+		/** \brief This oject is used to represent an optimal trajectory \tau (Section 1.2 of the documentation), going from two states \in \mathcal{X}
+		\details It used to compute the distance from that states and to move along the trajectory when doing steering operations.
+		*/
 		class I_trajectory{
 		public:
 			virtual 									~I_trajectory(){ delete this->Cursor_along_traj; delete this->Cursor_previous; };
 
-			virtual float 								Cost_to_go() = 0; //FLT_MAX when the trajectory is impossible
+			/** \brief Returns the Cost to go of the configurations connected by this trajectory.
+			\details In case a trajecctory connecting the peers of this trajectory does not exist, a FLT_MAX is returned.
+			*/
+			virtual float 								Cost_to_go() = 0;
 
-			virtual bool								Advance() = 0; //return false when End is reached, after calling this Advance
+			/** \brief Move along the trajectory.
+			\details An internal state (gettable using Get_state_current) is set equal to the starting configuration after building this object.
+			Then, by calling this method, the state is modified, advancing along the trajectory of a certain quantity.
+			The old state is internally stored and is gettable using Get_state_previous.
+			* @param[out] return false when the end of the trajectory is reached after calling this method (after that you cannot call again Advance).
+			*/
+			virtual bool								Advance() = 0;
+
+			/** \brief See I_trajectory::Advance.
+			*/
 			const float*  								Get_state_current() {  return this->Cursor_along_traj; };
+			/** \brief See I_trajectory::Advance.
+			*/
 			const float*  								Get_state_previous() { return this->Cursor_previous; };
+
+			/** \brief See I_trajectory::Advance. Returns the cost to go from the beginning of the trajectory till the state internally reached at present.
+			*/
 			float&										Cost_to_go_Cumulated() { return this->Cumulated_cost; };
 		protected:
 			I_trajectory(const float* start, const float* end, I_Node_factory* caller) : 
@@ -311,10 +332,12 @@ namespace MT_RTT
 
 
 
-	/** \brief It describes a problem where the optimal trajectory connecting two states is simply a segment in the configurational space.
+	/** \brief It describes any kind of problem where the optimal trajectory connecting two states is simply a segment in the configurational space, like the one described in 2.2.3.1
 	*/
 	class Linear_traj_factory : public Node::I_Node_factory {
 	protected:
+		/** \brief steer_degree is the value reported as \epsilon in the Figure 2.3 of the documentation
+		*/
 		Linear_traj_factory(const size_t& X_size, const float& gamma, const float& steer_degree) :  I_Node_factory(X_size, gamma, true), Steer_degree(steer_degree){ if(steer_degree <= 0.f) throw 0; };
 
 		class linear_trajectory : public I_trajectory{
@@ -324,6 +347,8 @@ namespace MT_RTT
 
 			virtual float 								Cost_to_go();
 			virtual bool								Advance();
+
+			static float								Euclidean_distance(const float* p1, const float* p2, const size_t& Size);
 		protected:
 			float*										Delta;
 			float										Delta_norm;
