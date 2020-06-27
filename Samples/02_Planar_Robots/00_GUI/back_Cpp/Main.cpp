@@ -52,7 +52,7 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		if (Q_waypoints.empty()) response = "null";
 		else {
 			//interpolate the path
-			Linear_traj_factory::Interpolate(Q_waypoints , 5.f * 3.141f / 180.f);
+			Equispaced_Node_factory::Interpolate_linear_eqauispaced(Q_waypoints, 5.f * 3.141f / 180.f);
 			auto dofs = dynamic_cast<const Scene_Proximity_calculator*>(Problem->Get_proxier())->Get_Dofs();
 			response = "[";
 			auto it_w = Q_waypoints.begin();

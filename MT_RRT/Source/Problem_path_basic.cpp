@@ -16,7 +16,7 @@ namespace MT_RTT
 {
 
 	Manipulator_path_handler::Manipulator_path_handler(const float& Gamma, const Array& Q_max, const Array& Q_min, const float& steer_degree) :
-		Linear_traj_factory(Q_max.size(), Gamma, steer_degree), Max_Q_vals(Q_max), Min_Q_vals(Q_min), Delta_Q_vals(Q_max) {
+		Equispaced_Node_factory(Q_max.size(), Gamma, steer_degree, true), Max_Q_vals(Q_max), Min_Q_vals(Q_min), Delta_Q_vals(Q_max) {
 
 		if(Q_max.size() != Q_min.size()) throw 0;
 

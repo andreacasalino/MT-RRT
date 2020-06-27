@@ -202,9 +202,10 @@ namespace MT_RTT
 
 	float* Node::I_Node_factory::Alloc_state() { return new float[this->Get_State_size()]; }
 
-	void Node::I_Node_factory::Interpolate(std::list<Array>& waypoints_to_interpolate) {
+	void Node::I_Node_factory::Interpolate(std::list<Array>& waypoints_to_interpolate, float* cost_total) {
 
 		if (waypoints_to_interpolate.size() < 2) throw 0;
+		if (cost_total != nullptr) *cost_total = 0.f;
 
 		size_t S = this->Get_State_size();
 		auto it_w = waypoints_to_interpolate.begin();
@@ -218,15 +219,85 @@ namespace MT_RTT
 			delete this->last_computed_traj;
 			this->Recompute_trajectory_in_cache(&(*it_prev)[0], &(*it_w)[0]);
 			if (this->last_computed_traj->Cost_to_go() == FLT_MAX) throw 2;
+			if (cost_total != nullptr) *cost_total += this->last_computed_traj->Cost_to_go();
 			while (this->last_computed_traj->Advance()) 
 				waypoints_to_interpolate.insert(it_w , move(Array(this->last_computed_traj->Get_state_current() , S)));
 		}
 
 	}
 
+	Node::I_Node_factory::Composite_trajectory::Composite_trajectory(const float* start, const float* end, I_Node_factory* caller) :
+		I_trajectory(start, end, caller), Pieces_not_initialized(true), increment_Pieces_it(false), Cumulated_from_Pieces_prev_cost(0.f) { };
+
+	void Node::I_Node_factory::Composite_trajectory::Init_Pieces(const std::list<I_trajectory*>& pieces, const std::list<float*>& waypoints_to_save) {
+
+		if (!this->Pieces_not_initialized) throw 0;
+
+		this->Pieces = pieces;
+		this->Waypoints = waypoints_to_save;
+		this->Pieces_it = this->Pieces.begin();
+
+		this->Pieces_not_initialized = false;
+
+	}
+
+	Node::I_Node_factory::Composite_trajectory::~Composite_trajectory(){
+
+		this->Cursor_along_traj = nullptr;
+		this->Cursor_previous = nullptr;
+
+		for (auto it = this->Pieces.begin(); it != this->Pieces.end(); ++it) delete* it;
+		for (auto it = this->Waypoints.begin(); it != this->Waypoints.end(); ++it) delete* it;
+
+	}
+
+	float Node::I_Node_factory::Composite_trajectory::Cost_to_go(){
+
+		if (this->Pieces_not_initialized) throw 0;
+		if (this->Pieces.empty()) return FLT_MAX;
+
+		auto it = this->Pieces.begin();
+		float cost = (*it)->Cost_to_go();
+		if (cost == FLT_MAX) return FLT_MAX;
+		++it;
+		for (it = it; it != this->Pieces.end(); ++it) {
+			cost += (*it)->Cost_to_go();
+			if (cost == FLT_MAX) return FLT_MAX;
+		}
+		return cost;
+ 
+	}
+
+	bool Node::I_Node_factory::Composite_trajectory::Advance() {
+
+		if (this->Pieces_not_initialized) throw 0;
+
+		if (this->increment_Pieces_it) {
+			this->Cumulated_from_Pieces_prev_cost = this->Cumulated_cost;
+			++this->Pieces_it;
+			this->increment_Pieces_it = false;
+		}
+
+		if (!(*this->Pieces_it)->Advance())  {
+			auto temp = this->Pieces_it;
+			++temp;
+			if (temp == this->Pieces.end()) {
+				this->Cumulated_cost = this->Cumulated_from_Pieces_prev_cost + (*this->Pieces_it)->Cost_to_go_Cumulated();
+				return false;
+			}
+			this->increment_Pieces_it = true;
+		}
+		this->Cumulated_cost = this->Cumulated_from_Pieces_prev_cost + (*this->Pieces_it)->Cost_to_go_Cumulated();
+		this->Cursor_along_traj = Get_state_current_another(*this->Pieces_it);
+		this->Cursor_previous = Get_state_previous_another(*this->Pieces_it);
+		return true;
+
+	}
 
 
-	float Linear_traj_factory::linear_trajectory::Euclidean_distance(const float* p1, const float* p2, const size_t& Size) {
+
+
+	float Equispaced_Node_factory::linear_trajectory::Euclidean_distance(const float* p1, const float* p2, const size_t& Size) {
 
 		float res = 0.f;
 		for (size_t k = 0; k < Size; ++k) res += (p1[k] - p2[k]) * (p1[k] - p2[k]);
@@ -235,20 +306,20 @@ namespace MT_RTT
 
 	}
 
-	float Linear_traj_factory::linear_trajectory::Cost_to_go(){
+	float Equispaced_Node_factory::linear_trajectory::Cost_to_go(){
 
 		return Euclidean_distance(this->Start , this->End, this->Caller->Get_State_size());
 
 	}
 
-	bool Linear_traj_factory::linear_trajectory::Advance(){
+	bool Equispaced_Node_factory::linear_trajectory::Advance(){
 
 		size_t K = this->Caller->Get_State_size(), k;
 		if(this->Cursor_along_traj == nullptr){
 			this->step_max = 1;
 			this->step = 0;
 			size_t temp;
-			float* steer_degree = &static_cast<Linear_traj_factory*>(this->Caller)->Steer_degree;
+			float* steer_degree = &dynamic_cast<Equispaced_Node_factory*>(this->Caller)->Steer_degree;
 			for(k=0;k<K; ++k){
 				temp = (size_t)ceilf(abs(this->Start[k] - this->End[k]) / *steer_degree);
 				if(temp > this->step_max) this->step_max = temp;
@@ -283,18 +354,18 @@ namespace MT_RTT
 
 	}
 
-	class Linear_factory_empty : public Linear_traj_factory {
+	class Linear_Equispaced_factory : public Equispaced_Node_factory {
 	public:
-		Linear_factory_empty(const size_t& X_size, const float& steer_degree) : Linear_traj_factory(X_size, 0.f, steer_degree){};
+		Linear_Equispaced_factory(const size_t& X_size, const float& steer_degree) : Equispaced_Node_factory(X_size, 0.f, steer_degree, true){};
 	private:
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(); };
 		virtual void									Random_node(float* random_state) { };
 		virtual bool									Check_reached_in_cache() { return false; };
 	};
-	void Linear_traj_factory::Interpolate(std::list<Array>& waypoints_to_interpolate, const float& steer_degree) {
+	void Equispaced_Node_factory::Interpolate_linear_eqauispaced(std::list<Array>& waypoints_to_interpolate, const float& steer_degree) {
 
 		if (waypoints_to_interpolate.empty()) throw 0;
-		Linear_factory_empty temp(waypoints_to_interpolate.front().size() , steer_degree);
+		Linear_Equispaced_factory temp(waypoints_to_interpolate.front().size() , steer_degree);
 		temp.I_Node_factory::Interpolate(waypoints_to_interpolate);
 
 	}

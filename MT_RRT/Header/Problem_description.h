@@ -242,8 +242,10 @@ namespace MT_RTT
 
 		/** \brief Takes a series of waypoints and interpolate it, adding some intermediate states along the optimal trajectories connecting the waypoints.
 		\details The additonal states are inserted in the passed list in the proper position.
+		* @param[in] waypoints_to_interpolate the chain of waypoints to interpolate
+		* @param[out] cost_total the total cost to go for going from traversing all the waypoints in the chain. Computed only if you pass a value different from nullptr
 		*/
-		void											Interpolate(std::list<Array>& waypoints_to_interpolate);
+		void											Interpolate(std::list<Array>& waypoints_to_interpolate, float* cost_total = nullptr);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // To customize for the specific planning problem to solve
@@ -304,6 +306,9 @@ namespace MT_RTT
 		protected:
 			I_trajectory(const float* start, const float* end, I_Node_factory* caller) : 
 			Caller(caller) , Start(start), End(end), Cursor_along_traj(nullptr), Cursor_previous(nullptr), Cumulated_cost(0.f) {};
+
+			static float*								Get_state_current_another(I_trajectory* o) { return o->Cursor_along_traj; };
+			static float*								Get_state_previous_another(I_trajectory* o) { return o->Cursor_previous; };
 		// data
 			I_Node_factory* Caller;
 
@@ -313,6 +318,27 @@ namespace MT_RTT
 			float*		  Cursor_along_traj;
 			float*		  Cursor_previous;
 			float		  Cumulated_cost;
+		};
+
+		/** \brief Manages trajectories made of simple sub-pieces, each defined as an I_trajectory.
+		*/
+		class Composite_trajectory : public I_trajectory {
+		protected:
+			Composite_trajectory(const float* start, const float* end, I_Node_factory* caller);
+			~Composite_trajectory();
+
+			virtual float 									Cost_to_go();
+			virtual bool									Advance();
+
+			void											Init_Pieces(const std::list<I_trajectory*>& pieces, const std::list<float*>& waypoints_to_save);
+		private:
+		// data
+			bool									Pieces_not_initialized;
+			std::list<I_trajectory*>				Pieces;
+			std::list<I_trajectory*>::iterator		Pieces_it;
+			bool									increment_Pieces_it;
+			std::list<float*>						Waypoints;
+			float									Cumulated_from_Pieces_prev_cost;
 		};
 
 		/** \brief Constructor of a new problem
@@ -325,7 +351,6 @@ namespace MT_RTT
 
 	private:
 		float*											Alloc_state();
-
 	// data
 		size_t										State_size;
 		bool										Traj_symmetric;
@@ -338,22 +363,28 @@ namespace MT_RTT
 
 
 
-	/** \brief It describes any kind of problem where the optimal trajectory connecting two states is simply a segment in the configurational space, like the one described in 2.2.3.1
+	/** \brief It describes any kind of problem where the states along the optimal trajectory are set at an equispaced distance when doing steer.
 	*/
-	class Linear_traj_factory : public Node::I_Node_factory {
+	class Equispaced_Node_factory : public Node::I_Node_factory {
 	public:
+		/** \brief Returns the space separating the intermediate states along an optimal trajectory.
+		*/
+		const float& Get_Steer_degree() { return this->Steer_degree; };
+
 		/** \brief Internally builds a Linear_traj_factory with the passed steer_degree and calls  I_Node_factory::Interpolate on this object.
 		*/
-		static void										Interpolate(std::list<Array>& waypoints_to_interpolate, const float& steer_degree);
+		static void										Interpolate_linear_eqauispaced(std::list<Array>& waypoints_to_interpolate, const float& steer_degree);
 	protected:
 		/** \brief steer_degree is the value reported as \epsilon in the Figure 2.3 of the documentation
 		*/
-		Linear_traj_factory(const size_t& X_size, const float& gamma, const float& steer_degree) :  I_Node_factory(X_size, gamma, true), Steer_degree(steer_degree){ if(steer_degree <= 0.f) throw 0; };
+		Equispaced_Node_factory(const size_t& X_size, const float& gamma, const float& node_interdistance, const bool& traj_symm_flag) :  I_Node_factory(X_size, gamma, traj_symm_flag), Steer_degree(node_interdistance){ if(node_interdistance <= 0.f) throw 0; };
 
+		/** \brief It describes any kind of problem where the optimal trajectory connecting two states is simply a segment in the configurational space, like the one described in 2.2.3.1
+		*/
 		class linear_trajectory : public I_trajectory{
 		public:
 			~linear_trajectory(){ delete this->Delta; };
-			linear_trajectory(const float* start, const float* end, Linear_traj_factory* caller) : I_trajectory(start, end, caller), Delta(nullptr) {};
+			linear_trajectory(const float* start, const float* end, Equispaced_Node_factory* caller) : I_trajectory(start, end, caller), Delta(nullptr) {};
 
 			virtual float 								Cost_to_go();
 			virtual bool								Advance();
@@ -366,8 +397,6 @@ namespace MT_RTT
 			size_t										step_max;
 		};
 		virtual void									Recompute_trajectory_in_cache(const float*  Start, const float*  End) { this->last_computed_traj = new linear_trajectory(Start, End, this); };
-
-		const float&									Get_Steer_degree() { return this->Steer_degree; };
 	private:
 	// data
 		float											Steer_degree;

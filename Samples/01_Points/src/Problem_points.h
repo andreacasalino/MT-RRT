@@ -82,7 +82,7 @@ private:
 
 
 
-class Problem_points : public MT_RTT::Linear_traj_factory {
+class Problem_points : public MT_RTT::Equispaced_Node_factory {
 public:
 	/** \brief Constructor.
 	* @param[in] boxes the obstacles to consider

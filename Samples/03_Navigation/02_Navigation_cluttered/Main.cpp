@@ -23,25 +23,25 @@ int main() {
 //read the problem from the textual file
 	auto Scene_raw = get_content_of_file("problem.json");
 	vector<json_parser::field> fields = json_parser::parse_JSON(Scene_raw);
-
-	unique_ptr<Navigator> Scene(new Navigator(fields));
+	Navigator Scene(fields);
+	Scene.Set_Steer_iterations(0); //steering is tried till reaching the end of the trajectory
 
 	Qo = import_config(fields, "Q_curr");
 	Qf = import_config(fields, "Q_trgt");
 
 //check the behaviour of this function to understand how to use the planning algorithms
-	auto Log_results = Solve_using_planners_and_strategies<MT_RTT::Brute_force_Simplifier>(Iterations, 0.1f, Scene.get(), Qo, Qf);
+	auto Log_results = Solve_using_planners_and_strategies<MT_RTT::Brute_force_Simplifier>(Iterations, 0.1f, &Scene, Qo, Qf);
 
 //interpolate the solutions before logging the result
-	Interp_solutions(Log_results[0], Scene.get());
+	Interp_solutions(Log_results[0], &Scene);
 	Log_creator("../../src_JS/Result_template.html", "Results/Serial.html", Scene_raw, Log_results[0]);
-	Interp_solutions(Log_results[1], Scene.get());
+	Interp_solutions(Log_results[1], &Scene);
 	Log_creator("../../src_JS/Result_template.html", "Results/Parallel_query.html", Scene_raw, Log_results[1]);
-	Interp_solutions(Log_results[2], Scene.get());
+	Interp_solutions(Log_results[2], &Scene);
 	Log_creator("../../src_JS/Result_template.html", "Results/Parallel_shared.html", Scene_raw, Log_results[2]);
-	Interp_solutions(Log_results[3], Scene.get());
+	Interp_solutions(Log_results[3], &Scene);
 	Log_creator("../../src_JS/Result_template.html", "Results/Parallel_copied.html", Scene_raw, Log_results[3]);
-	Interp_solutions(Log_results[4], Scene.get());
+	Interp_solutions(Log_results[4], &Scene);
 	Log_creator("../../src_JS/Result_template.html", "Results/Parallel_multiag.html", Scene_raw, Log_results[4]);
 // you can use your favorite browser to open the .html file created in the Results folder
 

@@ -21,7 +21,7 @@ namespace MT_RTT
 	When considering multi-robot problems, the state Q of a single node in a tree is a buffer containing the poses of all the robots in a single array  as follows:
 	Q = [Q1^T, Q2^T, ..., Qn^T], where Qi is the pose of the i-th robot.
 	*/
-	class Manipulator_path_handler : public Linear_traj_factory {
+	class Manipulator_path_handler : public Equispaced_Node_factory {
 	protected:
 		/** \brief The hypercube delimited by the maximal and minimum possible joint excursions is sampled.
 		*/
