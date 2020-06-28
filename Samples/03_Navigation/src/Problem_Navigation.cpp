@@ -30,7 +30,6 @@ public:
 			float steer_degree = dynamic_cast<Equispaced_Node_factory*>(this->Caller)->Get_Steer_degree();
 			this->step_max = (size_t)ceilf(this->Cost_to_go() / steer_degree);
 			this->delta = this->angle_delta / (float)this->step_max;
-			this->delta_orient = (this->End[2] - this->Start[2]) / (float)this->step_max;
 			this->Cumulated_cost = 0.f;
 
 			this->Cursor_along_traj = new float[3];
@@ -38,13 +37,13 @@ public:
 			Array::Array_copy(this->Cursor_previous, this->Start, 3);
 
 			this->angle_attual = this->angle_initial;
-			this->Cursor_along_traj[2] = this->Start[2] + this->delta_orient;
+			this->Cursor_along_traj[2] = this->Start[2] + this->delta;
 		}
 		else {
 			float* temp = this->Cursor_previous;
 			this->Cursor_previous = this->Cursor_along_traj;
 			this->Cursor_along_traj = temp;
-			this->Cursor_along_traj[2] = this->Cursor_previous[2] + this->delta_orient;
+			this->Cursor_along_traj[2] = this->Cursor_previous[2] + this->delta;
 		}
 		++this->step;
 		this->angle_attual += this->delta;
@@ -66,7 +65,6 @@ private:
 	size_t		step_max;
 	float		angle_attual;
 	float		delta;
-	float		delta_orient;
 };
 
 Navigator::Cart_trajectory::Cart_trajectory(const float* start, const float* end, Navigator* caller) :
@@ -92,7 +90,7 @@ Navigator::Cart_trajectory::Cart_trajectory(const float* start, const float* end
 		float delta_SE[2];
 		delta_SE[0] = end[0] - start[0];
 		delta_SE[1] = end[1] - start[1];
-		if ((checker.get_s() >= 0.f) && (sqrtf(delta_SE[0] * delta_SE[0] + delta_SE[1] * delta_SE[1]) >= 0.1f))  
+		if ((checker.get_s() >= 0.f) && (checker.Get_distance() <= 0.01f) && (sqrtf(delta_SE[0] * delta_SE[0] + delta_SE[1] * delta_SE[1]) >= 0.1f))  
 			pieces.push_back(new linear_trajectory(start, end, dynamic_cast<Equispaced_Node_factory*>(this->Caller)));
 	}
 	else {
@@ -212,13 +210,13 @@ float get_gamma(const Navigator::Limits& lim) {
 	float gamma = lim.X_max - lim.X_min;
 	float temp = lim.Y_max - lim.Y_min;
 	if (temp > gamma) gamma = temp;
-	return 0.25f * gamma;
+	return 5.f * gamma;
 
 }
 float get_steer_degree(const Navigator::Limits& lim) {
 	
-	float temp = (lim.X_max - lim.X_min) * 0.01f;
-	float temp2 = (lim.Y_max - lim.Y_min) * 0.01f;
+	float temp = (lim.X_max - lim.X_min) * 0.025f;
+	float temp2 = (lim.Y_max - lim.Y_min) * 0.025f;
 	if (temp2 < temp) temp = temp2;
 	return temp;
 

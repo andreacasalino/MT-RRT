@@ -54,9 +54,21 @@ public:
 	*/
 	const float&									Get_Traj_ray() { return this->Traj_ray; };
 
+	/** \brief returns true if there is a collision for the passed position
+	*/
+	bool exist_collision(const float* pos) { return this->Checker.exist_collision(pos); };
 private:
 	class circular_trajectory;
-	class Cart_trajectory;
+
+	class Cart_trajectory : public Composite_trajectory {
+	public:
+		/** \brief Used to build a trajectory from a starting configuration to an ending one.
+		\details A configuration is completely defined knowing the x,y coordinates of the vehicle as well as its orientation (with this exact order in start and end).
+		*/
+		//const float* start, const float* end, I_Node_factory* caller
+
+		Cart_trajectory(const float* start, const float* end, Navigator* caller);
+	};
 
 	class Collision_checker {
 	public:
@@ -88,73 +100,5 @@ private:
 	Collision_checker		Checker;
 };
 
-
-
-/** \brief class used to compute a trjectory from a starting state to an ending one.
-*/
-class Navigator::Cart_trajectory : public Node::I_Node_factory::Composite_trajectory {
-public:
-	/** \brief Used to build a trajectory from a starting configuration to an ending one.
-	\details A configuration is completely defined knowing the x,y coordinates of the vehicle as well as its orientation.
-	You can detect infeasibilities by using Planar_trajectory::get_cost.
-	* @param[in] ray the radius of the vehicle steering (assumed constant)
-	* @param[in] Startx x coordinate of the starting configuration
-	* @param[in] Starty y coordinate of the starting configuration
-	* @param[in] Start_angle orientation of the vehicle in the starting configuration
-	* @param[in] Endx x coordinate of the ending configuration
-	* @param[in] Endy y coordinate of the ending configuration
-	* @param[in] End_angle orientation of the vehicle in the ending configuration
-	*/
-	//const float* start, const float* end, I_Node_factory* caller
-
-	Cart_trajectory(const float* start, const float* end, Navigator* caller);
-	//Planar_trajectory(const float& ray, , const bool& force_solution = false);
-
-//	class I_path {
-//	public:
-//		I_path* next;
-//		float					 Length;
-//		virtual void			 eval(float* configuration, const float& prctg) = 0;
-//		virtual					~I_path();
-//	};
-//public:
-
-	///** \brief class used to traverse a feasible trajectory
-	//*/
-	//class iterator {
-	//public:
-	//	/** \brief Can be used only to traverse a feasible solution
-	//	*/
-	//	iterator(const Planar_trajectory* solution, const float& max_interspace);
-
-	//	/** \brief Returns the actual position along the path stored internally in this iterator
-	//	*/
-	//	const float* get_position() const { return &this->position[0]; };
-
-	//	/** \brief Returns the total space so far traversed along the path to traverse.
-	//	*/
-	//	const float& get_cumulated_space() { return this->cumulated_space; };
-
-	//	/** \brief Used to advance along the path to traverse.
-	//	\details In case this iterator is already at the end of the path an exception is throwed.
-	//	*/
-	//	Planar_trajectory::iterator& operator++();
-
-	//	/** \brief Used to check whether this iterator is at the end of the corresponding path
-	//	*/
-	//	bool is_not_at_end();
-	//private:
-	//	void __init_portion();
-	//	// data
-	//	I_path* attual_portion;
-	//	float					 delta_space_max;
-	//	float					 position[3];
-	//	size_t					 k;
-	//	size_t					 K;
-	//	float					 cumulated_delta;
-	//	float					 cumulated_space;
-	//};
-
-};
 
 #endif

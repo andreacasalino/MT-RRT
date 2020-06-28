@@ -30,7 +30,7 @@ int main() {
 	Qf = import_config(fields, "Q_trgt");
 
 //check the behaviour of this function to understand how to use the planning algorithms
-	auto Log_results = Solve_using_planners_and_strategies<MT_RTT::Brute_force_Simplifier>(Iterations, 0.1f, &Scene, Qo, Qf);
+	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, &Scene, Qo, Qf);
 
 //interpolate the solutions before logging the result
 	Interp_solutions(Log_results[0], &Scene);

@@ -127,12 +127,13 @@ namespace MT_RTT
 
 	Node Node::I_Node_factory::Steer(Node* start, const  Node* trg, bool* trg_reached) {
 
+		*trg_reached = false;
+
 		delete this->last_computed_traj;
 		this->Recompute_trajectory_in_cache(start->Get_State() , trg->Get_State());
 		float cost2go =  this->last_computed_traj->Cost_to_go();
 		if(cost2go == FLT_MAX)  return Node(nullptr);
 
-		*trg_reached = false;
 		const float* steered = nullptr;
 		float cost, cost_prev;
 
@@ -283,6 +284,8 @@ namespace MT_RTT
 			++temp;
 			if (temp == this->Pieces.end()) {
 				this->Cumulated_cost = this->Cumulated_from_Pieces_prev_cost + (*this->Pieces_it)->Cost_to_go_Cumulated();
+				this->Cursor_along_traj = Get_state_current_another(*this->Pieces_it);
+				this->Cursor_previous = Get_state_previous_another(*this->Pieces_it);
 				return false;
 			}
 			this->increment_Pieces_it = true;

@@ -1,4 +1,5 @@
 const use_conn  = true;
+const use_debug_check_coll = false;
 
 class Scene{
     constructor(){
@@ -64,6 +65,20 @@ class Scene{
                 this_ref.__draw_solution(JSON.parse(Q_resp));
             }); 
         }, popup:"Compute a path toward the start and ending positions of the cart using RRT*. Move the cursor on the cart for change the pose-orientation. Use the last button on the right to change the solver options."});
+        if(use_debug_check_coll){
+            comms.push({testo:"Check collision", img:"./image/coll.svg", action:function(){
+                let descr = this_ref.__get_as_JSON();
+                this_ref.__send_command("check_coll", JSON.stringify(descr), (Q_resp)=>{
+                    let esito = JSON.parse(Q_resp);
+    
+                    if(esito[0] == 1) alert("Start (green) configuration presents collisions");
+                    else           alert("Start (green) configuration collision free");
+                    
+                    if(esito[1] == 1) alert("End (pink) configuration presents collisions");
+                    else           alert("End (pink) configuration collision free");
+                }); 
+            }, popup:"Check the curret start and end configurations of the cart for collisions."});
+        }
         comms.push({testo:"Profile solvers", img:"./image/RRT.svg", action:function(){
             let descr = this_ref.__get_as_JSON();
             let sets = this_ref.__settings.get_fields();

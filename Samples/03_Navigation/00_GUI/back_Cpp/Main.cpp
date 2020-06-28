@@ -76,6 +76,18 @@ std::string Responder::compute_response(const std::string& request_head, const s
 		response = this->profile(profile_data, Qo, Qf);
 	}
 
+
+	else if (request_head.compare("check_coll") == 0) {
+		info = json_parser::parse_JSON(request_body);
+		Navigator Problem = parse_scene(info, &Qo, &Qf);
+
+		if (Problem.exist_collision(&Qo[0])) response = "[1,";
+		else							     response = "[0,";
+
+		if (Problem.exist_collision(&Qf[0])) response += "1]";
+		else							     response += "0]";
+	}
+
 	return response;
 }
 
@@ -84,5 +96,7 @@ Navigator Responder::parse_scene(const vector<json_parser::field>& scene_json, v
 	*Qo = { (*pt_temp)[0][0], (*pt_temp)[0][1], (*pt_temp)[0][2] };
 	pt_temp = json_parser::get_field(scene_json, "Q_trgt");
 	*Qf = { (*pt_temp)[0][0], (*pt_temp)[0][1], (*pt_temp)[0][2] };
-	return Navigator(scene_json);
+	Navigator Scene(scene_json);
+	Scene.Set_Steer_iterations(0);
+	return Scene;
 }

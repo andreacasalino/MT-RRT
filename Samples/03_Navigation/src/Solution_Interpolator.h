@@ -26,18 +26,18 @@ void Interp_solutions(std::string& result, Navigator* handler) {
 		std::getline(fi, temp);
 		if (temp.compare(",\"Solution\":[") == 0) {
 			to_reprint.pop_back();
-			solution_raw = "\"temp\":[";
+			solution_raw = "\"Solution\":[";
 			while (true) {
 				std::getline(fi, temp);
 				if (temp.compare("]") == 0) break;
 				solution_raw += temp;
 			}
 			solution_raw += "]";
-			if (solution_raw.compare(",\"Solution\":[]") == 0) to_reprint += solution_raw + "\n";
+			if (solution_raw.compare("\"Solution\":[]") == 0) to_reprint += ",\"Solution\":[]\n";
 			else {
 			//interpolate the waypoints
 				auto wayps_temp = MT_RTT::json_parser::parse_JSON(solution_raw);
-				std::list<Array> waypoints = Import(*MT_RTT::json_parser::get_field(wayps_temp, "temp"));
+				std::list<Array> waypoints = Import(*MT_RTT::json_parser::get_field(wayps_temp, "Solution"));
 				handler->Interpolate(waypoints);
 				std::vector<std::vector<float>> to_print;
 				to_print.reserve(waypoints.size());
