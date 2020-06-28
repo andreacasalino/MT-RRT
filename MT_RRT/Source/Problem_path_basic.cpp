@@ -116,19 +116,21 @@ namespace MT_RTT
 			this->Cursor_previous = this->Cursor_along_traj;
 			this->Cursor_along_traj = temp;
 		}
+		float s_min = 1.f, s_att;
+		size_t p=0;
+
 		proxier->Proximity_calculator->Recompute_Proximity_Info(this->Cursor_previous);
 
-		float s_min = 1.f, s_att;
-		const std::vector<I_Proximity_calculator::single_robot_prox>& single_info = proxier->Get_proxier()->Get_single_info();
+		const std::vector<I_Proximity_calculator::single_robot_prox>& single_info = proxier->Proximity_calculator->Get_single_info();
 
 		size_t K, R = single_info.size(), r;
-		Array dot_radii_deltaQ(R);
-		size_t p=0;
+		Array dot_radii_deltaQ(0.f, R);
 		for(r=0; r<R; ++r){
-			dot_radii_deltaQ[r] = 0.f;
 			K = single_info[r].Radii.size();
-			for(size_t k=0; k<K; ++k) dot_radii_deltaQ[r] += abs(this->Cursor_previous[p] - this->End[p]) * single_info[r].Radii[k];
-			p += K;
+			for(size_t k=0; k<K; ++k){
+			 	dot_radii_deltaQ[r] += abs(this->Cursor_previous[p] - this->End[p]) * single_info[r].Radii[k];
+				++p;
+			}
 		}
 
 		for(r=0; r<R; ++r){
