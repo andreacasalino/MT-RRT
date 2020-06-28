@@ -21,6 +21,7 @@ int main() {
 
 	vector<float> Qo, Qf;
 	unique_ptr<Node::I_Node_factory> Scene;
+	float gamma = 2.f;
 
 //read the problem from the textual file
 	auto Scene_raw = get_content_of_file("problem.json");
@@ -30,7 +31,7 @@ int main() {
 
 	auto Scene_description = new Scene_Proximity_calculator(fields);
 	unique_ptr<Bubbles_free_configuration::I_Proximity_calculator> pt_temp(Scene_description);
-	Scene = move(unique_ptr<Node::I_Node_factory>(new Bubbles_free_configuration( 10.f, 4.712385f, -4.712385f, Scene_description->Get_Dof_tot() , pt_temp)));
+	Scene = move(unique_ptr<Node::I_Node_factory>(new Bubbles_free_configuration( gamma, 4.712385f, -4.712385f, Scene_description->Get_Dof_tot() , pt_temp)));
 
 #else
 
@@ -38,7 +39,7 @@ int main() {
 	unique_ptr<Tunneled_check_collision::I_Collision_checker> pt_temp(Scene_description);
 	size_t dof = Scene_description->Get_wrapped_prox()->Get_Dof_tot();
 	float steer_degree = 5.f * 3.14159f / 180.f;
-	Scene = move(unique_ptr<Node::I_Node_factory>(new Tunneled_check_collision(10.f, steer_degree, 4.712385f, -4.712385f, dof, pt_temp)));
+	Scene = move(unique_ptr<Node::I_Node_factory>(new Tunneled_check_collision(gamma, steer_degree, 4.712385f, -4.712385f, dof, pt_temp)));
 
 #endif
 

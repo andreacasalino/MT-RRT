@@ -166,13 +166,6 @@ namespace MT_RTT
 		Bubbles_free_configuration(const float& Gamma, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Proximity_calculator>& prox_calc);
 
 		virtual std::unique_ptr<I_Node_factory>			copy() { return std::unique_ptr<I_Node_factory>(new Bubbles_free_configuration(*this)); };
-
-		/** \brief Set the threshold for accepting a steering operation.
-		\details When considering the bubble of free configuration, the steering is always possible, but can lead to obtain a configuration
-		very close to the nearest neighbour (when the robots are close to the obstacles). This function regulates the threashold that is used
-		to decide or not to accept a new steered configuration.
-		*/	
-		void												Set_dist_for_accept_steer(const float& value);
 	private:
 		Bubbles_free_configuration(Bubbles_free_configuration& o);
 
@@ -184,14 +177,16 @@ namespace MT_RTT
 
 			virtual float 								Cost_to_go();
 			virtual bool								Advance();
+
+			const float&								Get_s_advance() { return this->s_advance; };
+		private:
+			float										s_advance;
 		};
 		virtual void									Recompute_trajectory_in_cache(const float*  Start, const float*  End) { this->last_computed_traj = new bubble_trajectory(Start, End, this); };
 
 		virtual bool									Check_reached_in_cache();
 	// data
-		float											Min_dist_for_accept_steer;
 		std::unique_ptr<I_Proximity_calculator>         Proximity_calculator;
-		bool											Force_Check_reached_in_cache;
 	};
 
 };

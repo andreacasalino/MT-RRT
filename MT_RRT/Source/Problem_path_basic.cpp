@@ -10,7 +10,8 @@
 #include <float.h>
 using namespace std;
 
-#define DEFAULT_MIN_DIST_BUBBLE 1.f * 3.141f / 180.f
+#define MIN_S_ACCEPT_BUBBLE 0.01f
+
 
 namespace MT_RTT
 {
@@ -67,33 +68,17 @@ namespace MT_RTT
 	}
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const Array& Q_max, const Array& Q_min, unique_ptr<I_Proximity_calculator>& prox_calc) :
-		Manipulator_path_handler(Gamma, Q_max, Q_min, 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), Force_Check_reached_in_cache(false) {};
+		Manipulator_path_handler(Gamma, Q_max, Q_min, 1.f), Proximity_calculator(move(prox_calc)) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(const float& Gamma, const float& q_max, const float& q_min, const size_t& dof, std::unique_ptr<I_Proximity_calculator>& prox_calc):
-		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), 1.f), Min_dist_for_accept_steer(DEFAULT_MIN_DIST_BUBBLE), Proximity_calculator(move(prox_calc)), Force_Check_reached_in_cache(false) {};
+		Manipulator_path_handler(Gamma, Array(q_max, dof), Array(q_min, dof), 1.f), Proximity_calculator(move(prox_calc)) {};
 
 	Bubbles_free_configuration::Bubbles_free_configuration(Bubbles_free_configuration& o):
-		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), 1.f), Min_dist_for_accept_steer(o.Min_dist_for_accept_steer), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())), Force_Check_reached_in_cache(false) {}
-
-	void	Bubbles_free_configuration::Set_dist_for_accept_steer(const float& value) {
-
-		if (value < DEFAULT_MIN_DIST_BUBBLE) return;
-		this->Min_dist_for_accept_steer = value;
-
-	}
+		Manipulator_path_handler(o.Get_Gamma(), o.Get_max(), o.Get_min(), 1.f), Proximity_calculator(move(o.Proximity_calculator->copy_calculator())) {}
 
 	bool    Bubbles_free_configuration::Check_reached_in_cache(){
 
-		if(this->Force_Check_reached_in_cache) return false;
-
-		const float* prev =this->last_computed_traj->Get_state_previous();
-		const float* att = this->last_computed_traj->Get_state_current();
-
-		size_t K = this->Get_State_size();
-		for(size_t k=0; k<K; ++k){
-			if(abs(prev[k] - att[k]) >= this->Min_dist_for_accept_steer) return false;
-		}
-		return true;
+		return (static_cast<bubble_trajectory*>(this->last_computed_traj)->Get_s_advance() < MIN_S_ACCEPT_BUBBLE);
 
 	}	
 
@@ -116,7 +101,8 @@ namespace MT_RTT
 			this->Cursor_previous = this->Cursor_along_traj;
 			this->Cursor_along_traj = temp;
 		}
-		float s_min = 1.f, s_att;
+		this->s_advance = 1.f;
+		float s_att;
 		size_t p=0;
 
 		proxier->Proximity_calculator->Recompute_Proximity_Info(this->Cursor_previous);
@@ -135,7 +121,7 @@ namespace MT_RTT
 
 		for(r=0; r<R; ++r){
 			s_att = single_info[r].Distance_to_fixed_obstacles / dot_radii_deltaQ[r];
-			if(s_att < s_min) s_min = s_att;
+			if(s_att < this->s_advance) this->s_advance = s_att;
 		}
 		
 		const Array*	 info_pairs = proxier->Get_proxier()->Get_distances_pairs();
@@ -145,22 +131,22 @@ namespace MT_RTT
 			for(r=0; r<(R-1); ++r){
 				for(r2 = r+1; r2 < R; ++r2){
 					s_att = (*info_pairs)[p] / (dot_radii_deltaQ[r] + dot_radii_deltaQ[r2]);
-					if(s_att < s_min) s_min = s_att;
+					if(s_att < this->s_advance) this->s_advance = s_att;
 					++p;
 				}
 			}
 		}
 
-		if(s_min == 1.f){
+		if(this->s_advance == 1.f){
 			Array::Array_copy(this->Cursor_along_traj , this->End, S);
-			proxier->Force_Check_reached_in_cache = true;
 		}
 		else{
-			for(p=0; p<S; ++p) this->Cursor_along_traj[p] = s_min * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
+			this->s_advance = abs(this->s_advance);
+			for(p=0; p<S; ++p) this->Cursor_along_traj[p] = this->s_advance * (this->End[p]  - this->Cursor_previous[p]) + this->Cursor_previous[p];
 		}
 		this->Cumulated_cost = linear_trajectory::Euclidean_distance(this->Start , this->Cursor_along_traj, this->Caller->Get_State_size());
 
-		return (s_min < 1.f);
+		return (this->s_advance < 1.f);
 
 	}
 

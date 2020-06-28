@@ -65,8 +65,6 @@ private:
 		/** \brief Used to build a trajectory from a starting configuration to an ending one.
 		\details A configuration is completely defined knowing the x,y coordinates of the vehicle as well as its orientation (with this exact order in start and end).
 		*/
-		//const float* start, const float* end, I_Node_factory* caller
-
 		Cart_trajectory(const float* start, const float* end, Navigator* caller);
 	};
 
