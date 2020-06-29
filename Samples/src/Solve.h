@@ -82,7 +82,7 @@ std::string Solve_using_strategies(std::unique_ptr< MT_RTT::I_Planner>& solver, 
 is created in the folder at the location specified by folder. 
 */
 template<typename Simplifier = MT_RTT::Neutral_Simplifier>
-std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Iteration_max, const float& deterministic_coeff, MT_RTT::Node::I_Node_factory* planning_problem, const std::vector<float>& Start, const std::vector<float>& End) {
+std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Iteration_max, const float& deterministic_coeff, MT_RTT::Node::I_Node_factory* planning_problem, const std::vector<float>& Start, const std::vector<float>& End, const float& reall_perc = 0.1f) {
 
 // build the starting and ending node according to the passed state
 	MT_RTT::Array Start_state(&Start[0], Start.size());
@@ -134,7 +134,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 //parallel explorations in distributed copies (Section METTERE)
 		std::cout << "starting parallel explorations on distributed copies     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
-		solver = MT_RTT::I_Planner::Get_copied__parall(deterministic_coeff, Iteration_max, planning_problem);
+		solver = MT_RTT::I_Planner::Get_copied__parall(deterministic_coeff, Iteration_max, planning_problem, 0, reall_perc);
 		solver->Set_post_processer<Simplifier>();
 		// compute a solution for the problem
 		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));
@@ -146,7 +146,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 //parallel explorations in distributed copies (Section METTERE)
 		std::cout << "starting parallel multi agent     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
-		solver = MT_RTT::I_Planner::Get_multi_ag_parall(deterministic_coeff, Iteration_max, planning_problem);
+		solver = MT_RTT::I_Planner::Get_multi_ag_parall(deterministic_coeff, Iteration_max, planning_problem, 0, reall_perc);
 		solver->Set_post_processer<Simplifier>();
 		// compute a solution for the problem
 		results.emplace_back(Solve_using_strategies(solver, Start_state, End_state));

@@ -16,7 +16,7 @@ using namespace MT_RTT;
 //this kind of problem is described in Section 2.1 of the documentation
 int main() {
 
-	size_t Iterations = 2500;
+	size_t Iterations = 1500;
 
 //initialize a random scene with some random obstacles
 	Problem_points Scene(5, 30, Point_2D(0.f, 0.f), Point_2D(1.f, 1.f));

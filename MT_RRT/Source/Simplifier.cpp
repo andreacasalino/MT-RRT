@@ -120,7 +120,8 @@ void simplify(std::list<Array>* wayps , Waypoint* Path){
 
 void Brute_force_Simplifier::operator()(std::list<Array>* wayps, Node::I_Node_factory* problem) const{
 
-    //system("echo got in simplifier");
+    //string temp2 = "echo sol len: " + to_string(wayps->size());
+    //system(temp2.c_str());
 
     if(wayps->size() < 3) return;
 

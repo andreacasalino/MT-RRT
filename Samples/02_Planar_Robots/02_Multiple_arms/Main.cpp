@@ -17,7 +17,7 @@ using namespace MT_RTT;
 //this kind of problem is described in Section 2.2 of the documentation
 int main() {
 
-	size_t Iterations = 2500;  // 5000;
+	size_t Iterations = 5000;  // 5000;
 
 	vector<float> Qo, Qf;
 	unique_ptr<Node::I_Node_factory> Scene;
@@ -33,18 +33,20 @@ int main() {
 	unique_ptr<Bubbles_free_configuration::I_Proximity_calculator> pt_temp(Scene_description);
 	Scene = move(unique_ptr<Node::I_Node_factory>(new Bubbles_free_configuration(gamma, 4.712385f, -4.712385f, Scene_description->Get_Dof_tot(), pt_temp)));
 
+#ifdef USE_MULTIPLE_STEER
+	Scene->Set_Steer_iterations(3);
+#endif
 #else
 
 	auto Scene_description = new Scene_Collision_checker(fields);
 	unique_ptr<Tunneled_check_collision::I_Collision_checker> pt_temp(Scene_description);
 	size_t dof = Scene_description->Get_wrapped_prox()->Get_Dof_tot();
-	float steer_degree = 3.f * 3.14159f / 180.f;
+	float steer_degree = 8.f * 3.14159f / 180.f;
 	Scene = move(unique_ptr<Node::I_Node_factory>(new Tunneled_check_collision(gamma, steer_degree, 4.712385f, -4.712385f, dof, pt_temp)));
-
-#endif
 
 #ifdef USE_MULTIPLE_STEER
 	Scene->Set_Steer_iterations(6);
+#endif
 #endif
 
 	Qo = import_pose(*json_parser::get_field(fields, "Q_curr"));

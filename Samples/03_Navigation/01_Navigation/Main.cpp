@@ -17,7 +17,7 @@ vector<float> import_config(const vector<json_parser::field>& fields, const stri
 //this kind of problem is described in Section 2.3 of the documentation
 int main() {
 
-	size_t Iterations = 3000;
+	size_t Iterations = 2000;
 	vector<float> Qo, Qf;
 
 //read the problem from the textual file
