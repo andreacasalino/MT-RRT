@@ -192,6 +192,7 @@ num_threads(Threads)
 
 		auto Nodes_slave = Get_Nodes_o(this->Slaves[th_id]);
 		auto Nodes_slave_star = Get_Nodes_o(this->Slaves_star[th_id]);
+		
 		*Nodes_slave_star = *this->Get_Nodes();
 
 		list<Tree_star::Node2Node_Traj> temp_rew;
@@ -199,7 +200,7 @@ num_threads(Threads)
 		auto it = Nodes_slave->begin();
 		++it;
 		for (it=it; it != Nodes_slave->end(); ++it) {
-			Nodes_slave_star->emplace_back(*it);
+			Nodes_slave_star->push_back(*it);
 			this->Slaves_star[th_id]->Connect_to_best_Father_and_eval_Rewirds(&temp_rew, *it);
 			it_temp_rew_end = temp_rew.end();
 			for (it_temp_rew = temp_rew.begin(); it_temp_rew != it_temp_rew_end; ++it_temp_rew)

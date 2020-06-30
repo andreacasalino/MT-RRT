@@ -107,7 +107,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 
 	{
 		Counter.get_elapsed_from_previous();
-//parallelization of the query (Section METTERE)
+//parallelization of the query (Section 3.0.1 of the documentation)
 		std::cout << "starting parallelized query     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used
 		solver = MT_RTT::I_Planner::Get_query___parall(deterministic_coeff, Iteration_max, planning_problem);
@@ -119,7 +119,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 
 	{
 		Counter.get_elapsed_from_previous();
-//parallel explorations on a shared tree (Section METTERE)
+//parallel explorations on a shared tree (Section 3.0.2 of the documentation)
 		std::cout << "starting parallel explorations on a shared tree     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used
 		solver = MT_RTT::I_Planner::Get_shared__parall(deterministic_coeff, Iteration_max, planning_problem);
@@ -131,7 +131,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 
 	{
 		Counter.get_elapsed_from_previous();
-//parallel explorations in distributed copies (Section METTERE)
+//parallel explorations in distributed copies (Section 3.0.3 of the documentation)
 		std::cout << "starting parallel explorations on distributed copies     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
 		solver = MT_RTT::I_Planner::Get_copied__parall(deterministic_coeff, Iteration_max, planning_problem, 0, reall_perc);
@@ -143,7 +143,7 @@ std::vector<std::string> Solve_using_planners_and_strategies(const size_t& Itera
 
 	{
 		Counter.get_elapsed_from_previous();
-//parallel explorations in distributed copies (Section METTERE)
+//parallel explorations in distributed copies (Section 3.0.4 of the documentation)
 		std::cout << "starting parallel multi agent     ";
 		// build the solver. Number of threads is omitted: the maximal number of threads available will be used. The reallignement_percentage is omitted, 10% is assumed
 		solver = MT_RTT::I_Planner::Get_multi_ag_parall(deterministic_coeff, Iteration_max, planning_problem, 0, reall_perc);

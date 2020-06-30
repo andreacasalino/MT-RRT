@@ -17,7 +17,7 @@ using namespace MT_RTT;
 //this kind of problem is described in Section 2.2 of the documentation
 int main() {
 
-	size_t Iterations = 5000;  // 5000;
+	size_t Iterations = 5000;
 
 	vector<float> Qo, Qf;
 	unique_ptr<Node::I_Node_factory> Scene;
