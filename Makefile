@@ -7,7 +7,7 @@ build_lib:
 	cp ./Samples/src_Py ./bin/src_Py -r
 	g++ -c ./MT_RRT/Source/json.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Problem_description.cpp -O3 -Wall
-	g++ -c ./MT_RRT/Source/Tree.cpp -O3 -Wall -D_REW_DEBUG
+	g++ -c ./MT_RRT/Source/Tree.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Extensions.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Simplifier.cpp -O3 -Wall
 	g++ -c ./MT_RRT/Source/Planner.cpp -O3 -Wall

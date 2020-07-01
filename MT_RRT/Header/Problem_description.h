@@ -240,6 +240,13 @@ namespace MT_RTT
 		*/
 		void 											Set_Steer_iterations(const size_t& Iter_number) { this->Steer_max_iteration = Iter_number; };
 
+		/** \brief Set the maximal number of iterations that are considered when checking the connectivity of two states, see also I_Node_factory::Cost_to_go_constraints.
+		\details By default this value is assumed equal to 0: the trajectory connecting the nodes is traversed till reaching the end or finding an unfeasible state without saturations.
+		* @param[in] Iter_number the number of iterations to consider
+		outside of the admitted region.
+		*/
+		void 											Set_CostToGoConstraints_iterations(const size_t& Iter_number) { this->Cost_to_go_constraints_max_iterations = Iter_number; };
+
 		/** \brief Takes a series of waypoints and interpolate it, adding some intermediate states along the optimal trajectories connecting the waypoints.
 		\details The additonal states are inserted in the passed list in the proper position.
 		* @param[in] waypoints_to_interpolate the chain of waypoints to interpolate
@@ -347,7 +354,7 @@ namespace MT_RTT
 		* @param[in] traj_symm_flag a flag explaining whether the problem is symmetric or not, see Node::I_Node_factory::Get_symm_flag()
 		*/
 		I_Node_factory(const size_t& X_size, const float& gamma, const bool& traj_symm_flag) :
-			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma), Steer_max_iteration(1), last_computed_traj(nullptr) { if(X_size == 0) throw 0; };
+			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma), Steer_max_iteration(1), Cost_to_go_constraints_max_iterations(0), last_computed_traj(nullptr) { if(X_size == 0) throw 0; };
 
 	private:
 		float*											Alloc_state();
@@ -356,6 +363,7 @@ namespace MT_RTT
 		bool										Traj_symmetric;
 		float										Gamma_coeff;
 		size_t										Steer_max_iteration;
+		size_t										Cost_to_go_constraints_max_iterations;
 	protected:
 	// cache
 		I_trajectory*								last_computed_traj;

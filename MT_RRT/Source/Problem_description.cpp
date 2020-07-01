@@ -112,8 +112,15 @@ namespace MT_RTT
 		this->Recompute_trajectory_in_cache(start->Get_State() , ending_node->Get_State());
 		*result = this->last_computed_traj->Cost_to_go();
 		if(*result == FLT_MAX)  return;
+
+		size_t k = 0;
 		while(this->last_computed_traj->Advance()){
 			if(this->Check_reached_in_cache()) {
+				*result = FLT_MAX;
+				return;
+			}
+			++k;
+			if(k == this->Cost_to_go_constraints_max_iterations)  {
 				*result = FLT_MAX;
 				return;
 			}

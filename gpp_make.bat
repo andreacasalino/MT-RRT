@@ -13,7 +13,7 @@ XCOPY  /S ".\Samples\src_Py" ".\bin\src_Py"
 
 g++ -c ./MT_RRT/Source/json.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Problem_description.cpp -%OPT% -Wall
-g++ -c ./MT_RRT/Source/Tree.cpp -%OPT% -Wall -D_REW_DEBUG
+g++ -c ./MT_RRT/Source/Tree.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Extensions.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Simplifier.cpp -%OPT% -Wall
 g++ -c ./MT_RRT/Source/Planner.cpp -%OPT% -Wall

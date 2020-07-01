@@ -36,24 +36,25 @@ int main() {
 #ifdef USE_MULTIPLE_STEER
 	Scene->Set_Steer_iterations(3);
 #endif
+	Scene->Set_CostToGoConstraints_iterations(3);
 #else
 
 	auto Scene_description = new Scene_Collision_checker(fields);
 	unique_ptr<Tunneled_check_collision::I_Collision_checker> pt_temp(Scene_description);
 	size_t dof = Scene_description->Get_wrapped_prox()->Get_Dof_tot();
-	float steer_degree = 8.f * 3.14159f / 180.f;
+	float steer_degree = 5.f * 3.14159f / 180.f;
 	Scene = move(unique_ptr<Node::I_Node_factory>(new Tunneled_check_collision(gamma, steer_degree, 4.712385f, -4.712385f, dof, pt_temp)));
 
 #ifdef USE_MULTIPLE_STEER
 	Scene->Set_Steer_iterations(6);
 #endif
+	Scene->Set_CostToGoConstraints_iterations(6);
 #endif
 
 	Qo = import_pose(*json_parser::get_field(fields, "Q_curr"));
 	Qf = import_pose(*json_parser::get_field(fields, "Q_trgt"));
 
 //check the behaviour of this function to understand how to use the planning algorithms
-	//auto Log_results = Solve_using_planners_and_strategies<MT_RTT::Brute_force_Simplifier>(Iterations, 0.1f, problem.get(), Qo, Qf);
 	auto Log_results = Solve_using_planners_and_strategies(Iterations, 0.1f, Scene.get(), Qo, Qf);
 
 	Log_creator("../../src_JS/Result_template.html", "Results/Serial.html", Scene_raw, Log_results[0]);
