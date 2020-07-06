@@ -220,8 +220,8 @@ Problem_points::Problem_points(const size_t& N_cluster, const size_t& N_boxes, c
 
 void Problem_points::Random_node(float* state) {
 
-	state[0] = (this->Workspace.get_x_max() - this->Workspace.get_x_min()) * ((float)rand() / (float)RAND_MAX) + this->Workspace.get_x_min() ;
-	state[1] = (this->Workspace.get_y_max() - this->Workspace.get_y_min()) * ((float)rand() / (float)RAND_MAX) + this->Workspace.get_y_min();
+	state[0] = (this->Workspace.get_x_max() - this->Workspace.get_x_min()) * ((float)this->rand() / (float)RAND_MAX) + this->Workspace.get_x_min() ;
+	state[1] = (this->Workspace.get_y_max() - this->Workspace.get_y_min()) * ((float)this->rand() / (float)RAND_MAX) + this->Workspace.get_y_min();
 
 }
 

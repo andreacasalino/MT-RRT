@@ -272,9 +272,9 @@ void Navigator::Recompute_trajectory_in_cache(const float* Start, const float* E
 
 void Navigator::Random_node(float* random_state) {
 
-	random_state[0] = this->limits.X_min + this->x_delta * (float)rand() / (float)RAND_MAX;
-	random_state[1] = this->limits.Y_min + this->y_delta * (float)rand() / (float)RAND_MAX;
-	random_state[2] = -3.14159f + 6.28318f * (float)rand() / (float)RAND_MAX;
+	random_state[0] = this->limits.X_min + this->x_delta * (float)this->rand() / (float)RAND_MAX;
+	random_state[1] = this->limits.Y_min + this->y_delta * (float)this->rand() / (float)RAND_MAX;
+	random_state[2] = -3.14159f + 6.28318f * (float)this->rand() / (float)RAND_MAX;
 
 }
 

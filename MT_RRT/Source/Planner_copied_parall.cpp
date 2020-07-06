@@ -47,13 +47,11 @@ namespace MT_RTT
 			bool life = true;
 			int Threads = (int)this->get_Threads();
 			size_t Batch_size = (size_t)ceil(this->Reallignement_prctg * (float) this->Iterations_Max / (float)(Threads) );
-			auto seeds = random_seeds(Threads);
 
 #pragma omp parallel \
 num_threads(Threads)
 			{
 				int th_id = omp_get_thread_num();
-				srand(seeds[th_id]);
 
 				Solver* Solver_to_use = &Battery_solver[th_id];
 				for (size_t k = 0; k < this->Iterations_Max; k +=  Batch_size * Threads) {
@@ -340,11 +338,15 @@ num_threads(Threads)
 
 	vector<Planner_copied_parall::Tree_linked*>	Planner_copied_parall::Tree_linked::Init_Battery(const Array& root_state, Node::I_Node_factory* problem_handler, const size_t& N_threads) {
 
+		auto seeds = random_seeds(N_threads);
 		vector<Planner_copied_parall::Tree_linked*> Battery;
 		Battery.reserve(N_threads);
 		Battery.emplace_back(new Tree_linked(problem_handler, false, 0));
-		for (size_t k = 1; k < N_threads; ++k)
+		Battery.back()->Get_Problem_Handler()->set_rand_state(seeds[0]);
+		for (size_t k = 1; k < N_threads; ++k){
 			Battery.emplace_back(new Tree_linked(problem_handler, true, k));
+			Battery.back()->Get_Problem_Handler()->set_rand_state(seeds[k]);
+		}
 		linked_buffers<Node*>::bind_buffers(Battery);
 		Node_linked::create_linked_roots(root_state, Battery);
 		return Battery;

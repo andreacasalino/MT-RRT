@@ -32,7 +32,7 @@ namespace MT_RTT
 
 		auto S = this->Get_State_size();
 		for (size_t k = 0; k < S; ++k)
-			random_state[k] = this->Min_Q_vals[k] + this->Delta_Q_vals[k] * (float)rand() / (float)RAND_MAX;
+			random_state[k] = this->Min_Q_vals[k] + this->Delta_Q_vals[k] * (float)this->rand() / (float)RAND_MAX;
 
 	}
 

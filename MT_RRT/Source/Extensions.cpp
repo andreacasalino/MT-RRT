@@ -27,7 +27,7 @@ namespace MT_RTT
 		const Node* temp = nullptr;
 		auto Problem = this->T->Get_Problem_Handler();
 		for (size_t k = 0; k < Iterations; ++k) {
-			if ((float)rand() / (float)RAND_MAX < *this->Deterministic_coefficient) {
+			if ((float)Problem->rand() / (float)RAND_MAX < *this->Deterministic_coefficient) {
 				temp = T->Extend_deterministic(this->Target);
 				if (T->Get_target_reached_flag()) {
 					single_solution candidate(0.f, temp);
@@ -96,7 +96,7 @@ namespace MT_RTT
 		bool dete_o_rand;
 		bidir_solution candidate(0.f, nullptr, nullptr);
 		for (size_t k = 0; k < Iterations; k += 2) {
-			if ((float)rand() / (float)RAND_MAX < *this->Deterministic_coefficient) {
+			if ((float)Master->Get_Problem_Handler()->rand() / (float)RAND_MAX < *this->Deterministic_coefficient) {
 				N1 = Master->Extend_deterministic(N_target);
 				dete_o_rand = true;
 			}

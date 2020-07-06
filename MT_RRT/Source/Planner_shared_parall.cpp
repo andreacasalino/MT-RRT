@@ -28,14 +28,12 @@ namespace MT_RTT
 			bool life = true;
 
 			int Number_threads = (int)Battery_solver.size();
-			auto seeds = random_seeds(Number_threads);
 
 #pragma omp parallel \
 num_threads(Number_threads)
 			{
 
 				int th_id = omp_get_thread_num();
-				srand(seeds[th_id]);
 
 				Solver*  Solver_to_use = &Battery_solver[th_id];
 				bool do_break = false;
@@ -81,6 +79,7 @@ num_threads(Number_threads)
 				Tree_concrete_critical(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads) : Tree_concrete(root_state, handler, false) {
 					this->__infoes.reserve(N_threads);
 					this->__handlers.reserve(N_threads);
+					auto seeds = random_seeds(N_threads);
 					for (size_t k = 0; k < N_threads; ++k) {
 						this->__infoes.emplace_back();
 						this->__infoes.back().target_reached = false;
@@ -90,6 +89,7 @@ num_threads(Number_threads)
 							this->__handlers.emplace_back(clone.get());
 							clone.release();
 						}
+						this->__handlers.back()->set_rand_state(seeds[k]);
 					}
 				};
 				~Tree_concrete_critical() { for (size_t k = 1; k < this->__handlers.size(); ++k) delete this->__handlers[k]; };

@@ -26,6 +26,7 @@ namespace MT_RTT
 #ifndef DETER_SEED
 			srand((unsigned int)time(NULL));
 #endif
+			this->Handler->set_rand_state((unsigned int)rand());
 
 			solver->Extend_within_iterations(this->Iterations_Max);
 

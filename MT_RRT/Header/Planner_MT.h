@@ -60,7 +60,7 @@ namespace MT_RTT
 		* @param[out] return the computed seeds 
 		* @param[in]  N_seeds the number of seeds to compute 
 		*/
-		std::vector<unsigned int> random_seeds(const size_t& N_seeds);
+		static std::vector<unsigned int> random_seeds(const size_t& N_seeds);
 
 	private:
 		size_t			Thread_numbers;

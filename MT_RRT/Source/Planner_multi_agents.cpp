@@ -64,7 +64,6 @@ namespace MT_RTT
 
 			int Threads = (int)this->get_Threads();
 			size_t Batch_size = (size_t)ceil(this->Reallignement_prctg * (float)this->Iterations_Max / (float)(Threads));
-			auto seeds = random_seeds(Threads);
 
 			bool life = true;
 
@@ -73,7 +72,6 @@ num_threads(Threads)
 			{
 
 				int th_id = omp_get_thread_num();
-				srand(seeds[th_id]);
 
 				Single_Extension_job* Job_to_do = &Battery_solver[th_id];
 				for (size_t k = 0; k < this->Iterations_Max; k += Batch_size * Threads) {
@@ -115,10 +113,14 @@ num_threads(Threads)
 	Planner_multi_agents::Tree_master::Tree_master(const Array& root_state, Node::I_Node_factory* handler, const size_t& N_threads) :
 		Tree_concrete(root_state, handler, false) {
 
+		auto seeds = random_seeds(N_threads);
 		this->Slaves.reserve(N_threads);
 		this->Slaves.emplace_back(new Tree_concrete(handler, false));
-		for (size_t k = 1; k < N_threads; ++k)
+		this->Slaves.back()->Get_Problem_Handler()->set_rand_state(seeds[0]);
+		for (size_t k = 1; k < N_threads; ++k){
 			this->Slaves.emplace_back(new Tree_concrete(handler, true));
+			this->Slaves.back()->Get_Problem_Handler()->set_rand_state(seeds[k]);
+		}
 
 	}
 

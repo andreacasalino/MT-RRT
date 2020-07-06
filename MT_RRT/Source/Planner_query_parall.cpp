@@ -113,15 +113,17 @@ namespace MT_RTT
 		void _get_solution(Solver* solver, Query_manager* manager) {
 
 			int Number_threads = (int)this->get_Threads();
-			auto seeds = random_seeds(Number_threads);
+
+#ifndef DETER_SEED
+			srand((unsigned int)time(NULL));
+#endif
+			this->Handler->set_rand_state((unsigned int)rand());
 
 #pragma omp parallel \
 num_threads(Number_threads)
 			{
 
 				int th_id = omp_get_thread_num();
-				srand(seeds[th_id]);
-
 				if (th_id == 0) {
 					solver->Extend_within_iterations(this->Iterations_Max);
 					manager->Terminate();

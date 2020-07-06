@@ -179,6 +179,15 @@ namespace MT_RTT
 		*/
 		Node											Random_node();
 
+		/** \brief Use this function to draw a sample uniformly distributed from 0 to RAND_MAX.
+		 * \details This method must be used instead of rand(), since this last is not thread-safe.
+		*/
+		int 											rand() { return rand_r(&this->random_engine_state); };
+
+		/** \brief Set the state of the random engine
+		*/
+		void 											set_rand_state(const unsigned int& state) { this->random_engine_state = state; };
+
 		/** \brief Evaluates the cost C(\tau), Section 1.2.3 of the documentation, of the trajectory \tau going from the starting node to the ending one, for two nodes not already connected.
 		\details This cost doesn't account for constraints, but considers only the optimal unconstrained trajectory \tau leading from the starting to the ending node.
 		* @param[out] result the computed cost
@@ -268,7 +277,7 @@ namespace MT_RTT
 	protected:
 		/** \brief internally called by I_Node_factory::Random_node().
 		\details The passed random_state is an array of values already with the cardinality of \mathcal{X}, which must be
-		set to random values by this function.
+		set to random values by this function. Use I_Node_factory::rand to internally draw samples, since rand() is not thread safe.
 		*/
 		virtual void									Random_node(float* random_state) = 0;
 
@@ -354,7 +363,7 @@ namespace MT_RTT
 		* @param[in] traj_symm_flag a flag explaining whether the problem is symmetric or not, see Node::I_Node_factory::Get_symm_flag()
 		*/
 		I_Node_factory(const size_t& X_size, const float& gamma, const bool& traj_symm_flag) :
-			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma), Steer_max_iteration(1), Cost_to_go_constraints_max_iterations(0), last_computed_traj(nullptr) { if(X_size == 0) throw 0; };
+			State_size(X_size), Traj_symmetric(traj_symm_flag), Gamma_coeff(gamma), Steer_max_iteration(1), Cost_to_go_constraints_max_iterations(0), random_engine_state(0), last_computed_traj(nullptr) { if(X_size == 0) throw 0; };
 
 	private:
 		float*											Alloc_state();
@@ -364,6 +373,8 @@ namespace MT_RTT
 		float										Gamma_coeff;
 		size_t										Steer_max_iteration;
 		size_t										Cost_to_go_constraints_max_iterations;
+
+		unsigned int								random_engine_state;
 	protected:
 	// cache
 		I_trajectory*								last_computed_traj;
