@@ -3,5 +3,15 @@
   "directory": "/home/casa/Scrivania/Andrea/MT-RRT/build/Lib",
   "command": "/usr/bin/g++-9   -I/home/casa/Scrivania/Andrea/MT-RRT/Lib/header  -g   -std=c++17 -o CMakeFiles/MT-RRT.dir/src/node/Node.cpp.o -c /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Node.cpp",
   "file": "/home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Node.cpp"
+},
+{
+  "directory": "/home/casa/Scrivania/Andrea/MT-RRT/build/Lib",
+  "command": "/usr/bin/g++-9   -I/home/casa/Scrivania/Andrea/MT-RRT/Lib/header  -g   -std=c++17 -o CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o -c /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/NodeFactory.cpp",
+  "file": "/home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/NodeFactory.cpp"
+},
+{
+  "directory": "/home/casa/Scrivania/Andrea/MT-RRT/build/Lib",
+  "command": "/usr/bin/g++-9   -I/home/casa/Scrivania/Andrea/MT-RRT/Lib/header  -g   -std=c++17 -o CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o -c /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Trajectory.cpp",
+  "file": "/home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Trajectory.cpp"
 }
 ]

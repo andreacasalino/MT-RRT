@@ -70,17 +70,47 @@ Lib/CMakeFiles/MT-RRT.dir/src/node/Node.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MT-RRT.dir/src/node/Node.cpp.s"
 	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Node.cpp -o CMakeFiles/MT-RRT.dir/src/node/Node.cpp.s
 
+Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o: Lib/CMakeFiles/MT-RRT.dir/flags.make
+Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o: ../Lib/src/node/NodeFactory.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o -c /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/NodeFactory.cpp
+
+Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.i"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/NodeFactory.cpp > CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.i
+
+Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.s"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/NodeFactory.cpp -o CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.s
+
+Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o: Lib/CMakeFiles/MT-RRT.dir/flags.make
+Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o: ../Lib/src/node/Trajectory.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o -c /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Trajectory.cpp
+
+Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.i"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Trajectory.cpp > CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.i
+
+Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.s"
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && /usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/casa/Scrivania/Andrea/MT-RRT/Lib/src/node/Trajectory.cpp -o CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.s
+
 # Object files for target MT-RRT
 MT__RRT_OBJECTS = \
-"CMakeFiles/MT-RRT.dir/src/node/Node.cpp.o"
+"CMakeFiles/MT-RRT.dir/src/node/Node.cpp.o" \
+"CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o" \
+"CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o"
 
 # External object files for target MT-RRT
 MT__RRT_EXTERNAL_OBJECTS =
 
 Lib/libMT-RRT.a: Lib/CMakeFiles/MT-RRT.dir/src/node/Node.cpp.o
+Lib/libMT-RRT.a: Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o
+Lib/libMT-RRT.a: Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o
 Lib/libMT-RRT.a: Lib/CMakeFiles/MT-RRT.dir/build.make
 Lib/libMT-RRT.a: Lib/CMakeFiles/MT-RRT.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libMT-RRT.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libMT-RRT.a"
 	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && $(CMAKE_COMMAND) -P CMakeFiles/MT-RRT.dir/cmake_clean_target.cmake
 	cd /home/casa/Scrivania/Andrea/MT-RRT/build/Lib && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/MT-RRT.dir/link.txt --verbose=$(VERBOSE)
 

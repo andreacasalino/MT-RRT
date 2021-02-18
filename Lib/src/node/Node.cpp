@@ -16,6 +16,18 @@ namespace mt::node {
 		, costFromFather(cost) {
 	}
 
+	Node::Node(const std::size_t& stateSize)
+		: father(nullptr)
+		, costFromFather(0.f) {
+		this->state.resize(stateSize);
+	}
+
+	Node::Node(Node&& o) {
+		this->state = std::move(o.state);
+		this->father = o.father;
+		this->costFromFather = o.costFromFather;
+	}
+
 	void Node::setFather(Node* new_father, const float& cost_from_father) {
 		this->father = new_father;
 		this->costFromFather = cost_from_father;

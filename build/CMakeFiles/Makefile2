@@ -92,12 +92,12 @@ Lib/clean: Lib/CMakeFiles/MT-RRT.dir/clean
 Lib/CMakeFiles/MT-RRT.dir/all:
 	$(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/depend
 	$(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=1,2 "Built target MT-RRT"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles --progress-num=1,2,3,4 "Built target MT-RRT"
 .PHONY : Lib/CMakeFiles/MT-RRT.dir/all
 
 # Build rule for subdir invocation for target.
 Lib/CMakeFiles/MT-RRT.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 Lib/CMakeFiles/MT-RRT.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/casa/Scrivania/Andrea/MT-RRT/build/CMakeFiles 0
 .PHONY : Lib/CMakeFiles/MT-RRT.dir/rule

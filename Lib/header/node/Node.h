@@ -15,11 +15,13 @@ namespace mt::node {
 	*/
 	class Node {
 	public:
+		class NodeFactory;
+
 		virtual ~Node() = default;
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
-		Node(Node&&) = delete;
+		Node(Node&&);
 		Node& operator=(Node&&) = delete;
 
 		/** \brief Computes the cost to go from the root to this node.
@@ -55,10 +57,12 @@ namespace mt::node {
 		*/
 		void													setFather(Node* new_father, const float& cost_from_father);
 
-	protected:
+	private:
 		Node(Node* father, const float& cost, const std::vector<float>& state);
 		
 		Node(const std::vector<float>& state) : Node(nullptr, 0.f, state) {};
+
+		Node(const std::size_t& stateSize);
 		
 	// data
 		std::vector<float>				state;

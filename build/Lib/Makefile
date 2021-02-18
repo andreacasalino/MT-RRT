@@ -152,6 +152,60 @@ src/node/Node.cpp.s:
 	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/Node.cpp.s
 .PHONY : src/node/Node.cpp.s
 
+src/node/NodeFactory.o: src/node/NodeFactory.cpp.o
+
+.PHONY : src/node/NodeFactory.o
+
+# target to build an object file
+src/node/NodeFactory.cpp.o:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o
+.PHONY : src/node/NodeFactory.cpp.o
+
+src/node/NodeFactory.i: src/node/NodeFactory.cpp.i
+
+.PHONY : src/node/NodeFactory.i
+
+# target to preprocess a source file
+src/node/NodeFactory.cpp.i:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.i
+.PHONY : src/node/NodeFactory.cpp.i
+
+src/node/NodeFactory.s: src/node/NodeFactory.cpp.s
+
+.PHONY : src/node/NodeFactory.s
+
+# target to generate assembly for a file
+src/node/NodeFactory.cpp.s:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.s
+.PHONY : src/node/NodeFactory.cpp.s
+
+src/node/Trajectory.o: src/node/Trajectory.cpp.o
+
+.PHONY : src/node/Trajectory.o
+
+# target to build an object file
+src/node/Trajectory.cpp.o:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o
+.PHONY : src/node/Trajectory.cpp.o
+
+src/node/Trajectory.i: src/node/Trajectory.cpp.i
+
+.PHONY : src/node/Trajectory.i
+
+# target to preprocess a source file
+src/node/Trajectory.cpp.i:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.i
+.PHONY : src/node/Trajectory.cpp.i
+
+src/node/Trajectory.s: src/node/Trajectory.cpp.s
+
+.PHONY : src/node/Trajectory.s
+
+# target to generate assembly for a file
+src/node/Trajectory.cpp.s:
+	cd /home/casa/Scrivania/Andrea/MT-RRT/build && $(MAKE) -f Lib/CMakeFiles/MT-RRT.dir/build.make Lib/CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.s
+.PHONY : src/node/Trajectory.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -164,6 +218,12 @@ help:
 	@echo "... src/node/Node.o"
 	@echo "... src/node/Node.i"
 	@echo "... src/node/Node.s"
+	@echo "... src/node/NodeFactory.o"
+	@echo "... src/node/NodeFactory.i"
+	@echo "... src/node/NodeFactory.s"
+	@echo "... src/node/Trajectory.o"
+	@echo "... src/node/Trajectory.i"
+	@echo "... src/node/Trajectory.s"
 .PHONY : help
 
 
