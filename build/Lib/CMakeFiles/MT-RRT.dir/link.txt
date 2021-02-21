@@ -1,2 +1,0 @@
-/usr/bin/ar qc libMT-RRT.a  CMakeFiles/MT-RRT.dir/src/node/Node.cpp.o CMakeFiles/MT-RRT.dir/src/node/NodeFactory.cpp.o CMakeFiles/MT-RRT.dir/src/node/Trajectory.cpp.o
-/usr/bin/ranlib libMT-RRT.a
