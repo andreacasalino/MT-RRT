@@ -10,6 +10,7 @@
 
 #include <problem/Sampler.h>
 #include <problem/Trajectory.h>
+#include <problem/Checker.h>
 
 namespace mt::problem {
 	/** \brief Interface for the class describing the particular planning problem to solve. 
@@ -60,7 +61,7 @@ namespace mt::problem {
  
 		/** \brief Returns the \gamma parameter, Section 1.2.3 of the documentation, regulating the near set size, that RRT* versions must compute.
 		*/
-		inline float getGamma() const { return this->gamma; };
+		inline float getGamma() const { return this->gamma * this->steerTrials; };
 
 		/** \brief Returns true in case the planning problem handled by this object is symmetric, i.e. the cost to go from a node A to B is the same of the cost to go from B to A.
 		*/
@@ -69,14 +70,11 @@ namespace mt::problem {
 		Problem& operator=(const Problem&) = delete;
 
 	protected:
-		Problem(SamplerPtr sampler, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
+		Problem(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem(const Problem& o);
 
 		virtual TrajectoryPtr getTrajectory(const Node& start, const Node& trg) = 0;
 
-		virtual bool isNotAdmitted(const NodeState& state) = 0;
-
-	private:
 	// data
 		const std::size_t stateSpaceSize;
 		const float gamma;
@@ -85,6 +83,8 @@ namespace mt::problem {
 		std::size_t steerTrials = 1;
 
 		SamplerPtr sampler;
+
+		CheckerPtr checker;
 	};
 }
 
