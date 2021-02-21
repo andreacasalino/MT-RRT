@@ -7,19 +7,20 @@
 
 #include <node/Node.h>
 #include <Error.h>
+#include <limits>
 using namespace std;
 
 namespace mt::node {
-	Node::Node(Node* father, const float& cost, const std::vector<float>& state)
-		: state(state)
-		, father(father)
-		, costFromFather(cost) {
+	constexpr std::size_t MAX_ITERATIONS = std::numeric_limits<std::size_t>::max();
+
+	Node::Node(const NodeState& state)
+		: state(state) {
+		if (this->state.empty()) throw Error("empty state for cost to go");
 	}
 
-	Node::Node(const std::size_t& stateSize)
-		: father(nullptr)
-		, costFromFather(0.f) {
+	Node::Node(const std::size_t& stateSize) {
 		this->state.resize(stateSize);
+		if(0 == stateSize) throw Error("empty state for cost to go");
 	}
 
 	Node::Node(Node&& o) {
@@ -33,24 +34,15 @@ namespace mt::node {
 		this->costFromFather = cost_from_father;
 	}
 
-	float Node::cost2Root(const size_t& I_max) const {
-		float result = 0.f;
-		size_t k = 0;
-		const Node* att_node = this;
-		while (att_node != nullptr) {
-			++k;
-			if (k == I_max) throw Error("Max number of iterations exceeded while computing cost to go");
-			result += att_node->costFromFather;
-			att_node = att_node->father;
-		}
-	}
-
 	float Node::cost2Root() const {
 		float result = 0.f;
 		const Node* att_node = this;
+		size_t k = 0;
 		while (att_node != nullptr) {
 			result += att_node->costFromFather;
 			att_node = att_node->father;
+			++k;
+			if(MAX_ITERATIONS == k) throw Error("Max number of iterations exceeded while computing cost to go");
 		}
 		return result;
 	};
