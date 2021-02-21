@@ -2,3 +2,4 @@ size_t -> std::size_t
 rendere const attributi il piu possibile
 rendere const method il piu possibile
 collassare Node e Trajectory ad essere la stessa classe?
+usare explicit in c'tor

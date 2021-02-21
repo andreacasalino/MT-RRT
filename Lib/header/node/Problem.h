@@ -19,8 +19,17 @@ namespace mt::node {
 	public:
 		virtual	~Problem() = default;
 
+		Problem() = default;
 		Problem(const Problem& o) = delete;
 		Problem& operator=(const Problem& o) = delete;
+
+		/** \brief used for cloning this object: a deep copy must be implemented.
+		\details This function is invoked by parallel planners for dispatching copies of this class to the other working threads.
+		In this way, the threads must not be forced to synchronize for accessing the methods of an I_Node_factory.
+		Therefore, when deriving your own factory describing your own problem, be carefull to avoid shallow copies and implement deep copies.
+		* @param[out] return a clone of this object
+		*/
+		virtual std::unique_ptr<Problem> copy() = 0;
 
 		/** \brief Evaluates the cost C(\tau), Section 1.2.3 of the documentation, of the trajectory \tau going from the starting node to the ending one, for two nodes not already connected.
 		\details This cost doesn't account for constraints, but considers only the optimal unconstrained trajectory \tau leading from the starting to the ending node.
@@ -28,7 +37,7 @@ namespace mt::node {
 		* @param[in] start the starting node in the trajectory whose cost is to evaluate
 		* @param[in] ending_node the ending node in the trajectory whose cost is to evaluate
 		*/
-		virtual float cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints = true) = 0;
+		virtual float cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) = 0;
 
 		/** \brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section 1.2.1 of the documentation.
 		\details This function is invoked for randomly growing a searching tree.
@@ -48,7 +57,7 @@ namespace mt::node {
 		/** \brief Returns the cardinality of \mathcal{X}, Section 1.2.1 of the documentation, of the plannig problem handled by this object.
 		*/
 		virtual std::size_t getProblemSize() const = 0;
-
+ 
 		/** \brief Returns the \gamma parameter, Section 1.2.3 of the documentation, regulating the near set size, that RRT* versions must compute.
 		*/
 		virtual float getGamma() const = 0;
@@ -56,14 +65,6 @@ namespace mt::node {
 		/** \brief Returns true in case the planning problem handled by this object is symmetric, i.e. the cost to go from a node A to B is the same of the cost to go from B to A.
 		*/
 		virtual bool isProblemSimmetric() const = 0;
-
-		/** \brief used for cloning this object: a deep copy must be implemented.
-		\details This function is invoked by parallel planners for dispatching copies of this class to the other working threads.
-		In this way, the threads must not be forced to synchronize for accessing the methods of an I_Node_factory.
-		Therefore, when deriving your own factory describing your own problem, be carefull to avoid shallow copies and implement deep copies.
-		* @param[out] return a clone of this object
-		*/
-		virtual std::unique_ptr<Problem> copy() = 0;
 	};
 }
 
