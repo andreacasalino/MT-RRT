@@ -10,7 +10,7 @@
 
 #include <vector>
 
-namespace mt::node {
+namespace mt {
 	typedef std::vector<float> NodeState;
 
 	/** \brief Used internally by a tree (see Tree.h) for representing a state  x \in \underline{\mathcal{X}}, Section 1.2.1 of the documentation.

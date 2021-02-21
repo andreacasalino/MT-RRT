@@ -5,12 +5,12 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <node/Node.h>
+#include <Node.h>
 #include <Error.h>
 #include <limits>
 using namespace std;
 
-namespace mt::node {
+namespace mt {
 	constexpr std::size_t MAX_ITERATIONS = std::numeric_limits<std::size_t>::max();
 
 	Node::Node(const NodeState& state)
