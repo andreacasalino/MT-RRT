@@ -18,6 +18,9 @@ namespace mt::problem {
         virtual std::unique_ptr<Sampler> copy() const = 0;
 
         virtual NodeState randomState() = 0;
+
+    protected:
+        Sampler() = default;
 	};
 
     typedef std::unique_ptr<Sampler> SamplerPtr;

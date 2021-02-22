@@ -19,6 +19,9 @@ namespace mt::problem {
         virtual std::unique_ptr<Checker> copy() const = 0;
 
         virtual bool isNotAdmitted(const NodeState& state) = 0;
+
+    protected:
+        Checker() = default;
     };
 
     typedef std::unique_ptr<Checker> CheckerPtr;

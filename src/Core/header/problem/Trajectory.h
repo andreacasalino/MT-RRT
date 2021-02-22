@@ -17,6 +17,9 @@ namespace mt::problem {
 
         virtual	~Trajectory() = default;
 
+        Trajectory(const Trajectory&) = delete;
+        Trajectory& operator=(const Trajectory&) = delete;
+
         inline const NodeState& getCursor() const { return this->cursor; };
 
         inline float getCummulatedCost() const { return this->cumulatedCost; };
