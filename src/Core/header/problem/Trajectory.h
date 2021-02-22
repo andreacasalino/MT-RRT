@@ -9,7 +9,6 @@
 #define MT_RRT_TRAJECTORY_H
 
 #include <Node.h>
-#include <memory>
 
 namespace mt::problem {
     class Trajectory {

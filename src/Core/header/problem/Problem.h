@@ -13,8 +13,6 @@
 #include <problem/Checker.h>
 
 namespace mt::problem {
-	typedef std::unique_ptr<Node> NodePtr;
-
 	/** \brief Interface for the class describing the particular planning problem to solve. 
 	\details It is crucial for addressing step A of the pipeline presented in Section 1.3 of the documentation.
 	*/

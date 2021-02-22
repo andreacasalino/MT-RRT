@@ -9,6 +9,7 @@
 #define MT_RRT_NODE_H
 
 #include <vector>
+#include <memory>
 
 namespace mt {
 	typedef std::vector<float> NodeState;
@@ -63,6 +64,8 @@ namespace mt {
 		Node*							father = nullptr;
 		float							costFromFather = 0.f;
 	};
+
+	typedef std::unique_ptr<Node> NodePtr;
 }
 
 #endif
