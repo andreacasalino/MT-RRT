@@ -17,7 +17,7 @@ set(WITH_SOURCE_TREE ON)
 include(GroupSources)
 include(AutoCollect)
 
-add_subdirectory(Lib)
+add_subdirectory(src)
 #if(BUILD_SAMPLES)
 #    add_subdirectory(Samples)
 #endif()

@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <problem/SamplerBox.h>
+#include <SamplerBox.h>
 #include <Error.h>
 #include <time.h>
 #include <random>

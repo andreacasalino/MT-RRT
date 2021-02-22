@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <problem/ProblemEuclidean.h>
+#include <ProblemEuclidean.h>
 #include <math.h>
 
 namespace mt::problem {
