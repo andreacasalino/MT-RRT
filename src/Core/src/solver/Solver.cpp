@@ -19,23 +19,79 @@ namespace mt::solver {
 
 	void Solver::RRTSingle(const NodeState& start, const NodeState& end, const Strategy& strategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
-		this->lastSolution.reset(new SolutionInfo());
-		// todo
+		switch (strategy){
+		case Strategy::Serial:
+			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Single));
+			break;
+		case Strategy::MtQueryParall:
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			break;
+		case Strategy::MtSharedTree:
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			break;
+		case Strategy::MtCopiedTrees:
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			break;
+		case Strategy::MtMultiAgent:
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			break;
+		default:
+			throw Error("unrecognized strategy");
+			break;
+		}
 	}
 
 	void Solver::RRTConnect(const NodeState& start, const NodeState& end, const Strategy& strategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		this->lastSolution.reset(new SolutionInfo());
-		// todo
+		switch (strategy) {
+		case Strategy::Serial:
+			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Bidir));
+			break;
+		case Strategy::MtQueryParall:
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			break;
+		case Strategy::MtSharedTree:
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			break;
+		case Strategy::MtCopiedTrees:
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			break;
+		case Strategy::MtMultiAgent:
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			break;
+		default:
+			throw Error("unrecognized strategy");
+			break;
+		}
 	}
 
 	void Solver::RRTStar(const NodeState& start, const NodeState& end, const Strategy& strategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		this->lastSolution.reset(new SolutionInfo());
-		bool originalCulVal = this->Cumulate_sol;
-		this->Cumulate_sol = true;
-		// todo
-		this->Cumulate_sol = originalCulVal;
+		bool originalCulVal = this->parameters.Cumulate_sol;
+		this->parameters.Cumulate_sol = true;
+		switch (strategy) {
+		case Strategy::Serial:
+			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Star));
+			break;
+		case Strategy::MtQueryParall:
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			break;
+		case Strategy::MtSharedTree:
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			break;
+		case Strategy::MtCopiedTrees:
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			break;
+		case Strategy::MtMultiAgent:
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			break;
+		default:
+			throw Error("unrecognized strategy");
+			break;
+		}
+		this->parameters.Cumulate_sol = originalCulVal;
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
@@ -60,7 +116,7 @@ namespace mt::solver {
 		if (coeff > 0.99f) {
 			throw Error("deterministic coefficient is too high");
 		}
-		this->Deterministic_coefficient = coeff;
+		this->parameters.Deterministic_coefficient = coeff;
 	}
 
 	void Solver::setMaxIterations(const std::size_t& iter) {
@@ -68,12 +124,12 @@ namespace mt::solver {
 		if (iter < 10) {
 			throw Error("max iterations is too low");
 		}
-		this->Iterations_Max = iter;
+		this->parameters.Iterations_Max = iter;
 	}
 
 	void Solver::setCumulateOption(const bool& val) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
-		this->Cumulate_sol = true;
+		this->parameters.Cumulate_sol = true;
 	}
 
 	std::size_t Solver::getLastIterations() const {

@@ -34,6 +34,8 @@ namespace mt::solver {
 
 		enum Strategy { Serial, MtQueryParall, MtSharedTree, MtCopiedTrees, MtMultiAgent };
 
+		enum RRTStrategy { Single, Bidir, Star };
+
 		/** \brief Tries to solve the problem by executing the basic single tree RRT version (Section 1.2.1 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
 		step C of the pipeline presented in Section 1.3 of the documentation.
 		\details The solution found is internally stored, as well as the computed searching tree.
@@ -95,12 +97,26 @@ namespace mt::solver {
 			std::vector<TreePtr>			trees;
 		};
 
+		struct Parameters {
+			double											Deterministic_coefficient = 0.2f;
+			size_t											Iterations_Max = 1000;
+			bool											Cumulate_sol = false;
+		};
+
+		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const Parameters& param, ProblemPtr& description, const RRTStrategy& rrtStrategy);
+
+		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+
+		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+
+		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+
+		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+
 	// data
 		mutable std::mutex								dataMtx;
 		std::vector<ProblemPtr>							problemcopies;
-		double											Deterministic_coefficient = 0.2f;
-		size_t											Iterations_Max = 1000;
-		bool											Cumulate_sol = false;
+		Parameters										parameters;
 
 		std::unique_ptr<SolutionInfo>					lastSolution = nullptr;
 	};
