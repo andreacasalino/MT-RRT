@@ -22,3 +22,11 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:header>
 )
 
+find_package(Threads)
+find_package(OpenMP)
+target_link_libraries(${PROJECT_NAME} 
+	PUBLIC
+		${CMAKE_THREAD_LIBS_INIT} 
+	PRIVATE 
+		OpenMP::OpenMP_CXX
+)
