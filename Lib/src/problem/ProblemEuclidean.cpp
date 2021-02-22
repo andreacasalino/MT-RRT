@@ -6,33 +6,67 @@
  **/
 
 #include <problem/ProblemEuclidean.h>
-#include <float.h>
+#include <math.h>
 
 namespace mt::problem {
+    float squaredDistance(const NodeState& start, const NodeState& ending_node) {
+        float distance = 0.f;
+        for (std::size_t p = 0; p < start.size(); ++p) {
+            distance += powf(start[p] - ending_node[p], 2.f);
+        }
+        return distance;
+    }
+
     class LinearTrajectory : public Trajectory {
     public:
-        LinearTrajectory(const Node& start, const Node& target);
+        LinearTrajectory(const Node& start, const Node& target, const float& steerDegree) 
+            : Trajectory(start, target)
+            , steerDegree(steerDegree) {
+            this->cursor = this->start.getState();
+            this->cumulatedCost = 0.f;
+            this->advanceCursor();
+        };
 
-        const NodeState& getCursor() const override;
+        void advanceCursor() override {
+            float distance = squaredDistance(this->cursor, this->target.getState());
+            if (distance <= this->steerDegree) {
+                this->cursor = this->target.getState();
+                this->eot = true;
+            }
+            float c = this->steerDegree / distance;
+            float c2 = 1.f - c;
+            for (std::size_t k = 0; k < this->cursor.size(); ++k) {
+                this->cursor[k] *= c2;
+                this->cursor[k] += c*this->target.getState()[k];
+            }
+        };
 
-        void advance() override;
+        inline bool isCursorAtEnd() const override { return this->eot; };
 
-        bool eot() const override;
+    private:
+        const float steerDegree;
+        bool eot = false;
     };
 
+    ProblemEuclidean::ProblemEuclidean(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const float& steerDegree)
+        : Problem(std::move(sampler), std::move(checker), stateSpaceSize, gamma, true)
+        , steerDegree(abs(steerDegree)) {
+    }
+
+    TrajectoryPtr ProblemEuclidean::getTrajectory(const Node& start, const Node& trg) {
+        return std::make_unique<LinearTrajectory>(start, trg, this->steerDegree);
+    }
+
     float ProblemEuclidean::cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) {
-        float distance = 0.f;
-        for (std::size_t p = 0; p < start.getState().size(); ++p) {
-            distance += powf(start.getState()[p] - ending_node.getState()[p], 2.f);
-        }
+        float distance = squaredDistance(start.getState(), ending_node.getState());
         if (ignoreConstraints) {
             return distance;
         }
 
-        LinearTrajectory line(start, ending_node);
-        while (!line.eot()) {
-            if (this->checker->isNotAdmitted(line.getCursor())) return FLT_MAX;
-            line.advance();
+        LinearTrajectory line(start, ending_node, this->steerDegree);
+        while (!line.isCursorAtEnd()) {
+            if (this->checker->isNotAdmitted(line.getCursor())) return Trajectory::COST_MAX;
+            line.advanceCursor();
         }
         return distance;
     }

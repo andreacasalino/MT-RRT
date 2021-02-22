@@ -23,12 +23,6 @@ namespace mt {
 		if(0 == stateSize) throw Error("empty state for cost to go");
 	}
 
-	Node::Node(Node&& o) {
-		this->state = std::move(o.state);
-		this->father = o.father;
-		this->costFromFather = o.costFromFather;
-	}
-
 	void Node::setFather(Node* new_father, const float& cost_from_father) {
 		this->father = new_father;
 		this->costFromFather = cost_from_father;

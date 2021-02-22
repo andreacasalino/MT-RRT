@@ -14,13 +14,17 @@
 namespace mt::problem {
     class Trajectory {
     public:
+        static const float COST_MAX;
+
         virtual	~Trajectory() = default;
 
-        virtual const NodeState& getCursor() const = 0;
+        inline const NodeState& getCursor() const { return this->cursor; };
 
-        virtual void advance() = 0;
+        inline float getCummulatedCost() const { return this->cumulatedCost; };
 
-        virtual bool eot() const = 0;
+        virtual void advanceCursor() = 0;
+
+        virtual bool isCursorAtEnd() const = 0;
 
     protected:
         Trajectory(const Node& start, const Node& target);
@@ -28,6 +32,9 @@ namespace mt::problem {
     // data
         const Node& start;
         const Node& target;
+
+        NodeState cursor;
+        float cumulatedCost = COST_MAX;
     };
 
     typedef std::unique_ptr<Trajectory> TrajectoryPtr;

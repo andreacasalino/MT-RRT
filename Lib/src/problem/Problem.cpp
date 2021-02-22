@@ -9,8 +9,11 @@
 #include <problem/Sampler.h>
 #include <problem/Trajectory.h>
 #include <Error.h>
+//#include <limits>
 
 namespace mt::problem {
+    //float COST_MAX = std::numeric_limits<float>::max();
+
     Problem::Problem(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry)
         : stateSpaceSize(stateSpaceSize)
         , gamma(gamma)
@@ -38,7 +41,7 @@ namespace mt::problem {
         this->steerTrials = trials;
     }
 
-    NodeState Problem::steeredState(const Node& start, const Node& trg, bool& trg_reached) {
+    NodePtr Problem::steeredState(Node& start, const Node& trg, bool& trg_reached) {
         TrajectoryPtr traj = this->getTrajectory(start, trg);
         NodeState steered;
         trg_reached = false;
@@ -47,12 +50,15 @@ namespace mt::problem {
                 break;
             }
             steered = traj->getCursor();
-            traj->advance();
-            if (traj->eot()) {
+            if (traj->isCursorAtEnd()) {
                 trg_reached = true;
                 break;
             }
+            traj->advanceCursor();
         }
-        return steered;
+        if (steered.empty()) return nullptr;
+        NodePtr ptr = std::make_unique<Node>(steered);
+        ptr->setFather(&start, traj->getCummulatedCost());
+        return ptr;
     }
 }

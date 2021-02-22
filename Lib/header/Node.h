@@ -25,7 +25,7 @@ namespace mt {
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
-		Node(Node&&);
+		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
 		/** \brief Similar to Node::Cost_to_root(float* result), but throwing an exception when the length of the path that must be followed to reach the root

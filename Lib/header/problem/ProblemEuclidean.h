@@ -15,9 +15,9 @@ namespace mt::problem {
     public:
         float cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) override;
 
+    protected:
         TrajectoryPtr getTrajectory(const Node& start, const Node& trg) override;
 
-    protected:
         ProblemEuclidean(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const float& steerDegree);
 
     private:

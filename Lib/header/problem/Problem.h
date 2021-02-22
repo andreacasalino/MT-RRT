@@ -13,6 +13,8 @@
 #include <problem/Checker.h>
 
 namespace mt::problem {
+	typedef std::unique_ptr<Node> NodePtr;
+
 	/** \brief Interface for the class describing the particular planning problem to solve. 
 	\details It is crucial for addressing step A of the pipeline presented in Section 1.3 of the documentation.
 	*/
@@ -50,8 +52,8 @@ namespace mt::problem {
 		* @param[out] trg_reached returns true in case the steering was possible and led to reach the target node. Otherwise false is returned.
 		*/
 
-		// return empty vector if the steering was not possible
-		NodeState steeredState(const Node& start, const Node& trg, bool& trg_reached);
+		// return nulltr if the steering was not possible
+		NodePtr steeredState(Node& start, const Node& trg, bool& trg_reached);
 
 		void setSteerTrials(const std::size_t& trials);
 
