@@ -11,7 +11,7 @@
 namespace mt::problem {
     const float Trajectory::COST_MAX = std::numeric_limits<float>::max();
 
-    Trajectory::Trajectory(const Node& start, const Node& target)
+    Trajectory::Trajectory(const NodeState& start, const NodeState& target)
         : start(start)
         , target(target) {
     }

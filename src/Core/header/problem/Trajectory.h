@@ -29,11 +29,11 @@ namespace mt::problem {
         virtual bool isCursorAtEnd() const = 0;
 
     protected:
-        Trajectory(const Node& start, const Node& target);
+        Trajectory(const NodeState& start, const NodeState& target);
 
     // data
-        const Node& start;
-        const Node& target;
+        const NodeState& start;
+        const NodeState& target;
 
         NodeState cursor;
         float cumulatedCost = COST_MAX;

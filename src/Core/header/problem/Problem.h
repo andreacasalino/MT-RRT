@@ -34,7 +34,7 @@ namespace mt::problem {
 		* @param[in] start the starting node in the trajectory whose cost is to evaluate
 		* @param[in] ending_node the ending node in the trajectory whose cost is to evaluate
 		*/
-		virtual float cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) = 0;
+		virtual float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) = 0;
 
 		/** \brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section 1.2.1 of the documentation.
 		\details This function is invoked for randomly growing a searching tree.
@@ -51,7 +51,7 @@ namespace mt::problem {
 		*/
 
 		// return nulltr if the steering was not possible
-		NodePtr steeredState(Node& start, const Node& trg, bool& trg_reached);
+		NodePtr steer(Node& start, const NodeState& trg, bool& trg_reached);
 
 		void setSteerTrials(const std::size_t& trials);
 
@@ -73,7 +73,7 @@ namespace mt::problem {
 		Problem(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem(const Problem& o);
 
-		virtual TrajectoryPtr getTrajectory(const Node& start, const Node& trg) = 0;
+		virtual TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& trg) = 0;
 
 	// data
 		const std::size_t stateSpaceSize;
@@ -86,6 +86,8 @@ namespace mt::problem {
 
 		CheckerPtr checker;
 	};
+
+	typedef std::unique_ptr<problem::Problem> ProblemPtr;
 }
 
 #endif

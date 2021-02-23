@@ -13,10 +13,10 @@
 namespace mt::problem {
     class ProblemEuclidean : public Problem {
     public:
-        float cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) override;
+        float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) override;
 
     protected:
-        TrajectoryPtr getTrajectory(const Node& start, const Node& trg) override;
+        TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& trg) override;
 
         ProblemEuclidean(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const float& steerDegree);
 

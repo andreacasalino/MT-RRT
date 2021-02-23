@@ -41,8 +41,8 @@ namespace mt::problem {
         this->steerTrials = trials;
     }
 
-    NodePtr Problem::steeredState(Node& start, const Node& trg, bool& trg_reached) {
-        TrajectoryPtr traj = this->getTrajectory(start, trg);
+    NodePtr Problem::steer(Node& start, const NodeState& trg, bool& trg_reached) {
+        TrajectoryPtr traj = this->getTrajectory(start.getState(), trg);
         NodeState steered;
         trg_reached = false;
         for (std::size_t t = 0; t < this->steerTrials; ++t) {

@@ -13,8 +13,6 @@
 #include <mutex>
 
 namespace mt::solver {
-	typedef std::unique_ptr<problem::Problem> ProblemPtr;
-
 	/** \brief Interface for a planner.
 	\details For solving a planning problem you must first build the solver, using 
 	I_Planner::Get_canonical, I_Planner::Get_query___parall, I_Planner::Get_shared__parall, I_Planner::Get_copied__parall or I_Planner::Get_multi_ag_parall. 
@@ -30,7 +28,7 @@ namespace mt::solver {
 		Solver(const Solver&) = delete;
 		Solver& operator=(const Solver&) = delete;
 
-		Solver(ProblemPtr problemDescription);
+		Solver(problem::ProblemPtr problemDescription);
 
 		enum Strategy { Serial, MtQueryParall, MtSharedTree, MtCopiedTrees, MtMultiAgent };
 
@@ -88,13 +86,13 @@ namespace mt::solver {
 		std::vector<NodeState>					getLastSolution() const;
 
 		// moved
-		std::vector<TreePtr>					getLastTrees();
+		std::vector<tree::TreePtr>					getLastTrees();
 
 	private:
 		struct SolutionInfo {
 			std::size_t						iterations;
 			std::vector<NodeState>			solution;
-			std::vector<TreePtr>			trees;
+			std::vector<tree::TreePtr>		trees;
 		};
 
 		struct Parameters {
@@ -103,19 +101,19 @@ namespace mt::solver {
 			bool											Cumulate_sol = false;
 		};
 
-		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const Parameters& param, ProblemPtr& description, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const Parameters& param, problem::ProblemPtr& description, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
 
 	// data
 		mutable std::mutex								dataMtx;
-		std::vector<ProblemPtr>							problemcopies;
+		std::vector<problem::ProblemPtr>				problemcopies;
 		Parameters										parameters;
 
 		std::unique_ptr<SolutionInfo>					lastSolution = nullptr;

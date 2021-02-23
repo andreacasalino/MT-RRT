@@ -8,10 +8,11 @@
 #ifndef MT_RRT_TREE_H
 #define MT_RRT_TREE_H
 
-#include <Node.h>
+#include <problem/Problem.h>
 #include <list>
+#include <utility>
 
-namespace mt::solver {
+namespace mt::solver::tree {
     class Tree {
     public:
         virtual	~Tree() = default;
@@ -32,7 +33,7 @@ namespace mt::solver {
 		* @param[in] target the target node toward which the extension must be tried
 		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
 		*/
-		virtual const Node* extendDeterministic(const Node* target) = 0;
+		virtual std::pair<const Node*, bool> extendDeterministic(const NodeState& target) = 0;
 
 		/** \brief Get the object describing the planning problems this tree refers to.
 		* @param[out] return the object describing the planning problem
@@ -41,24 +42,15 @@ namespace mt::solver {
 
 		/** \brief Get the root of the tree.
 		*/
-		virtual const Node* getRoot() = 0;
-
-		/** \brief Get the reached target flag.
-		\details The reach target flag describes whether the previous extension tried (using Extend_random or Extend_deterministic) suceeded in reaching the
-		target or not. More formally, when a kind of extension is tried for the tree, this quantity is internally set equal to true only in the case that:
-		A) the extension was possible
-		B) the steered configuration is equal to the target one, i.e. the extension leads to reach the target
-		It is set to false in all other cases.
-		* @param[out] return the reach target flag
-		*/
-		virtual bool wasLastTargetReached() = 0;
+		virtual const Node* getRoot() const = 0;
 
 	protected:
 		Tree() = default;
 
 		typedef std::list<NodePtr> Nodes;
 
-		virtual const Nodes& getNodes() = 0;
+		virtual const Nodes& getNodes() const = 0;
+		static const Nodes& getNodesOther(Tree& t) { return t.getNodes(); };
     };
 
     typedef std::unique_ptr<Tree> TreePtr;

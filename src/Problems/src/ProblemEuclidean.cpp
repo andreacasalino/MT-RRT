@@ -19,25 +19,25 @@ namespace mt::problem {
 
     class LinearTrajectory : public Trajectory {
     public:
-        LinearTrajectory(const Node& start, const Node& target, const float& steerDegree) 
+        LinearTrajectory(const NodeState& start, const NodeState& target, const float& steerDegree)
             : Trajectory(start, target)
             , steerDegree(steerDegree) {
-            this->cursor = this->start.getState();
+            this->cursor = this->start;
             this->cumulatedCost = 0.f;
             this->advanceCursor();
         };
 
         void advanceCursor() override {
-            float distance = squaredDistance(this->cursor, this->target.getState());
+            float distance = squaredDistance(this->cursor, this->target);
             if (distance <= this->steerDegree) {
-                this->cursor = this->target.getState();
+                this->cursor = this->target;
                 this->eot = true;
             }
             float c = this->steerDegree / distance;
             float c2 = 1.f - c;
             for (std::size_t k = 0; k < this->cursor.size(); ++k) {
                 this->cursor[k] *= c2;
-                this->cursor[k] += c*this->target.getState()[k];
+                this->cursor[k] += c*this->target[k];
             }
         };
 
@@ -53,12 +53,12 @@ namespace mt::problem {
         , steerDegree(abs(steerDegree)) {
     }
 
-    TrajectoryPtr ProblemEuclidean::getTrajectory(const Node& start, const Node& trg) {
+    TrajectoryPtr ProblemEuclidean::getTrajectory(const NodeState& start, const NodeState& trg) {
         return std::make_unique<LinearTrajectory>(start, trg, this->steerDegree);
     }
 
-    float ProblemEuclidean::cost2Go(const Node& start, const Node& ending_node, const bool& ignoreConstraints) {
-        float distance = squaredDistance(start.getState(), ending_node.getState());
+    float ProblemEuclidean::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) {
+        float distance = squaredDistance(start, ending_node);
         if (ignoreConstraints) {
             return distance;
         }

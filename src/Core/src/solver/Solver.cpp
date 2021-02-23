@@ -9,7 +9,7 @@
 #include <Error.h>
 
 namespace mt::solver {
-	Solver::Solver(ProblemPtr problemDescription) {
+	Solver::Solver(problem::ProblemPtr problemDescription) {
 		if (nullptr == problemDescription) {
 			throw Error("problem description can't be nullptr");
 		}
@@ -144,10 +144,10 @@ namespace mt::solver {
 		return this->lastSolution->solution;
 	}
 
-	std::vector<TreePtr> Solver::getLastTrees() {
+	std::vector<tree::TreePtr> Solver::getLastTrees() {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		if (nullptr == this->lastSolution) return {};
-		std::vector<TreePtr> temp = std::move(this->lastSolution->trees);
+		std::vector<tree::TreePtr> temp = std::move(this->lastSolution->trees);
 		this->lastSolution->trees.clear();
 		return temp;
 	}
