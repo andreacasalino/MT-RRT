@@ -9,7 +9,6 @@
 #define MT_RRT_TREE_CONCRETE_H
 
 #include <solver/Tree.h>
-#include <problem/Problem.h>
 #include <set>
 
 namespace mt::solver::tree {

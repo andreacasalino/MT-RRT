@@ -18,13 +18,20 @@ namespace mt::solver::tree {
     }
 
     const Node* TreeConcrete::extendRandom() {
-        return this->extendDeterministic(this->problem.randomState()).first;
+		NodeState target = this->problem.randomState();
+		Node* nearest = this->nearestNeighbour(target);
+		bool temp;
+		NodePtr ext = this->problem.steer(*nearest, target, temp);
+		if (nullptr == ext) return nullptr;
+		this->nodes.emplace_back(std::move(ext));
+		return this->nodes.back().get();
     }
 
     std::pair<const Node*, bool> TreeConcrete::extendDeterministic(const NodeState& target) {
         Node* nearest = this->nearestNeighbour(target);
         bool temp;
         NodePtr ext = this->problem.steer(*nearest, target, temp);
+		if (temp) return {ext->getFather(), true};
         if (nullptr == ext) return {nullptr, false};
         this->nodes.emplace_back(std::move(ext));
         return { this->nodes.back().get(), temp };

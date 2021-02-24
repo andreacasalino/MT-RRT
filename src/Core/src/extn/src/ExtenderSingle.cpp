@@ -20,8 +20,6 @@ namespace mt::solver::extn {
     }
 
     void Single::extend(const size_t& Iterations) {
-		//float delta_cost;
-		//const Node* temp = nullptr;
 		for (size_t k = 0; k < Iterations; ++k) {
 			if (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) < this->deterministicCoefficient) {
 				auto temp = this->tree.extendDeterministic(this->target);
@@ -30,13 +28,13 @@ namespace mt::solver::extn {
 					// check this solution was not already found
 					bool absent = true;
 					for (auto it = this->solutionsFound.begin(); it != this->solutionsFound.end(); ++it) {
-						if (it->first == temp.first->getFather()) {
+						if (it->first == temp.first) {
 							absent = false;
 							break;
 						}
 					}
 					if (absent) {
-						//this->solutionsFound.emplace({temp.first->getFather(), temp.first->cost2Root()});
+						this->solutionsFound.emplace({temp.first, temp.first->cost2Root() + this->tree.getProblem().cost2Go(temp.first->getState(), this->target, true)});
 					}
 				}
 			}

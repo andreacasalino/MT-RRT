@@ -8,7 +8,7 @@
 #ifndef MT_RRT_TREE_H
 #define MT_RRT_TREE_H
 
-#include <Node.h>
+#include <problem/Problem.h>
 #include <list>
 #include <utility>
 
@@ -35,9 +35,12 @@ namespace mt::solver::tree {
 		* @param[in] target the target node toward which the extension must be tried
 		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
 		*/
+		// todo spiegare bene comportamento
 		virtual std::pair<const Node*, bool> extendDeterministic(const NodeState& target) = 0;
 
 		virtual const Nodes& getNodes() const = 0;
+
+		virtual problem::Problem& getProblem() = 0;
 
 	protected:
 		Tree() = default;
