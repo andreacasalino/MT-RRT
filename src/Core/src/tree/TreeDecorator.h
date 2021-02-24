@@ -17,14 +17,10 @@ namespace mt::solver::tree {
 
 		inline std::pair<const Node*, bool> extendDeterministic(const NodeState& target) override { return this->wrapped->extendDeterministic(target); };
 
-		inline problem::Problem& getProblem() override { return this->wrapped->getProblem(); };
-
-		inline const Node* getRoot() const override { return this->wrapped->getRoot(); };
+		inline const Nodes& getNodes() const override { return this->wrapped->getNodes(); };
 
 	protected:
 		TreeDecorator(TreePtr wrapped);
-
-		inline const Nodes& getNodes() const override { return getNodesOther(*this->wrapped.get()); };
 
 		TreePtr wrapped;
 	};

@@ -8,11 +8,13 @@
 #ifndef MT_RRT_TREE_H
 #define MT_RRT_TREE_H
 
-#include <problem/Problem.h>
+#include <Node.h>
 #include <list>
 #include <utility>
 
 namespace mt::solver::tree {
+	typedef std::list<NodePtr> Nodes;
+
     class Tree {
     public:
         virtual	~Tree() = default;
@@ -35,22 +37,10 @@ namespace mt::solver::tree {
 		*/
 		virtual std::pair<const Node*, bool> extendDeterministic(const NodeState& target) = 0;
 
-		/** \brief Get the object describing the planning problems this tree refers to.
-		* @param[out] return the object describing the planning problem
-		*/
-		virtual problem::Problem& getProblem() = 0;
-
-		/** \brief Get the root of the tree.
-		*/
-		virtual const Node* getRoot() const = 0;
+		virtual const Nodes& getNodes() const = 0;
 
 	protected:
 		Tree() = default;
-
-		typedef std::list<NodePtr> Nodes;
-
-		virtual const Nodes& getNodes() const = 0;
-		static const Nodes& getNodesOther(Tree& t) { return t.getNodes(); };
     };
 
     typedef std::unique_ptr<Tree> TreePtr;

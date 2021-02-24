@@ -9,26 +9,37 @@
 #define MT_RRT_TREE_CONCRETE_H
 
 #include <solver/Tree.h>
+#include <problem/Problem.h>
+#include <set>
 
 namespace mt::solver::tree {
 	class TreeConcrete : public tree::Tree {
 	public:
+		TreeConcrete(problem::Problem& problem, NodePtr root);
+
 		const Node* extendRandom() override;
 
 		std::pair<const Node*, bool> extendDeterministic(const NodeState& target) override;
 
-		inline problem::Problem& getProblem() override { return this->problem; };
-
-		inline const Node* getRoot() const override { return this->nodes.front().get(); };
-
-		TreeConcrete(problem::Problem& problem, NodePtr root);
-
-	protected:
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
-		virtual Node* nearestNeighbour(const NodeState& state);
+		struct Rewird {
+			Rewird(Node& involved, Node& newFather, const float& newCostFromFather);
+
+			Node& involved;
+			Node& newFather;
+			float newCostFromFather;
+		};
+		std::list<Rewird> computeRewirds(Node& pivot) const;
+
+	protected:
+		virtual Node* nearestNeighbour(const NodeState& state) const;
+
+		virtual std::set<Node*> nearSet(Node& node) const;
 
 		problem::Problem& problem;
+
+	private:
 		Nodes nodes;
 	};
 }
