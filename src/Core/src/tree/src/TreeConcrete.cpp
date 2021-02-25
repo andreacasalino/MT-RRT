@@ -34,7 +34,7 @@ namespace mt::solver::tree {
 		if (temp) return {ext->getFather(), true};
         if (nullptr == ext) return {nullptr, false};
         this->nodes.emplace_back(std::move(ext));
-        return { this->nodes.back().get(), temp };
+        return { this->nodes.back().get(), false };
     }
 
     Node* TreeConcrete::nearestNeighbour(const NodeState& state) const {

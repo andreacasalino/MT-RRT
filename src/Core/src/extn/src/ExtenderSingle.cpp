@@ -6,7 +6,6 @@
  **/
 
 #include "../header/ExtenderSingle.h"
-#include <Error.h>
 
 namespace mt::solver::extn {
     inline bool operator<(const SingleSolution& a, const SingleSolution& b) {
@@ -20,10 +19,10 @@ namespace mt::solver::extn {
     }
 
     void Single::extend(const size_t& Iterations) {
+		bool newSolFound = false;
 		for (size_t k = 0; k < Iterations; ++k) {
 			if (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) < this->deterministicCoefficient) {
 				auto temp = this->tree.extendDeterministic(this->target);
-				throw std::runtime_error("is it correct to add the node in extend even if this solution was already found");
 				if (temp.second) {
 					// check this solution was not already found
 					bool absent = true;
@@ -34,7 +33,8 @@ namespace mt::solver::extn {
 						}
 					}
 					if (absent) {
-						this->solutionsFound.emplace({temp.first, temp.first->cost2Root() + this->tree.getProblem().cost2Go(temp.first->getState(), this->target, true)});
+						this->solutionsFound.emplace(std::make_pair(temp.first, temp.first->cost2Root() + this->tree.getProblem().cost2Go(temp.first->getState(), this->target, true)));
+						newSolFound = true;
 					}
 				}
 			}
@@ -44,6 +44,8 @@ namespace mt::solver::extn {
 #ifdef DISPLAY_ITERATIONS
 			cout << "iteration " << this->Iterations_done << endl;
 #endif // _DISPLAY_ITERATIONS
+
+			if (!this->cumulateSolutions && newSolFound) break;
 		}
     }
 }
