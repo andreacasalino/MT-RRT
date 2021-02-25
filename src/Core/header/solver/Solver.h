@@ -101,15 +101,15 @@ namespace mt::solver {
 			bool											Cumulate_sol = false;
 		};
 
-		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const Parameters& param, problem::ProblemPtr& description, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const Parameters& param, std::vector<problem::ProblemPtr>& descriptions, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
 	// data
 		mutable std::mutex								dataMtx;

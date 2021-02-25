@@ -19,6 +19,8 @@ namespace mt::solver::tree {
 
 		inline const Nodes& getNodes() const override { return this->wrapped->getNodes(); };
 
+		inline problem::Problem& getProblem() override { return this->wrapped->getProblem(); }
+
 	protected:
 		TreeDecorator(TreePtr wrapped);
 

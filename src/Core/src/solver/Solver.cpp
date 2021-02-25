@@ -42,6 +42,10 @@ namespace mt::solver {
 	}
 
 	void Solver::RRTConnect(const NodeState& start, const NodeState& end, const Strategy& strategy) {
+		if (!this->problemcopies.front()->isProblemSimmetric()) {
+			throw Error("you can't use the bidirectional strategy on an a-symmetric problem");
+		}
+
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		this->lastSolution.reset(new SolutionInfo());
 		switch (strategy) {

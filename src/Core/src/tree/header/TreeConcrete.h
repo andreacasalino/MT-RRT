@@ -22,6 +22,8 @@ namespace mt::solver::tree {
 
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
+		inline problem::Problem& getProblem() override { return this->problem; }
+
 		struct Rewird {
 			Rewird(Node& involved, Node& newFather, const float& newCostFromFather);
 

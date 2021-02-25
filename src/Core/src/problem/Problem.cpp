@@ -9,11 +9,8 @@
 #include <problem/Sampler.h>
 #include <problem/Trajectory.h>
 #include <Error.h>
-//#include <limits>
 
 namespace mt::problem {
-    //float COST_MAX = std::numeric_limits<float>::max();
-
     Problem::Problem(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry)
         : stateSpaceSize(stateSpaceSize)
         , gamma(gamma)

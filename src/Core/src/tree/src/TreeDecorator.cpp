@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/TreeDecorator.h"
+#include <TreeDecorator.h>
 #include <Error.h>
 
 namespace mt::solver::tree {

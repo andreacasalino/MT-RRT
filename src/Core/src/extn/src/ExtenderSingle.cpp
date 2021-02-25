@@ -5,13 +5,9 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/ExtenderSingle.h"
+#include <ExtenderSingle.h>
 
 namespace mt::solver::extn {
-    inline bool operator<(const SingleSolution& a, const SingleSolution& b) {
-        return (a.second < b.second);
-    };
-
     Single::Single(const bool& cumulateSolutions, const float& deterministicCoefficient, tree::Tree& tree, const NodeState& target)
         : Extender<SingleSolution>(cumulateSolutions, deterministicCoefficient)
         , tree(tree)
@@ -48,4 +44,16 @@ namespace mt::solver::extn {
 			if (!this->cumulateSolutions && newSolFound) break;
 		}
     }
+
+	std::vector<NodeState> Single::computeSolutionSequence(const SingleSolution& sol) const {
+		std::list<const NodeState*> states;
+		const Node* cursor = sol.first;
+		while (nullptr != cursor) {
+			states.push_front(&cursor->getState());
+			cursor = cursor->getFather();
+		}
+		states.push_back(&this->target);
+		
+		return convert(states);
+	}
 }

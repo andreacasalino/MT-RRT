@@ -13,6 +13,9 @@
 
 namespace mt::solver::extn {
     typedef std::tuple<const Node*, const Node*, float> BidirSolution;
+    inline bool operator<(const BidirSolution& a, const BidirSolution& b) {
+        return (std::get<2>(a) < std::get<2>(b));
+    };
 
     class Bidir : public Extender<BidirSolution> {
     public:
@@ -21,6 +24,8 @@ namespace mt::solver::extn {
         void extend(const size_t& Iterations) override;
 
     private:
+        std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const const override;
+
         tree::Tree& leftTree;
         tree::Tree& rightTree;
     };

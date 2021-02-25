@@ -5,14 +5,10 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/ExtenderBidir.h"
+#include <ExtenderBidir.h>
 #include <Error.h>
 
 namespace mt::solver::extn {
-	inline bool operator<(const BidirSolution& a, const BidirSolution& b) {
-		return (std::get<2>(a) < std::get<2>(b));
-	};
-
 	inline bool operator==(const BidirSolution& a, const BidirSolution& b) {
 		return (std::get<0>(a) == std::get<0>(b)) && (std::get<1>(a) == std::get<1>(b));
 	};
@@ -103,4 +99,20 @@ namespace mt::solver::extn {
 			if (!this->cumulateSolutions && newSolFound) break;
 		}
     }
+
+	std::vector<NodeState> Bidir::computeSolutionSequence(const BidirSolution& sol) const {
+		std::list<const NodeState*> states;
+		const Node* cursor =std::get<0>(sol);
+		while (nullptr != cursor) {
+			states.push_front(&cursor->getState());
+			cursor = cursor->getFather();
+		}
+		cursor = std::get<1>(sol);
+		while (nullptr != cursor) {
+			states.push_back(&cursor->getState());
+			cursor = cursor->getFather();
+		}
+
+		return convert(states);
+	}
 }

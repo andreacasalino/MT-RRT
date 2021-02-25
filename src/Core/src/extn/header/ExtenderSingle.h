@@ -12,6 +12,9 @@
 
 namespace mt::solver::extn {
     typedef std::pair<const Node*, float> SingleSolution;
+    inline bool operator<(const SingleSolution& a, const SingleSolution& b) {
+        return (a.second < b.second);
+    };
 
     class Single : public Extender<SingleSolution> {
     public:
@@ -20,6 +23,8 @@ namespace mt::solver::extn {
         void extend(const size_t& Iterations) override;
 
     private:
+        std::vector<NodeState> computeSolutionSequence(const SingleSolution& sol) const override;
+
         tree::Tree& tree;
         NodeState target;
     };

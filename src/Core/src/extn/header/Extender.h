@@ -31,11 +31,32 @@ namespace mt::solver::extn {
 
 		inline const std::set<Solution>& getSolutions() { return this->solutionsFound; };
 
+		std::vector<NodeState> computeBestSolutionSequence() const {
+			if (this->solutionsFound.empty()) {
+				return {};
+			}
+			return this->computeSolutionSequence(*this->solutionsFound.begin());
+		};
+
+		static std::vector<NodeState> computeBestSolutionSequence(const std::vector<const Extender*> extenders) {
+			std::set<Solution> solutions;
+			for (auto itE = extenders.begin(); itE != extenders.end(); ++itE) {
+				for (auto itSol = (*itE)->solutionsFound.begin(); itSol != (*itE)->solutionsFound.end(); ++itSol) {
+					if (solutions.find(*itSol) == solutions.end()) {
+						solutions.emplace(*itSol);
+					}
+				}
+			}
+			return extenders.front()->computeSolutionSequence(*solutions.begin());
+		};
+
 	protected:
 		Extender(const bool& cumulateSolutions, const float& deterministicCoefficient) 
 			: cumulateSolutions(cumulateSolutions)
 			, deterministicCoefficient(deterministicCoefficient) {
 		};
+
+		virtual std::vector<NodeState> computeSolutionSequence(const Solution& sol) const = 0;
 
 	// data
 		const bool			cumulateSolutions;
@@ -43,6 +64,8 @@ namespace mt::solver::extn {
 		size_t				iterationsDone = 0;
 		std::set<Solution>  solutionsFound;
 	};
+
+	std::vector<NodeState> convert(const std::list<const NodeState*> nodes);
 }
 
 #endif

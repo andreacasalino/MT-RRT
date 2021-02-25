@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/TreeConcrete.h"
+#include <TreeConcrete.h>
 #include <Error.h>
 
 namespace mt::solver::tree {
