@@ -8,7 +8,7 @@
 #include <ExtenderSingle.h>
 
 namespace mt::solver::extn {
-    Single::Single(const bool& cumulateSolutions, const float& deterministicCoefficient, tree::Tree& tree, const NodeState& target)
+    Single::Single(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& tree, const NodeState& target)
         : Extender<SingleSolution>(cumulateSolutions, deterministicCoefficient)
         , tree(tree)
         , target(target) {
@@ -17,7 +17,7 @@ namespace mt::solver::extn {
     void Single::extend(const size_t& Iterations) {
 		bool newSolFound = false;
 		for (size_t k = 0; k < Iterations; ++k) {
-			if (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) < this->deterministicCoefficient) {
+			if (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) < this->deterministicCoefficient) {
 				auto temp = this->tree.extendDeterministic(this->target);
 				if (temp.second) {
 					// check this solution was not already found

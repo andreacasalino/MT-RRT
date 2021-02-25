@@ -19,12 +19,12 @@ namespace mt::solver::extn {
 
     class Bidir : public Extender<BidirSolution> {
     public:
-        Bidir(const bool& cumulateSolutions, const float& deterministicCoefficient, tree::Tree& leftTree, tree::Tree& rightTree);
+        Bidir(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& leftTree, tree::Tree& rightTree);
 
         void extend(const size_t& Iterations) override;
 
     private:
-        std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const const override;
+        std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const override;
 
         tree::Tree& leftTree;
         tree::Tree& rightTree;

@@ -21,19 +21,19 @@ namespace mt::solver {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		switch (strategy){
 		case Strategy::Serial:
-			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Single));
+			this->lastSolution = std::move(this->serialStrategy(start, end, RRTStrategy::Single));
 			break;
 		case Strategy::MtQueryParall:
-			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, RRTStrategy::Single));
 			break;
 		case Strategy::MtSharedTree:
-			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, RRTStrategy::Single));
 			break;
 		case Strategy::MtCopiedTrees:
-			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, RRTStrategy::Single));
 			break;
 		case Strategy::MtMultiAgent:
-			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Single));
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, RRTStrategy::Single));
 			break;
 		default:
 			throw Error("unrecognized strategy");
@@ -50,19 +50,19 @@ namespace mt::solver {
 		this->lastSolution.reset(new SolutionInfo());
 		switch (strategy) {
 		case Strategy::Serial:
-			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Bidir));
+			this->lastSolution = std::move(this->serialStrategy(start, end, RRTStrategy::Bidir));
 			break;
 		case Strategy::MtQueryParall:
-			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, RRTStrategy::Bidir));
 			break;
 		case Strategy::MtSharedTree:
-			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, RRTStrategy::Bidir));
 			break;
 		case Strategy::MtCopiedTrees:
-			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, RRTStrategy::Bidir));
 			break;
 		case Strategy::MtMultiAgent:
-			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Bidir));
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, RRTStrategy::Bidir));
 			break;
 		default:
 			throw Error("unrecognized strategy");
@@ -77,19 +77,19 @@ namespace mt::solver {
 		this->parameters.Cumulate_sol = true;
 		switch (strategy) {
 		case Strategy::Serial:
-			this->lastSolution = std::move(this->serialStrategy(start, end, this->parameters, this->problemcopies.front(), RRTStrategy::Star));
+			this->lastSolution = std::move(this->serialStrategy(start, end, RRTStrategy::Star));
 			break;
 		case Strategy::MtQueryParall:
-			this->lastSolution = std::move(this->queryParallStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			this->lastSolution = std::move(this->queryParallStrategy(start, end, RRTStrategy::Star));
 			break;
 		case Strategy::MtSharedTree:
-			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			this->lastSolution = std::move(this->sharedTreeStrategy(start, end, RRTStrategy::Star));
 			break;
 		case Strategy::MtCopiedTrees:
-			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			this->lastSolution = std::move(this->copiedTreesStrategy(start, end, RRTStrategy::Star));
 			break;
 		case Strategy::MtMultiAgent:
-			this->lastSolution = std::move(this->multiAgentStrategy(start, end, this->parameters, this->problemcopies, RRTStrategy::Star));
+			this->lastSolution = std::move(this->multiAgentStrategy(start, end, RRTStrategy::Star));
 			break;
 		default:
 			throw Error("unrecognized strategy");

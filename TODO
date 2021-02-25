@@ -5,3 +5,4 @@ collassare Node e Trajectory ad essere la stessa classe?
 usare explicit in c'tor
 che fare con DISPLAY_ITERATIONS?
 replace rand with thread safe rand everywhere
+quando calcolo rewird devo eseguirlo per il pivot o no?

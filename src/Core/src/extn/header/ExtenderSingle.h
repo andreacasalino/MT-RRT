@@ -18,7 +18,7 @@ namespace mt::solver::extn {
 
     class Single : public Extender<SingleSolution> {
     public:
-        Single(const bool& cumulateSolutions, const float& deterministicCoefficient, tree::Tree& tree, const NodeState& target);
+        Single(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& tree, const NodeState& target);
 
         void extend(const size_t& Iterations) override;
 

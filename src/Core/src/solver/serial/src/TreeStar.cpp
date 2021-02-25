@@ -12,16 +12,23 @@ namespace mt::solver::tree {
         : TreeConcrete(problem, std::move(root)) {
     }
 
-    const Node* TreeStar::extendRandom() {
-        auto temp = this->TreeConcrete::extendRandom();
-        if (nullptr != temp) {
-            auto rew = this->computeRewirds(*temp);
-
+    void TreeStar::doRewire(Node* n) {
+        if (nullptr == n) return;
+        auto rew = this->computeRewirds(*n);
+        for (auto it = rew.begin(); it != rew.end(); ++it) {
+            it->involved.setFather(&it->newFather, it->newCostFromFather);
         }
+    }
+
+    Node* TreeStar::extendRandom() {
+        auto temp = this->TreeConcrete::extendRandom();
+        this->doRewire(temp);
         return temp;
     };
 
-    std::pair<const Node*, bool> TreeStar::extendDeterministic(const NodeState& target) {
-
+    std::pair<Node*, bool> TreeStar::extendDeterministic(const NodeState& target) {
+        auto temp = this->TreeConcrete::extendDeterministic(target);
+        this->doRewire(temp.first);
+        return temp;
     };
 }

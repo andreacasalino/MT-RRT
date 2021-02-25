@@ -13,9 +13,9 @@
 namespace mt::solver::tree {
 	class TreeDecorator : public tree::Tree {
 	public:
-		inline const Node* extendRandom() override { return this->wrapped->extendRandom(); };
+		inline Node* extendRandom() override { return this->wrapped->extendRandom(); };
 
-		inline std::pair<const Node*, bool> extendDeterministic(const NodeState& target) override { return this->wrapped->extendDeterministic(target); };
+		inline std::pair<Node*, bool> extendDeterministic(const NodeState& target) override { return this->wrapped->extendDeterministic(target); };
 
 		inline const Nodes& getNodes() const override { return this->wrapped->getNodes(); };
 

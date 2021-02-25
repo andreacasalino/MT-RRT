@@ -47,11 +47,12 @@ namespace mt::solver::extn {
 					}
 				}
 			}
+			if (solutions.empty()) return {};
 			return extenders.front()->computeSolutionSequence(*solutions.begin());
 		};
 
 	protected:
-		Extender(const bool& cumulateSolutions, const float& deterministicCoefficient) 
+		Extender(const bool& cumulateSolutions, const double& deterministicCoefficient)
 			: cumulateSolutions(cumulateSolutions)
 			, deterministicCoefficient(deterministicCoefficient) {
 		};
@@ -60,7 +61,7 @@ namespace mt::solver::extn {
 
 	// data
 		const bool			cumulateSolutions;
-		const float			deterministicCoefficient;
+		const double		deterministicCoefficient;
 		size_t				iterationsDone = 0;
 		std::set<Solution>  solutionsFound;
 	};

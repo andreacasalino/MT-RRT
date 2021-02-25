@@ -13,7 +13,7 @@ namespace mt::solver::extn {
 		return (std::get<0>(a) == std::get<0>(b)) && (std::get<1>(a) == std::get<1>(b));
 	};
 
-    Bidir::Bidir(const bool& cumulateSolutions, const float& deterministicCoefficient, tree::Tree& leftTree, tree::Tree& rightTree) 
+    Bidir::Bidir(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& leftTree, tree::Tree& rightTree)
         : Extender<BidirSolution>(cumulateSolutions, deterministicCoefficient)
         , leftTree(leftTree)
         , rightTree(rightTree) {
@@ -75,7 +75,7 @@ namespace mt::solver::extn {
 		};
 
 		for (size_t k = 0; k < Iterations; k += 2) {
-			if (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) < this->deterministicCoefficient) {
+			if (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) < this->deterministicCoefficient) {
 				auto temp = Master->extendDeterministic(Slave->getNodes().front()->getState());
 				if (temp.second) {
 					add2Solutions(temp.first, Slave->getNodes().front().get(), caso);

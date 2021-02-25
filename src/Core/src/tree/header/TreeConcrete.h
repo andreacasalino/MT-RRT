@@ -16,9 +16,9 @@ namespace mt::solver::tree {
 	public:
 		TreeConcrete(problem::Problem& problem, NodePtr root);
 
-		const Node* extendRandom() override;
+		Node* extendRandom() override;
 
-		std::pair<const Node*, bool> extendDeterministic(const NodeState& target) override;
+		std::pair<Node*, bool> extendDeterministic(const NodeState& target) override;
 
 		inline const Nodes& getNodes() const override { return this->nodes; };
 

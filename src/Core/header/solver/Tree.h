@@ -26,7 +26,7 @@ namespace mt::solver::tree {
 		\detials In case an extensio was possible, the node added to the tree is returned. Otherwise, NULL is returned
 		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
 		*/
-		virtual const Node* extendRandom() = 0;
+		virtual Node* extendRandom() = 0;
 
 		/** \brief An extension toward the passed target node is tried.
 		\details In case the extension succeeds, a new node with the steered configuration, Section 1.2 of the documentation,  is
@@ -36,7 +36,7 @@ namespace mt::solver::tree {
 		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
 		*/
 		// todo spiegare bene comportamento
-		virtual std::pair<const Node*, bool> extendDeterministic(const NodeState& target) = 0;
+		virtual std::pair<Node*, bool> extendDeterministic(const NodeState& target) = 0;
 
 		virtual const Nodes& getNodes() const = 0;
 
