@@ -14,10 +14,10 @@ namespace mt::qpar {
         std::size_t thId = 0;
         auto loop = [this, thId]() {
             while (this->life) {
-                std::lock_guard<std::mutex> jobLock(this->jobs[thId].mtx);
-                if (nullptr != this->jobs[thId].job) {
-                    (*this->jobs[thId].job.get())();
-                    this->jobs[thId].job.reset();
+                std::lock_guard<std::mutex> jobLock(this->jobs[thId]->mtx);
+                if (nullptr != this->jobs[thId]->job) {
+                    (*this->jobs[thId]->job.get())();
+                    this->jobs[thId]->job.reset();
                 }
             }
         };
@@ -25,7 +25,7 @@ namespace mt::qpar {
         this->jobs.reserve(size);
         this->threads.reserve(size);
         for (std::size_t k = 0; k < size; ++k) {
-            this->jobs.emplace_back();
+            this->jobs.emplace_back(std::make_unique<JobInfo>());
             this->threads.emplace_back(loop);
             ++thId;
         }
@@ -49,16 +49,16 @@ namespace mt::qpar {
 
     void Pool::addJob(const std::vector<Job>& jobs) {
         for (std::size_t k = 0; k < this->threads.size(); ++k) {
-            std::lock_guard<std::mutex> jobLock(this->jobs[k].mtx);
-            this->jobs[k].job = std::make_unique<Job>(jobs[k]);
+            std::lock_guard<std::mutex> jobLock(this->jobs[k]->mtx);
+            this->jobs[k]->job = std::make_unique<Job>(jobs[k]);
         }
     }
 
     void Pool::wait() {
         for (auto it = this->jobs.begin(); it != this->jobs.end(); ++it) {
             while (true) {
-                std::lock_guard<std::mutex> jobLock(it->mtx);
-                if (nullptr == it->job) {
+                std::lock_guard<std::mutex> jobLock((*it)->mtx);
+                if (nullptr == (*it)->job) {
                     break;
                 }
             }

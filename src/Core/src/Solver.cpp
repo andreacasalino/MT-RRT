@@ -11,7 +11,7 @@
 namespace mt {
 	Solver::Solver(ProblemPtr problemDescription) {
 		if (nullptr == problemDescription) {
-			throw Error("problem description can't be nullptr");
+			throw Error("problem description can't be null");
 		}
 		this->problemcopies.reserve(1);
 		this->problemcopies.emplace_back(std::move(problemDescription));
@@ -50,13 +50,15 @@ namespace mt {
 		if (0 == threads) {
 			throw Error("number of threads should be at least 1");
 		}
-		if (this->problemcopies.capacity() < threads) {
+		if (threads <= this->problemcopies.size()) {
+			this->problemcopies.resize(threads);
+		}
+		else {
 			this->problemcopies.reserve(threads);
-			while (threads != this->problemcopies.size()) {
+			while (this->problemcopies.size() < threads) {
 				this->problemcopies.emplace_back(this->problemcopies.front()->copy());
 			}
 		}
-		this->problemcopies.resize(threads);
 	}
 
 	void Solver::setDeterminism(const double& coeff) {
@@ -80,7 +82,7 @@ namespace mt {
 
 	void Solver::setCumulateOption(const bool& val) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
-		this->parameters.Cumulate_sol = true;
+		this->parameters.Cumulate_sol = val;
 	}
 
 	std::size_t Solver::getLastIterations() const {

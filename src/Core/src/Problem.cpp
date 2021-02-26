@@ -15,7 +15,7 @@ namespace mt {
         : stateSpaceSize(stateSpaceSize)
         , gamma(gamma)
         , simmetry(simmetry) {
-        if (0 == this->stateSpaceSize) throw Error("invalid zero state space size");
+        if (this->stateSpaceSize <= 1) throw Error("invalid state space size");
         if (nullptr == sampler) throw Error("found null sampler");
         this->sampler = std::move(sampler);
         if (nullptr == checker) throw Error("found null checker");

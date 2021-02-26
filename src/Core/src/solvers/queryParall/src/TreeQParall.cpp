@@ -41,6 +41,7 @@ namespace mt::qpar {
             else {
                 this->cursor = this->nodes.end();
             }
+            return *this;
         };
 
         inline const mt::Nodes::const_iterator& get() { return this->cursor; };
@@ -64,12 +65,12 @@ namespace mt::qpar {
         auto job = [this, &state, id, &results]() {
             Incrementer inc(this->nodes, id, this->problems.size());
             if (inc.get() == this->nodes.end()) return;
-            results[id].cost = this->problem.cost2Go(inc.get()->get()->getState(), state, true);
+            results[id].cost = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
             results[id].node = inc.get()->get();
             float temp;
             ++inc;
             while (inc.get() != this->nodes.end()) {
-                temp = this->problem.cost2Go(inc.get()->get()->getState(), state, true);
+                temp = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
                 if (temp < results[id].cost) {
                     results[id].cost = temp;
                     results[id].node = inc.get()->get();
@@ -109,7 +110,7 @@ namespace mt::qpar {
             Incrementer inc(this->nodes, id, this->problems.size());
             float dist_att;
             while (inc.get() != this->nodes.end()) {
-                dist_att = this->problem.cost2Go(inc.get()->get()->getState(), node.getState(), true);
+                dist_att = this->problems[id]->cost2Go(inc.get()->get()->getState(), node.getState(), true);
                 if (dist_att <= ray) {
                     results[id].emplace(inc.get()->get());
                 }
@@ -121,7 +122,9 @@ namespace mt::qpar {
         std::set<Node*> nearSet = *it;
         ++it;
         for (it; it != results.end(); ++it) {
-            nearSet.emplace(*it);
+            for (auto itt = it->begin(); itt != it->end(); ++itt) {
+                nearSet.emplace(*itt);
+            }
         }
         return nearSet;
     }

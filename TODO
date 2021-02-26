@@ -7,3 +7,5 @@ che fare con DISPLAY_ITERATIONS?
 replace rand with thread safe rand everywhere
 quando calcolo rewird devo eseguirlo per il pivot o no?
 flag per usare seed deterministico o random
+mettere documentazione latex
+ricontrollare bene funzione che fa i rewirds

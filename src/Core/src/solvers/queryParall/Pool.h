@@ -32,9 +32,10 @@ namespace mt::qpar {
 			std::mutex mtx;
 			JobPtr job;
 		};
+		typedef std::unique_ptr<JobInfo> JobInfoPtr;
 
 		std::atomic_bool life = false;
-		std::vector<JobInfo> jobs;
+		std::vector<JobInfoPtr> jobs;
 		std::vector<std::thread> threads;
 	};
 }

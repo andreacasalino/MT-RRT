@@ -41,7 +41,7 @@ namespace mt {
 		* @param[in] start the staring state of the problem to solve
 		* @param[in] end   the ending state of the problem to solve
 		*/
-		void solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy = Single, const MTStrategy& mtStrategy = Serial);
+		void solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy, const MTStrategy& mtStrategy);
 
 
 
