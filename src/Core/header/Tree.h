@@ -47,6 +47,8 @@ namespace mt {
     };
 
     typedef std::unique_ptr<Tree> TreePtr;
+
+	typedef std::unique_ptr<const Tree> TreePtrConst;
 }
 
 #endif

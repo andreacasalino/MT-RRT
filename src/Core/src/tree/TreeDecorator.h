@@ -21,6 +21,14 @@ namespace mt {
 
 		inline Problem& getProblem() override { return this->wrapped->getProblem(); }
 
+		inline Tree* get() { return this->wrapped.get(); };
+		inline const Tree* get() const { return this->wrapped.get(); };
+
+		template<typename TreeType>
+		inline const TreeType* get() const { return dynamic_cast<const TreeType*>(this->wrapped.get()); }
+		template<typename TreeType>
+		inline TreeType* get() { return dynamic_cast<TreeType*>(this->wrapped.get()); }
+
 	protected:
 		TreeDecorator(TreePtr wrapped);
 

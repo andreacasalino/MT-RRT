@@ -66,7 +66,7 @@ namespace mt {
 		std::vector<NodeState>					getLastSolution() const;
 
 		// moved
-		std::vector<TreePtr>					getLastTrees();
+		std::vector<TreePtrConst>				getLastTrees();
 
 	private:
 		struct SolutionInfo {

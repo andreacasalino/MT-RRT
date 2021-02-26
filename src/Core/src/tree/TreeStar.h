@@ -5,15 +5,16 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SERIAL_TREE_H
-#define MT_RRT_SERIAL_TREE_H
+#ifndef MT_RRT_TREE_STAR_H
+#define MT_RRT_TREE_STAR_H
 
 #include <TreeConcrete.h>
+#include <TreeDecorator.h>
 
-namespace mt::serial {
-	class TreeStar : public TreeConcrete {
+namespace mt {
+	class TreeStar : public TreeDecorator {
 	public:
-		TreeStar(Problem& problem, NodePtr root);
+		TreeStar(std::unique_ptr<TreeConcrete> wrapped);
 
 		Node* extendRandom() override;
 

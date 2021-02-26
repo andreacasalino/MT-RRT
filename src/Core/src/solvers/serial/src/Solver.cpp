@@ -8,7 +8,7 @@
 #include <Solver.h>
 #include <ExtenderSingle.h>
 #include <ExtenderBidir.h>
-#include "../Tree.h"
+#include <TreeStar.h>
 
 namespace mt {
     std::unique_ptr<Solver::SolutionInfo> Solver::solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
@@ -29,7 +29,9 @@ namespace mt {
             sol->solution = ext.computeBestSolutionSequence();
         }
         else {
-            sol->trees.emplace_back(std::make_unique<serial::TreeStar>(*this->problemcopies[0], std::make_unique<Node>(start)));
+            sol->trees.emplace_back(std::make_unique<TreeStar>(
+                std::make_unique<TreeConcrete>(*this->problemcopies[0], std::make_unique<Node>(start))
+                ));
             ExtSingle ext(this->parameters.Cumulate_sol, this->parameters.Deterministic_coefficient, *sol->trees.front(), end);
             ext.extend(this->parameters.Iterations_Max);
             sol->iterations = ext.getIterationsDone();

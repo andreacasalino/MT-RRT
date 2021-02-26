@@ -9,20 +9,51 @@
 #define MT_RRT_QPAR_TREE_H
 
 #include <TreeConcrete.h>
+#include <thread>
+#include <functional>
+#include <mutex>
+#include <atomic>
 
 namespace mt::qpar {
-	class Tree : public mt::TreeConcrete {
+	class Pool {
 	public:
-		Tree(Problem& problem, NodePtr root);
+		Pool() = default;
+	   ~Pool();
 
-		Node* extendRandom() override;
+		void open(const std::size_t& size);
+		void close();
 
-		std::pair<Node*, bool> extendDeterministic(const NodeState& target) override;
+		typedef std::function<void(void)> Job;
+		void addJob(const Job& job, const std::size_t& thId);
+		void wait();
+
+	private:
+		typedef std::unique_ptr<Job> JobPtr;
+		struct JobInfo {
+			std::mutex mtx;
+			JobPtr job;
+		};
+
+		std::atomic_bool life = false;
+		std::vector<JobInfo> jobs;
+		std::vector<std::thread> threads;
 	};
 
-	class TreeStar : public mt::qpar::Tree {
+	class Tree : public TreeConcrete {
 	public:
-		TreeStar(Problem& problem, NodePtr root);
+		Tree(const std::vector<ProblemPtr>& problems, NodePtr root);
+		Tree(const Tree& o, NodePtr root);
+
+		inline void open() { this->pool->open(this->problems.size()); };
+		inline void close() { this->pool->close(); };
+
+	private:
+		Node* nearestNeighbour(const NodeState& state) const override;
+
+		std::set<Node*> nearSet(Node& node) const override;
+
+		std::vector<Problem*> problems;
+		std::shared_ptr<Pool> pool;
 	};
 }
 
