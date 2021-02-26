@@ -37,9 +37,9 @@ namespace mt {
 			else  this->tree.extendRandom();
 
 			++this->iterationsDone;
-#ifdef DISPLAY_ITERATIONS
-			cout << "iteration " << this->Iterations_done << endl;
-#endif // _DISPLAY_ITERATIONS
+#ifdef SHOW_PROGRESS
+			ProgressPrinter::show(this->iterationsDone);
+#endif
 
 			if (!this->cumulateSolutions && newSolFound) break;
 		}

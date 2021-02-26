@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/TreeStar.h"
+#include "../Tree.h"
 
 namespace mt::serial {
     TreeStar::TreeStar(Problem& problem, NodePtr root)

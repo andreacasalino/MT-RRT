@@ -7,6 +7,10 @@
 
 #include <Extender.h>
 
+#include <iostream>
+#ifdef SHOW_PROGRESS
+#endif
+
 namespace mt {
     std::vector<NodeState> convert(const std::list<const NodeState*> nodes) {
         std::vector<NodeState> result;
@@ -16,4 +20,13 @@ namespace mt {
         }
         return result;
     }
+
+#ifdef SHOW_PROGRESS
+    std::mutex ProgressPrinter::coutMtx;
+
+    void ProgressPrinter::show(const std::size_t& iter) {
+        std::lock_guard<std::mutex> coutLock(coutMtx);
+        std::cout << "iteration: " << iter << std::endl;
+    }
+#endif
 }

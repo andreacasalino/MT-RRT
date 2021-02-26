@@ -8,7 +8,7 @@
 #include <Solver.h>
 #include <ExtenderSingle.h>
 #include <ExtenderBidir.h>
-#include "header/TreeStar.h"
+#include "../Tree.h"
 
 namespace mt {
     std::unique_ptr<Solver::SolutionInfo> Solver::solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {

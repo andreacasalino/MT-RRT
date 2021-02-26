@@ -11,6 +11,10 @@
 #include <Tree.h>
 #include <set>
 
+#ifdef SHOW_PROGRESS
+#include <mutex>
+#endif
+
 namespace mt {
 	template<typename Solution>
 	class Extender {
@@ -67,6 +71,16 @@ namespace mt {
 	};
 
 	std::vector<NodeState> convert(const std::list<const NodeState*> nodes);
+
+#ifdef SHOW_PROGRESS
+	class ProgressPrinter {
+	public:
+		static void show(const std::size_t& iter);
+
+	private:
+		static std::mutex coutMtx;
+	};
+#endif
 }
 
 #endif

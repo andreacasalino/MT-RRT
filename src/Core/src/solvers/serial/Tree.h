@@ -5,8 +5,8 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_TREE_STAR_H
-#define MT_RRT_TREE_STAR_H
+#ifndef MT_RRT_SERIAL_TREE_H
+#define MT_RRT_SERIAL_TREE_H
 
 #include <TreeConcrete.h>
 

@@ -23,8 +23,8 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header>
         $<INSTALL_INTERFACE:header>
 	PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn/header>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree/header>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree>
 )
 
 find_package(Threads)
@@ -36,7 +36,7 @@ target_link_libraries(${PROJECT_NAME}
 		OpenMP::OpenMP_CXX
 )
 
-if(THREAD_POOL_OPT)
+if(SHOW_PROGRESS_OPT)
 	target_compile_definitions(${PROJECT_NAME}
 	PRIVATE
 		SHOW_PROGRESS
