@@ -8,11 +8,11 @@
 #ifndef MT_RRT_PROBLEM_H
 #define MT_RRT_PROBLEM_H
 
-#include <problem/Sampler.h>
-#include <problem/Trajectory.h>
-#include <problem/Checker.h>
+#include <Sampler.h>
+#include <Trajectory.h>
+#include <Checker.h>
 
-namespace mt::problem {
+namespace mt {
 	/** \brief Interface for the class describing the particular planning problem to solve. 
 	\details It is crucial for addressing step A of the pipeline presented in Section 1.3 of the documentation.
 	*/
@@ -87,7 +87,7 @@ namespace mt::problem {
 		CheckerPtr checker;
 	};
 
-	typedef std::unique_ptr<problem::Problem> ProblemPtr;
+	typedef std::unique_ptr<Problem> ProblemPtr;
 }
 
 #endif

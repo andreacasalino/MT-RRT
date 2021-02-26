@@ -8,9 +8,9 @@
 #ifndef MT_RRT_PROBLEM_EUCLIDEAN_H
 #define MT_RRT_PROBLEM_EUCLIDEAN_H
 
-#include <problem/Problem.h>
+#include <Problem.h>
 
-namespace mt::problem {
+namespace mt {
     class ProblemEuclidean : public Problem {
     public:
         float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) override;

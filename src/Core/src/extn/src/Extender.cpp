@@ -7,7 +7,7 @@
 
 #include <Extender.h>
 
-namespace mt::solver::extn {
+namespace mt {
     std::vector<NodeState> convert(const std::list<const NodeState*> nodes) {
         std::vector<NodeState> result;
         result.reserve(nodes.size());

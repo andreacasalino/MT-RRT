@@ -10,7 +10,7 @@
 #include <time.h>
 #include <random>
 
-namespace mt::problem {
+namespace mt {
     NodeState computeDelta(const NodeState lowerCorner, const NodeState upperCorner) {
         NodeState delta = upperCorner;
         for (std::size_t k = 0; k < lowerCorner.size(); ++k) {

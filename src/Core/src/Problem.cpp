@@ -5,12 +5,12 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <problem/Problem.h>
-#include <problem/Sampler.h>
-#include <problem/Trajectory.h>
+#include <Problem.h>
+#include <Sampler.h>
+#include <Trajectory.h>
 #include <Error.h>
 
-namespace mt::problem {
+namespace mt {
     Problem::Problem(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry)
         : stateSpaceSize(stateSpaceSize)
         , gamma(gamma)

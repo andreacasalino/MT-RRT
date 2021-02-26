@@ -5,10 +5,10 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <problem/Trajectory.h>
+#include <Trajectory.h>
 #include <limits>
 
-namespace mt::problem {
+namespace mt {
     const float Trajectory::COST_MAX = std::numeric_limits<float>::max();
 
     Trajectory::Trajectory(const NodeState& start, const NodeState& target)

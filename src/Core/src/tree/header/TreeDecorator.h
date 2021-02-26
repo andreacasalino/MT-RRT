@@ -8,10 +8,10 @@
 #ifndef MT_RRT_TREE_DECORATOR_H
 #define MT_RRT_TREE_DECORATOR_H
 
-#include <solver/Tree.h>
+#include <Tree.h>
 
-namespace mt::solver::tree {
-	class TreeDecorator : public tree::Tree {
+namespace mt {
+	class TreeDecorator : public Tree {
 	public:
 		inline Node* extendRandom() override { return this->wrapped->extendRandom(); };
 
@@ -19,7 +19,7 @@ namespace mt::solver::tree {
 
 		inline const Nodes& getNodes() const override { return this->wrapped->getNodes(); };
 
-		inline problem::Problem& getProblem() override { return this->wrapped->getProblem(); }
+		inline Problem& getProblem() override { return this->wrapped->getProblem(); }
 
 	protected:
 		TreeDecorator(TreePtr wrapped);

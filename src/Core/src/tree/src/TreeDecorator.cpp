@@ -8,7 +8,7 @@
 #include <TreeDecorator.h>
 #include <Error.h>
 
-namespace mt::solver::tree {
+namespace mt {
     TreeDecorator::TreeDecorator(TreePtr wrapped) {
         if (nullptr == wrapped) {
             throw Error("TreeDecorator can't wrap nullptr");

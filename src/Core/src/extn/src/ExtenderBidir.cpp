@@ -8,12 +8,12 @@
 #include <ExtenderBidir.h>
 #include <Error.h>
 
-namespace mt::solver::extn {
+namespace mt {
 	inline bool operator==(const BidirSolution& a, const BidirSolution& b) {
 		return (std::get<0>(a) == std::get<0>(b)) && (std::get<1>(a) == std::get<1>(b));
 	};
 
-    Bidir::Bidir(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& leftTree, tree::Tree& rightTree)
+    ExtBidir::ExtBidir(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& leftTree, Tree& rightTree)
         : Extender<BidirSolution>(cumulateSolutions, deterministicCoefficient)
         , leftTree(leftTree)
         , rightTree(rightTree) {
@@ -21,7 +21,7 @@ namespace mt::solver::extn {
 
 	class BidirSolutionFactory {
 	public:
-		BidirSolutionFactory(problem::Problem& problem) 
+		BidirSolutionFactory(Problem& problem) 
 			: problem(problem) {
 		};
 
@@ -34,14 +34,14 @@ namespace mt::solver::extn {
 		};
 
 	private:
-		problem::Problem& problem;
+		Problem& problem;
 	};
 
-    void Bidir::extend(const size_t& Iterations) {
+    void ExtBidir::extend(const size_t& Iterations) {
 		bool newSolFound = false;
 		bool caso = true;
-		tree::Tree* Master = &this->leftTree;
-		tree::Tree* Slave = &this->rightTree;
+		Tree* Master = &this->leftTree;
+		Tree* Slave = &this->rightTree;
 		BidirSolutionFactory solFactory(this->leftTree.getProblem());
 
 		auto add2Solutions = [this, &newSolFound, &solFactory](const Node* a, const Node* b, const bool& caso) {
@@ -100,7 +100,7 @@ namespace mt::solver::extn {
 		}
     }
 
-	std::vector<NodeState> Bidir::computeSolutionSequence(const BidirSolution& sol) const {
+	std::vector<NodeState> ExtBidir::computeSolutionSequence(const BidirSolution& sol) const {
 		std::list<const NodeState*> states;
 		const Node* cursor =std::get<0>(sol);
 		while (nullptr != cursor) {

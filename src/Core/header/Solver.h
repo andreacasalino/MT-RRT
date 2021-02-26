@@ -8,11 +8,11 @@
 #ifndef MT_RRT_SOLVER_H
 #define MT_RRT_SOLVER_H
 
-#include <problem/Problem.h>
-#include <solver/Tree.h>
+#include <Problem.h>
+#include <Tree.h>
 #include <mutex>
 
-namespace mt::solver {
+namespace mt {
 	/** \brief Interface for a planner.
 	\details For solving a planning problem you must first build the solver, using 
 	I_Planner::Get_canonical, I_Planner::Get_query___parall, I_Planner::Get_shared__parall, I_Planner::Get_copied__parall or I_Planner::Get_multi_ag_parall. 
@@ -28,9 +28,9 @@ namespace mt::solver {
 		Solver(const Solver&) = delete;
 		Solver& operator=(const Solver&) = delete;
 
-		Solver(problem::ProblemPtr problemDescription);
+		Solver(ProblemPtr problemDescription);
 
-		enum Strategy { Serial, MtQueryParall, MtSharedTree, MtCopiedTrees, MtMultiAgent };
+		enum MTStrategy { Serial, MtQueryParall, MtSharedTree, MtCopiedTrees, MtMultiAgent };
 
 		enum RRTStrategy { Single, Bidir, Star };
 
@@ -41,27 +41,7 @@ namespace mt::solver {
 		* @param[in] start the staring state of the problem to solve
 		* @param[in] end   the ending state of the problem to solve
 		*/
-		void RRTSingle(const NodeState& start, const NodeState& end, const Strategy& strategy = Serial);
-
-		/** \brief Tries to solve the problem by executing the bidirectional RRT version (Section 1.2.2 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
-		step C of the pipeline presented in Section 1.3 of the documentation.
-		\details The solution found is internally stored, as well as the computed searching trees.
-		The data about the solutions of any previous problem solved are deleted.
-		This planning strategy cannot be adopted for non symmetric problem, see also Node::I_Node_factory::Get_symm_flag
-		* @param[in] start the staring state of the problem to solve
-		* @param[in] end   the ending state of the problem to solve
-		*/
-		void RRTConnect(const NodeState& start, const NodeState& end, const Strategy& strategy = Serial);
-
-		/** \brief Tries to solve the problem by executing the RRT* version (Section 1.2.3 and the Sections contained in Chapter 3 of the documentation) of the solver represented by this object,
-		step C of the pipeline presented in Section 1.3 of the documentation.
-		\details The solution found is internally stored, as well as the computed searching trees.
-		The data about the solutions of any previous problem solved are deleted. When invoking this function
-		the cumulation of the solutions is aitomatically enabled.
-		* @param[in] start the staring state of the problem to solve
-		* @param[in] end   the ending state of the problem to solve
-		*/
-		void RRTStar(const NodeState& start, const NodeState& end, const Strategy& strategy = Serial);
+		void solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy = Single, const MTStrategy& mtStrategy = Serial);
 
 
 
@@ -86,13 +66,13 @@ namespace mt::solver {
 		std::vector<NodeState>					getLastSolution() const;
 
 		// moved
-		std::vector<tree::TreePtr>					getLastTrees();
+		std::vector<TreePtr>					getLastTrees();
 
 	private:
 		struct SolutionInfo {
 			std::size_t						iterations;
 			std::vector<NodeState>			solution;
-			std::vector<tree::TreePtr>		trees;
+			std::vector<TreePtr>			trees;
 		};
 
 		struct Parameters {
@@ -101,19 +81,19 @@ namespace mt::solver {
 			bool											Cumulate_sol = false;
 		};
 
-		std::unique_ptr<SolutionInfo> serialStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> queryParallStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> sharedTreeStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> solveSharedTree(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> copiedTreesStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> solveCopiedTrees(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> multiAgentStrategy(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
+		std::unique_ptr<SolutionInfo> solveMultiAgent(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
 	// data
 		mutable std::mutex								dataMtx;
-		std::vector<problem::ProblemPtr>				problemcopies;
+		std::vector<ProblemPtr>							problemcopies;
 		Parameters										parameters;
 
 		std::unique_ptr<SolutionInfo>					lastSolution = nullptr;

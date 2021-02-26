@@ -11,7 +11,7 @@
 #include <Node.h>
 #include <memory>
 
-namespace mt::problem {
+namespace mt {
     class Checker {
     public:
         virtual	~Checker() = default;

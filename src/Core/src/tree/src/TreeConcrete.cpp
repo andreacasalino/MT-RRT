@@ -8,8 +8,8 @@
 #include <TreeConcrete.h>
 #include <Error.h>
 
-namespace mt::solver::tree {
-    TreeConcrete::TreeConcrete(problem::Problem& problem, NodePtr root)
+namespace mt {
+    TreeConcrete::TreeConcrete(Problem& problem, NodePtr root)
         : problem(problem) {
         if (nullptr == root) {
             throw Error("null root is impossible for TreeConcrete");
@@ -88,11 +88,11 @@ namespace mt::solver::tree {
 		}
 
 		std::list<float> costs2RootNear_set;
-		float cost2RootMin = mt::problem::Trajectory::COST_MAX, costAtt;
+		float cost2RootMin = mt::Trajectory::COST_MAX, costAtt;
 		std::list<TreeConcrete::Rewird>::iterator best_traj = rewirds.end();
 		for (auto itN = Near_set.begin(); itN != Near_set.end(); ++itN) {
 			rewirds.emplace_front(**itN, pivot, this->problem.cost2Go((*itN)->getState(), pivot.getState(), false));
-			if (rewirds.back().newCostFromFather == mt::problem::Trajectory::COST_MAX) {
+			if (rewirds.back().newCostFromFather == mt::Trajectory::COST_MAX) {
 				rewirds.pop_back();
 			}
 			else {
@@ -130,7 +130,7 @@ namespace mt::solver::tree {
 				if (!this->problem.isProblemSimmetric()) {
 					it_traj->newCostFromFather = this->problem.cost2Go(it_traj->newFather.getState(), it_traj->involved.getState(), false);
 				}
-				if (it_traj->newCostFromFather == mt::problem::Trajectory::COST_MAX) {
+				if (it_traj->newCostFromFather == mt::Trajectory::COST_MAX) {
 					it_traj = rewirds.erase(it_traj);
 					it_cost2Root = costs2RootNear_set.erase(it_cost2Root);
 				}

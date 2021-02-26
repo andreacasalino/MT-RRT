@@ -7,8 +7,8 @@
 
 #include "../header/TreeStar.h"
 
-namespace mt::solver::tree {
-    TreeStar::TreeStar(problem::Problem& problem, NodePtr root)
+namespace mt::serial {
+    TreeStar::TreeStar(Problem& problem, NodePtr root)
         : TreeConcrete(problem, std::move(root)) {
     }
 

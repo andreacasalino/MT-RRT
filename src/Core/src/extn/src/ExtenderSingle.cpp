@@ -7,14 +7,14 @@
 
 #include <ExtenderSingle.h>
 
-namespace mt::solver::extn {
-    Single::Single(const bool& cumulateSolutions, const double& deterministicCoefficient, tree::Tree& tree, const NodeState& target)
+namespace mt {
+    ExtSingle::ExtSingle(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& tree, const NodeState& target)
         : Extender<SingleSolution>(cumulateSolutions, deterministicCoefficient)
         , tree(tree)
         , target(target) {
     }
 
-    void Single::extend(const size_t& Iterations) {
+    void ExtSingle::extend(const size_t& Iterations) {
 		bool newSolFound = false;
 		for (size_t k = 0; k < Iterations; ++k) {
 			if (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) < this->deterministicCoefficient) {
@@ -45,7 +45,7 @@ namespace mt::solver::extn {
 		}
     }
 
-	std::vector<NodeState> Single::computeSolutionSequence(const SingleSolution& sol) const {
+	std::vector<NodeState> ExtSingle::computeSolutionSequence(const SingleSolution& sol) const {
 		std::list<const NodeState*> states;
 		const Node* cursor = sol.first;
 		while (nullptr != cursor) {

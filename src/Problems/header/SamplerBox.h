@@ -8,9 +8,9 @@
 #ifndef MT_RRT_SAMPLER_BOX_H
 #define MT_RRT_SAMPLER_BOX_H
 
-#include <problem/Sampler.h>
+#include <Sampler.h>
 
-namespace mt::problem {
+namespace mt {
 	class SamplerBox : public Sampler {
     public:
         SamplerBox(const NodeState lowerCorner, const NodeState upperCorner, const unsigned int& seed = 0);

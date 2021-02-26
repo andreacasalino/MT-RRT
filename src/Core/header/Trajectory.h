@@ -10,7 +10,7 @@
 
 #include <Node.h>
 
-namespace mt::problem {
+namespace mt {
     class Trajectory {
     public:
         static const float COST_MAX;

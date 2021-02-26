@@ -1,3 +1,5 @@
+option(SHOW_PROGRESS_OPT "show extension progresses enabled (ON) or disabled (OFF)" OFF)
+
 set(PROJECT_SHORTNAME "MT-RRT-Core")
 project(${PROJECT_SHORTNAME} VERSION ${VERSION} LANGUAGES CXX)
 
@@ -33,3 +35,10 @@ target_link_libraries(${PROJECT_NAME}
 	PRIVATE 
 		OpenMP::OpenMP_CXX
 )
+
+if(THREAD_POOL_OPT)
+	target_compile_definitions(${PROJECT_NAME}
+	PRIVATE
+		SHOW_PROGRESS
+	)
+endif()

@@ -8,10 +8,10 @@
 #ifndef MT_RRT_EXTENDER_H
 #define MT_RRT_EXTENDER_H
 
-#include <solver/Tree.h>
+#include <Tree.h>
 #include <set>
 
-namespace mt::solver::extn {
+namespace mt {
 	template<typename Solution>
 	class Extender {
 	public:

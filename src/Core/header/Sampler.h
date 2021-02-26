@@ -10,7 +10,7 @@
 
 #include <Node.h>
 
-namespace mt::problem {
+namespace mt {
 	class Sampler {
 	public:
 		virtual	~Sampler() = default;

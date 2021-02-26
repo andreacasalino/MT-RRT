@@ -10,10 +10,10 @@
 
 #include <TreeConcrete.h>
 
-namespace mt::solver::tree {
+namespace mt::serial {
 	class TreeStar : public TreeConcrete {
 	public:
-		TreeStar(problem::Problem& problem, NodePtr root);
+		TreeStar(Problem& problem, NodePtr root);
 
 		Node* extendRandom() override;
 

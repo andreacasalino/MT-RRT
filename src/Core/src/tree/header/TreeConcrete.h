@@ -8,13 +8,13 @@
 #ifndef MT_RRT_TREE_CONCRETE_H
 #define MT_RRT_TREE_CONCRETE_H
 
-#include <solver/Tree.h>
+#include <Tree.h>
 #include <set>
 
-namespace mt::solver::tree {
-	class TreeConcrete : public tree::Tree {
+namespace mt {
+	class TreeConcrete : public Tree {
 	public:
-		TreeConcrete(problem::Problem& problem, NodePtr root);
+		TreeConcrete(Problem& problem, NodePtr root);
 
 		Node* extendRandom() override;
 
@@ -22,7 +22,7 @@ namespace mt::solver::tree {
 
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
-		inline problem::Problem& getProblem() override { return this->problem; }
+		inline Problem& getProblem() override { return this->problem; }
 
 		struct Rewird {
 			Rewird(Node& involved, Node& newFather, const float& newCostFromFather);
@@ -38,7 +38,7 @@ namespace mt::solver::tree {
 
 		virtual std::set<Node*> nearSet(Node& node) const;
 
-		problem::Problem& problem;
+		Problem& problem;
 
 	private:
 		Nodes nodes;

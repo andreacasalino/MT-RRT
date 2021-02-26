@@ -8,7 +8,7 @@
 #include <ProblemEuclidean.h>
 #include <math.h>
 
-namespace mt::problem {
+namespace mt {
     float squaredDistance(const NodeState& start, const NodeState& ending_node) {
         float distance = 0.f;
         for (std::size_t p = 0; p < start.size(); ++p) {

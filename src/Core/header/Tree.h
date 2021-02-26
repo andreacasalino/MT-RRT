@@ -8,11 +8,11 @@
 #ifndef MT_RRT_TREE_H
 #define MT_RRT_TREE_H
 
-#include <problem/Problem.h>
+#include <Problem.h>
 #include <list>
 #include <utility>
 
-namespace mt::solver::tree {
+namespace mt {
 	typedef std::list<NodePtr> Nodes;
 
     class Tree {
@@ -40,7 +40,7 @@ namespace mt::solver::tree {
 
 		virtual const Nodes& getNodes() const = 0;
 
-		virtual problem::Problem& getProblem() = 0;
+		virtual Problem& getProblem() = 0;
 
 	protected:
 		Tree() = default;
