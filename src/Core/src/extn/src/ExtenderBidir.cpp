@@ -75,7 +75,7 @@ namespace mt {
 		};
 
 		for (size_t k = 0; k < Iterations; k += 2) {
-			if (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) < this->deterministicCoefficient) {
+			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = Master->extendDeterministic(Slave->getNodes().front()->getState());
 				if (temp.second) {
 					add2Solutions(temp.first, Slave->getNodes().front().get(), caso);

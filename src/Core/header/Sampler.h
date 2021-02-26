@@ -9,6 +9,7 @@
 #define MT_RRT_SAMPLER_H
 
 #include <Node.h>
+#include <random>
 
 namespace mt {
 	class Sampler {
@@ -24,6 +25,18 @@ namespace mt {
 	};
 
     typedef std::unique_ptr<Sampler> SamplerPtr;
+
+    class UniformRandomEngine {
+    public:
+        UniformRandomEngine(const float& l, const float& U);
+        UniformRandomEngine(); //[0,1]
+
+        inline float operator()() const { return this->distribution(this->generator); };
+
+    private:
+        mutable std::default_random_engine generator;
+        mutable std::uniform_real_distribution<float> distribution;
+    };
 }
 
 #endif

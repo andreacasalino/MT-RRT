@@ -21,6 +21,7 @@ namespace mt {
 
     private:
     // data
+        UniformRandomEngine engine;
         const NodeState lowerLimits;
         const NodeState deltaLimits;
         unsigned int seed;

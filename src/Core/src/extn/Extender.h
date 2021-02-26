@@ -9,6 +9,7 @@
 #define MT_RRT_EXTENDER_H
 
 #include <Tree.h>
+#include <Sampler.h>
 #include <set>
 
 #ifdef SHOW_PROGRESS
@@ -64,6 +65,7 @@ namespace mt {
 		virtual std::vector<NodeState> computeSolutionSequence(const Solution& sol) const = 0;
 
 	// data
+		UniformRandomEngine randEngine;
 		const bool			cumulateSolutions;
 		const double		deterministicCoefficient;
 		size_t				iterationsDone = 0;

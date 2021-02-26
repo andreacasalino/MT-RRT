@@ -38,7 +38,7 @@ namespace mt {
         NodeState randState = this->lowerLimits;
         throw Error("replace rand with something thread safe");
         for (std::size_t k = 0; k < this->deltaLimits.size(); ++k) {
-            randState[k] += this->deltaLimits[k] * static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            randState[k] += this->deltaLimits[k] * this->engine();
         }
         return randState;
     }

@@ -6,6 +6,7 @@
  **/
 
 #include <ExtenderSingle.h>
+#include <random>
 
 namespace mt {
     ExtSingle::ExtSingle(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& tree, const NodeState& target)
@@ -17,7 +18,7 @@ namespace mt {
     void ExtSingle::extend(const size_t& Iterations) {
 		bool newSolFound = false;
 		for (size_t k = 0; k < Iterations; ++k) {
-			if (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) < this->deterministicCoefficient) {
+			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = this->tree.extendDeterministic(this->target);
 				if (temp.second) {
 					// check this solution was not already found
