@@ -8,7 +8,7 @@
 #include <Solver.h>
 #include <ExtenderSingle.h>
 #include <ExtenderBidir.h>
-#include "../Tree.h"
+#include "../TreeQParall.h"
 #include <TreeStar.h>
 
 namespace mt {

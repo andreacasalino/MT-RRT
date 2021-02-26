@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../Tree.h"
+#include "../Pool.h"
 
 namespace mt::qpar {
     void Pool::open(const std::size_t& size) {
@@ -22,6 +22,8 @@ namespace mt::qpar {
             }
         };
 
+        this->jobs.reserve(size);
+        this->threads.reserve(size);
         for (std::size_t k = 0; k < size; ++k) {
             this->jobs.emplace_back();
             this->threads.emplace_back(loop);
@@ -35,6 +37,8 @@ namespace mt::qpar {
         for (std::size_t k = 0; k < this->jobs.size(); ++k) {
             this->threads[k].join();
         }
+        this->jobs.clear();
+        this->threads.clear();
     }
 
     Pool::~Pool() {
@@ -43,9 +47,11 @@ namespace mt::qpar {
         }
     }
 
-    void Pool::addJob(const Job& job, const std::size_t& thId) {
-        std::lock_guard<std::mutex> jobLock(this->jobs[thId].mtx);
-        this->jobs[thId].job = std::make_unique<Job>(job);
+    void Pool::addJob(const std::vector<Job>& jobs) {
+        for (std::size_t k = 0; k < this->threads.size(); ++k) {
+            std::lock_guard<std::mutex> jobLock(this->jobs[k].mtx);
+            this->jobs[k].job = std::make_unique<Job>(jobs[k]);
+        }
     }
 
     void Pool::wait() {
@@ -58,6 +64,4 @@ namespace mt::qpar {
             }
         }
     }
-
-
 }

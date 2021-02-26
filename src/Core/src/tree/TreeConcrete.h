@@ -39,8 +39,6 @@ namespace mt {
 		virtual std::set<Node*> nearSet(Node& node) const;
 
 		Problem& problem;
-
-	private:
 		Nodes nodes;
 	};
 }

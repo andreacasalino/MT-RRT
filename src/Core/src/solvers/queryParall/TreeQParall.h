@@ -5,40 +5,13 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_QPAR_TREE_H
-#define MT_RRT_QPAR_TREE_H
+#ifndef MT_RRT_TREE_QPAR_H
+#define MT_RRT_TREE_QPAR_H
 
 #include <TreeConcrete.h>
-#include <thread>
-#include <functional>
-#include <mutex>
-#include <atomic>
+#include "Pool.h"
 
 namespace mt::qpar {
-	class Pool {
-	public:
-		Pool() = default;
-	   ~Pool();
-
-		void open(const std::size_t& size);
-		void close();
-
-		typedef std::function<void(void)> Job;
-		void addJob(const Job& job, const std::size_t& thId);
-		void wait();
-
-	private:
-		typedef std::unique_ptr<Job> JobPtr;
-		struct JobInfo {
-			std::mutex mtx;
-			JobPtr job;
-		};
-
-		std::atomic_bool life = false;
-		std::vector<JobInfo> jobs;
-		std::vector<std::thread> threads;
-	};
-
 	class Tree : public TreeConcrete {
 	public:
 		Tree(const std::vector<ProblemPtr>& problems, NodePtr root);
