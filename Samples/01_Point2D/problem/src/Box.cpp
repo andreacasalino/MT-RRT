@@ -41,35 +41,35 @@ namespace mt::sample {
 		}
 	}
 
-	bool Box::collideWithSegment(const geometry::Point& Seg_A, const geometry::Point& Seg_B) {
+	bool Box::collideWithSegment(const float* pointA, const float* pointB) {
 		float B_min, B_max;
 		//x axis
-		if (Seg_A.x() < Seg_B.x()) {
-			B_min = Seg_A.x();
-			B_max = Seg_B.x();
+		if (pointA[0] < pointB[0]) {
+			B_min = pointA[0];
+			B_max = pointB[0];
 		}
 		else {
-			B_min = Seg_B.x();
-			B_max = Seg_A.x();
+			B_min = pointB[0];
+			B_max = pointA[0];
 		}
 		if (are_they_separate(this->x_min, this->x_max, B_min, B_max))  return false;
 		//y axis
-		if (Seg_A.y() < Seg_B.y()) {
-			B_min = Seg_A.y();
-			B_max = Seg_B.y();
+		if (pointA[1] < pointB[1]) {
+			B_min = pointA[1];
+			B_max = pointB[1];
 		}
 		else {
-			B_min = Seg_B.y();
-			B_max = Seg_A.y();
+			B_min = pointB[1];
+			B_max = pointA[1];
 		}
 		if (are_they_separate(this->y_min, this->y_max, B_min, B_max)) return false;
 		// Segment direction
-		geometry::Point Dir(Seg_B);
-		Dir.x() -= Seg_A.x();
-		Dir.y() -= Seg_A.y();
+		geometry::Point Dir(pointB[0], pointB[1]);
+		Dir.x() -= pointA[0];
+		Dir.y() -= pointA[1];
 		float A_min, A_max;
-		A_min = Dir.x() * Seg_A.x() + Dir.y() * Seg_A.y();
-		A_max = Dir.x() * Seg_B.x() + Dir.y() * Seg_B.y();
+		A_min = Dir.x() * pointA[0] + Dir.y() * pointA[1];
+		A_max = Dir.x() * pointB[0] + Dir.y() * pointB[1];
 		if (A_min > A_max) {
 			B_min = A_max;
 			A_max = A_min;
@@ -82,7 +82,7 @@ namespace mt::sample {
 		A_max = Dir.x();
 		Dir.x() = -Dir.y();
 		Dir.y() = A_max;
-		A_min = Dir.x() * Seg_A.x() + Dir.y() * Seg_A.y();
+		A_min = Dir.x() * pointA[0] + Dir.y() * pointA[1];
 		this->getExtremal(B_min, B_max, Dir);
 
 		if ((A_min < B_min) || (A_min > B_max)) return false;

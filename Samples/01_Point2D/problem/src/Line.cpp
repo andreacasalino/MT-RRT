@@ -26,7 +26,10 @@ namespace mt::traj {
         auto temp = this->traj::EuclideanTraj::advance();
         bool collide = false;
         for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
-
+            if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
+                collide = true;
+                break;
+            }
         }
         if (collide) {
             std::swap(this->cursor, this->previousState);

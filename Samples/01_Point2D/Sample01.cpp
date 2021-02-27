@@ -6,8 +6,8 @@ using namespace std;
 int main() {
 	mt::Solver solver(std::make_unique<mt::sample::Point2D>(mt::sample::Box(mt::sample::geometry::Point(-0.1f, -0.1f),
 																		    mt::sample::geometry::Point(1.1f, 1.1f)),
-															mt::sample::Box::generateRandomBoxes(3, 40)));
-	solver.setMaxIterations(100);
+															mt::sample::Box::generateRandomBoxes(10, 100)));
+	solver.setMaxIterations(500);
 
 	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Bidir, mt::Solver::MTStrategy::Serial);
 

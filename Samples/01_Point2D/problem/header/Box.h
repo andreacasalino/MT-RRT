@@ -29,7 +29,7 @@ namespace mt::sample {
 		* @param[in] Seg_A the first vertex describing the segement to check for the collision
 		* @param[in] Seg_B the second vertex describing the segement to check for the collision
 		*/
-		bool collideWithSegment(const geometry::Point& pointA, const geometry::Point& pointB);
+		bool collideWithSegment(const float* pointA, const float* pointB);
 
 		/** \brief Check whether the passed point (described by the two passed coordinates) is contained in this box.
 		* @param[out] return true in case the point is contained.
