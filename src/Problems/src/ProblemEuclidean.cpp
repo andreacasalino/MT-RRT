@@ -50,7 +50,7 @@ namespace mt {
 
     ProblemEuclidean::ProblemEuclidean(SamplerPtr sampler, CheckerPtr checker, const std::size_t& stateSpaceSize, const float& gamma, const float& steerDegree)
         : Problem(std::move(sampler), std::move(checker), stateSpaceSize, gamma, true)
-        , steerDegree(abs(steerDegree)) {
+        , steerDegree(fabs(steerDegree)) {
     }
 
     TrajectoryPtr ProblemEuclidean::getTrajectory(const NodeState& start, const NodeState& trg) {

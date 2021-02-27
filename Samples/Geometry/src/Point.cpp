@@ -6,12 +6,15 @@
  **/
 
 #include "../header/Point.h"
+#include <random>
 
-namespace mt::sample {
+namespace mt::sample::geometry {
     Point::Point() {
-        this->coordinates[0] = // todo rand value
-        this->coordinates[1] = // todo rand value
-        this->coordinates[2] = // todo rand value
+        std::default_random_engine generator;
+        std::uniform_real_distribution<float> distribution(-1.f, 1.f);
+        this->coordinates[0] = distribution(generator);
+        this->coordinates[1] = distribution(generator);
+        this->coordinates[2] = distribution(generator);
     };
 
     Point::Point(const float& x, const float& y) {

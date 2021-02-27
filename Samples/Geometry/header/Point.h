@@ -8,7 +8,7 @@
 #ifndef MT_RRT_SAMPLE_POINT_H
 #define MT_RRT_SAMPLE_POINT_H
 
-namespace mt::sample {
+namespace mt::sample::geometry {
     class Point {
     public:
         Point(); // random point
@@ -30,6 +30,11 @@ namespace mt::sample {
 
     private:
         float coordinates[3];
+    };
+
+    struct Segment {
+        Point  A;
+        Point  B;
     };
 }
 
