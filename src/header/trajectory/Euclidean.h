@@ -15,18 +15,13 @@ namespace mt::traj {
     public:
         float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const override;
 
-        TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
-
     protected:
         Euclidean(const float& steerDegree);
 
-        class EuclideanTraj;
-
-    private:
         float steerDegree;
     };
 
-    class Euclidean::EuclideanTraj : public Trajectory {
+    class EuclideanTraj : public Trajectory {
     public:
         EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree);
 

@@ -21,10 +21,6 @@ namespace mt::traj {
         : steerDegree(static_cast<float>(fabs(steerDegree))) {
     }
 
-    TrajectoryPtr Euclidean::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
-        return std::make_unique<EuclideanTraj>(start, ending_node, this->steerDegree);
-    }
-
     float Euclidean::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
         float distance = squaredDistance(start, ending_node);
         if (ignoreConstraints) {
@@ -42,14 +38,14 @@ namespace mt::traj {
         return distance;
     }
 
-    Euclidean::EuclideanTraj::EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree)
+    EuclideanTraj::EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree)
         : Trajectory(start, target)
         , steerDegree(steerDegree) {
         this->cumulatedCost = 0.f;
         this->previousState = start;
     }
 
-    Trajectory::advanceInfo Euclidean::EuclideanTraj::advance() {
+    Trajectory::advanceInfo EuclideanTraj::advance() {
         float distance = squaredDistance(this->cursor, this->target);
         std::swap(this->previousState, this->cursor);
         if (distance <= this->steerDegree) {
