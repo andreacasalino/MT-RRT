@@ -1,5 +1,7 @@
-CollectSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} SOURCES)
-GroupSources(${CMAKE_CURRENT_SOURCE_DIR})
+add_subdirectory(ProblemPoint)
 
-add_executable(Sample01_Point2D ${SOURCES})
-target_link_libraries(Sample01_Point2D PUBLIC MT-RRT-Problems MT-RRT-Samples-Geometry)
+add_executable(Sample01_Point2D Sample01.cpp ${SOURCES})
+target_link_libraries(Sample01_Point2D PUBLIC MT-RRT-Samples-ProblemPoint)
+
+add_executable(Sample02_Point2D Sample02.cpp ${SOURCES})
+target_link_libraries(Sample02_Point2D PUBLIC MT-RRT-Samples-ProblemPoint)

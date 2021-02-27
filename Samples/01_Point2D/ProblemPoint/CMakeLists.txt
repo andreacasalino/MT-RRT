@@ -1,6 +1,4 @@
-option(SHOW_PROGRESS_OPT "show extension progresses enabled (ON) or disabled (OFF)" OFF)
-
-set(PROJECT_SHORTNAME "MT-RRT")
+set(PROJECT_SHORTNAME "MT-RRT-Samples-ProblemPoint")
 project(${PROJECT_SHORTNAME} VERSION ${VERSION} LANGUAGES CXX)
 
 CollectSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} SOURCES)
@@ -22,23 +20,10 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header>
         $<INSTALL_INTERFACE:header>
-	PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree>
 )
 
-find_package(Threads)
-find_package(OpenMP)
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
 	PUBLIC
-		${CMAKE_THREAD_LIBS_INIT} 
-	PRIVATE 
-		OpenMP::OpenMP_CXX
+		MT-RRT
+		MT-RRT-Samples-Geometry
 )
-
-if(SHOW_PROGRESS_OPT)
-	target_compile_definitions(${PROJECT_NAME}
-	PRIVATE
-		SHOW_PROGRESS
-	)
-endif()
