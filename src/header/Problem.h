@@ -20,6 +20,9 @@ namespace mt {
 		virtual	~Problem() = default;
 		Problem& operator=(const Problem& ) = delete;
 
+		Problem(Problem&&) = delete;
+		Problem& operator=(Problem&&) = delete;
+
 		virtual std::unique_ptr<Problem> copy() const = 0;
 
 		/** \brief Evaluates the cost C(\tau), Section 1.2.3 of the documentation, of the trajectory \tau going from the starting node to the ending one, for two nodes not already connected.

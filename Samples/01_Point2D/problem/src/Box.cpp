@@ -134,7 +134,7 @@ namespace mt::sample {
 		}
 		return Nearest;
 	}
-	std::list<Box> Box::generateRandomBoxes(const size_t& N_cl, const size_t& N_box) {
+	std::vector<Box> Box::generateRandomBoxes(const size_t& N_cl, const size_t& N_box) {
 		float aggreg_coeff = 0.7f;
 		sampling::UniformRandomEngine samplerPos(0.f , 1.f);
 		sampling::UniformRandomEngine samplerRadius(0.01f, 0.08f);
@@ -154,7 +154,8 @@ namespace mt::sample {
 		const geometry::Point* Center_nearest = nullptr;
 		float radius;
 		float angle;
-		std::list<Box> boxes;
+		std::vector<Box> boxes;
+		boxes.reserve(N_box);
 		for (size_t k = 0; k < N_boxes; k++) {
 			Center.x() = samplerPos(); Center.y() = samplerPos();
 			radius = samplerRadius();

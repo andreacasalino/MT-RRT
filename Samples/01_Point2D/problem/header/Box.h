@@ -10,6 +10,7 @@
 
 #include <Point.h>
 #include <list>
+#include <vector>
 
 namespace mt::sample {
 	/** \brief Data type describing a box like obstacle
@@ -60,7 +61,7 @@ namespace mt::sample {
 		* @param[in] N_boxes the number of boxes to generate
 		* @param[out] boxes the random set of generated boxes
 		*/
-		static std::list<Box> generateRandomBoxes(const size_t& N_cluster, const size_t& N_boxes);
+		static std::vector<Box> generateRandomBoxes(const size_t& N_cluster, const size_t& N_boxes);
 
 	private:
 		void getExtremal(float& val_x, float& val_y, const geometry::Point& direction) const;

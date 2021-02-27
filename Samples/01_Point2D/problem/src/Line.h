@@ -23,17 +23,17 @@ namespace mt::traj {
         inline std::vector<sample::Box> getObstacles() { return *this->obstacles; }
 
     private:
-        std::shared_ptr<const std::vector<sample::Box>> obstacles;
+        std::shared_ptr<std::vector<sample::Box>> obstacles;
     };
 
     class Line : public traj::EuclideanTraj {
     public:
-        Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<const std::vector<sample::Box>> obstacles);
+        Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Box>> obstacles);
 
         advanceInfo advance() override;
 
     private:
-        std::shared_ptr<const std::vector<sample::Box>> obstacles;
+        std::shared_ptr<std::vector<sample::Box>> obstacles;
     };
 }
 
