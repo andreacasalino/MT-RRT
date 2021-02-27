@@ -10,6 +10,7 @@
 
 #include <Box.h>
 #include <Problem.h>
+#include <Logger.h>
 
 namespace mt::sample {
     class Point2D : public Problem {
@@ -21,6 +22,8 @@ namespace mt::sample {
         std::vector<sample::Box> getObstacles() const;
 
         sample::Box getBoundaries() const;
+
+        void log(Logger& log) const;
     };
 }
 

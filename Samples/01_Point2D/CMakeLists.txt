@@ -2,6 +2,10 @@ add_subdirectory(problem)
 
 add_executable(Sample01_Point2D Sample01.cpp ${SOURCES})
 target_link_libraries(Sample01_Point2D PUBLIC MT-RRT-Samples-Point2D)
+add_custom_command(TARGET Sample01_Point2D PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Visualizer.py ${CMAKE_CURRENT_BINARY_DIR}/Visualizer.py)
+add_custom_command(TARGET Sample01_Point2D PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Parser.py ${CMAKE_CURRENT_BINARY_DIR}/Parser.py)
 
 add_executable(Sample02_Point2D Sample02.cpp ${SOURCES})
 target_link_libraries(Sample02_Point2D PUBLIC MT-RRT-Samples-Point2D)

@@ -1,4 +1,4 @@
-set(PROJECT_SHORTNAME "MT-RRT-Samples-Geometry")
+set(PROJECT_SHORTNAME "MT-RRT-Samples-utils")
 project(${PROJECT_SHORTNAME} VERSION ${VERSION} LANGUAGES CXX)
 
 CollectSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} SOURCES)
@@ -20,4 +20,9 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header>
         $<INSTALL_INTERFACE:header>
+)
+
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+		MT-RRT
 )

@@ -10,3 +10,4 @@ flag per usare seed deterministico o random
 mettere documentazione latex
 ricontrollare bene funzione che fa i rewirds
 ricontrollare tutti ++
+randomizzare seme all'interno di thread

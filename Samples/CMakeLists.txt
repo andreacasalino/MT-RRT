@@ -1,4 +1,4 @@
-add_subdirectory(Geometry)
+add_subdirectory(Utils)
 
 option(BUILD_SAMPLE_01 "Build point2d samples" ON)
 if(BUILD_SAMPLE_01)

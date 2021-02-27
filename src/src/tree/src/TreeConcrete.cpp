@@ -43,7 +43,7 @@ namespace mt {
         Node* nearest = it->get();
         float nearestCost = this->problem.cost2Go(nearest->getState(), state, true), temp;
         ++it;
-		for (std::size_t s = 0; s < treeSize; ++s) {
+		for (std::size_t s = 1; s < treeSize; ++s) {
 			temp = this->problem.cost2Go((*it)->getState(), state, true);
 			if (temp < nearestCost) {
 				nearestCost = temp;

@@ -17,7 +17,7 @@ namespace mt {
         if (nullptr == sampler) throw Error("found null sampler");
         this->sampler = std::move(sampler);
         if (nullptr == manager) throw Error("found null trajectory manager");
-        this->trajManager = std::move(trajManager);
+        this->trajManager = std::move(manager);
         if (this->gamma < 0.f) throw Error("invalid negative gamma");
     }
 

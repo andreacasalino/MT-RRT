@@ -40,4 +40,18 @@ namespace mt::sample {
         return sample::Box(A, B);
     }
 
+    void Point2D::log(Logger& log) const {
+        auto obst = this->getObstacles();
+        arrayJSON obstJSON;
+        for (auto it = obst.begin(); it != obst.end(); ++it) {
+            arrayJSON temp;
+            temp.addElement(Number<float>(it->getXMin()));
+            temp.addElement(Number<float>(it->getYMin()));
+            temp.addElement(Number<float>(it->getXMax()));
+            temp.addElement(Number<float>(it->getYMax()));
+            obstJSON.addElement(temp);
+        }
+        log.addElement("boxes" , obstJSON);
+        log.addEndl();
+    }
 }

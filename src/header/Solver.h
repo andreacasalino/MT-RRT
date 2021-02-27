@@ -68,6 +68,8 @@ namespace mt {
 		// moved
 		std::vector<TreePtrConst>				getLastTrees();
 
+		inline const Problem&					getProblem() const { return *this->problemcopies.front().get(); };
+
 	private:
 		struct SolutionInfo {
 			std::size_t						iterations;

@@ -24,6 +24,5 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
-		MT-RRT
-		MT-RRT-Samples-Geometry
+		MT-RRT-Samples-utils
 )

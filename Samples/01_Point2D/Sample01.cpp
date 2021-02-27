@@ -1,17 +1,19 @@
 #include <Point2D.h>
 #include <Solver.h>
-#include <iostream>
+#include <Logger.h>
 using namespace std;
 
 int main() {
 	mt::Solver solver(std::make_unique<mt::sample::Point2D>(mt::sample::Box(mt::sample::geometry::Point(-0.1f, -0.1f),
-															mt::sample::geometry::Point(1.1f, 1.1f)),
-															mt::sample::Box::generateRandomBoxes(3, 20)));
+																		    mt::sample::geometry::Point(1.1f, 1.1f)),
+															mt::sample::Box::generateRandomBoxes(3, 40)));
+	solver.setMaxIterations(100);
 
-	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Single, mt::Solver::MTStrategy::Serial);
+	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Bidir, mt::Solver::MTStrategy::Serial);
 
-	auto sol = solver.getLastSolution();
-	auto tree = solver.getLastTrees();
+	mt::sample::Logger log(solver);
+	static_cast<const mt::sample::Point2D&>(solver.getProblem()).log(log);
+	log.print("Sample01.json");
 
 	return EXIT_SUCCESS;
 }

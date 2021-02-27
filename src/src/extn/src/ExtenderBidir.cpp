@@ -96,7 +96,9 @@ namespace mt {
 			ProgressPrinter::show(this->iterationsDone);
 #endif
 
-			if (!this->cumulateSolutions && newSolFound) break;
+			if (!this->cumulateSolutions && newSolFound) {
+				break;
+			}
 		}
     }
 
