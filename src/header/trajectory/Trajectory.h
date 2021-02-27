@@ -33,7 +33,6 @@ namespace mt::traj {
         Trajectory(const NodeState& start, const NodeState& target);
 
     // data
-        const NodeState& start;
         const NodeState& target;
 
         NodeState cursor;
