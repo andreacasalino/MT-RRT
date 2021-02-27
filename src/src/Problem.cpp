@@ -23,6 +23,7 @@ namespace mt {
 
     Problem::Problem(const Problem& o)
         : Problem(o.sampler->copy(), o.trajManager->copy(), o.stateSpaceSize, o.gamma, o.simmetry) {
+        this->steerTrials = o.steerTrials;
     }
 
     void Problem::setSteerTrials(const std::size_t& trials) {

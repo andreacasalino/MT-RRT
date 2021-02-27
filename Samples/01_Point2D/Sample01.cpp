@@ -8,8 +8,9 @@ int main() {
 																		    mt::sample::geometry::Point(1.1f, 1.1f)),
 															mt::sample::Box::generateRandomBoxes(10, 100)));
 	solver.setMaxIterations(500);
+	solver.setSteerTrials(5);
 
-	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Bidir, mt::Solver::MTStrategy::Serial);
+	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Single, mt::Solver::MTStrategy::Serial);
 
 	mt::sample::Logger log(solver);
 	static_cast<const mt::sample::Point2D&>(solver.getProblem()).log(log);

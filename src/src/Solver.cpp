@@ -19,6 +19,7 @@ namespace mt {
 
 	void Solver::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy, const MTStrategy& mtStrategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
+		auto tic = std::chrono::high_resolution_clock::now();
 		switch (mtStrategy) {
 		case MTStrategy::Serial:
 			this->lastSolution = std::move(this->solveSerial(start, end, rrtStrategy));
@@ -43,6 +44,7 @@ namespace mt {
 			throw Error("unrecognized strategy");
 			break;
 		}
+		this->lastSolution->time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tic);
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
@@ -85,6 +87,16 @@ namespace mt {
 		this->parameters.Cumulate_sol = val;
 	}
 
+	void Solver::setSteerTrials(const std::size_t& trials) {
+		if (0 == trials) {
+			throw Error("invalid steer trials");
+		}
+		std::lock_guard<std::mutex> lock(this->dataMtx);
+		for (auto it = this->problemcopies.begin(); it != this->problemcopies.end(); ++it) {
+			(*it)->setSteerTrials(trials);
+		}
+	}
+
 	std::size_t Solver::getLastIterations() const {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		if (nullptr == this->lastSolution) return 0;
@@ -95,6 +107,11 @@ namespace mt {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		if (nullptr == this->lastSolution) return {};
 		return this->lastSolution->solution;
+	}
+
+	std::chrono::milliseconds Solver::getLastElapsedTime() const {
+		std::lock_guard<std::mutex> lock(this->dataMtx);
+		return this->lastSolution->time;
 	}
 
 	std::vector<TreePtrConst> Solver::getLastTrees() {

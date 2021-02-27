@@ -19,8 +19,12 @@ namespace mt::sample {
     Logger::Logger(mt::Solver& solver) {
         this->data.addEndl();
 
+        this->data.addElement("elapsed_time", Number<long long>(solver.getLastElapsedTime().count()));
+        this->data.addEndl();
+
         this->data.addElement("iterations" , Number<std::size_t>(solver.getLastIterations()) );
         this->data.addEndl();
+
         {
             arrayJSON solutionJSON;
             auto sol = solver.getLastSolution();

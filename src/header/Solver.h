@@ -11,6 +11,7 @@
 #include <Problem.h>
 #include <Tree.h>
 #include <mutex>
+#include <chrono>
 
 namespace mt {
 	/** \brief Interface for a planner.
@@ -58,9 +59,13 @@ namespace mt {
 		*/
 		void									setCumulateOption(const bool& val = true);
 
+		void									setSteerTrials(const std::size_t& trials);
+
 
 
 		std::size_t								getLastIterations() const;
+
+		std::chrono::milliseconds				getLastElapsedTime() const;
 
 		// copied
 		std::vector<NodeState>					getLastSolution() const;
@@ -72,6 +77,7 @@ namespace mt {
 
 	private:
 		struct SolutionInfo {
+			std::chrono::milliseconds		time = std::chrono::milliseconds(0);
 			std::size_t						iterations;
 			std::vector<NodeState>			solution;
 			std::vector<TreePtr>			trees;
