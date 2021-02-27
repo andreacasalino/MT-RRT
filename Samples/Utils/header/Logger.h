@@ -15,6 +15,8 @@
 namespace mt::sample {
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
+    void printData(const streamJSON& data, const std::string& fileName);
+
     class Logger {
     public:
         Logger(mt::Solver& solver);
@@ -24,6 +26,10 @@ namespace mt::sample {
         inline void addElement(const std::string& name, const streamJSON& json) { this->data.addElement(name, json); };
 
         inline void addEndl() { this->data.addEndl(); };
+
+        inline std::string str() { return this->data.str(); };
+
+        static std::unique_ptr<structJSON> logStrategies(mt::Solver& solver, const mt::NodeState& start, const mt::NodeState& end, const std::size_t& threads);
 
     private:
         mt::sample::structJSON data;

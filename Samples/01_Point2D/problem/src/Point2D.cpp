@@ -40,7 +40,7 @@ namespace mt::sample {
         return sample::Box(A, B);
     }
 
-    void Point2D::log(Logger& log) const {
+    void Point2D::log(structJSON& log) const {
         auto obst = this->getObstacles();
         arrayJSON obstJSON;
         for (auto it = obst.begin(); it != obst.end(); ++it) {

@@ -7,6 +7,7 @@
 
 #include <Solver.h>
 #include <Error.h>
+#include <omp.h>
 
 namespace mt {
 	Solver::Solver(ProblemPtr problemDescription) {
@@ -49,15 +50,19 @@ namespace mt {
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
-		if (0 == threads) {
-			throw Error("number of threads should be at least 1");
+		std::size_t th = threads;
+		if (0 == th) {
+#pragma omp parallel
+			{
+				th = static_cast<std::size_t>(omp_get_num_threads());
+			}
 		}
-		if (threads <= this->problemcopies.size()) {
-			this->problemcopies.resize(threads);
+		if (th <= this->problemcopies.size()) {
+			this->problemcopies.resize(th);
 		}
 		else {
-			this->problemcopies.reserve(threads);
-			while (this->problemcopies.size() < threads) {
+			this->problemcopies.reserve(th);
+			while (this->problemcopies.size() < th) {
 				this->problemcopies.emplace_back(this->problemcopies.front()->copy());
 			}
 		}
@@ -112,6 +117,11 @@ namespace mt {
 	std::chrono::milliseconds Solver::getLastElapsedTime() const {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		return this->lastSolution->time;
+	}
+
+	std::size_t Solver::getThreadAvailability() const {
+		std::lock_guard<std::mutex> lock(this->dataMtx);
+		return this->problemcopies.size();
 	}
 
 	std::vector<TreePtrConst> Solver::getLastTrees() {

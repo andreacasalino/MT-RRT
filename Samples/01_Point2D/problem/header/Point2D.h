@@ -23,7 +23,7 @@ namespace mt::sample {
 
         sample::Box getBoundaries() const;
 
-        void log(Logger& log) const;
+        void log(structJSON& log) const;
     };
 }
 

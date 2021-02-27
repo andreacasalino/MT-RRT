@@ -16,6 +16,14 @@ namespace mt::sample {
         }
     };
 
+    void printData(const streamJSON& data, const std::string& fileName) {
+        std::ofstream f(fileName);
+        if (!f.is_open()) {
+            throw Error("invalid log file");
+        }
+        f << data.str();
+    }
+
     Logger::Logger(mt::Solver& solver) {
         this->data.addEndl();
 
@@ -61,10 +69,38 @@ namespace mt::sample {
     }
 
     void Logger::print(const std::string& fileName) {
-        std::ofstream f(fileName);
-        if (!f.is_open()) {
-            throw Error("invalid log file");
-        }
-        f << this->data.str();
+        printData(this->data, fileName);
+    }
+
+    std::unique_ptr<structJSON> Logger::logStrategies(mt::Solver& solver, const mt::NodeState& start, const mt::NodeState& end, const std::size_t& threads) {
+        arrayJSON results;
+        auto solveAndLog = [&](const mt::Solver::MTStrategy& strategy, const std::string& strategyLogName) {
+            arrayJSON res;
+            solver.solve( start, end, Solver::RRTStrategy::Single, strategy);
+            res.addElement(Logger(solver).data);
+            if (solver.getProblem().isProblemSimmetric()) {
+                solver.solve(start, end, Solver::RRTStrategy::Bidir, strategy);
+                res.addElement(Logger(solver).data);
+            }
+            solver.solve(start, end, Solver::RRTStrategy::Star, strategy);
+            res.addElement(Logger(solver).data);
+            structJSON temp;
+            temp.addElement(strategyLogName, res);
+            temp.addElement("threads", Number<std::size_t>(solver.getThreadAvailability()));
+            results.addElement(temp);
+        };
+
+        solver.setThreadAvailability(1);
+        solveAndLog(mt::Solver::MTStrategy::Serial, "serial");
+
+        solver.setThreadAvailability(threads);
+        solveAndLog(mt::Solver::MTStrategy::MtQueryParall, "quary parall");
+        solveAndLog(mt::Solver::MTStrategy::MtSharedTree, "shared tree");
+        solveAndLog(mt::Solver::MTStrategy::MtCopiedTrees, "copied trees");
+        solveAndLog(mt::Solver::MTStrategy::MtMultiAgent, "multiagent");
+
+        std::unique_ptr<structJSON> temp;
+        temp->addElement("results", results);
+        return temp;
     }
 }

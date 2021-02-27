@@ -46,7 +46,8 @@ namespace mt {
 
 
 
-		void									setThreadAvailability(const std::size_t& threads);
+		// passing 0, the number of core is assumed
+		void									setThreadAvailability(const std::size_t& threads = 0);
 
 		void									setDeterminism(const double& coeff);
 
@@ -74,6 +75,8 @@ namespace mt {
 		std::vector<TreePtrConst>				getLastTrees();
 
 		inline const Problem&					getProblem() const { return *this->problemcopies.front().get(); };
+
+		std::size_t								getThreadAvailability() const;
 
 	private:
 		struct SolutionInfo {
