@@ -16,9 +16,9 @@ namespace mt {
 	public:
 		TreeConcrete(Problem& problem, NodePtr root);
 
-		Node* extendRandom() override;
+		std::pair<Node*, NodePtr> extend(const NodeState& target) override;
 
-		std::pair<Node*, bool> extendDeterministic(const NodeState& target) override;
+		inline void  add(NodePtr node) override { if(nullptr != node) this->nodes.emplace_back(std::move(node)); };
 
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
@@ -40,6 +40,7 @@ namespace mt {
 
 		Problem& problem;
 		Nodes nodes;
+		NodePtr lastExtended;
 	};
 }
 

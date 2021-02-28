@@ -22,21 +22,16 @@ namespace mt {
 		Tree(const Tree&) = delete;
 		Tree& operator=(const Tree&) = delete;
 
-		/** \brief Tries to extend the tree toward a random configuration that is internally sampled.
-		\detials In case an extensio was possible, the node added to the tree is returned. Otherwise, NULL is returned
-		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
-		*/
-		virtual Node* extendRandom() = 0;
+        // random extension
+        Node* extendRandom();
 
-		/** \brief An extension toward the passed target node is tried.
-		\details In case the extension succeeds, a new node with the steered configuration, Section 1.2 of the documentation,  is
-		automatically inserted to the list of nodes contained in this tree and returned. On the opposite,
-		when the extension was not possible a NULL value is returned.
-		* @param[in] target the target node toward which the extension must be tried
-		* @param[out] return the node added to the tree as a consequence of the extension (NULL is returned in case the extension was not possible).
-		*/
-		// todo spiegare bene comportamento
-		virtual std::pair<Node*, bool> extendDeterministic(const NodeState& target) = 0;
+        // deterministic extension
+        // in case the target was reached, <node from which the connection to target is possible , nullptr> is returned
+        // in case the target was not reached but the extension was possible, <nullptr , extended node> is returned
+        // in case the target was not reached and the extension was possible, <nullptr , nullptr> is returned
+        virtual std::pair<Node*, NodePtr> extend(const NodeState& target) = 0;
+
+        virtual void  add(NodePtr node) = 0;
 
 		virtual const Nodes& getNodes() const = 0;
 

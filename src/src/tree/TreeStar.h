@@ -16,12 +16,7 @@ namespace mt {
 	public:
 		TreeStar(std::unique_ptr<TreeConcrete> wrapped);
 
-		Node* extendRandom() override;
-
-		std::pair<Node*, bool> extendDeterministic(const NodeState& target) override;
-
-	private:
-		void doRewire(Node* n);
+		std::pair<Node*, NodePtr> extend(const NodeState& target) override;
 	};
 }
 

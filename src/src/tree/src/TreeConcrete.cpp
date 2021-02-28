@@ -17,25 +17,14 @@ namespace mt {
         this->nodes.emplace_back(std::move(root));
     }
 
-    Node* TreeConcrete::extendRandom() {
-		NodeState target = this->problem.randomState();
+	std::pair<Node*, NodePtr> TreeConcrete::extend(const NodeState& target) {
 		Node* nearest = this->nearestNeighbour(target);
 		bool temp;
 		NodePtr ext = this->problem.steer(*nearest, target, temp);
-		if (nullptr == ext) return nullptr;
-		this->nodes.emplace_back(std::move(ext));
-		return this->nodes.back().get();
-    }
-
-    std::pair<Node*, bool> TreeConcrete::extendDeterministic(const NodeState& target) {
-        Node* nearest = this->nearestNeighbour(target);
-        bool temp;
-        NodePtr ext = this->problem.steer(*nearest, target, temp);
-		if (temp) return {ext->getFather(), true};
-        if (nullptr == ext) return {nullptr, false};
-        this->nodes.emplace_back(std::move(ext));
-        return { this->nodes.back().get(), false };
-    }
+		if (temp) return { ext->getFather(), nullptr };
+		if (nullptr == ext) return { nullptr, nullptr };
+		return { nullptr, std::move(ext) };
+	}
 
     Node* TreeConcrete::nearestNeighbour(const NodeState& state) const {
 		std::size_t treeSize = this->nodes.size();

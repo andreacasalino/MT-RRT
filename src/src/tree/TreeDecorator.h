@@ -13,9 +13,9 @@
 namespace mt {
 	class TreeDecorator : public Tree {
 	public:
-		inline Node* extendRandom() override { return this->wrapped->extendRandom(); };
+		inline std::pair<Node*, NodePtr> extend(const NodeState& target) override { return this->wrapped->extend(target); };
 
-		inline std::pair<Node*, bool> extendDeterministic(const NodeState& target) override { return this->wrapped->extendDeterministic(target); };
+		inline void  add(NodePtr node) override { return this->wrapped->add(std::move(node)); };
 
 		inline const Nodes& getNodes() const override { return this->wrapped->getNodes(); };
 

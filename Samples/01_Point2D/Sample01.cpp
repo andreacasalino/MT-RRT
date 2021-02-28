@@ -12,7 +12,7 @@ int main() {
 
 	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Single, mt::Solver::MTStrategy::Serial);
 	mt::sample::Logger log(solver);
-	static_cast<const mt::sample::Point2D&>(solver.getProblem()).log(log);
+	static_cast<const mt::sample::Point2D&>(solver.getProblem()).log(log.);
 	log.print("Sample01.json");
 
 	//auto temp = mt::sample::Logger::logStrategies(solver, { -0.1f, -0.1f }, { 1.1f, 1.1f }, 0);

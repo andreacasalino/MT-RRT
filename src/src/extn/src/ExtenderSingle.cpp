@@ -19,8 +19,8 @@ namespace mt {
 		bool newSolFound = false;
 		for (size_t k = 0; k < Iterations; ++k) {
 			if (this->randEngine() < this->deterministicCoefficient) {
-				auto temp = this->tree.extendDeterministic(this->target);
-				if (temp.second) {
+				auto temp = this->tree.extend(this->target);
+				if (nullptr != temp.first) {
 					// check this solution was not already found
 					bool absent = true;
 					for (auto it = this->solutionsFound.begin(); it != this->solutionsFound.end(); ++it) {
@@ -34,6 +34,7 @@ namespace mt {
 						newSolFound = true;
 					}
 				}
+				else this->tree.add(std::move(temp.second));
 			}
 			else  this->tree.extendRandom();
 

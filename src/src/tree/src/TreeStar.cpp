@@ -12,23 +12,13 @@ namespace mt {
         : TreeDecorator(std::move(wrapped)) {
     }
 
-    void TreeStar::doRewire(Node* n) {
-        if (nullptr == n) return;
-        auto rew = static_cast<TreeConcrete*>(this->wrapped.get())->computeRewirds(*n);
+    std::pair<Node*, NodePtr> TreeStar::extend(const NodeState& target) {
+        auto temp = this->wrapped->extend(target);
+        if (nullptr == temp.second) return temp;
+        auto rew = static_cast<TreeConcrete*>(this->wrapped.get())->computeRewirds(*temp.second.get());
         for (auto it = rew.begin(); it != rew.end(); ++it) {
             it->involved.setFather(&it->newFather, it->newCostFromFather);
         }
+        return temp;
     }
-
-    Node* TreeStar::extendRandom() {
-        auto temp = this->wrapped->extendRandom();
-        this->doRewire(temp);
-        return temp;
-    };
-
-    std::pair<Node*, bool> TreeStar::extendDeterministic(const NodeState& target) {
-        auto temp = this->wrapped->extendDeterministic(target);
-        this->doRewire(temp.first);
-        return temp;
-    };
 }
