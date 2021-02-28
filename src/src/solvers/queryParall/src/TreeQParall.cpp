@@ -25,35 +25,32 @@ namespace mt::qpar {
 
     class Incrementer {
     public:
-        Incrementer(const mt::Nodes& nodes, const std::size_t& startPos, const std::size_t& delta)
-            : nodes(nodes) {
-            this->cursor = nodes.begin();
-            this->delta = startPos;
+        Incrementer(const mt::Nodes& nodes, const Nodes::const_reverse_iterator& delimiter, const std::size_t& startPos, const std::size_t& delta)
+            : end(nodes.crend())
+            , cursor(delimiter)
+            , delta(startPos) {
             ++(*this);
             this->delta = delta;
         };
 
         Incrementer& operator++() {
-            this->cursorPos += this->delta;
-            if (this->cursorPos < this->nodes.size()) {
-                std::advance(this->cursor, this->delta);
-            }
-            else {
-                this->cursor = this->nodes.end();
+            std::size_t k = 0;
+            while ((k<this->delta) && (this->cursor != this->end)) {
+                ++this->cursor;
+                ++k;
             }
             return *this;
         };
 
-        inline const mt::Nodes::const_iterator& get() { return this->cursor; };
+        inline const mt::Nodes::const_reverse_iterator& get() { return this->cursor; };
 
     private:
-        const mt::Nodes& nodes;
-        mt::Nodes::const_iterator cursor;
-        std::size_t cursorPos = 0;
+        Nodes::const_reverse_iterator end;
+        Nodes::const_reverse_iterator cursor;
         std::size_t delta;
     };
 
-    Node* Tree::nearestNeighbour(const NodeState& state) const {
+    Node* Tree::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
         struct Result {
             float cost = mt::traj::Trajectory::COST_MAX;
             Node* node = nullptr;
@@ -62,14 +59,14 @@ namespace mt::qpar {
         results.resize(this->problems.size());
 
         std::size_t id = 0;
-        auto job = [this, &state, id, &results]() {
-            Incrementer inc(this->nodes, id, this->problems.size());
-            if (inc.get() == this->nodes.end()) return;
+        auto job = [this, &state, id, &results, &delimiter]() {
+            Incrementer inc(this->nodes, delimiter, id, this->problems.size());
+            if (inc.get() == this->nodes.crend()) return;
             results[id].cost = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
             results[id].node = inc.get()->get();
             float temp;
             ++inc;
-            while (inc.get() != this->nodes.end()) {
+            while (inc.get() != this->nodes.crend()) {
                 temp = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
                 if (temp < results[id].cost) {
                     results[id].cost = temp;
@@ -98,19 +95,19 @@ namespace mt::qpar {
         return bestResult->node;
     }
 
-    std::set<Node*> Tree::nearSet(Node& node) const {
+    std::set<Node*> Tree::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
         std::vector<std::set<Node*>> results;
         results.resize(this->problems.size());
 
         float Tree_size = static_cast<float>(this->nodes.size());
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->problem.getProblemSize()));
+        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(std::distance(delimiter, this->nodes.rend())));
 
         std::size_t id = 0;
-        auto job = [this, &node, id, &results, &ray]() {
-            Incrementer inc(this->nodes, id, this->problems.size());
+        auto job = [this, &state, id, &results, &ray, &delimiter]() {
+            Incrementer inc(this->nodes, delimiter, id, this->problems.size());
             float dist_att;
-            while (inc.get() != this->nodes.end()) {
-                dist_att = this->problems[id]->cost2Go(inc.get()->get()->getState(), node.getState(), true);
+            while (inc.get() != this->nodes.crend()) {
+                dist_att = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
                 if (dist_att <= ray) {
                     results[id].emplace(inc.get()->get());
                 }

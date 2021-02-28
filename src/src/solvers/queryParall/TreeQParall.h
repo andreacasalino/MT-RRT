@@ -21,9 +21,9 @@ namespace mt::qpar {
 		inline void close() { this->pool->close(); };
 
 	private:
-		Node* nearestNeighbour(const NodeState& state) const override;
+		Node* nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const override;
 
-		std::set<Node*> nearSet(Node& node) const override;
+		std::set<Node*> nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const override;
 
 		std::vector<Problem*> problems;
 		std::shared_ptr<Pool> pool;
