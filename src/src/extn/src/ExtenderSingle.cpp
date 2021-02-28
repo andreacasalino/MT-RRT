@@ -20,21 +20,21 @@ namespace mt {
 		for (size_t k = 0; k < Iterations; ++k) {
 			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = this->tree.extend(this->target);
-				if (nullptr != temp.first) {
+				if (temp.second) {
 					// check this solution was not already found
 					bool absent = true;
 					for (auto it = this->solutionsFound.begin(); it != this->solutionsFound.end(); ++it) {
-						if (it->first == temp.first) {
+						if (it->first == temp.first->getFather()) {
 							absent = false;
 							break;
 						}
 					}
 					if (absent) {
-						this->solutionsFound.emplace(std::make_pair(temp.first, temp.first->cost2Root() + this->tree.getProblem().cost2Go(temp.first->getState(), this->target, true)));
+						this->solutionsFound.emplace(std::make_pair(temp.first->getFather(),  temp.first->cost2Root()));
 						newSolFound = true;
 					}
 				}
-				else this->tree.add(std::move(temp.second));
+				else this->tree.add(std::move(temp.first));
 			}
 			else  this->tree.extendRandom();
 

@@ -13,7 +13,7 @@
 namespace mt {
 	class TreeDecorator : public Tree {
 	public:
-		inline std::pair<Node*, NodePtr> extend(const NodeState& target) override { return this->wrapped->extend(target); };
+		inline std::pair<NodePtr, bool> extend(const NodeState& target) override { return this->wrapped->extend(target); };
 
 		inline void  add(NodePtr node) override { return this->wrapped->add(std::move(node)); };
 

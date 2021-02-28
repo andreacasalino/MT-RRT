@@ -26,10 +26,7 @@ namespace mt {
         Node* extendRandom();
 
         // deterministic extension
-        // in case the target was reached, <node from which the connection to target is possible , nullptr> is returned
-        // in case the target was not reached but the extension was possible, <nullptr , extended node> is returned
-        // in case the target was not reached and the extension was possible, <nullptr , nullptr> is returned
-        virtual std::pair<Node*, NodePtr> extend(const NodeState& target) = 0;
+        virtual std::pair<NodePtr, bool> extend(const NodeState& target) = 0;
 
         virtual void  add(NodePtr node) = 0;
 

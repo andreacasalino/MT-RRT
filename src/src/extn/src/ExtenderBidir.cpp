@@ -62,29 +62,29 @@ namespace mt {
 		auto extendSlave = [this, &newSolFound, &solFactory, &Slave, &Master, &caso, &add2Solutions](const Node* ext) {
 			if (nullptr == ext) {
 				auto temp = Slave->extend(Master->getNodes().front()->getState());
-				if (nullptr != temp.first) {
-					add2Solutions(temp.first, Master->getNodes().front().get(), !caso);
+				if (temp.second) {
+					add2Solutions(temp.first->getFather(), Master->getNodes().front().get(), !caso);
 				}
-				else Slave->add(std::move(temp.second));
+				else Slave->add(std::move(temp.first));
 			}
 			else {
 				auto temp = Slave->extend(ext->getState());
-				if (nullptr != temp.first) {
-					add2Solutions(temp.first, ext, !caso);
+				if (temp.second) {
+					add2Solutions(temp.first->getFather(), ext, !caso);
 				}
-				else Slave->add(std::move(temp.second));
+				else Slave->add(std::move(temp.first));
 			}
 		};
 
 		for (size_t k = 0; k < Iterations; k += 2) {
 			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = Master->extend(Slave->getNodes().front()->getState());
-				if (nullptr != temp.first) {
-					add2Solutions(temp.first, Slave->getNodes().front().get(), caso);
+				if (temp.second) {
+					add2Solutions(temp.first->getFather(), Slave->getNodes().front().get(), caso);
 				}
 				else {
-					Node* pt = temp.second.get();
-					Master->add(std::move(temp.second));
+					Node* pt = temp.first.get();
+					Master->add(std::move(temp.first));
 					extendSlave(pt);
 				}
 			}

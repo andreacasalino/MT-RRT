@@ -17,46 +17,40 @@ namespace mt {
         this->nodes.emplace_back(std::move(root));
     }
 
-	std::pair<Node*, NodePtr> TreeConcrete::extend(const NodeState& target) {
-		Node* nearest = this->nearestNeighbour(target);
+	std::pair<NodePtr, bool> TreeConcrete::extend(const NodeState& target) {
+		Node* nearest = this->nearestNeighbour(target, this->getDelimiter());
 		bool temp;
 		NodePtr ext = this->problem.steer(*nearest, target, temp);
-		if (temp) return { ext->getFather(), nullptr };
-		if (nullptr == ext) return { nullptr, nullptr };
-		return { nullptr, std::move(ext) };
+		return {std::move(ext) , temp};
 	}
 
-    Node* TreeConcrete::nearestNeighbour(const NodeState& state) const {
-		std::size_t treeSize = this->nodes.size();
-        auto it = this->nodes.begin();
-        Node* nearest = it->get();
-        float nearestCost = this->problem.cost2Go(nearest->getState(), state, true), temp;
-        ++it;
-		for (std::size_t s = 1; s < treeSize; ++s) {
+    Node* TreeConcrete::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
+		auto it = delimiter;
+		Node* nearest = it->get();
+		float nearestCost = this->problem.cost2Go(nearest->getState(), state, true), temp;
+		++it;
+		for (it; it != this->nodes.rend(); ++it) {
 			temp = this->problem.cost2Go((*it)->getState(), state, true);
 			if (temp < nearestCost) {
 				nearestCost = temp;
 				nearest = (*it).get();
 			}
-			++it;
 		}
         return nearest;
     }
 
-    std::set<Node*> TreeConcrete::nearSet(Node& node) const {
+    std::set<Node*> TreeConcrete::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
         float Tree_size = static_cast<float>(this->nodes.size());
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->problem.getProblemSize()));
+        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>( std::distance(delimiter, this->nodes.rend()) ));
         float dist_att;
-        auto itN = this->nodes.begin();
         std::set<Node*> nearS;
-        while (itN->get() != &node) {
-            dist_att = this->problem.cost2Go((*itN)->getState(), node.getState(), true);
-            if (dist_att <= ray) {
-                nearS.emplace((*itN).get());
-            }
-            ++itN;
-        }
-        auto itNearest = nearS.find(node.getFather());
+		for (auto itN = delimiter; itN != this->nodes.rend(); ++itN) {
+			dist_att = this->problem.cost2Go((*itN)->getState(), state, true);
+			if (dist_att <= ray) {
+				nearS.emplace((*itN).get());
+			}
+		}
+        auto itNearest = nearS.find((*delimiter)->getFather());
         if (itNearest != nearS.end()) {
             nearS.erase(itNearest);
         }
@@ -69,9 +63,9 @@ namespace mt {
 		, newCostFromFather(newCostFromFather) {
 	}
 
-    std::list<TreeConcrete::Rewird> TreeConcrete::computeRewirds(Node& pivot) const {
+    std::list<TreeConcrete::Rewird> TreeConcrete::computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const {
 		std::list<TreeConcrete::Rewird> rewirds;
-		auto Near_set = this->nearSet(pivot);
+		auto Near_set = this->nearSet(pivot.getState(), delimiter);
 		if (Near_set.size() <= 1) {
 			return rewirds;
 		}

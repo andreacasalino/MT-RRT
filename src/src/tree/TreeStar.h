@@ -16,7 +16,7 @@ namespace mt {
 	public:
 		TreeStar(std::unique_ptr<TreeConcrete> wrapped);
 
-		std::pair<Node*, NodePtr> extend(const NodeState& target) override;
+		std::pair<NodePtr, bool> extend(const NodeState& target) override;
 	};
 }
 

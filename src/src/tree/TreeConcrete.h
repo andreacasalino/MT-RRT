@@ -16,7 +16,7 @@ namespace mt {
 	public:
 		TreeConcrete(Problem& problem, NodePtr root);
 
-		std::pair<Node*, NodePtr> extend(const NodeState& target) override;
+		std::pair<NodePtr, bool> extend(const NodeState& target) override;
 
 		inline void  add(NodePtr node) override { if(nullptr != node) this->nodes.emplace_back(std::move(node)); };
 
@@ -31,12 +31,14 @@ namespace mt {
 			Node& newFather;
 			float newCostFromFather;
 		};
-		std::list<Rewird> computeRewirds(Node& pivot) const;
+		std::list<Rewird> computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const;
 
 	protected:
-		virtual Node* nearestNeighbour(const NodeState& state) const;
+		inline virtual Nodes::const_reverse_iterator getDelimiter() const { return this->nodes.rbegin(); };
 
-		virtual std::set<Node*> nearSet(Node& node) const;
+		virtual Node* nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
+
+		virtual std::set<Node*> nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 
 		Problem& problem;
 		Nodes nodes;
