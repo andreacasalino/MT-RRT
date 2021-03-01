@@ -33,8 +33,9 @@ namespace mt {
 		};
 		std::list<Rewird> computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const;
 
-	protected:
 		inline virtual Nodes::const_reverse_iterator getDelimiter() const { return this->nodes.rbegin(); };
+
+	protected:
 
 		virtual Node* nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 

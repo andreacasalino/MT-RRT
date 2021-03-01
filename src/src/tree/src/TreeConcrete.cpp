@@ -27,7 +27,7 @@ namespace mt {
     Node* TreeConcrete::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
 		auto it = delimiter;
 		Node* nearest = it->get();
-		float nearestCost = this->problem.cost2Go(nearest->getState(), state, true), temp;
+		float nearestCost = this->problem.cost2Go((*it)->getState(), state, true), temp;
 		++it;
 		for (it; it != this->nodes.rend(); ++it) {
 			temp = this->problem.cost2Go((*it)->getState(), state, true);
@@ -40,8 +40,8 @@ namespace mt {
     }
 
     std::set<Node*> TreeConcrete::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
-        float Tree_size = static_cast<float>(this->nodes.size());
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>( std::distance(delimiter, this->nodes.rend()) ));
+        float Tree_size = std::distance(delimiter, this->nodes.rend());
+        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>( this->problem.getProblemSize() ));
         float dist_att;
         std::set<Node*> nearS;
 		for (auto itN = delimiter; itN != this->nodes.rend(); ++itN) {
@@ -64,25 +64,25 @@ namespace mt {
 	}
 
     std::list<TreeConcrete::Rewird> TreeConcrete::computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const {
-		std::list<TreeConcrete::Rewird> rewirds;
 		auto Near_set = this->nearSet(pivot.getState(), delimiter);
-		if (Near_set.size() <= 1) {
-			return rewirds;
+		if (Near_set.empty()) {
+			return {};
 		}
 
+		std::list<TreeConcrete::Rewird> rewirds;
 		std::list<float> costs2RootNear_set;
-		float cost2RootMin = mt::traj::Trajectory::COST_MAX, costAtt;
+		float costMin = mt::traj::Trajectory::COST_MAX, costAtt;
 		std::list<TreeConcrete::Rewird>::iterator best_traj = rewirds.end();
 		for (auto itN = Near_set.begin(); itN != Near_set.end(); ++itN) {
 			rewirds.emplace_front(**itN, pivot, this->problem.cost2Go((*itN)->getState(), pivot.getState(), false));
-			if (rewirds.back().newCostFromFather == mt::traj::Trajectory::COST_MAX) {
-				rewirds.pop_back();
+			if (rewirds.front().newCostFromFather == mt::traj::Trajectory::COST_MAX) {
+				rewirds.pop_front();
 			}
 			else {
 				costs2RootNear_set.push_front((*itN)->cost2Root());
-				costAtt = rewirds.back().newCostFromFather + costs2RootNear_set.front();
-				if (costAtt < cost2RootMin) {
-					cost2RootMin = costAtt;
+				costAtt = rewirds.front().newCostFromFather + costs2RootNear_set.front();
+				if (costAtt < costMin) {
+					costMin = costAtt;
 					best_traj = rewirds.begin();
 				}
 			}
@@ -90,13 +90,12 @@ namespace mt {
 		// as a final iteration do the same with the current father
 		rewirds.emplace_front(*pivot.getFather(), pivot, pivot.getCostFromFather());
 		costs2RootNear_set.push_front(pivot.getFather()->cost2Root());
-		costAtt = rewirds.back().newCostFromFather + costs2RootNear_set.front();
-		if (costAtt < cost2RootMin) {
-			cost2RootMin = costAtt;
+		costAtt = rewirds.front().newCostFromFather + costs2RootNear_set.front();
+		if (costAtt < costMin) {
+			costMin = costAtt;
 			best_traj = rewirds.begin();
 		}
-
-		if (best_traj != rewirds.begin()) {
+		else {
 			best_traj->newFather.setFather(&best_traj->involved, best_traj->newCostFromFather);
 		}
 		rewirds.erase(best_traj);
@@ -106,6 +105,7 @@ namespace mt {
 		auto it_cost2Root = costs2RootNear_set.begin();
 		while (it_traj != rewirds.end()) {
 			if (nullptr == it_traj->involved.getFather()) {
+				// root can't be rewired
 				it_traj = rewirds.erase(it_traj);
 				it_cost2Root = costs2RootNear_set.erase(it_cost2Root);
 			}
@@ -118,7 +118,7 @@ namespace mt {
 					it_cost2Root = costs2RootNear_set.erase(it_cost2Root);
 				}
 				else {
-					costAtt = cost2RootMin + it_traj->newCostFromFather;
+					costAtt = costMin + it_traj->newCostFromFather;
 					if (costAtt < *it_cost2Root) {
 						++it_traj;
 						++it_cost2Root;
