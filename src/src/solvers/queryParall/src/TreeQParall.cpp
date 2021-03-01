@@ -8,7 +8,7 @@
 #include "../TreeQParall.h"
 
 namespace mt::qpar {
-    Tree::Tree(const std::vector<ProblemPtr>& problems, NodePtr root)
+    TreeQPar::TreeQPar(const std::vector<ProblemPtr>& problems, NodePtr root)
         : TreeConcrete(*problems.front(), std::move(root)) {
         this->problems.reserve(problems.size());
         for (std::size_t k = 0; k < problems.size(); ++k) {
@@ -17,12 +17,13 @@ namespace mt::qpar {
         this->pool = std::make_shared<Pool>();
     }
 
-    Tree::Tree(const Tree& o, NodePtr root)
+    TreeQPar::TreeQPar(const TreeQPar& o, NodePtr root)
         : TreeConcrete(*o.problems.front(), std::move(root))
         , pool(o.pool) {
         this->problems = o.problems;
     }
 
+    // used to iterate the nodes in a tree from a parallel for
     class Incrementer {
     public:
         Incrementer(const mt::Nodes& nodes, const Nodes::const_reverse_iterator& delimiter, const std::size_t& startPos, const std::size_t& delta)
@@ -50,36 +51,58 @@ namespace mt::qpar {
         std::size_t delta;
     };
 
-    Node* Tree::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
-        struct Result {
-            float cost = mt::traj::Trajectory::COST_MAX;
-            Node* node = nullptr;
+    class QueryResult {
+    public:
+        QueryResult(const TreeQPar& user, const std::size_t& pos, const Nodes::const_reverse_iterator& delimiter)
+            : user(user)
+            , position(pos)
+            , delimiter(delimiter) {
         };
-        std::vector<Result> results;
-        results.resize(this->problems.size());
 
-        std::size_t id = 0;
-        auto job = [this, &state, id, &results, &delimiter]() {
-            Incrementer inc(this->nodes, delimiter, id, this->problems.size());
-            if (inc.get() == this->nodes.crend()) return;
-            results[id].cost = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
-            results[id].node = inc.get()->get();
-            float temp;
-            ++inc;
-            while (inc.get() != this->nodes.crend()) {
-                temp = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
-                if (temp < results[id].cost) {
-                    results[id].cost = temp;
-                    results[id].node = inc.get()->get();
+    protected:
+        const TreeQPar& user;
+        const std::size_t position;
+        const Nodes::const_reverse_iterator delimiter;
+    };
+
+    template<typename Q>
+    std::vector<Q> make_QueryResults(const TreeQPar& user, const Nodes::const_reverse_iterator& delimiter, const std::size_t& size) {
+        std::vector<Q> results;
+        results.reserve(size);
+        for (std::size_t k = 0; k < size; ++k) {
+            results.emplace_back(user, k, delimiter);
+        }
+        return results;
+    };
+
+    Node* TreeQPar::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
+        class Result : public QueryResult {
+        public:
+            Result(const TreeQPar& user, const std::size_t& pos, const Nodes::const_reverse_iterator& delimiter) : QueryResult(user, pos, delimiter) {};
+
+            void operator()(const NodeState& state) const {
+                Incrementer inc(user.nodes, delimiter, this->position, user.problems.size());
+                float temp;
+                while (inc.get() != user.nodes.crend()) {
+                    temp = user.problems[this->position]->cost2Go(inc.get()->get()->getState(), state, true);
+                    if (temp < this->cost) {
+                        this->cost = temp;
+                        this->node = inc.get()->get();
+                    }
+                    ++inc;
                 }
-                ++inc;
-            }
+            };
+
+            mutable float cost = mt::traj::Trajectory::COST_MAX;
+            mutable Node* node = nullptr;
         };
-        std::vector<Pool::Job> jobs;
+        std::vector<Result> results = make_QueryResults<Result>(*this, delimiter, this->problems.size());
+
+        std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
         for (std::size_t k = 0; k < this->problems.size(); ++k) {
-            jobs.emplace_back(job);
-            ++id;
+            Result& temp = results[k];
+            jobs.emplace_back([temp, &state]() { temp(state); });
         }
         this->pool->addJob(jobs);
         this->pool->wait();
@@ -92,34 +115,48 @@ namespace mt::qpar {
                 bestResult = &(*it);
             }
         }
+        if (nullptr == bestResult->node) return this->nodes.front().get();
         return bestResult->node;
     }
 
-    std::set<Node*> Tree::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
-        std::vector<std::set<Node*>> results;
-        results.resize(this->problems.size());
+    std::set<Node*> TreeQPar::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
+        class Result : public QueryResult {
+        public:
+            Result(const TreeQPar& user, const std::size_t& pos, const Nodes::const_reverse_iterator& delimiter) : QueryResult(user, pos, delimiter) {};
 
-        float Tree_size = static_cast<float>(this->nodes.size());
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(std::distance(delimiter, this->nodes.rend())));
-
-        std::size_t id = 0;
-        auto job = [this, &state, id, &results, &ray, &delimiter]() {
-            Incrementer inc(this->nodes, delimiter, id, this->problems.size());
-            float dist_att;
-            while (inc.get() != this->nodes.crend()) {
-                dist_att = this->problems[id]->cost2Go(inc.get()->get()->getState(), state, true);
-                if (dist_att <= ray) {
-                    results[id].emplace(inc.get()->get());
+            void operator()(const NodeState& state, const float& ray) const {
+                Incrementer inc(user.nodes, delimiter, this->position, user.problems.size());
+                float dist_att;
+                while (inc.get() != user.nodes.crend()) {
+                    dist_att = user.problems[this->position]->cost2Go(inc.get()->get()->getState(), state, true);
+                    if (dist_att <= ray) {
+                        this->set.emplace(inc.get()->get());
+                    }
+                    ++inc;
                 }
-                ++inc;
-            }
+            };
+
+            mutable std::set<Node*> set;
         };
+        std::vector<Result> results = make_QueryResults<Result>(*this, delimiter, this->problems.size());
+
+        float Tree_size = static_cast<float>(std::distance(delimiter, this->nodes.rend()));
+        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->problem.getProblemSize()));
+
+        std::vector<Job> jobs;
+        jobs.reserve(this->problems.size());
+        for (std::size_t k = 0; k < this->problems.size(); ++k) {
+            Result& temp = results[k];
+            jobs.emplace_back([temp, &state, &ray]() { temp(state, ray); });
+        }
+        this->pool->addJob(jobs);
+        this->pool->wait();
 
         auto it = results.begin();
-        std::set<Node*> nearSet = *it;
+        std::set<Node*> nearSet = it->set;
         ++it;
         for (it; it != results.end(); ++it) {
-            for (auto itt = it->begin(); itt != it->end(); ++itt) {
+            for (auto itt = it->set.begin(); itt != it->set.end(); ++itt) {
                 nearSet.emplace(*itt);
             }
         }

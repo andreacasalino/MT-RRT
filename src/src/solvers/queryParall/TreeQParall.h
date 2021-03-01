@@ -12,10 +12,10 @@
 #include "Pool.h"
 
 namespace mt::qpar {
-	class Tree : public TreeConcrete {
+	class TreeQPar : public TreeConcrete {
 	public:
-		Tree(const std::vector<ProblemPtr>& problems, NodePtr root);
-		Tree(const Tree& o, NodePtr root);
+		TreeQPar(const std::vector<ProblemPtr>& problems, NodePtr root);
+		TreeQPar(const TreeQPar& o, NodePtr root);
 
 		inline void open() { this->pool->open(this->problems.size()); };
 		inline void close() { this->pool->close(); };

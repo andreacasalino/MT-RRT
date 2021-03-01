@@ -14,6 +14,8 @@
 #include <atomic>
 
 namespace mt::qpar {
+	typedef std::function<void(void)> Job;
+
 	class Pool {
 	public:
 		Pool() = default;
@@ -22,20 +24,30 @@ namespace mt::qpar {
 		void open(const std::size_t& size);
 		void close();
 
-		typedef std::function<void(void)> Job;
 		void addJob(const std::vector<Job>& jobs);
 		void wait();
 
 	private:
+		enum State { closed, opened };
+
 		typedef std::unique_ptr<Job> JobPtr;
-		struct JobInfo {
+
+		class JobExecutor {
+		public:
+			JobExecutor(JobExecutor&& o) noexcept : state(o.state) {}; //required to place it in a vector
+			JobExecutor(std::atomic<State>& state) noexcept : state(state) {};
+
+			void spin();
+
 			std::mutex mtx;
 			JobPtr job;
-		};
-		typedef std::unique_ptr<JobInfo> JobInfoPtr;
 
-		std::atomic_bool life = false;
-		std::vector<JobInfoPtr> jobs;
+		private:
+			std::atomic<State>& state;
+		};
+
+		std::atomic<State> state = closed;
+		std::vector<JobExecutor> jobs;
 		std::vector<std::thread> threads;
 	};
 }
