@@ -14,7 +14,6 @@
 #include <atomic>
 
 namespace mt {
-    //typedef ExtSingle E;
     template<typename E>
     void solveParallel(std::vector<E>& battery, const std::size_t& iterations) {
         std::atomic_bool life = true;
