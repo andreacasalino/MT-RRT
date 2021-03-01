@@ -20,17 +20,18 @@ namespace mt {
 	std::pair<NodePtr, bool> TreeConcrete::extend(const NodeState& target) {
 		Node* nearest = this->nearestNeighbour(target, this->getDelimiter());
 		bool temp;
-		NodePtr ext = this->problem.steer(*nearest, target, temp);
+		NodePtr ext = this->getProblem().steer(*nearest, target, temp);
 		return {std::move(ext) , temp};
 	}
 
     Node* TreeConcrete::nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
 		auto it = delimiter;
 		Node* nearest = it->get();
-		float nearestCost = this->problem.cost2Go((*it)->getState(), state, true), temp;
+		const Problem& prb = this->getProblem();
+		float nearestCost = prb.cost2Go((*it)->getState(), state, true), temp;
 		++it;
 		for (it; it != this->nodes.rend(); ++it) {
-			temp = this->problem.cost2Go((*it)->getState(), state, true);
+			temp = prb.cost2Go((*it)->getState(), state, true);
 			if (temp < nearestCost) {
 				nearestCost = temp;
 				nearest = (*it).get();
@@ -41,11 +42,12 @@ namespace mt {
 
     std::set<Node*> TreeConcrete::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
 		float Tree_size = static_cast<float>(std::distance(delimiter, this->nodes.rend()));
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>( this->problem.getProblemSize() ));
+		const Problem& prb = this->getProblem();
+        float ray = prb.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(prb.getProblemSize() ));
         float dist_att;
         std::set<Node*> nearS;
 		for (auto itN = delimiter; itN != this->nodes.rend(); ++itN) {
-			dist_att = this->problem.cost2Go((*itN)->getState(), state, true);
+			dist_att = prb.cost2Go((*itN)->getState(), state, true);
 			if (dist_att <= ray) {
 				nearS.emplace((*itN).get());
 			}
@@ -69,12 +71,13 @@ namespace mt {
 			return {};
 		}
 
+		const Problem& prb = this->getProblem();
 		std::list<TreeConcrete::Rewird> rewirds;
 		std::list<float> costs2RootNear_set;
 		float costMin = mt::traj::Trajectory::COST_MAX, costAtt;
 		std::list<TreeConcrete::Rewird>::iterator best_traj = rewirds.end();
 		for (auto itN = Near_set.begin(); itN != Near_set.end(); ++itN) {
-			rewirds.emplace_front(**itN, pivot, this->problem.cost2Go((*itN)->getState(), pivot.getState(), false));
+			rewirds.emplace_front(**itN, pivot, prb.cost2Go((*itN)->getState(), pivot.getState(), false));
 			if (rewirds.front().newCostFromFather == mt::traj::Trajectory::COST_MAX) {
 				rewirds.pop_front();
 			}
@@ -110,8 +113,8 @@ namespace mt {
 				it_cost2Root = costs2RootNear_set.erase(it_cost2Root);
 			}
 			else {
-				if (!this->problem.isProblemSimmetric()) {
-					it_traj->newCostFromFather = this->problem.cost2Go(it_traj->newFather.getState(), it_traj->involved.getState(), false);
+				if (!prb.isProblemSimmetric()) {
+					it_traj->newCostFromFather = prb.cost2Go(it_traj->newFather.getState(), it_traj->involved.getState(), false);
 				}
 				if (it_traj->newCostFromFather == mt::traj::Trajectory::COST_MAX) {
 					it_traj = rewirds.erase(it_traj);

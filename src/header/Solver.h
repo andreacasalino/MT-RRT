@@ -81,7 +81,7 @@ namespace mt {
 	private:
 		struct SolutionInfo {
 			std::chrono::milliseconds		time = std::chrono::milliseconds(0);
-			std::size_t						iterations;
+			std::size_t						iterations = 0;
 			std::vector<NodeState>			solution;
 			std::vector<TreePtr>			trees;
 		};

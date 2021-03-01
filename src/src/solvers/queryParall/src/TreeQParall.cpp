@@ -9,18 +9,15 @@
 
 namespace mt::qpar {
     TreeQPar::TreeQPar(const std::vector<ProblemPtr>& problems, NodePtr root)
-        : TreeConcrete(*problems.front(), std::move(root)) {
-        this->problems.reserve(problems.size());
-        for (std::size_t k = 0; k < problems.size(); ++k) {
-            this->problems.push_back(problems[k].get());
-        }
+        : TreeConcrete(*problems.front(), std::move(root))
+        , ProblemBattery(problems) {
         this->pool = std::make_shared<Pool>();
     }
 
     TreeQPar::TreeQPar(const TreeQPar& o, NodePtr root)
         : TreeConcrete(*o.problems.front(), std::move(root))
+        , ProblemBattery(o)
         , pool(o.pool) {
-        this->problems = o.problems;
     }
 
     // used to iterate the nodes in a tree from a parallel for

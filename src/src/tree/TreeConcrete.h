@@ -23,27 +23,19 @@ namespace mt {
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
 		inline Problem& getProblem() override { return this->problem; }
+		inline const Problem& getProblem() const override { return this->problem; }
 
-		struct Rewird {
-			Rewird(Node& involved, Node& newFather, const float& newCostFromFather);
+		std::list<Rewird> computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const override;
 
-			Node& involved;
-			Node& newFather;
-			float newCostFromFather;
-		};
-		std::list<Rewird> computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const;
-
-		inline virtual Nodes::const_reverse_iterator getDelimiter() const { return this->nodes.rbegin(); };
+		inline Nodes::const_reverse_iterator getDelimiter() const override { return this->nodes.rbegin(); };
 
 	protected:
-
 		virtual Node* nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 
 		virtual std::set<Node*> nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 
 		Problem& problem;
 		Nodes nodes;
-		NodePtr lastExtended;
 	};
 }
 

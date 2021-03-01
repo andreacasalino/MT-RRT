@@ -33,6 +33,19 @@ namespace mt {
 		virtual const Nodes& getNodes() const = 0;
 
 		virtual Problem& getProblem() = 0;
+		virtual const Problem& getProblem() const = 0;
+
+		struct Rewird {
+			Rewird(Node& involved, Node& newFather, const float& newCostFromFather);
+
+			Node& involved;
+			Node& newFather;
+			float newCostFromFather;
+		};
+		virtual std::list<Rewird> computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const = 0;
+
+		// return the node to consider as the last one in the nodes list
+		virtual Nodes::const_reverse_iterator getDelimiter() const = 0;
 
 	protected:
 		Tree() = default;

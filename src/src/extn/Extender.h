@@ -43,26 +43,29 @@ namespace mt {
 			return this->computeSolutionSequence(*this->solutionsFound.begin());
 		};
 
-		static std::vector<NodeState> computeBestSolutionSequence(const std::vector<const Extender*> extenders) {
+		template<typename ExtT>
+		static std::vector<NodeState> computeBestSolutionSequence(const std::vector<ExtT> extenders) {
 			std::set<Solution> solutions;
 			for (auto itE = extenders.begin(); itE != extenders.end(); ++itE) {
-				for (auto itSol = (*itE)->solutionsFound.begin(); itSol != (*itE)->solutionsFound.end(); ++itSol) {
+				for (auto itSol = itE->solutionsFound.begin(); itSol != itE->solutionsFound.end(); ++itSol) {
 					if (solutions.find(*itSol) == solutions.end()) {
 						solutions.emplace(*itSol);
 					}
 				}
 			}
 			if (solutions.empty()) return {};
-			return extenders.front()->computeSolutionSequence(*solutions.begin());
+			return extenders.front().computeSolutionSequence(*solutions.begin());
 		};
+
+		inline bool isCumulating() const { return this->cumulateSolutions; };
+
+		virtual std::vector<NodeState> computeSolutionSequence(const Solution& sol) const = 0;
 
 	protected:
 		Extender(const bool& cumulateSolutions, const double& deterministicCoefficient)
 			: cumulateSolutions(cumulateSolutions)
 			, deterministicCoefficient(deterministicCoefficient) {
 		};
-
-		virtual std::vector<NodeState> computeSolutionSequence(const Solution& sol) const = 0;
 
 	// data
 		sampling::UniformRandomEngine randEngine;

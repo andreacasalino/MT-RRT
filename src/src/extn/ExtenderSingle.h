@@ -22,12 +22,14 @@ namespace mt {
 
         void extend(const size_t& Iterations) override;
 
-    private:
         std::vector<NodeState> computeSolutionSequence(const SingleSolution& sol) const override;
 
+    private:
         Tree& tree;
         NodeState target;
     };
+
+    std::vector<ExtSingle> make_extBattery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& trees, const NodeState& target);
 }
 
 #endif

@@ -17,6 +17,9 @@ namespace mt {
         : Extender<BidirSolution>(cumulateSolutions, deterministicCoefficient)
         , leftTree(leftTree)
         , rightTree(rightTree) {
+		if (&this->leftTree == &this->rightTree) {
+			throw Error("trees should be different for bidirectional extender");
+		}
     }
 
 	class BidirSolutionFactory {
@@ -121,4 +124,16 @@ namespace mt {
 
 		return convert(states);
 	}
+
+	std::vector<ExtBidir> make_extBattery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& treesA, const std::vector<TreePtr>& treesB) {
+		if (treesA.size() != treesB.size()) {
+			throw Error("inconsistent number of trees");
+		}
+		std::vector<ExtBidir> battery;
+		battery.reserve(treesA.size());
+		for (std::size_t k = 0; k < treesA.size(); ++k) {
+			battery.emplace_back(cumulateSolutions, deterministicCoefficient, *treesA[k].get(), *treesB[k].get());
+		}
+		return battery;
+	};
 }

@@ -35,7 +35,7 @@ namespace mt {
             sol->trees.emplace_back(std::make_unique<TreeStar>(
                 std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start))
                 ));
-            static_cast<TreeStar*>(sol->trees.back().get())->get<qpar::TreeQPar>()->open();
+            static_cast<TreeStar*>(sol->trees.back().get())->getT<qpar::TreeQPar>()->open();
             ExtSingle ext(this->parameters.Cumulate_sol, this->parameters.Deterministic_coefficient, *sol->trees.front(), end);
             ext.extend(this->parameters.Iterations_Max);
             sol->iterations = ext.getIterationsDone();

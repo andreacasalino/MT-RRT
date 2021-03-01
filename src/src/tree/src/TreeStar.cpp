@@ -13,11 +13,10 @@ namespace mt {
     }
 
     std::pair<NodePtr, bool> TreeStar::extend(const NodeState& target) {
-        auto temp = this->wrapped->extend(target);
+        auto temp = this->get()->extend(target);
         if (nullptr == temp.first) return temp;
         if (temp.second) return temp; // no rewire on target node
-        TreeConcrete* ptCnrt = dynamic_cast<TreeConcrete*>(this->wrapped.get());
-        auto rew = ptCnrt->computeRewirds(*temp.first.get() , ptCnrt->getDelimiter());
+        auto rew = this->get()->computeRewirds(*temp.first.get() , this->get()->getDelimiter());
         for (auto it = rew.begin(); it != rew.end(); ++it) {
             it->involved.setFather(&it->newFather, it->newCostFromFather);
         }
