@@ -26,7 +26,6 @@ namespace mt {
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
-		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
 		/** \brief Similar to Node::Cost_to_root(float* result), but throwing an exception when the length of the path that must be followed to reach the root
@@ -58,7 +57,10 @@ namespace mt {
 		*/
 		void													setFather(Node* new_father, const float& cost_from_father);
 
-	private:		
+	protected:
+		Node(Node&& o);
+
+	private:
 	// data
 		NodeState						state;
 		Node*							father = nullptr;

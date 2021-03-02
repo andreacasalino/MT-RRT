@@ -5,20 +5,20 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_LINKED_LISTS_H
-#define MT_RRT_LINKED_LISTS_H
+#ifndef MT_RRT_LIST_LINKED_H
+#define MT_RRT_LIST_LINKED_H
 
 #include <list>
 #include <vector>
 #include <set>
 
 namespace mt::copied {
-    typedef int T;
-    class LinkedLists {
+    template<typename T>
+    class ListLinked {
     protected:
-        LinkedLists() = default;
+        ListLinked() = default;
 
-        static void link(std::vector<LinkedLists>& group) {
+        static void link(std::vector<ListLinked>& group) {
             std::size_t S = group.size() - 1;
             for (auto it = group.begin(); it != group.end(); ++it) {
                 it->incomings.reserve(S);
