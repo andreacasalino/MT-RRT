@@ -96,9 +96,9 @@ namespace mt {
 
 		std::unique_ptr<SolutionInfo> solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> solveSharedTree(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) { return nullptr; };
+		std::unique_ptr<SolutionInfo> solveSharedTree(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> solveCopiedTrees(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) { return nullptr; };
+		std::unique_ptr<SolutionInfo> solveCopiedTrees(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
 		std::unique_ptr<SolutionInfo> solveMultiAgent(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) { return nullptr; };
 

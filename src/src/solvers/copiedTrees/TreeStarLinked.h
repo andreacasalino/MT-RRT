@@ -15,7 +15,7 @@ namespace mt::copied {
         : public TreeConcreteLinked
         , public ListLinked<TreeConcrete::Rewird> {
     public:
-        static std::vector<TreeStarLinked> make_trees(const std::vector<ProblemPtr>& problems, NodePtr root);
+        static std::vector<TreePtr> make_trees(const std::vector<ProblemPtr>& problems, NodePtr root);
 
         void add(NodePtr node) override;
 

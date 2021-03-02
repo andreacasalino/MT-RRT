@@ -32,7 +32,7 @@ num_threads(static_cast<int>(battery.size()))
         }
     }
 
-    std::unique_ptr<Solver::SolutionInfo> Solver::solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
+    std::unique_ptr<Solver::SolutionInfo> Solver::solveSharedTree(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
         auto sol = std::make_unique<SolutionInfo>();
 
         auto make_extBattery1 = [this, &end, &sol]() -> std::vector<ExtSingle> {

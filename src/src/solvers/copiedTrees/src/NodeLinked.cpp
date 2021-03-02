@@ -27,14 +27,14 @@ namespace mt::copied {
         std::vector<NodePtr> roots;
         roots.reserve(threadsNumber);
         for (std::size_t k = 0; k < threadsNumber; ++k) {
-            roots.emplace_back(std::make_unique<NodeLinked>(state));
+            roots.emplace_back(std::unique_ptr<NodeLinked>( new NodeLinked(state) ));
         }
         link(roots);
         return roots;
     }
 
     NodeLinked::NodeLinked(Node&& o)
-        : NodeLinked(std::move(o)) {
+        : Node(std::move(o)) {
     }
 
     std::vector<NodePtr> NodeLinked::make_linked(Node&& node) {
@@ -45,12 +45,12 @@ namespace mt::copied {
         std::size_t c = 0;
         for (std::size_t k = 0; k < threadsNumber; ++k) {
             if(thId != k) {
-                group[k] = std::make_unique<NodeLinked>(node.getState());
+                group[k] = std::unique_ptr<NodeLinked>( new NodeLinked(node.getState()) );
                 group[k]->setFather(static_cast<NodeLinked*>(&node)->getLinked()[c], node.getCostFromFather());
                 ++c;
             }
         }
-        group[thId] = std::make_unique<NodeLinked>(std::move(node));
+        group[thId] = std::unique_ptr<NodeLinked>( new NodeLinked(std::move(node)) );
         group[thId]->setFather(node.getFather(), node.getCostFromFather());
         link(group);
         return group;
