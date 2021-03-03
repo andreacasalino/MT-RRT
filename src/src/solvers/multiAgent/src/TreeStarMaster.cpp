@@ -13,7 +13,20 @@ namespace mt::multiag {
     }
 
     void TreeStarMaster::gather() {
-        // gather slaves result, while doing rewirds
-        throw 0; // still to implement
+        std::vector<std::list<Rewird>> rews;
+        rews.resize(this->slaves.size());
+        for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
+            Nodes& nodes = this->getSlaveNodes(**it);
+            auto itN = nodes.begin();
+            ++itN;
+            for (itN; itN != nodes.end(); ++itN) {
+                auto rew = this->computeRewirds(**itN, this->nodes.rbegin());
+                for (auto it = rew.begin(); it != rew.end(); ++it) {
+                    it->involved.setFather(&it->newFather, it->newCostFromFather);
+                }
+                this->add(std::move(*itN));
+            }
+            nodes.clear();
+        }
     }
 }

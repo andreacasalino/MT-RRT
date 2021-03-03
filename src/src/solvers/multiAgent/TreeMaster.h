@@ -22,6 +22,8 @@ namespace mt::multiag {
 		inline Tree& getSlave(const std::size_t& pos) { return *this->slaves[pos].get(); };
 
 	protected:
+		inline Nodes& getSlaveNodes(TreeSlave& slave) { return slave.getSlaveNodes(); };
+
 		std::vector<std::unique_ptr<TreeSlave>> slaves;
 	};
 }
