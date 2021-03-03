@@ -9,24 +9,25 @@
 #define MT_RRT_LIST_LINKED_H
 
 #include <list>
-#include <vector>
 #include <set>
+#include <memory>
 
 namespace mt::copied {
     template<typename T>
     class ListLinked {
-    protected:
+    public:
         ListLinked() = default;
+        ListLinked(const ListLinked<T>&) = delete;
+        ListLinked& operator=(const ListLinked<T>&) = delete;
 
-        static void link(std::vector<ListLinked>& group) {
-            std::size_t S = group.size() - 1;
+        static void link(std::vector<ListLinked<T>*>& group) {
             for (auto it = group.begin(); it != group.end(); ++it) {
-                it->incomings.reserve(S);
-                it->outgoings.reserve(S);
+                (*it)->incomings.clear();
+                (*it)->outgoings.clear();
             }
 
             std::set<std::size_t> posTot;
-            for (std::size_t c = 0; c < S + 1; ++c) {
+            for (std::size_t c = 0; c < group.size(); ++c) {
                 posTot.emplace(c);
             }
 
@@ -34,15 +35,15 @@ namespace mt::copied {
                 std::set<std::size_t> pos = posTot;
                 pos.erase(pos.find(g));
                 for (auto itP = pos.begin(); itP != pos.end(); ++itP) {
-                    group[g].incomings.emplace_back();
-                    group[*itP].outgoings.emplace_back(&group[g].incomings.back());
-                    ++itP;
+                    group[g]->incomings.emplace_back();
+                    group[*itP]->outgoings.push_back(&group[g]->incomings.back());
                 }
             }
         };
 
-        std::vector<std::list<T>> incomings;
-        std::vector<std::list<T>*> outgoings;
+    protected:
+        std::list<std::list<T>> incomings;
+        std::list<std::list<T>*> outgoings;
     };
 }
 

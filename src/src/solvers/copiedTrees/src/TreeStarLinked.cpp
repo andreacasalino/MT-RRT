@@ -11,27 +11,28 @@
 
 namespace mt::copied {
     void TreeStarLinked::add(NodePtr node) {
-        auto group = NodeLinked::make_linked(std::move(*node));
+        auto group = NodeLinked::make_linked(std::move(node), omp_get_num_threads());
         std::size_t thId = static_cast<std::size_t>(omp_get_thread_num());
-        for (std::size_t k = 0; k < this->TreeConcreteLinked::outgoings.size(); ++k) {
+        auto itO = this->ListLinked<NodePtr>::outgoings.begin();
+        for (std::size_t k = 0; k < group.size(); ++k) {
             if (thId == k) {
                 this->TreeConcrete::add(std::move(group[k]));
 
             }
             else {
-                this->TreeConcreteLinked::outgoings[k]->emplace_back(std::move(group[k]));
+                (*itO)->emplace_back(std::move(group[k]));
+                ++itO;
             }
         }
     }
 
     void TreeStarLinked::gather() {
         this->TreeConcreteLinked::gather();
-
-        for (auto it = this->ListLinked<TreeConcrete::Rewird>::incomings.begin(); it != this->ListLinked<TreeConcrete::Rewird>::incomings.end(); ++it) {
-            for (auto itt = it->begin(); itt != it->end(); ++it) {
-                itt->involved.setFather(&itt->newFather , itt->newCostFromFather);
+        for (auto in = this->ListLinked<TreeConcrete::Rewird>::incomings.begin(); in != this->ListLinked<TreeConcrete::Rewird>::incomings.end(); ++in) {
+            for (auto it = in->begin(); it != in->end(); ++it) {
+                it->involved.setFather(&it->newFather, it->newCostFromFather);
             }
-            it->clear();
+            in->clear();
         }
     }
 
@@ -43,10 +44,12 @@ namespace mt::copied {
 
         std::size_t k;
         for (auto itR = rew.begin(); itR != rew.end(); ++itR) {
-            const std::vector<Node*>& involvedCopies = static_cast<NodeLinked&>(itR->involved).getLinked();
-            const std::vector<Node*>& fatherCopies = static_cast<NodeLinked&>(itR->newFather).getLinked();
+            const std::vector<NodeLinked*>& involvedCopies = static_cast<NodeLinked&>(itR->involved).getLinked();
+            const std::vector<NodeLinked*>& fatherCopies = static_cast<NodeLinked&>(itR->newFather).getLinked();
+            auto itO = this->ListLinked<TreeConcrete::Rewird>::outgoings.begin();
             for (k = 0; k < involvedCopies.size(); ++k) {
-                this->ListLinked<TreeConcrete::Rewird>::outgoings[k]->emplace_back(*involvedCopies[k], *fatherCopies[k], itR->newCostFromFather);
+                (*itO)->emplace_back(*involvedCopies[k], *fatherCopies[k], itR->newCostFromFather);
+                ++itO;
             }
         }
 
@@ -54,5 +57,20 @@ namespace mt::copied {
             it->involved.setFather(&it->newFather, it->newCostFromFather);
         }
         return temp;
+    }
+
+    std::vector<TreePtr> TreeStarLinked::make_trees(const std::vector<ProblemPtr>& problems, NodePtr root) {
+        std::vector<TreePtr> group;
+        std::vector<ListLinked<TreeConcrete::Rewird>*> groupPtr;
+        group.reserve(problems.size());
+        groupPtr.reserve(problems.size());
+        auto roots = NodeLinked::make_roots(std::move(root), problems.size());
+        for (std::size_t k = 0; k < problems.size(); ++k) {
+            auto temp = new TreeStarLinked(*problems[k], std::move(roots[k]));
+            group.emplace_back(temp);
+            groupPtr.emplace_back(temp);
+        }
+        ListLinked<TreeConcrete::Rewird>::link(groupPtr);
+        return group;
     }
 }

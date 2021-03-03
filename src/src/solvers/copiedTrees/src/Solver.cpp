@@ -20,12 +20,11 @@ namespace mt {
     void solveParallel(std::vector<E>& battery, const std::size_t& iterations, const copied::Gatherer& gatherer) {
         std::atomic_bool life = true;
         std::size_t Threads = battery.size();
-        std::size_t Batch_size = (size_t)std::ceil(0.5f * static_cast<float>(iterations) / static_cast<float>(Threads));
+        std::size_t Batch_size = static_cast<size_t>(std::ceil(0.05f * static_cast<float>(iterations) / static_cast<float>(Threads)));
 
 #pragma omp parallel \
 num_threads(static_cast<int>(Threads))
         {
-            std::size_t Number_threads = static_cast<std::size_t>(omp_get_num_threads());
             E* Solver_to_use = &battery[omp_get_thread_num()];
             for (size_t k = 0; k < iterations; k += Batch_size * Threads) {
                 if (!life) break;
@@ -71,14 +70,14 @@ num_threads(static_cast<int>(Threads))
             sol->solution = ExtSingle::computeBestSolutionSequence(battery);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
-            sol->trees.reserve(this->problemcopies.size() * 2);
             sol->trees = copied::TreeConcreteLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
             auto temp = copied::TreeConcreteLinked::make_trees(this->problemcopies, std::make_unique<Node>(end));
             copied::GathererBid gatherer(sol->trees, temp);
             std::vector<ExtBidir> battery = make_extBattery2(temp);
             {
-                while (!temp.empty()) {
-                    sol->trees.emplace_back(std::move(temp.front()));
+                sol->trees.reserve(this->problemcopies.size() * 2);
+                for (auto it = temp.begin(); it != temp.end(); ++it) {
+                    sol->trees.emplace_back(std::move(*it));
                 }
             }
             solveParallel(battery, this->parameters.Iterations_Max, gatherer);

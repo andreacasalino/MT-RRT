@@ -17,7 +17,7 @@ namespace mt::copied {
         this->battery[omp_get_thread_num()]->gather();
     };
 
-    std::vector<copied::TreeConcreteLinked*> cast(const std::vector<TreePtr>& battery) {
+    std::vector<copied::TreeConcreteLinked*> Gatherer::cast(const std::vector<TreePtr>& battery) {
         std::vector<copied::TreeConcreteLinked*> casted;
         casted.reserve(battery.size());
         for (auto it = battery.begin(); it != battery.cend(); ++it) {
