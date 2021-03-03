@@ -14,13 +14,14 @@
 #include <math.h>
 #include <omp.h>
 #include "../Gatherer.h"
+#include "../Commons.h"
 
 namespace mt {
     template<typename E>
-    void solveParallel(std::vector<E>& battery, const std::size_t& iterations, const copied::Gatherer& gatherer) {
+    void solveParallel(std::vector<E>& battery, const std::size_t& iterations, const double& reallCoeff, const copied::Gatherer& gatherer) {
         std::atomic_bool life = true;
         std::size_t Threads = battery.size();
-        std::size_t Batch_size = static_cast<size_t>(std::ceil(0.05f * static_cast<float>(iterations) / static_cast<float>(Threads)));
+        std::size_t Batch_size = computeBatchSize(iterations, reallCoeff, Threads);
 
 #pragma omp parallel \
 num_threads(static_cast<int>(Threads))
@@ -65,7 +66,7 @@ num_threads(static_cast<int>(Threads))
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees = copied::TreeConcreteLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
             std::vector<ExtSingle> battery = make_extBattery1();
-            solveParallel(battery, this->parameters.Iterations_Max, copied::Gatherer(sol->trees));
+            solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, copied::Gatherer(sol->trees));
             sol->iterations = battery.front().getIterationsDone();
             sol->solution = ExtSingle::computeBestSolutionSequence(battery);
         }
@@ -80,14 +81,14 @@ num_threads(static_cast<int>(Threads))
                     sol->trees.emplace_back(std::move(*it));
                 }
             }
-            solveParallel(battery, this->parameters.Iterations_Max, gatherer);
+            solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, gatherer);
             sol->iterations = battery.front().getIterationsDone();
             sol->solution = ExtBidir::computeBestSolutionSequence(battery);
         }
         else {
             sol->trees = copied::TreeStarLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
             std::vector<ExtSingle> battery = make_extBattery1();
-            solveParallel(battery, this->parameters.Iterations_Max, copied::Gatherer(sol->trees));
+            solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, copied::Gatherer(sol->trees));
             sol->iterations = battery.front().getIterationsDone();
             sol->solution = ExtSingle::computeBestSolutionSequence(battery);
         }

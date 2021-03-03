@@ -9,6 +9,7 @@
 #define MT_RRT_COMMONS_H
 
 #include <Problem.h>
+#include <math.h>
 
 namespace mt {
     class MtObject {
@@ -32,6 +33,10 @@ namespace mt {
 
         std::vector<Problem*> problems;
     };
+
+    inline std::size_t computeBatchSize(const std::size_t& iterations, const double& reallCoeff, const std::size_t& threads) {
+        return static_cast<size_t>(ceil(reallCoeff* static_cast<double>(iterations) / static_cast<double>(threads)));
+    }
 }
 
 #endif

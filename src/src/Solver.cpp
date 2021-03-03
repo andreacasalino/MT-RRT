@@ -102,6 +102,17 @@ namespace mt {
 		}
 	}
 
+	void Solver::setReallignmentCoeff(const double& reallCoeff) {
+		if (reallCoeff < 0.001) {
+			throw Error("reallignment coefficient is too low");
+		}
+		if (reallCoeff > 1) {
+			throw Error("reallignment coefficient is too high");
+		}
+		std::lock_guard<std::mutex> lock(this->dataMtx);
+		this->parameters.reallignment_coeff = reallCoeff;
+	}
+
 	std::size_t Solver::getLastIterations() const {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
 		if (nullptr == this->lastSolution) return 0;

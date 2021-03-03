@@ -62,6 +62,8 @@ namespace mt {
 
 		void									setSteerTrials(const std::size_t& trials);
 
+		void									setReallignmentCoeff(const double& reallCoeff);
+
 
 
 		std::size_t								getLastIterations() const;
@@ -90,6 +92,7 @@ namespace mt {
 			double											Deterministic_coefficient = 0.2f;
 			size_t											Iterations_Max = 1000;
 			bool											Cumulate_sol = false;
+			double											reallignment_coeff = 0.05;
 		};
 
 		std::unique_ptr<SolutionInfo> solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
@@ -100,7 +103,7 @@ namespace mt {
 
 		std::unique_ptr<SolutionInfo> solveCopiedTrees(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		std::unique_ptr<SolutionInfo> solveMultiAgent(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) { return nullptr; };
+		std::unique_ptr<SolutionInfo> solveMultiAgent(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
 	// data
 		mutable std::mutex								dataMtx;
