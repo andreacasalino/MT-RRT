@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <Box.h>
+#include <Obstacle.h>
 #include <sampler/UniformEngine.h>
 
 namespace mt::sample {
@@ -21,7 +21,7 @@ namespace mt::sample {
 		return ((max - min) < 0.f);
 	}
 
-	Box::Box(const geometry::Point& A, const geometry::Point& B) {
+	Obstacle::Obstacle(const geometry::Point& A, const geometry::Point& B) {
 		if (A.x() < B.x()) {
 			this->x_min = A.x();
 			this->x_max = B.x();
@@ -41,7 +41,7 @@ namespace mt::sample {
 		}
 	}
 
-	bool Box::collideWithSegment(const float* pointA, const float* pointB) {
+	bool Obstacle::collideWithSegment(const float* pointA, const float* pointB) {
 		float B_min, B_max;
 		//x axis
 		if (pointA[0] < pointB[0]) {
@@ -90,7 +90,7 @@ namespace mt::sample {
 		return true;
 	};
 
-	void Box::getExtremal(float& min, float& max, const geometry::Point& Dir) const {
+	void Obstacle::getExtremal(float& min, float& max, const geometry::Point& Dir) const {
 		float max_x, min_x;
 		max_x = Dir.x() * this->x_max;
 		min_x = Dir.x() * this->x_min;
@@ -113,7 +113,7 @@ namespace mt::sample {
 		max = max_x + max_y;
 	}
 
-	bool Box::collideWithPoint(const float* coordinates) {
+	bool Obstacle::collideWithPoint(const float* coordinates) {
 		if ((coordinates[0] > this->x_max) || (coordinates[0] < this->x_min)) return false;
 		if ((coordinates[1] > this->y_max) || (coordinates[1] < this->y_min)) return false;
 		return true;
@@ -134,7 +134,7 @@ namespace mt::sample {
 		}
 		return Nearest;
 	}
-	std::vector<Box> Box::generateRandomBoxes(const size_t& N_cl, const size_t& N_box) {
+	std::vector<Obstacle> Obstacle::generateRandomBoxes(const size_t& N_cl, const size_t& N_box) {
 		float aggreg_coeff = 0.7f;
 		sampling::UniformRandomEngine samplerPos(0.f , 1.f);
 		sampling::UniformRandomEngine samplerRadius(0.01f, 0.08f);
@@ -154,7 +154,7 @@ namespace mt::sample {
 		const geometry::Point* Center_nearest = nullptr;
 		float radius;
 		float angle;
-		std::vector<Box> boxes;
+		std::vector<Obstacle> boxes;
 		boxes.reserve(N_box);
 		for (size_t k = 0; k < N_boxes; k++) {
 			Center.x() = samplerPos(); Center.y() = samplerPos();

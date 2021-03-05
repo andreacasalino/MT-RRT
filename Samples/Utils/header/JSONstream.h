@@ -1,3 +1,10 @@
+/**
+ * Author:    Andrea Casalino
+ * Created:   16.05.2019
+ *
+ * report any bug to andrecasa91@gmail.com.
+ **/
+
 #ifndef GUI_JSON_STREAM_H_
 #define GUI_JSON_STREAM_H_
 

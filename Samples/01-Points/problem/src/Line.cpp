@@ -8,32 +8,28 @@
 #include "Line.h"
 
 namespace mt::traj {
-    LineManager::LineManager(const float& steerDegree, const std::vector<sample::Box>& obstacles)
+    LineManager::LineManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles)
         : Euclidean(steerDegree) {
-        this->obstacles = std::make_shared<std::vector<sample::Box>>(obstacles);
+        this->obstacles = std::make_shared<std::vector<sample::Obstacle>>(obstacles);
     }
 
     traj::TrajectoryPtr LineManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
         return std::make_unique<Line>(start, ending_node, this->steerDegree, this->obstacles);
     }
 
-    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Box>> obstacles)
+    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Obstacle>> obstacles)
         : EuclideanTraj(start, target, steerDegree) {
         this->obstacles = obstacles;
     };
 
-    Trajectory::advanceInfo Line::advance() {
+    Trajectory::AdvanceInfo Line::advance() {
         auto temp = this->traj::EuclideanTraj::advance();
-        bool collide = false;
         for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
             if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
-                collide = true;
+                temp = traj::Trajectory::AdvanceInfo::blocked;
+                std::swap(this->cursor, this->previousState);
                 break;
             }
-        }
-        if (collide) {
-            std::swap(this->cursor, this->previousState);
-            return traj::Trajectory::advanceInfo::blocked;
         }
         return temp;
     };

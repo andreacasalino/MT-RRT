@@ -25,7 +25,7 @@ namespace mt {
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start)));
-            sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(static_cast<const qpar::TreeQPar&>(*sol->trees.back().get()), std::make_unique<Node>(end)));
+            sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(*castTree<qpar::TreeQPar>(sol->trees.back()), std::make_unique<Node>(end)));
             castTree<qpar::TreeQPar>(sol->trees.back())->open();
             solveBidir(*sol, this->parameters);
         }
@@ -36,7 +36,7 @@ namespace mt {
             castTree<TreeStar>(sol->trees.back())->getT<qpar::TreeQPar>()->open();
             solveSingle(*sol, this->parameters, end);
         }
-        static_cast<qpar::TreeQPar*>(sol->trees.back().get())->close();
+        castTree<qpar::TreeQPar>(sol->trees.back())->close();
         return sol;
     }
 }

@@ -9,31 +9,31 @@
 #define MT_RRT_SAMPLE_PROBLEM_POINT_LINE_H
 
 #include <trajectory/Euclidean.h>
-#include <Box.h>
+#include <Obstacle.h>
 
 namespace mt::traj {
     class LineManager : public traj::Euclidean {
     public:
-        LineManager(const float& steerDegree, const std::vector<sample::Box>& obstacles);
+        LineManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
         inline std::unique_ptr<Manager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, *this->obstacles); };
 
-        inline std::vector<sample::Box> getObstacles() { return *this->obstacles; }
+        inline const std::vector<sample::Obstacle>& getObstacles() { return *this->obstacles; }
 
     private:
-        std::shared_ptr<std::vector<sample::Box>> obstacles;
+        std::shared_ptr<std::vector<sample::Obstacle>> obstacles;
     };
 
     class Line : public traj::EuclideanTraj {
     public:
-        Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Box>> obstacles);
+        Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Obstacle>> obstacles);
 
-        advanceInfo advance() override;
+        AdvanceInfo advance() override;
 
     private:
-        std::shared_ptr<std::vector<sample::Box>> obstacles;
+        std::shared_ptr<std::vector<sample::Obstacle>> obstacles;
     };
 }
 

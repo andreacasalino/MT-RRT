@@ -48,15 +48,15 @@ namespace mt::traj {
     Trajectory::AdvanceInfo EuclideanTraj::advance() {
         float distance = squaredDistance(this->cursor, this->target);
         std::swap(this->previousState, this->cursor);
+        this->cursor = this->target;
         if (distance <= this->steerDegree) {
-            this->cursor = this->target;
             return AdvanceInfo::targetReached;
         }
         float c = this->steerDegree / distance;
         float c2 = 1.f - c;
         for (std::size_t k = 0; k < this->cursor.size(); ++k) {
-            this->cursor[k] *= c2;
-            this->cursor[k] += c * this->target[k];
+            this->cursor[k] *= c;
+            this->cursor[k] += c2 * this->previousState[k];
         }
         return AdvanceInfo::advanced;
     }

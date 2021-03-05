@@ -23,23 +23,23 @@ namespace mt {
 		auto tic = std::chrono::high_resolution_clock::now();
 		switch (mtStrategy) {
 		case MTStrategy::Serial:
-			this->lastSolution = std::move(this->solveSerial(start, end, rrtStrategy));
+			this->lastSolution = this->solveSerial(start, end, rrtStrategy);
 			break;
 		case MTStrategy::MtQueryParall:
 			if (1 == this->problemcopies.size()) throw Error("can't use a multi thread strategy with just 1 thread");
-			this->lastSolution = std::move(this->solveQueryParall(start, end, rrtStrategy));
+			this->lastSolution = this->solveQueryParall(start, end, rrtStrategy);
 			break;
 		case MTStrategy::MtSharedTree:
 			if (1 == this->problemcopies.size()) throw Error("can't use a multi thread strategy with just 1 thread");
-			this->lastSolution = std::move(this->solveSharedTree(start, end, rrtStrategy));
+			this->lastSolution = this->solveSharedTree(start, end, rrtStrategy);
 			break;
 		case MTStrategy::MtCopiedTrees:
 			if (1 == this->problemcopies.size()) throw Error("can't use a multi thread strategy with just 1 thread");
-			this->lastSolution = std::move(this->solveCopiedTrees(start, end, rrtStrategy));
+			this->lastSolution = this->solveCopiedTrees(start, end, rrtStrategy);
 			break;
 		case MTStrategy::MtMultiAgent:
 			if (1 == this->problemcopies.size()) throw Error("can't use a multi thread strategy with just 1 thread");
-			this->lastSolution = std::move(this->solveMultiAgent(start, end, rrtStrategy));
+			this->lastSolution = this->solveMultiAgent(start, end, rrtStrategy);
 			break;
 		default:
 			throw Error("unrecognized strategy");
