@@ -23,7 +23,9 @@ int main() {
 
 	mt::sample::structJSON log;
 	log.addElement("problem", static_cast<const mt::sample::PointProblem&>(solver.getProblem()).getJSON());
+	log.addEndl();
 	log.addElement("results", results.getJSON());
+	printData(log, "Sample02.json");
 
 	return EXIT_SUCCESS;
 }

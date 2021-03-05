@@ -69,9 +69,9 @@ namespace mt::sample {
     structJSON Results::getJSON() const {
         structJSON json;
         for (auto r = this->resultMatrix.begin(); r != this->resultMatrix.end(); ++r) {
-            arrayJSON temp;
+            structJSON temp;
             for (auto c = r->second.begin(); c != r->second.end(); ++c) {
-                json.addElement(tostring(c->first), c->second);
+                temp.addElement(tostring(c->first), c->second);
             }
             json.addElement(tostring(r->first), temp);
         }
