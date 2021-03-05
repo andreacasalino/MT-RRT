@@ -39,12 +39,10 @@ num_threads(static_cast<int>(Threads))
                     master->gather();
                 }
                 life = false;
-#pragma omp barrier
             }
             else {
-                while (true) {
+                while (life) {
 #pragma omp barrier
-                    if (!life) break;
                     Solver_to_use->extend(Batch_size);
 #pragma omp barrier
                 }
@@ -69,8 +67,7 @@ num_threads(static_cast<int>(Threads))
             sol->trees.emplace_back(std::make_unique<multiag::TreeSlave::TreeMaster>(this->problemcopies, std::make_unique<Node>(start)));
             std::vector<ExtSingle> battery = make_extBattery();
             solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, static_cast<multiag::TreeSlave::TreeMaster*>(sol->trees.back().get()));
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             throw Error("bidirectional startegy not possible for multi agent approach");
@@ -79,8 +76,7 @@ num_threads(static_cast<int>(Threads))
             sol->trees.emplace_back(std::make_unique<multiag::TreeStarMaster>(this->problemcopies, std::make_unique<Node>(start)));
             std::vector<ExtSingle> battery = make_extBattery();
             solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, dynamic_cast<multiag::TreeSlave::TreeMaster*>(sol->trees.back().get()));
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         return sol;
     }

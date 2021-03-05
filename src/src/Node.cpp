@@ -18,9 +18,9 @@ namespace mt {
 		if (this->state.empty()) throw Error("empty state for cost to go");
 	}
 
-	Node::Node(const std::size_t& stateSize) {
-		this->state.resize(stateSize);
-		if(0 == stateSize) throw Error("empty state for cost to go");
+	Node::Node(NodeState&& state)
+		: state(std::move(state)) {
+		if (this->state.empty()) throw Error("empty state for cost to go");
 	}
 
 	Node::Node(Node&& o)
@@ -41,8 +41,7 @@ namespace mt {
 		while (att_node != nullptr) {
 			result += att_node->costFromFather;
 			att_node = att_node->father;
-			++k;
-			if(MAX_ITERATIONS == k) throw Error("Max number of iterations exceeded while computing cost to go");
+			if(MAX_ITERATIONS == ++k) throw Error("Max number of iterations exceeded while computing cost to go");
 		}
 		return result;
 	};

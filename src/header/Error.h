@@ -9,7 +9,6 @@
 #define MT_RRT_ERROR_H
 
 #include <stdexcept>
-#include <sstream>
 
 namespace mt {
     /** @brief A runtime error that can be raised when using any object in mt::

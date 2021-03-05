@@ -14,11 +14,9 @@
 
 namespace mt::shared {
 	class TreeConcreteCritical 
-		: public TreeConcrete
-		, public ProblemBattery {
+		: public TreeConcrete {
 	public:
 		TreeConcreteCritical(const std::vector<ProblemPtr>& problems, NodePtr root);
-		TreeConcreteCritical(const TreeConcreteCritical& o, NodePtr root);
 
 		void  add(NodePtr node) override;
 
@@ -31,6 +29,7 @@ namespace mt::shared {
 
 	protected:
 		mutable std::mutex mtx;
+		std::vector<Problem*> problems;
 	};
 }
 

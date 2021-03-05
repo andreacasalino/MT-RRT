@@ -9,7 +9,7 @@
 
 namespace mt::multiag {
     TreeSlave::TreeSlave(Problem& problem)
-        : TreeConcrete(problem, std::make_unique<Node>(NodeState{})) {
+        : TreeConcrete(problem, std::make_unique<Node>(NodeState{0.f})) {
         this->nodes.clear();
     }
 

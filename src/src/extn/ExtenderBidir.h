@@ -30,7 +30,7 @@ namespace mt {
         Tree& rightTree;
     };
 
-    std::vector<ExtBidir> make_extBattery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& treesA, const std::vector<TreePtr>& treesB);
+    std::vector<ExtBidir> make_battery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& treesA, const std::vector<TreePtr>& treesB);
 }
 
 #endif

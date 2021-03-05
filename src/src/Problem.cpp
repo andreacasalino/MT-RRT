@@ -39,9 +39,9 @@ namespace mt {
         trg_reached = false;
         for (std::size_t t = 0; t < this->steerTrials; ++t) {
             auto info = traj->advance();
-            if (traj::Trajectory::advanceInfo::blocked == info) break;
+            if (traj::Trajectory::AdvanceInfo::blocked == info) break;
             steered = traj->getCursor();
-            if (traj::Trajectory::advanceInfo::targetReached == info) {
+            if (traj::Trajectory::AdvanceInfo::targetReached == info) {
                 trg_reached = true;
                 break;
             }

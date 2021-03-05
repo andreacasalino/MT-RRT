@@ -7,8 +7,8 @@
 
 #include <Extender.h>
 
-#include <iostream>
 #ifdef SHOW_PROGRESS
+#include <iostream>
 #endif
 
 namespace mt {

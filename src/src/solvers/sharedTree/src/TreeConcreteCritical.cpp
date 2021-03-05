@@ -11,12 +11,7 @@
 namespace mt::shared {
     TreeConcreteCritical::TreeConcreteCritical(const std::vector<ProblemPtr>& problems, NodePtr root)
         : TreeConcrete(*problems.front(), std::move(root))
-        , ProblemBattery(problems) {
-    }
-
-    TreeConcreteCritical::TreeConcreteCritical(const TreeConcreteCritical& o, NodePtr root)
-        : TreeConcrete(*o.problems.front(), std::move(root))
-        , ProblemBattery(o) {
+        , problems(make_battery(problems)) {
     }
 
     void TreeConcreteCritical::add(NodePtr node) {

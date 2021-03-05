@@ -80,7 +80,8 @@ namespace mt {
 
 		std::size_t								getThreadAvailability() const;
 
-	private:
+
+
 		struct SolutionInfo {
 			std::chrono::milliseconds		time = std::chrono::milliseconds(0);
 			std::size_t						iterations = 0;
@@ -95,6 +96,7 @@ namespace mt {
 			double											reallignment_coeff = 0.05;
 		};
 
+	private:
 		std::unique_ptr<SolutionInfo> solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
 		std::unique_ptr<SolutionInfo> solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);

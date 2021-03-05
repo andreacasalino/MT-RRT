@@ -10,33 +10,24 @@
 
 #include <Problem.h>
 #include <math.h>
+#include <Solver.h>
+#include <ExtenderSingle.h>
+#include <ExtenderBidir.h>
 
 namespace mt {
-    class MtObject {
-    public:
-        MtObject(const std::size_t& threadsNumber) : threadsNumber(threadsNumber) {};
-
-        inline std::size_t getThreadsNumber() const { return this->threadsNumber; };
-
-    private:
-        const std::size_t threadsNumber;
-    };
-
-    class ProblemBattery : public MtObject {
-    public:
-        ProblemBattery(const std::vector<ProblemPtr>& problemcopies);
-        ProblemBattery(const ProblemBattery& o) = default;
-
-    protected:
-        inline Problem& getProblem(const std::size_t& pos) { return *this->problems[pos]; };
-        inline const Problem& getProblem(const std::size_t& pos) const { return *this->problems[pos]; };
-
-        std::vector<Problem*> problems;
-    };
-
     inline std::size_t computeBatchSize(const std::size_t& iterations, const double& reallCoeff, const std::size_t& threads) {
-        return static_cast<size_t>(ceil(reallCoeff* static_cast<double>(iterations) / static_cast<double>(threads)));
+        return static_cast<size_t>(ceil(reallCoeff * static_cast<double>(iterations) / static_cast<double>(threads)));
     }
+
+    std::vector<Problem*> make_battery(const std::vector<ProblemPtr>& problems);
+
+    void solveSingle(Solver::SolutionInfo& info, Solver::Parameters& param, const NodeState& end);
+
+    void solveBidir(Solver::SolutionInfo& info, Solver::Parameters& param);
+
+    void fillSolutionInfo(Solver::SolutionInfo& info, Solver::Parameters& param, const std::vector<ExtSingle>& battery);
+
+    void fillSolutionInfo(Solver::SolutionInfo& info, Solver::Parameters& param, const std::vector<ExtBidir>& battery);
 }
 
 #endif

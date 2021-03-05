@@ -35,8 +35,8 @@ num_threads(static_cast<int>(Threads))
                 }
 #pragma omp barrier
                 gatherer.gather();
-#pragma omp barrier
             }
+#pragma omp barrier
             gatherer.gather();
         }
     }
@@ -67,8 +67,7 @@ num_threads(static_cast<int>(Threads))
             sol->trees = copied::TreeConcreteLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, copied::Gatherer(sol->trees));
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees = copied::TreeConcreteLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
@@ -82,15 +81,13 @@ num_threads(static_cast<int>(Threads))
                 }
             }
             solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, gatherer);
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtBidir::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         else {
             sol->trees = copied::TreeStarLinked::make_trees(this->problemcopies, std::make_unique<Node>(start));
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max, this->parameters.reallignment_coeff, copied::Gatherer(sol->trees));
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         return sol;
     }

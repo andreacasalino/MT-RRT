@@ -6,8 +6,7 @@
  **/
 
 #include <Solver.h>
-#include <ExtenderSingle.h>
-#include <ExtenderBidir.h>
+#include "../Commons.h"
 #include "../TreeConcreteCritical.h"
 #include "../TreeStarCritical.h"
 #include <omp.h>
@@ -54,26 +53,23 @@ num_threads(static_cast<int>(battery.size()))
         };
 
         if (RRTStrategy::Single == rrtStrategy) {
-            sol->trees.emplace_back(std::make_unique<shared::TreeConcreteCritical>(this->problemcopies, std::make_unique<Node>(start)));            
+            sol->trees.emplace_back(std::make_unique<shared::TreeConcreteCritical>(this->problemcopies, std::make_unique<Node>(start)));
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max);
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<shared::TreeConcreteCritical>(this->problemcopies, std::make_unique<Node>(start)));
-            sol->trees.emplace_back(std::make_unique<shared::TreeConcreteCritical>(static_cast<const shared::TreeConcreteCritical&>(*sol->trees.back().get()), std::make_unique<Node>(end)));
+            sol->trees.emplace_back(std::make_unique<shared::TreeConcreteCritical>(this->problemcopies, std::make_unique<Node>(end)));
             std::vector<ExtBidir> battery = make_extBattery2();
             solveParallel(battery, this->parameters.Iterations_Max);
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtBidir::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         else {
             sol->trees.emplace_back(std::make_unique<shared::TreeStarCritical>(this->problemcopies, std::make_unique<Node>(start)));
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max);
-            sol->iterations = battery.front().getIterationsDone();
-            sol->solution = ExtSingle::computeBestSolutionSequence(battery);
+            fillSolutionInfo(*sol, this->parameters, battery);
         }
         return sol;
     }

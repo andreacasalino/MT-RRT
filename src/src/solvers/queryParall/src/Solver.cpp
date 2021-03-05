@@ -6,40 +6,35 @@
  **/
 
 #include <Solver.h>
-#include <ExtenderSingle.h>
-#include <ExtenderBidir.h>
+#include "../Commons.h"
 #include "../TreeQParall.h"
 #include <TreeStar.h>
 
 namespace mt {
+    template<typename TreeT>
+    inline TreeT* castTree(const TreePtr& tree) {
+        return static_cast<TreeT*>(tree.get());
+    }
+
     std::unique_ptr<Solver::SolutionInfo> Solver::solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
         auto sol = std::make_unique<SolutionInfo>();
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start)));
-            static_cast<qpar::TreeQPar*>(sol->trees.back().get())->open();
-            ExtSingle ext(this->parameters.Cumulate_sol, this->parameters.Deterministic_coefficient, *sol->trees.front(), end);
-            ext.extend(this->parameters.Iterations_Max);
-            sol->iterations = ext.getIterationsDone();
-            sol->solution = ext.computeBestSolutionSequence();
+            castTree<qpar::TreeQPar>(sol->trees.back())->open();
+            solveSingle(*sol, this->parameters, end);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start)));
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(static_cast<const qpar::TreeQPar&>(*sol->trees.back().get()), std::make_unique<Node>(end)));
-            static_cast<qpar::TreeQPar*>(sol->trees.back().get())->open();
-            ExtBidir ext(this->parameters.Cumulate_sol, this->parameters.Deterministic_coefficient, *sol->trees.front(), *sol->trees.back());
-            ext.extend(this->parameters.Iterations_Max);
-            sol->iterations = ext.getIterationsDone();
-            sol->solution = ext.computeBestSolutionSequence();
+            castTree<qpar::TreeQPar>(sol->trees.back())->open();
+            solveBidir(*sol, this->parameters);
         }
         else {
             sol->trees.emplace_back(std::make_unique<TreeStar>(
                 std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start))
                 ));
-            static_cast<TreeStar*>(sol->trees.back().get())->getT<qpar::TreeQPar>()->open();
-            ExtSingle ext(this->parameters.Cumulate_sol, this->parameters.Deterministic_coefficient, *sol->trees.front(), end);
-            ext.extend(this->parameters.Iterations_Max);
-            sol->iterations = ext.getIterationsDone();
-            sol->solution = ext.computeBestSolutionSequence();
+            castTree<TreeStar>(sol->trees.back())->getT<qpar::TreeQPar>()->open();
+            solveSingle(*sol, this->parameters, end);
         }
         static_cast<qpar::TreeQPar*>(sol->trees.back().get())->close();
         return sol;

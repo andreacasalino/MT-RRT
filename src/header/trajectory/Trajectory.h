@@ -24,10 +24,10 @@ namespace mt::traj {
 
         inline float getCummulatedCost() const { return this->cumulatedCost; };
 
-        enum advanceInfo { blocked, advanced, targetReached };
+        enum AdvanceInfo { blocked, advanced, targetReached };
 
         // return false when the advancement was not possible
-        virtual advanceInfo advance() = 0;
+        virtual AdvanceInfo advance() = 0;
 
     protected:
         Trajectory(const NodeState& start, const NodeState& target);

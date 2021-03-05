@@ -28,10 +28,10 @@ namespace mt::traj {
         }
 
         auto line = this->getTrajectory(start, ending_node);
-        Trajectory::advanceInfo advInfo = Trajectory::advanceInfo::advanced;
-        while (Trajectory::advanceInfo::advanced == advInfo) {
+        Trajectory::AdvanceInfo advInfo = Trajectory::AdvanceInfo::advanced;
+        while (Trajectory::AdvanceInfo::advanced == advInfo) {
             advInfo = line->advance();
-            if (Trajectory::advanceInfo::blocked == advInfo) {
+            if (Trajectory::AdvanceInfo::blocked == advInfo) {
                 return Trajectory::COST_MAX;
             }
         }
@@ -45,12 +45,12 @@ namespace mt::traj {
         this->previousState = start;
     }
 
-    Trajectory::advanceInfo EuclideanTraj::advance() {
+    Trajectory::AdvanceInfo EuclideanTraj::advance() {
         float distance = squaredDistance(this->cursor, this->target);
         std::swap(this->previousState, this->cursor);
         if (distance <= this->steerDegree) {
             this->cursor = this->target;
-            return advanceInfo::targetReached;
+            return AdvanceInfo::targetReached;
         }
         float c = this->steerDegree / distance;
         float c2 = 1.f - c;
@@ -58,6 +58,6 @@ namespace mt::traj {
             this->cursor[k] *= c2;
             this->cursor[k] += c * this->target[k];
         }
-        return advanceInfo::advanced;
+        return AdvanceInfo::advanced;
     }
 }

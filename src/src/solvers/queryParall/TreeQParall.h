@@ -14,8 +14,7 @@
 
 namespace mt::qpar {
 	class TreeQPar 
-		: public TreeConcrete
-		, public ProblemBattery {
+		: public TreeConcrete {
 	public:
 		TreeQPar(const std::vector<ProblemPtr>& problems, NodePtr root);
 		TreeQPar(const TreeQPar& o, NodePtr root);
@@ -29,6 +28,7 @@ namespace mt::qpar {
 		std::set<Node*> nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const override;
 
 		std::shared_ptr<Pool> pool;
+		std::vector<Problem*> problems;
 	};
 }
 

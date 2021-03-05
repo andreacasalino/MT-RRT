@@ -32,7 +32,7 @@ namespace mt {
 
 		/** \brief Get the extensions so far done.
 		*/
-		inline size_t getIterationsDone() { return this->iterationsDone; };
+		inline std::size_t getIterationsDone() const { return this->iterationsDone; };
 
 		inline const std::set<Solution>& getSolutions() { return this->solutionsFound; };
 
@@ -76,6 +76,15 @@ namespace mt {
 	};
 
 	std::vector<NodeState> convert(const std::list<const NodeState*> nodes);
+
+	template<typename Extender>
+	std::size_t getIterationsDone(const std::vector<Extender>& battery) {
+		std::size_t iter = 0;
+		for (auto it = battery.begin(); it != battery.end(); ++it) {
+			iter += it->getIterationsDone();
+		}
+		return iter;
+	};
 
 #ifdef SHOW_PROGRESS
 	class ProgressPrinter {

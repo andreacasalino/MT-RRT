@@ -41,7 +41,7 @@ namespace mt {
     }
 
     std::set<Node*> TreeConcrete::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
-		float Tree_size = static_cast<float>(std::distance(delimiter, this->nodes.rend()));
+		float Tree_size = static_cast<float>(std::distance(delimiter, this->getDelimiter()));
 		const Problem& prb = this->getProblem();
         float ray = prb.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(prb.getProblemSize() ));
         float dist_att;

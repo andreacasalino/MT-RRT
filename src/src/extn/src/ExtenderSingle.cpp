@@ -61,7 +61,7 @@ namespace mt {
 		return convert(states);
 	}
 
-	std::vector<ExtSingle> make_extBattery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& trees, const NodeState& target) {
+	std::vector<ExtSingle> make_battery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& trees, const NodeState& target) {
 		std::vector<ExtSingle> battery;
 		battery.reserve(trees.size());
 		for (auto it = trees.begin(); it != trees.end(); ++it) {

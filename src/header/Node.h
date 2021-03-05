@@ -20,7 +20,7 @@ namespace mt {
 	public:
 		Node(const NodeState& state);
 
-		Node(const std::size_t& stateSize);
+		Node(NodeState&& state);
 
 		virtual ~Node() = default;
 

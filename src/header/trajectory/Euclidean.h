@@ -25,7 +25,7 @@ namespace mt::traj {
     public:
         EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree);
 
-        advanceInfo advance() override;
+        AdvanceInfo advance() override;
 
     protected:
         NodeState previousState;
