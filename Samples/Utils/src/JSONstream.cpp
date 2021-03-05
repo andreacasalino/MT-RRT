@@ -13,6 +13,29 @@ namespace mt::sample {
         this->stream = std::make_unique<std::stringstream>();
     }
 
+    streamJSON::streamJSON(const streamJSON& o)
+        : streamJSON() {
+        *this = o;
+    };
+
+    streamJSON& streamJSON::operator=(const streamJSON& o) {
+        this->firstElementFlag = o.firstElementFlag;
+        *this->stream << o.stream->str();
+        return *this;
+    };
+
+    streamJSON::streamJSON(streamJSON&& o)
+        : streamJSON() {
+        *this = std::move(o);
+    };
+    
+    streamJSON& streamJSON::operator=(streamJSON&& o) {
+        this->firstElementFlag = o.firstElementFlag;
+        this->stream = std::move(o.stream);
+        o.stream = std::make_unique<std::stringstream>();
+        return *this;
+    };
+
     std::string streamJSON::str() const {
         std::stringstream temp;
         temp << this->getDelimiterLeft() << this->stream->str() << this->getDelimiterRight();

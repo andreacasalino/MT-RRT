@@ -11,28 +11,26 @@
 #include <string>
 #include <Solver.h>
 #include <JSONstream.h>
+#include <map>
 
 namespace mt::sample {
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
     void printData(const streamJSON& data, const std::string& fileName);
 
-    class Logger {
+    class Results {
     public:
-        Logger(mt::Solver& solver);
+        Results() = default;
 
-        void print(const std::string& fileName);
+        // solve with all possible strategies
+        Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads);
 
-        inline void addElement(const std::string& name, const streamJSON& json) { this->data.addElement(name, json); };
+        void addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy);
 
-        inline void addEndl() { this->data.addEndl(); };
-
-        inline std::string str() { return this->data.str(); };
-
-        static std::unique_ptr<structJSON> logStrategies(mt::Solver& solver, const mt::NodeState& start, const mt::NodeState& end, const std::size_t& threads);
+        structJSON getJSON() const;
 
     private:
-        mt::sample::structJSON data;
+        std::map<Solver::MTStrategy, std::map<Solver::RRTStrategy, structJSON> > resultMatrix;
     };
 }
 

@@ -24,14 +24,72 @@ namespace mt::sample {
         f << data.str();
     }
 
-    Logger::Logger(mt::Solver& solver) {
-        this->data.addEndl();
+    std::string tostring(const Solver::RRTStrategy& rrtStrategy) {
+        switch (rrtStrategy) {
+        case Solver::RRTStrategy::Single:
+            return "Single";
+            break;
+        case Solver::RRTStrategy::Bidir:
+            return "Bidir";
+            break;
+        case Solver::RRTStrategy::Star:
+            return "Star";
+            break;
+        default:
+            throw Error("unknown");
+            break;
+        }
+        throw Error("unknown");
+    };
 
-        this->data.addElement("elapsed_time", Number<long long>(solver.getLastElapsedTime().count()));
-        this->data.addEndl();
+    std::string tostring(const Solver::MTStrategy& mtStrategy) {
+        switch (mtStrategy) {
+        case Solver::MTStrategy::Serial:
+            return "Serial";
+            break;
+        case Solver::MTStrategy::MtQueryParall:
+            return "Qparal";
+            break;
+        case Solver::MTStrategy::MtSharedTree:
+            return "Shared";
+            break;
+        case Solver::MTStrategy::MtCopiedTrees:
+            return "Copied";
+            break;
+        case Solver::MTStrategy::MtMultiAgent:
+            return "Multiag";
+            break;
+        default:
+            throw Error("unknown");
+            break;
+        }
+        throw Error("unknown");
+    };
 
-        this->data.addElement("iterations" , Number<std::size_t>(solver.getLastIterations()) );
-        this->data.addEndl();
+    structJSON Results::getJSON() const {
+        structJSON json;
+        for (auto r = this->resultMatrix.begin(); r != this->resultMatrix.end(); ++r) {
+            arrayJSON temp;
+            for (auto c = r->second.begin(); c != r->second.end(); ++c) {
+                json.addElement(tostring(c->first), c->second);
+            }
+            json.addElement(tostring(r->first), temp);
+        }
+        return json;
+    }
+
+    void Results::addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy) {
+        structJSON result;
+        result.addEndl();
+
+        result.addElement("elapsed_time", Number<long long>(solver.getLastElapsedTime().count()));
+        result.addEndl();
+
+        result.addElement("iterations", Number<std::size_t>(solver.getLastIterations()));
+        result.addEndl();
+
+        result.addElement("threads", Number<std::size_t>(solver.getThreadAvailability()));
+        result.addEndl();
 
         {
             arrayJSON solutionJSON;
@@ -41,9 +99,10 @@ namespace mt::sample {
                 addValues(stateJSON, it->data(), it->size());
                 solutionJSON.addElement(stateJSON);
             }
-            this->data.addElement("solution", solutionJSON);
+            result.addElement("solution", solutionJSON);
         }
-        this->data.addEndl();
+        result.addEndl();
+
         {
             arrayJSON treesJSON;
             auto trees = solver.getLastTrees();
@@ -63,44 +122,35 @@ namespace mt::sample {
                 }
                 treesJSON.addElement(treeJSON);
             }
-            this->data.addElement("trees", treesJSON);
+            result.addElement("trees", treesJSON);
         }
-        this->data.addEndl();
+        result.addEndl();
+
+        auto itR = this->resultMatrix.find(mtStrategy);
+        if (itR == this->resultMatrix.end()) {
+            itR = this->resultMatrix.emplace(mtStrategy, std::map<Solver::RRTStrategy, structJSON>{}).first;
+        }
+        itR->second.emplace(rrtStrategy, std::move(result));
     }
 
-    void Logger::print(const std::string& fileName) {
-        printData(this->data, fileName);
-    }
+    Results::Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads) {
+        auto usePossibleRrtStrategies = [&](const Solver::MTStrategy& strgt) {
+            solver.solve(start, end, Solver::RRTStrategy::Single, strgt);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Single);
 
-    std::unique_ptr<structJSON> Logger::logStrategies(mt::Solver& solver, const mt::NodeState& start, const mt::NodeState& end, const std::size_t& threads) {
-        arrayJSON results;
-        auto solveAndLog = [&](const mt::Solver::MTStrategy& strategy, const std::string& strategyLogName) {
-            arrayJSON res;
-            solver.solve( start, end, Solver::RRTStrategy::Single, strategy);
-            res.addElement(Logger(solver).data);
-            if (solver.getProblem().isProblemSimmetric()) {
-                solver.solve(start, end, Solver::RRTStrategy::Bidir, strategy);
-                res.addElement(Logger(solver).data);
-            }
-            solver.solve(start, end, Solver::RRTStrategy::Star, strategy);
-            res.addElement(Logger(solver).data);
-            structJSON temp;
-            temp.addElement(strategyLogName, res);
-            temp.addElement("threads", Number<std::size_t>(solver.getThreadAvailability()));
-            results.addElement(temp);
+            solver.solve(start, end, Solver::RRTStrategy::Bidir, strgt);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Bidir);
+
+            solver.solve(start, end, Solver::RRTStrategy::Star, strgt);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Star);
         };
 
-        solver.setThreadAvailability(1);
-        solveAndLog(mt::Solver::MTStrategy::Serial, "serial");
+        usePossibleRrtStrategies(Solver::MTStrategy::Serial);
 
         solver.setThreadAvailability(threads);
-        solveAndLog(mt::Solver::MTStrategy::MtQueryParall, "quary parall");
-        solveAndLog(mt::Solver::MTStrategy::MtSharedTree, "shared tree");
-        solveAndLog(mt::Solver::MTStrategy::MtCopiedTrees, "copied trees");
-        solveAndLog(mt::Solver::MTStrategy::MtMultiAgent, "multiagent");
-
-        std::unique_ptr<structJSON> temp;
-        temp->addElement("results", results);
-        return temp;
+        usePossibleRrtStrategies(Solver::MTStrategy::MtQueryParall);
+        usePossibleRrtStrategies(Solver::MTStrategy::MtSharedTree);
+        usePossibleRrtStrategies(Solver::MTStrategy::MtCopiedTrees);
+        usePossibleRrtStrategies(Solver::MTStrategy::MtMultiAgent);
     }
 }

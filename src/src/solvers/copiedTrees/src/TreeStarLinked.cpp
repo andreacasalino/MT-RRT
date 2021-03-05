@@ -10,6 +10,10 @@
 #include <omp.h>
 
 namespace mt::copied {
+    TreeStarLinked::TreeStarLinked(Problem& problem, NodePtr root)
+        : TreeConcreteLinked(problem, std::move(root)) {
+    }
+
     void TreeStarLinked::add(NodePtr node) {
         auto group = NodeLinked::make_linked(std::move(node), omp_get_num_threads());
         std::size_t thId = static_cast<std::size_t>(omp_get_thread_num());

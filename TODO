@@ -13,3 +13,4 @@ ricontrollare tutti ++
 randomizzare seme all'interno di thread
 improve code recycle between solvers
 migliorare gather master star
+fare cmake script per copiare roba python nei vari esempi

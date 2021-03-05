@@ -40,8 +40,8 @@ namespace mt::sample {
         return sample::Obstacle(A, B);
     }
 
-    std::unique_ptr<structJSON> PointProblem::getJSON() const {
-        std::unique_ptr<structJSON> result = std::make_unique<structJSON>();
+    structJSON PointProblem::getJSON() const {
+        structJSON result;
 
         arrayJSON limits;
         auto Lim = this->getBoundaries();
@@ -49,7 +49,7 @@ namespace mt::sample {
         limits.addElement(Number<float>(Lim.getYMin()));
         limits.addElement(Number<float>(Lim.getXMax()));
         limits.addElement(Number<float>(Lim.getYMax()));
-        result->addElement("limits", limits);
+        result.addElement("limits", limits);
 
         arrayJSON obstacles;
         const std::vector<sample::Obstacle>& obst = this->getObstacles();
@@ -61,7 +61,7 @@ namespace mt::sample {
             obstacle.addElement(Number<float>(it->getYMax()));
             obstacles.addElement(obstacle);
         }
-        result->addElement("obstacles", obstacles);
+        result.addElement("obstacles", obstacles);
 
         return result;
     }

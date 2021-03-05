@@ -18,8 +18,11 @@ namespace mt::sample {
         
         void clear();
 
-        streamJSON(const streamJSON& ) = delete;
-        streamJSON& operator=(const streamJSON& ) = delete;
+        streamJSON(const streamJSON& o);
+        streamJSON& operator=(const streamJSON& o);
+
+        streamJSON(streamJSON&& o);
+        streamJSON& operator=(streamJSON&& o);
 
         inline void addEndl() { (*this->stream) << std::endl; };
 

@@ -23,7 +23,7 @@ namespace mt::sample {
 
         sample::Obstacle getBoundaries() const;
 
-        std::unique_ptr<structJSON> getJSON() const;
+        structJSON getJSON() const;
     };
 }
 
