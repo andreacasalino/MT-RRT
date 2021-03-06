@@ -20,6 +20,10 @@ namespace mt {
 
 	void Solver::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy, const MTStrategy& mtStrategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
+		bool cumulFlagOld = this->parameters.Cumulate_sol;
+		if (RRTStrategy::Star == rrtStrategy) {
+			this->parameters.Cumulate_sol = true;
+		}
 		auto tic = std::chrono::high_resolution_clock::now();
 		switch (mtStrategy) {
 		case MTStrategy::Serial:
@@ -46,6 +50,7 @@ namespace mt {
 			break;
 		}
 		this->lastSolution->time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tic);
+		this->parameters.Cumulate_sol = cumulFlagOld;
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {

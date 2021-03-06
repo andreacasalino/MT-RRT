@@ -9,42 +9,45 @@
 #include <Error.h>
 
 namespace mt::qpar {
+    Pool::Pool() {
+        this->opened = std::make_shared<std::atomic_bool>(false);
+    }
+
     void Pool::JobExecutor::spin() {
-        while (opened == this->state) {
+        while (true == *this->opened) {
             std::lock_guard<std::mutex> jobLock(this->mtx);
             if (nullptr != this->job) {
                 (*this->job)();
                 this->job.reset();
             }
         }
-
     }
 
     void Pool::open(const std::size_t& size) {
-        if (opened == this->state) {
+        if (true == *this->opened) {
             throw Error("Thread pool already opened");
         }
-        this->state = opened;
+        *this->opened = true;
 
         this->jobs.reserve(size);
         this->threads.reserve(size);
         for (std::size_t k = 0; k < size; ++k) {
-            this->jobs.emplace_back(this->state);
+            this->jobs.emplace_back(this->opened);
             this->threads.emplace_back(&JobExecutor::spin, &this->jobs.back());
         }
     }
 
     void Pool::close() {
-        if (closed == this->state) {
+        if (false == *this->opened) {
             return;
         }
-        this->state = closed;
+        *this->opened = false;
 
         for (std::size_t k = 0; k < this->jobs.size(); ++k) {
             this->threads[k].join();
         }
-        this->jobs.clear();
         this->threads.clear();
+        this->jobs.clear();
     }
 
     Pool::~Pool() {
@@ -52,9 +55,6 @@ namespace mt::qpar {
     }
 
     void Pool::addJob(const std::vector<Job>& jobs) {
-        if (closed == this->state) {
-            throw Error("Thread pool not opened before dispatching jobs");
-        }
         for (std::size_t k = 0; k < jobs.size(); ++k) {
             std::lock_guard<std::mutex> jobLock(this->jobs[k].mtx);
             this->jobs[k].job = std::make_unique<Job>(jobs[k]);
@@ -62,7 +62,7 @@ namespace mt::qpar {
     }
 
     void Pool::wait() {
-        if (closed == this->state) {
+        if (false == *this->opened) {
             return;
         }
         for (auto it = this->jobs.begin(); it != this->jobs.end(); ++it) {

@@ -18,25 +18,29 @@ namespace mt {
 
     std::unique_ptr<Solver::SolutionInfo> Solver::solveQueryParall(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
         auto sol = std::make_unique<SolutionInfo>();
+        qpar::TreeQPar* poolRef = nullptr;
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start)));
-            castTree<qpar::TreeQPar>(sol->trees.back())->open();
+            poolRef = castTree<qpar::TreeQPar>(sol->trees.back());
+            poolRef->open();
             solveSingle(*sol, this->parameters, end);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start)));
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(*castTree<qpar::TreeQPar>(sol->trees.back()), std::make_unique<Node>(end)));
-            castTree<qpar::TreeQPar>(sol->trees.back())->open();
+            poolRef = castTree<qpar::TreeQPar>(sol->trees.back());
+            poolRef->open();
             solveBidir(*sol, this->parameters);
         }
         else {
             sol->trees.emplace_back(std::make_unique<TreeStar>(
                 std::make_unique<qpar::TreeQPar>(this->problemcopies, std::make_unique<Node>(start))
-                ));
-            castTree<TreeStar>(sol->trees.back())->getT<qpar::TreeQPar>()->open();
+                ));            
+            poolRef = castTree<TreeStar>(sol->trees.back())->getT<qpar::TreeQPar>();
+            poolRef->open();
             solveSingle(*sol, this->parameters, end);
         }
-        castTree<qpar::TreeQPar>(sol->trees.back())->close();
+        poolRef->close();
         return sol;
     }
 }

@@ -6,6 +6,7 @@
  **/
 
 #include "../TreeQParall.h"
+#include "../Incrementer.h"
 
 namespace mt::qpar {
     TreeQPar::TreeQPar(const std::vector<ProblemPtr>& problems, NodePtr root)
@@ -19,34 +20,6 @@ namespace mt::qpar {
         , problems(o.problems)
         , pool(o.pool) {
     }
-
-    // used to iterate the nodes in a tree from a parallel for
-    class Incrementer {
-    public:
-        Incrementer(const mt::Nodes& nodes, const Nodes::const_reverse_iterator& delimiter, const std::size_t& startPos, const std::size_t& delta)
-            : end(nodes.crend())
-            , cursor(delimiter)
-            , delta(startPos) {
-            ++(*this);
-            this->delta = delta;
-        };
-
-        Incrementer& operator++() {
-            std::size_t k = 0;
-            while ((k<this->delta) && (this->cursor != this->end)) {
-                ++this->cursor;
-                ++k;
-            }
-            return *this;
-        };
-
-        inline const mt::Nodes::const_reverse_iterator& get() { return this->cursor; };
-
-    private:
-        Nodes::const_reverse_iterator end;
-        Nodes::const_reverse_iterator cursor;
-        std::size_t delta;
-    };
 
     class QueryResult {
     public:
@@ -63,7 +36,7 @@ namespace mt::qpar {
     };
 
     template<typename Q>
-    std::vector<Q> make_QueryResults(const TreeQPar& user, const Nodes::const_reverse_iterator& delimiter, const std::size_t& size) {
+    std::vector<Q> make_results(const TreeQPar& user, const Nodes::const_reverse_iterator& delimiter, const std::size_t& size) {
         std::vector<Q> results;
         results.reserve(size);
         for (std::size_t k = 0; k < size; ++k) {
@@ -93,13 +66,13 @@ namespace mt::qpar {
             mutable float cost = mt::traj::Trajectory::COST_MAX;
             mutable Node* node = nullptr;
         };
-        std::vector<Result> results = make_QueryResults<Result>(*this, delimiter, this->problems.size());
+        std::vector<Result> results = make_results<Result>(*this, delimiter, this->problems.size());
 
         std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
         for (std::size_t k = 0; k < this->problems.size(); ++k) {
-            Result& temp = results[k];
-            jobs.emplace_back([temp, &state]() { temp(state); });
+            Result* temp = &results[k];
+            jobs.emplace_back([temp, &state]() { (*temp)(state); });
         }
         this->pool->addJob(jobs);
         this->pool->wait();
@@ -135,7 +108,7 @@ namespace mt::qpar {
 
             mutable std::set<Node*> set;
         };
-        std::vector<Result> results = make_QueryResults<Result>(*this, delimiter, this->problems.size());
+        std::vector<Result> results = make_results<Result>(*this, delimiter, this->problems.size());
 
         float Tree_size = static_cast<float>(std::distance(delimiter, this->nodes.rend()));
         float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->problem.getProblemSize()));
@@ -143,8 +116,8 @@ namespace mt::qpar {
         std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
         for (std::size_t k = 0; k < this->problems.size(); ++k) {
-            Result& temp = results[k];
-            jobs.emplace_back([temp, &state, &ray]() { temp(state, ray); });
+            Result* temp = &results[k];
+            jobs.emplace_back([temp, &state, &ray]() { (*temp)(state, ray); });
         }
         this->pool->addJob(jobs);
         this->pool->wait();
