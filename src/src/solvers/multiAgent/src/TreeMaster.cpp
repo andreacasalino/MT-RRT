@@ -33,6 +33,7 @@ namespace mt::multiag {
         for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
             Node* nearest = this->nearestNeighbour(this->problem.randomState(), this->getDelimiter());
             this->getSlaveNodes(**it).emplace_back( std::make_unique<Node>(nearest->getState()) );
+            this->getSlaveNodes(**it).back()->setFather(nearest->getFather(), nearest->getCostFromFather());
             (*it)->originalRoot = nearest;
         }
     }

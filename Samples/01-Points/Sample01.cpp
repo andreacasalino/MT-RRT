@@ -28,8 +28,8 @@ int main() {
 	//solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::Solver::RRTStrategy::Bidir, mtStrategy);
 	//results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Bidir);
 
-	//solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::Solver::RRTStrategy::Star, mtStrategy);
-	//results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Star);
+	solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::Solver::RRTStrategy::Star, mtStrategy);
+	results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Star);
 
 	mt::sample::structJSON log;
 	log.addElement("problem", static_cast<const mt::sample::PointProblem&>(solver.getProblem()).getJSON());
