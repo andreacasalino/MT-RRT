@@ -42,6 +42,10 @@ namespace mt::sample {
 
         std::vector<Capsule> directKinematics(const float* pose) const;
 
+        inline const geometry::Point& getBase() const { return this->base; };
+
+        inline const std::vector<Link>& getLinks() const { return this->links; };
+
     private:
         geometry::Point base;
         std::vector<Link> links;

@@ -20,6 +20,14 @@ namespace mt {
 
 	void Solver::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy, const MTStrategy& mtStrategy) {
 		std::lock_guard<std::mutex> lock(this->dataMtx);
+
+		if (start.size() != this->problemcopies.front()->getProblemSize()) {
+			throw Error("start configuration has inconsistent size");
+		}
+		if (end.size() != this->problemcopies.front()->getProblemSize()) {
+			throw Error("start configuration has inconsistent size");
+		}
+
 		bool cumulFlagOld = this->parameters.Cumulate_sol;
 		if (RRTStrategy::Star == rrtStrategy) {
 			this->parameters.Cumulate_sol = true;

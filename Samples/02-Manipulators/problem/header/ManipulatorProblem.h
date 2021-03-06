@@ -44,7 +44,7 @@ namespace mt::sample {
 
         inline const std::vector<Sphere>& getObstacles() const { return this->data->obstacles; };
 
-        //structJSON getJSON() const;
+        structJSON getJSON() const;
 
     private:
         std::shared_ptr<ProblemData> data;
