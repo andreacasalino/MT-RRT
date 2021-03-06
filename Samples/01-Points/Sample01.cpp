@@ -11,7 +11,7 @@ using namespace std;
 
 int main() {
 	const size_t Iterations = 1500;
-	const mt::Solver::MTStrategy mtStrategy = mt::Solver::MTStrategy::MtQueryParall; // use the one you want
+	const mt::Solver::MTStrategy mtStrategy = mt::Solver::MTStrategy::MtSharedTree; // use the one you want
 
 	mt::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f),
 																					  mt::sample::geometry::Point(1.1f, 1.1f)),

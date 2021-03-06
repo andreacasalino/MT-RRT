@@ -9,6 +9,7 @@
 
 #ifdef SHOW_PROGRESS
 #include <iostream>
+#include <omp.h>
 #endif
 
 namespace mt {
@@ -25,8 +26,10 @@ namespace mt {
     std::mutex ProgressPrinter::coutMtx;
 
     void ProgressPrinter::show(const std::size_t& iter) {
-        std::lock_guard<std::mutex> coutLock(coutMtx);
-        std::cout << "iteration: " << iter << std::endl;
+        if (0 == omp_get_thread_num()) {
+            std::lock_guard<std::mutex> coutLock(coutMtx);
+            std::cout << "iteration: " << iter << std::endl;
+        }
     }
 #endif
 }
