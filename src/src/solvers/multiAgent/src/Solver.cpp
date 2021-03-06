@@ -28,8 +28,17 @@ num_threads(static_cast<int>(Threads))
             int thId = omp_get_thread_num();
             E* Solver_to_use = &battery[thId];
             if (0 == thId) {
+                auto solutionfound = [&battery]() {
+                    for (auto it = battery.begin(); it != battery.end(); ++it) {
+                        if (!it->getSolutions().empty()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
                 for (size_t k = 0; k < iterations; k += Batch_size * Threads) {
-                    if (!Solver_to_use->getSolutions().empty() && (!Solver_to_use->isCumulating())) {
+                    if (solutionfound() && !Solver_to_use->isCumulating()) {
                         break;
                     }
                     master->dispatch();
