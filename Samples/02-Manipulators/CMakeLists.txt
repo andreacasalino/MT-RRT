@@ -1,9 +1,9 @@
 add_subdirectory(problem)
 
-add_executable(Sample01_Manipulator Sample01.cpp ${SOURCES})
-target_link_libraries(Sample01_Manipulator PUBLIC MT-RRT-Samples-Manipulators)
-CustomCommandSample(Sample01_Manipulator ManipulatorProblem)
+add_executable(Samples_Manipulators_01 Sample01.cpp ${SOURCES})
+target_link_libraries(Samples_Manipulators_01 PUBLIC Samples-Manipulators)
+CustomCommandSample(Samples_Manipulators_01 ManipulatorProblem)
 
-add_executable(Sample02_Manipulator Sample02.cpp ${SOURCES})
-target_link_libraries(Sample02_Manipulator PUBLIC MT-RRT-Samples-Manipulators)
-CustomCommandSample(Sample02_Manipulator ManipulatorProblem)
+add_executable(Samples_Manipulators_02 Sample02.cpp ${SOURCES})
+target_link_libraries(Samples_Manipulators_02 PUBLIC Samples-Manipulators)
+CustomCommandSample(Samples_Manipulators_02 ManipulatorProblem)

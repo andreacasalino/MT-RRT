@@ -1,9 +1,9 @@
 add_subdirectory(problem)
 
-add_executable(Sample01_Points Sample01.cpp ${SOURCES})
-target_link_libraries(Sample01_Points PUBLIC MT-RRT-Samples-Points)
-CustomCommandSample(Sample01_Points PointProblem)
+add_executable(Samples_Points_01 Sample01.cpp ${SOURCES})
+target_link_libraries(Samples_Points_01 PUBLIC Samples-Points)
+CustomCommandSample(Samples_Points_01 PointProblem)
 
-add_executable(Sample02_Points Sample02.cpp ${SOURCES})
-target_link_libraries(Sample02_Points PUBLIC MT-RRT-Samples-Points)
-CustomCommandSample(Sample02_Points PointProblem)
+add_executable(Samples_Points_02 Sample02.cpp ${SOURCES})
+target_link_libraries(Samples_Points_02 PUBLIC Samples-Points)
+CustomCommandSample(Samples_Points_02 PointProblem)

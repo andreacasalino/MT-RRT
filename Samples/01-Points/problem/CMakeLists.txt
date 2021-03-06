@@ -1,4 +1,4 @@
-set(PROJECT_SHORTNAME "MT-RRT-Samples-Points")
+set(PROJECT_SHORTNAME "Samples-Points")
 project(${PROJECT_SHORTNAME} VERSION ${VERSION} LANGUAGES CXX)
 
 CollectSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} SOURCES)
@@ -24,5 +24,5 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
-		MT-RRT-Samples-utils
+		Samples-utils
 )
