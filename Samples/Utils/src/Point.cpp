@@ -27,4 +27,15 @@ namespace mt::sample::geometry {
         : Point(x,y) {
         this->coordinates[2] = z;
     };
+
+    Point::Point(const Point& o) {
+        *this = o;
+    };
+
+    Point& Point::operator=(const Point& o) {
+        for (std::size_t k = 0; k < 3; ++k) {
+            this->coordinates[k] = o.coordinates[k];
+        }
+        return *this;
+    };
 }

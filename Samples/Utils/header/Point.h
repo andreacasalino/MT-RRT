@@ -15,8 +15,8 @@ namespace mt::sample::geometry {
         Point(const float& x, const float& y);
         Point(const float& x, const float& y, const float& z);
 
-        Point(const Point& ) = default;
-        Point& operator=(const Point& ) = default;
+        Point(const Point& o);
+        Point& operator=(const Point& o);
 
         inline float& x() { return this->coordinates[0]; }
         inline const float& x() const { return this->coordinates[0]; }
@@ -33,8 +33,10 @@ namespace mt::sample::geometry {
     };
 
     struct Segment {
-        Point  A;
-        Point  B;
+        Segment(const Point& A, const Point& B) : A(A), B(B) {};
+
+        const Point&  A;
+        const Point&  B;
     };
 }
 

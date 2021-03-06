@@ -32,6 +32,7 @@ namespace mt {
 	protected:
 		virtual Node* nearestNeighbour(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 
+		static float getNearSetRay(const Problem& problem, const Nodes::const_reverse_iterator& delimiter);
 		virtual std::set<Node*> nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const;
 
 		Problem& problem;

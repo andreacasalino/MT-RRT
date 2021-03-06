@@ -40,10 +40,14 @@ namespace mt {
         return nearest;
     }
 
+	float TreeConcrete::getNearSetRay(const Problem& problem, const Nodes::const_reverse_iterator& delimiter) {
+		float Tree_size = static_cast<float>(std::distance(delimiter, delimiter));
+		return problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(problem.getProblemSize()));
+	}
+
     std::set<Node*> TreeConcrete::nearSet(const NodeState& state, const Nodes::const_reverse_iterator& delimiter) const {
-		float Tree_size = static_cast<float>(std::distance(delimiter, this->getDelimiter()));
 		const Problem& prb = this->getProblem();
-        float ray = prb.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(prb.getProblemSize() ));
+		float ray = getNearSetRay(prb, delimiter);
         float dist_att;
         std::set<Node*> nearS;
 		for (auto itN = delimiter; itN != this->nodes.rend(); ++itN) {
@@ -52,10 +56,6 @@ namespace mt {
 				nearS.emplace((*itN).get());
 			}
 		}
-        auto itNearest = nearS.find((*delimiter)->getFather());
-        if (itNearest != nearS.end()) {
-            nearS.erase(itNearest);
-        }
         return nearS;
     }
 
@@ -67,6 +67,10 @@ namespace mt {
 
     std::list<TreeConcrete::Rewird> TreeConcrete::computeRewirds(Node& pivot, const Nodes::const_reverse_iterator& delimiter) const {
 		auto Near_set = this->nearSet(pivot.getState(), delimiter);
+		auto itNearest = Near_set.find((*delimiter)->getFather());
+		if (itNearest != Near_set.end()) {
+			Near_set.erase(itNearest);
+		}
 		if (Near_set.empty()) {
 			return {};
 		}

@@ -111,7 +111,7 @@ namespace mt::qpar {
         std::vector<Result> results = make_results<Result>(*this, delimiter, this->problems.size());
 
         float Tree_size = static_cast<float>(std::distance(delimiter, this->nodes.rend()));
-        float ray = this->problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->problem.getProblemSize()));
+        float ray = getNearSetRay(this->problem, delimiter);
 
         std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
