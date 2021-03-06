@@ -20,12 +20,11 @@ namespace mt {
 	public:
 		Node(const NodeState& state);
 
-		Node(NodeState&& state);
-
 		virtual ~Node() = default;
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
+		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
 		/** \brief Similar to Node::Cost_to_root(float* result), but throwing an exception when the length of the path that must be followed to reach the root
@@ -56,9 +55,6 @@ namespace mt {
 		* @param[in] cost_from_father the cost to go from the new father
 		*/
 		void													setFather(Node* new_father, const float& cost_from_father);
-
-	protected:
-		Node(Node&& o);
 
 	private:
 	// data

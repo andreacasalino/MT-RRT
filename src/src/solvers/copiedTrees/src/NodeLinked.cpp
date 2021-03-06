@@ -19,37 +19,35 @@ namespace mt::copied {
         return group;
     }
 
-    NodeLinked::NodeLinked(NodePtr node)
-        : Node(std::move(*node)) {
-    }
-
     NodeLinked::NodeLinked(const NodeState& state)
         : Node(state) {
     }
 
-    std::vector<std::unique_ptr<NodeLinked>> NodeLinked::make_roots(NodePtr node, const std::size_t& threadsNumber) {
+    std::vector<std::unique_ptr<NodeLinked>> NodeLinked::make_roots(Node& node, const std::size_t& threadsNumber) {
         std::vector<std::unique_ptr<NodeLinked>> roots;
         roots.reserve(threadsNumber);
         for (std::size_t k = 0; k < threadsNumber; ++k) {
-            roots.emplace_back(std::unique_ptr<NodeLinked>( new NodeLinked(std::move(node)) ));
+            roots.emplace_back(std::unique_ptr<NodeLinked>( new NodeLinked(node.getState()) ));
         }
         link(roots);
         return roots;
     }
 
-    std::vector<std::unique_ptr<NodeLinked>> NodeLinked::make_linked(NodePtr node, const std::size_t& threadsNumber) {
+    std::vector<std::unique_ptr<NodeLinked>> NodeLinked::make_linked(Node& node) {
+        int threadsNumber = omp_get_num_threads();
         std::vector<std::unique_ptr<NodeLinked>> group;
         group.resize(threadsNumber);
         std::size_t thId = static_cast<std::size_t>(omp_get_thread_num());
         std::size_t c = 0;
         for (std::size_t k = 0; k < threadsNumber; ++k) {
+            group[k] = std::unique_ptr<NodeLinked>(new NodeLinked(node.getState()));
             if(thId != k) {
-                group[k] = std::unique_ptr<NodeLinked>( new NodeLinked(node->getState()) );
-                group[k]->setFather(static_cast<NodeLinked*>(node->getFather())->getLinked()[c], node->getCostFromFather());
+                group[k]->setFather(static_cast<NodeLinked*>(node.getFather())->getLinked()[c], node.getCostFromFather());
                 ++c;
             }
         }
-        group[thId] = std::unique_ptr<NodeLinked>( new NodeLinked(std::move(node)) );
+        group[thId]->setFather(node.getFather(), node.getCostFromFather());
+
         link(group);
         return group;
     }

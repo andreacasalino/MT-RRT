@@ -25,13 +25,15 @@ namespace mt::multiag {
                 this->add(std::move(*itN));
             }
             nodes.clear();
+            (*it)->originalRoot = nullptr;
         }
     }
 
     void TreeSlave::TreeMaster::dispatch() {
         for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
             Node* nearest = this->nearestNeighbour(this->problem.randomState(), this->getDelimiter());
-            (*it)->getSlaveNodes().emplace_back( std::make_unique<Node>(nearest->getState()) );
+            this->getSlaveNodes(**it).emplace_back( std::make_unique<Node>(nearest->getState()) );
+            (*it)->originalRoot = nearest;
         }
     }
 }

@@ -18,17 +18,6 @@ namespace mt {
 		if (this->state.empty()) throw Error("empty state for cost to go");
 	}
 
-	Node::Node(NodeState&& state)
-		: state(std::move(state)) {
-		if (this->state.empty()) throw Error("empty state for cost to go");
-	}
-
-	Node::Node(Node&& o)
-		: state(std::move(o.state)) {
-		this->father = o.father;
-		this->costFromFather = o.costFromFather;
-	}
-
 	void Node::setFather(Node* new_father, const float& cost_from_father) {
 		this->father = new_father;
 		this->costFromFather = cost_from_father;

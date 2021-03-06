@@ -14,7 +14,8 @@ namespace mt::copied {
     }
 
     void TreeConcreteLinked::add(NodePtr node) {
-        auto group = make_copies(*node.get(), this->ListLinked<NodePtr>::outgoings.size());
+        if (nullptr == node) return;
+        auto group = make_copies(*node, this->ListLinked<NodePtr>::outgoings.size());
         this->TreeConcrete::add(std::move(node));
         auto itG = group.begin();
         for (auto it = this->ListLinked<NodePtr>::outgoings.begin(); it != this->ListLinked<NodePtr>::outgoings.end(); ++it) {
@@ -37,7 +38,7 @@ namespace mt::copied {
         std::vector<ListLinked<NodePtr>*> groupPtr;
         group.reserve(problems.size());
         groupPtr.reserve(problems.size());
-        auto roots = NodeLinked::make_roots(std::move(root), problems.size());
+        auto roots = NodeLinked::make_roots(*root, problems.size());
         for (std::size_t k = 0; k < problems.size(); ++k) {
             auto temp = new TreeConcreteLinked(*problems[k], std::move(roots[k]));
             group.emplace_back(temp);

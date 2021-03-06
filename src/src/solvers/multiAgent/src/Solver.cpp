@@ -39,10 +39,12 @@ num_threads(static_cast<int>(Threads))
                     master->gather();
                 }
                 life = false;
+#pragma omp barrier
             }
             else {
-                while (life) {
+                while (true) {
 #pragma omp barrier
+                    if (!life) break;
                     Solver_to_use->extend(Batch_size);
 #pragma omp barrier
                 }

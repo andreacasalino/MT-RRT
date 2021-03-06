@@ -18,16 +18,15 @@ namespace mt::copied {
     public:
         NodeLinked(NodeLinked&&) = delete;
 
-        static std::vector<std::unique_ptr<NodeLinked>> make_roots(NodePtr node, const std::size_t& threadsNumber);
+        static std::vector<std::unique_ptr<NodeLinked>> make_roots(Node& node, const std::size_t& threadsNumber);
 
-        static std::vector<std::unique_ptr<NodeLinked>> make_linked(NodePtr node, const std::size_t& threadsNumber);
+        static std::vector<std::unique_ptr<NodeLinked>> make_linked(Node& node);
 
         inline const std::vector<NodeLinked*>& getLinked() const { return this->linkedNodes; };
 
         class NodeLinkedFactory;
 
     private:
-        NodeLinked(NodePtr node);
         NodeLinked(const NodeState& state);
 
         static void link(const std::vector<std::unique_ptr<NodeLinked>>& group);

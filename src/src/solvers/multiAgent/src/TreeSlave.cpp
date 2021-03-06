@@ -14,6 +14,7 @@ namespace mt::multiag {
     }
 
     void TreeSlave::add(NodePtr node) {
+        if (nullptr == node) return;
         if (this->originalRoot == node->getFather()) {
             node->setFather(this->originalRoot, node->getCostFromFather());
         }

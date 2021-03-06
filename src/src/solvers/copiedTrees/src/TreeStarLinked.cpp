@@ -15,13 +15,13 @@ namespace mt::copied {
     }
 
     void TreeStarLinked::add(NodePtr node) {
-        auto group = NodeLinked::make_linked(std::move(node), omp_get_num_threads());
+        if (nullptr == node) return;
+        auto group = NodeLinked::make_linked(*node);
         std::size_t thId = static_cast<std::size_t>(omp_get_thread_num());
         auto itO = this->ListLinked<NodePtr>::outgoings.begin();
         for (std::size_t k = 0; k < group.size(); ++k) {
             if (thId == k) {
                 this->TreeConcrete::add(std::move(group[k]));
-
             }
             else {
                 (*itO)->emplace_back(std::move(group[k]));
@@ -65,16 +65,20 @@ namespace mt::copied {
 
     std::vector<TreePtr> TreeStarLinked::make_trees(const std::vector<ProblemPtr>& problems, NodePtr root) {
         std::vector<TreePtr> group;
-        std::vector<ListLinked<TreeConcrete::Rewird>*> groupPtr;
+        std::vector<ListLinked<NodePtr>*> groupPtr;
+        std::vector<ListLinked<TreeConcrete::Rewird>*> groupPtr2;
         group.reserve(problems.size());
         groupPtr.reserve(problems.size());
-        auto roots = NodeLinked::make_roots(std::move(root), problems.size());
+        groupPtr2.reserve(problems.size());
+        auto roots = NodeLinked::make_roots(*root, problems.size());
         for (std::size_t k = 0; k < problems.size(); ++k) {
             auto temp = new TreeStarLinked(*problems[k], std::move(roots[k]));
             group.emplace_back(temp);
             groupPtr.emplace_back(temp);
+            groupPtr2.emplace_back(temp);
         }
-        ListLinked<TreeConcrete::Rewird>::link(groupPtr);
+        ListLinked<NodePtr>::link(groupPtr);
+        ListLinked<TreeConcrete::Rewird>::link(groupPtr2);
         return group;
     }
 }

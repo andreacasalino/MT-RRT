@@ -148,9 +148,14 @@ namespace mt::sample {
         usePossibleRrtStrategies(Solver::MTStrategy::Serial);
 
         solver.setThreadAvailability(threads);
+
         usePossibleRrtStrategies(Solver::MTStrategy::MtQueryParall);
         usePossibleRrtStrategies(Solver::MTStrategy::MtSharedTree);
         usePossibleRrtStrategies(Solver::MTStrategy::MtCopiedTrees);
-        usePossibleRrtStrategies(Solver::MTStrategy::MtMultiAgent);
+
+        solver.solve(start, end, Solver::RRTStrategy::Single, Solver::MTStrategy::MtMultiAgent);
+        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Single);
+        solver.solve(start, end, Solver::RRTStrategy::Star, Solver::MTStrategy::MtMultiAgent);
+        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Star);
     }
 }
