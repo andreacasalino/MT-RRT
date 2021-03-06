@@ -18,11 +18,6 @@ class PointProblem(Visualizer):
         for k in range(1,len(solution),1):
             self.showLine(ax, solution[k-1], solution[k], 'r', 2)
             
-    def showTrees(self, ax, trees):
-        self.showTree(ax, trees[0], 'b')
-        if(len(trees) > 1):
-            self.showTree(ax, trees[1], 'g')
-            
     def showTree(self, ax, tree, color):
         for edge in tree:
             self.showLine(ax, edge[0:2], edge[2:4], color)
