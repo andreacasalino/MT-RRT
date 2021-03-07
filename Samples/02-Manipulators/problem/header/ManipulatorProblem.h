@@ -36,7 +36,6 @@ namespace mt::sample {
     class ManipulatorProblem : public Problem {
     public:
         ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles);
-        //ManipulatorProblem(const std::string& jsonFile);
 
         inline std::unique_ptr<Problem> copy() const override { return std::make_unique<ManipulatorProblem>(this->getRobots(), this->getObstacles()); };
 

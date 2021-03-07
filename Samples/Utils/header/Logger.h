@@ -23,7 +23,7 @@ namespace mt::sample {
         Results() = default;
 
         // solve with all possible strategies
-        Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads);
+        Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution = false);
 
         void addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution = false);
 

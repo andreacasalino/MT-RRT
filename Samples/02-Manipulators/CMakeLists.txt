@@ -1,9 +1,9 @@
 add_subdirectory(problem)
 
-add_executable(Samples_Manipulators_01 Sample01.cpp ${SOURCES})
-target_link_libraries(Samples_Manipulators_01 PUBLIC Samples-Manipulators)
-CustomCommandSample(Samples_Manipulators_01 ManipulatorProblem)
+add_executable(Samples_Manipulators_single Sample-single-arm.cpp ${SOURCES})
+target_link_libraries(Samples_Manipulators_single PUBLIC Samples-Manipulators)
+CustomCommandSample(Samples_Manipulators_single ManipulatorProblem)
 
-add_executable(Samples_Manipulators_02 Sample02.cpp ${SOURCES})
-target_link_libraries(Samples_Manipulators_02 PUBLIC Samples-Manipulators)
-CustomCommandSample(Samples_Manipulators_02 ManipulatorProblem)
+add_executable(Samples_Manipulators_multi Sample-multi-arms.cpp ${SOURCES})
+target_link_libraries(Samples_Manipulators_multi PUBLIC Samples-Manipulators)
+CustomCommandSample(Samples_Manipulators_multi ManipulatorProblem)

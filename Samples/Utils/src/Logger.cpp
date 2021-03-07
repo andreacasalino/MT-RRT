@@ -9,6 +9,7 @@
 #include <fstream>
 #include <Error.h>
 #include <Interpolator.h>
+#include <iostream>
 
 namespace mt::sample {
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize) {
@@ -137,29 +138,41 @@ namespace mt::sample {
         itR->second.emplace(rrtStrategy, std::move(result));
     }
 
-    Results::Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads) {
+    Results::Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution) {
         auto usePossibleRrtStrategies = [&](const Solver::MTStrategy& strgt) {
             solver.solve(start, end, Solver::RRTStrategy::Single, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Single);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Single, interpolateSolution);
 
             solver.solve(start, end, Solver::RRTStrategy::Bidir, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Bidir);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Bidir, interpolateSolution);
 
             solver.solve(start, end, Solver::RRTStrategy::Star, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Star);
+            this->addResult(solver, strgt, Solver::RRTStrategy::Star, interpolateSolution);
         };
 
+        std::cout << "Serial started" << std::endl;
         usePossibleRrtStrategies(Solver::MTStrategy::Serial);
+        std::cout << "done" << std::endl;
 
         solver.setThreadAvailability(threads);
 
+        std::cout << "Query Parall started" << std::endl;
         usePossibleRrtStrategies(Solver::MTStrategy::MtQueryParall);
-        usePossibleRrtStrategies(Solver::MTStrategy::MtSharedTree);
-        usePossibleRrtStrategies(Solver::MTStrategy::MtCopiedTrees);
+        std::cout << "done" << std::endl;
 
+        std::cout << "Shared tree started" << std::endl;
+        usePossibleRrtStrategies(Solver::MTStrategy::MtSharedTree);
+        std::cout << "done" << std::endl;
+
+        std::cout << "Copied trees started" << std::endl;
+        usePossibleRrtStrategies(Solver::MTStrategy::MtCopiedTrees);
+        std::cout << "done" << std::endl;
+
+        std::cout << "Multi agent started" << std::endl;
         solver.solve(start, end, Solver::RRTStrategy::Single, Solver::MTStrategy::MtMultiAgent);
-        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Single);
+        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Single, interpolateSolution);
         solver.solve(start, end, Solver::RRTStrategy::Star, Solver::MTStrategy::MtMultiAgent);
-        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Star);
+        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Star, interpolateSolution);
+        std::cout << "done" << std::endl;
     }
 }

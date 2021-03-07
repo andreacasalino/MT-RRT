@@ -11,6 +11,7 @@
 #include <Point.h>
 #include <vector>
 #include <memory>
+#include <Node.h>
 
 namespace mt::sample {
     typedef std::shared_ptr<const geometry::Point> PointShared;
@@ -50,6 +51,10 @@ namespace mt::sample {
         geometry::Point base;
         std::vector<Link> links;
     };
+
+    Manipulator make_manipulator(const std::vector<float>& data);
+
+    NodeState degree2rad(const NodeState& pose);
 }
 
 #endif

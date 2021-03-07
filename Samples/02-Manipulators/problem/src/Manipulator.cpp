@@ -57,4 +57,22 @@ namespace mt::sample {
         }
         return dof;
     }
+
+    Manipulator make_manipulator(const std::vector<float>& data) {
+        geometry::Point base(data[0] , data[1]);
+        std::vector<Manipulator::Link> links;
+        links.reserve((data.size() - 2) / 2);
+        for(std::size_t k=2; k<data.size(); k += 2) {
+            links.emplace_back({data[k], data[k+1]});
+        }
+        return Manipulator(base, links);
+    }
+
+    NodeState degree2rad(const NodeState& pose) {
+        NodeState converted = pose;
+        for(std::size_t k=0; k<pose.size(); ++k){
+            converted[k] = pose[k] * 3.141f / 180.f;
+        }
+        return converted;
+    }
 }
