@@ -7,6 +7,7 @@
 
 #include <TreeConcrete.h>
 #include <Error.h>
+#include <math.h>
 
 namespace mt {
     TreeConcrete::TreeConcrete(Problem& problem, NodePtr root)
