@@ -25,7 +25,7 @@ int main() {
 	log.addElement("problem", static_cast<const mt::sample::PointProblem&>(solver.getProblem()).getJSON());
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Sample02.json");
+	printData(log, "Sample-cluttered.json");
 
 	return EXIT_SUCCESS;
 }
