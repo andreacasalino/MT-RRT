@@ -8,6 +8,7 @@
 #include <Logger.h>
 #include <fstream>
 #include <Error.h>
+#include <Interpolator.h>
 
 namespace mt::sample {
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize) {
@@ -78,7 +79,7 @@ namespace mt::sample {
         return json;
     }
 
-    void Results::addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy) {
+    void Results::addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution) {
         structJSON result;
         result.addEndl();
 
@@ -94,6 +95,9 @@ namespace mt::sample {
         {
             arrayJSON solutionJSON;
             auto sol = solver.getLastSolution();
+            if(interpolateSolution) {
+                sol = interpolate(sol, *solver.getProblem().getTrajManager());
+            }
             for (auto it = sol.begin(); it != sol.end(); ++it) {
                 arrayJSON stateJSON;
                 addValues(stateJSON, it->data(), it->size());

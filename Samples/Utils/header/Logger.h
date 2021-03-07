@@ -25,7 +25,7 @@ namespace mt::sample {
         // solve with all possible strategies
         Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads);
 
-        void addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy);
+        void addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution = false);
 
         structJSON getJSON() const;
 

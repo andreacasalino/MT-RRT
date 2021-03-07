@@ -64,6 +64,10 @@ namespace mt {
 		*/
 		inline bool isProblemSimmetric() const { return this->simmetry; };
 
+		inline sampling::Sampler* getSampler() const { return this->sampler.get(); };
+		
+		inline traj::Manager* getTrajManager() const { return this->trajManager.get(); };
+
 	protected:
 		Problem(sampling::SamplerPtr sampler, traj::ManagerPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem(const Problem& o);
