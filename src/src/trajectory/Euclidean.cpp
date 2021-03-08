@@ -59,6 +59,8 @@ namespace mt::traj {
 
         std::swap(this->previousState, this->cursor);
         this->cursor = this->target;
+        this->cumulatedCost += c * squaredDistance(this->previousState, this->cursor);
+
         if (1.f == c) {
             return AdvanceInfo::targetReached;
         }

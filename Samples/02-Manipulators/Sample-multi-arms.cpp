@@ -21,8 +21,11 @@ int main() {
 	solver.setMaxIterations(Iterations);
 	solver.setSteerTrials(5);
 
-	mt::sample::Results results(solver, mt::sample::degree2rad(mt::NodeState(-61.15898683560858, 23.646343347177787, 120.17635342123464, 40.46478809083812))
-                                      , mt::sample::degree2rad(mt::NodeState(55.41244173582004, -24.353656652822217, 180, -14.39235476630474)), 0, true);
+	mt::NodeState startPos = mt::sample::degree2rad(std::vector<float>{-61.15898683560858, 23.646343347177787, 120.17635342123464, 40.46478809083812});
+	mt::NodeState targetPos = mt::sample::degree2rad(std::vector<float>{55.41244173582004, -24.353656652822217, 180, -14.39235476630474});
+
+	mt::sample::Results results(solver, startPos
+                                      , targetPos, 0, true);
 
 	mt::sample::structJSON log;
 	log.addElement("problem", static_cast<const mt::sample::ManipulatorProblem&>(solver.getProblem()).getJSON());

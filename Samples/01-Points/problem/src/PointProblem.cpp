@@ -17,15 +17,15 @@ namespace mt::sample {
         return temp2;
     }
 
-    sampling::SamplerPtr getSampler(const sample::Obstacle& boundaries) {
-        NodeState low = { boundaries.getXMin() , boundaries.getXMin() };
+    sampling::SamplerPtr make_sampler(const sample::Obstacle& boundaries) {
+        NodeState low = { boundaries.getXMin() , boundaries.getYMin() };
         NodeState upp = { boundaries.getXMax() , boundaries.getYMax() };
         return std::make_unique<sampling::Box>(low, upp);
     }
 
-    PointProblem::PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles)
-        : Problem(getSampler(boundaries), 
-                  std::make_unique<traj::LineManager>(getSteerDegree(boundaries), obstacles), 
+    PointProblem::PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles) 
+        : Problem(make_sampler(boundaries),
+                  std::make_unique<traj::LineManager>(getSteerDegree(boundaries), obstacles),
                   2, 10.f) {
     }
 

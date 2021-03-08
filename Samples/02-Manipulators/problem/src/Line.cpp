@@ -24,6 +24,7 @@ namespace mt::traj {
     };
 
     Trajectory::AdvanceInfo Line::advance() {
+        float prevCost = this->cumulatedCost;
         auto temp = this->traj::EuclideanTraj::advance();
         const float* pose = this->cursor.data();
         std::size_t cursor = 0;
@@ -36,6 +37,7 @@ namespace mt::traj {
                     if (checker.getDistance() < (itO->getRay() + itC->ray)) {
                         temp = traj::Trajectory::AdvanceInfo::blocked;
                         std::swap(this->cursor, this->previousState);
+                        this->cumulatedCost = prevCost;
                         break;
                     }
                 }

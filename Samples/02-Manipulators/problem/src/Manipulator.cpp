@@ -59,11 +59,15 @@ namespace mt::sample {
     }
 
     Manipulator make_manipulator(const std::vector<float>& data) {
+        if(data.size() < 4) throw Error("invalid manipulator data");
+        if(data.size() % 2 != 0) throw Error("invalid manipulator data");
+        std::size_t dof =  (data.size() - 2)/ 2;
         geometry::Point base(data[0] , data[1]);
         std::vector<Manipulator::Link> links;
-        links.reserve((data.size() - 2) / 2);
+        links.resize(dof);
         for(std::size_t k=2; k<data.size(); k += 2) {
-            links.emplace_back({data[k], data[k+1]});
+            links[k].length = data[k];
+            links[k].ray = data[k+1];
         }
         return Manipulator(base, links);
     }

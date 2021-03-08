@@ -81,6 +81,7 @@ namespace mt {
 		std::list<float> costs2RootNear_set;
 		float costMin = mt::traj::Trajectory::COST_MAX, costAtt;
 		std::list<TreeConcrete::Rewird>::iterator best_traj = rewirds.end();
+		std::list<float>::iterator best_traj_cost2Root = costs2RootNear_set.end();
 		for (auto itN = Near_set.begin(); itN != Near_set.end(); ++itN) {
 			rewirds.emplace_front(**itN, pivot, prb.cost2Go((*itN)->getState(), pivot.getState(), false));
 			if (rewirds.front().newCostFromFather == mt::traj::Trajectory::COST_MAX) {
@@ -92,6 +93,7 @@ namespace mt {
 				if (costAtt < costMin) {
 					costMin = costAtt;
 					best_traj = rewirds.begin();
+					best_traj_cost2Root = costs2RootNear_set.begin();
 				}
 			}
 		}
@@ -102,11 +104,14 @@ namespace mt {
 		if (costAtt < costMin) {
 			costMin = costAtt;
 			best_traj = rewirds.begin();
+			best_traj_cost2Root = costs2RootNear_set.begin();
 		}
 		else {
 			best_traj->newFather.setFather(&best_traj->involved, best_traj->newCostFromFather);
 		}
 		rewirds.erase(best_traj);
+		costs2RootNear_set.erase(best_traj_cost2Root);
+
 
 		// check for rewird
 		auto it_traj = rewirds.begin();

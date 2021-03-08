@@ -23,11 +23,13 @@ namespace mt::traj {
     };
 
     Trajectory::AdvanceInfo Line::advance() {
+        float prevCost = this->cumulatedCost;
         auto temp = this->traj::EuclideanTraj::advance();
         for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
             if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
                 temp = traj::Trajectory::AdvanceInfo::blocked;
                 std::swap(this->cursor, this->previousState);
+                this->cumulatedCost = prevCost;
                 break;
             }
         }

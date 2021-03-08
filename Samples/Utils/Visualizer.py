@@ -19,17 +19,17 @@ class Visualizer:
             if(len(self.data["results"][mtStrt]) == 1):
                 rrtStrt = list(self.data["results"][mtStrt].keys())[0]
                 ax.set_title(rrtStrt)
-                resultData += self.data["results"][mtStrt][rrtStrt]
+                resultData += [self.data["results"][mtStrt][rrtStrt]]
                 axx += [ax]
             else:    
                 a = 0
                 for rrtStrt in self.data["results"][mtStrt]:
                     ax[a].set_title(rrtStrt)
-                    resultData += self.data["results"][mtStrt][rrtStrt]
+                    resultData += [self.data["results"][mtStrt][rrtStrt]]
+                    axx += [ax[a]]
                     a = a+1
-                axx += ax
-            self.resultFig += self.make_result_fig(fig, axx, resultData)
-            self.figs += fig
+            self.resultFig += [self.make_result_fig(fig, axx, resultData)]
+            self.figs += [fig]
             self.axes += axx
             
 ### implement in ancestor ###
