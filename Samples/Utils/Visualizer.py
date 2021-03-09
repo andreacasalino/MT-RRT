@@ -1,36 +1,30 @@
+import sys
 import json
 import matplotlib.pyplot as plt
+from ResultMaker import make_result
 
 class Visualizer:
     def __init__(self, fileName):
-        self.data = None
-        self.figs = []
+        self.figures = []
         self.axes = []
-        self.resultFig = []
+        self.results = []
         with open(fileName) as json_file:
-            self.data = json.load(json_file)
-            
-    def show(self):
-        for mtStrt in self.data["results"]:
-            fig, ax = plt.subplots(nrows=1, ncols=len(self.data["results"][mtStrt]))
-            fig.suptitle(mtStrt)
-            resultData = []
-            axx = []
-            if(len(self.data["results"][mtStrt]) == 1):
-                rrtStrt = list(self.data["results"][mtStrt].keys())[0]
-                ax.set_title(rrtStrt)
-                resultData += [self.data["results"][mtStrt][rrtStrt]]
-                axx += [ax]
-            else:    
-                a = 0
-                for rrtStrt in self.data["results"][mtStrt]:
-                    ax[a].set_title(rrtStrt)
-                    resultData += [self.data["results"][mtStrt][rrtStrt]]
-                    axx += [ax[a]]
-                    a = a+1
-            self.resultFig += [self.make_result_fig(fig, axx, resultData)]
-            self.figs += [fig]
-            self.axes += axx
-            
-### implement in ancestor ###
-    # def make_result_fig(self, fig, axes, resultData)
+            data = json.load(json_file)
+            for mtStrt in data["results"]:
+                fig, ax = plt.subplots(nrows=1, ncols=len(data["results"][mtStrt]))
+                fig.suptitle(mtStrt)
+                if(len(data["results"][mtStrt]) == 1):
+                    rrtStrt = list(data["results"][mtStrt].keys())[0]
+                    ax.set_title(rrtStrt)
+                    self.results.append(make_result(fig, ax, data["problem"], data["results"][mtStrt][rrtStrt]))
+                else:    
+                    a = 0
+                    for rrtStrt in data["results"][mtStrt]:
+                        ax[a].set_title(rrtStrt)
+                        self.results.append(make_result(fig, ax[a], data["problem"], data["results"][mtStrt][rrtStrt]))
+                        a = a+1
+                self.figures.append(fig)
+                self.axes.append(ax)
+
+visualizer = Visualizer(sys.argv[1])
+plt.show()

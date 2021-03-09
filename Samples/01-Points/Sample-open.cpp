@@ -10,7 +10,7 @@
 using namespace std;
 
 int main() {
-	const size_t Iterations = 3000;
+	const size_t Iterations = 5000;
 	const mt::Solver::MTStrategy mtStrategy = mt::Solver::MTStrategy::Serial; // use the one you want
 
 	mt::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f),

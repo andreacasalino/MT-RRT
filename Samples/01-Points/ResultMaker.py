@@ -1,14 +1,12 @@
-from Visualizer import Visualizer
-import sys
+import matplotlib.pyplot as plt
 
 class Result:
-    def __init__(self, axes, resultData, problem):
-        for p in range(0,len(axes),1):
-            self.showProblem(axes[p], problem)
-            self.showTree(axes[p], resultData[p]["trees"][0], 'blue')
-            if(len(resultData[p]["trees"]) > 1):
-                self.showTree(axes[p], resultData[p]["trees"][1], 'green')
-            self.showSolution(axes[p], resultData[p]["solution"])
+    def __init__(self, ax, problem, result_ij):
+        self.showProblem(ax, problem)
+        self.showTree(ax, result_ij["trees"][0], 'blue')
+        if(len(result_ij["trees"]) > 1):
+            self.showTree(ax, result_ij["trees"][1], 'green')
+        self.showSolution(ax, result_ij["solution"])
 
     def showProblem(self, ax, problem):
         for b in problem["obstacles"]:
@@ -26,15 +24,6 @@ class Result:
     def showTree(self, ax, tree, color):
         for edge in tree:
             self.showLine(ax, edge[0:2], edge[2:4], color)
-                      
-        
-
-class PointProblem(Visualizer):
-    def __init__(self, fileName):
-        Visualizer.__init__(self, fileName)
-        
-    def make_result_fig(self, fig, axes, resultData):
-        return Result(axes, resultData, self.data["problem"])
-                        
-vis = PointProblem(sys.argv[1])
-vis.show()
+          
+def make_result(fig, ax, problem, result_ij):
+    return Result(ax, problem, result_ij)

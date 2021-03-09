@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 set(WITH_SOURCE_TREE ON)
 include(GroupSources)
 include(AutoCollect)
-include(CustomCommandSample)
+include(CopyPythonCode)
 
 add_subdirectory(src)
 if(BUILD_SAMPLES)
