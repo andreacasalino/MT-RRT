@@ -12,6 +12,12 @@
 #include <Limited.h>
 
 namespace mt::solver {
+    struct Parameters {
+        bool Cumulate_sol = false;
+        Limited<double>	Deterministic_coefficient = Limited<double>(0.01, 0.99, 0.2);
+        LowerLimited<std::size_t> Iterations_Max = LowerLimited<std::size_t>(10, 1000);
+    };
+
     class Strategy {
     public:
         virtual ~Strategy() = default;
@@ -25,18 +31,16 @@ namespace mt::solver {
 
         inline void forgetSolverData() { this->solverData.reset(); };
 
-        inline bool getCumulateFlag() const { return this->Cumulate_sol; };
-        inline void setCumulateFlag(bool flag) { this->Cumulate_sol = flag; };
+        inline bool getCumulateFlag() const { return this->parameters.Cumulate_sol; };
+        inline void setCumulateFlag(bool flag) { this->parameters.Cumulate_sol = flag; };
 
-        inline Limited<double>& getDeterministicCoefficient() { return this->Deterministic_coefficient; };
-        inline LowerLimited<std::size_t>& getIterationsMax() { return this->Iterations_Max; };
+        inline Limited<double>& getDeterministicCoefficient() { return this->parameters.Deterministic_coefficient; };
+        inline LowerLimited<std::size_t>& getIterationsMax() { return this->parameters.Iterations_Max; };
 
     protected:
         Strategy();
 
-        bool Cumulate_sol = false;
-        Limited<double>	Deterministic_coefficient = Limited<double>(0.01, 0.99, 0.2);
-        LowerLimited<std::size_t> Iterations_Max = LowerLimited<std::size_t>(10, 1000);
+        Parameters parameters;
 
         std::shared_ptr<SolverData> solverData;
     };

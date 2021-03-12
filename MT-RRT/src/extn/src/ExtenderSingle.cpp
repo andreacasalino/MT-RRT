@@ -30,7 +30,7 @@ namespace mt {
 						}
 					}
 					if (absent) {
-						this->solutionsFound.emplace(std::make_pair(temp.first->getFather(),  temp.first->cost2Root()));
+						this->solutionsFound.emplace(std::make_pair(temp.first->getFather(), temp.first->cost2Root() ));
 						newSolFound = true;
 					}
 				}

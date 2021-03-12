@@ -10,7 +10,7 @@
 
 #include <Problem.h>
 #include <math.h>
-#include <Solver.h>
+#include <solver/Strategy.h>
 #include <ExtenderSingle.h>
 #include <ExtenderBidir.h>
 
@@ -21,13 +21,13 @@ namespace mt {
 
     std::vector<Problem*> make_battery(const std::vector<ProblemPtr>& problems);
 
-    void solveSingle(Solver::SolutionInfo& info, Solver::Parameters& param, const NodeState& end);
+    void solveSingle(solver::SolutionInfo& info, solver::Parameters& param, const NodeState& end);
 
-    void solveBidir(Solver::SolutionInfo& info, Solver::Parameters& param);
+    void solveBidir(solver::SolutionInfo& info, solver::Parameters& param);
 
-    void fillSolutionInfo(Solver::SolutionInfo& info, Solver::Parameters& param, const std::vector<ExtSingle>& battery);
+    void fillSolutionInfo(solver::SolutionInfo& info, solver::Parameters& param, const std::vector<ExtSingle>& battery);
 
-    void fillSolutionInfo(Solver::SolutionInfo& info, Solver::Parameters& param, const std::vector<ExtBidir>& battery);
+    void fillSolutionInfo(solver::SolutionInfo& info, solver::Parameters& param, const std::vector<ExtBidir>& battery);
 }
 
 #endif

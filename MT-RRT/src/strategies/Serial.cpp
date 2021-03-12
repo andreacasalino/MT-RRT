@@ -5,11 +5,11 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <Solver.h>
 #include "../Commons.h"
+#include <solver/Solver.h>
 #include <TreeStar.h>
 
-namespace mt {
+namespace mt::solver {
     std::unique_ptr<Solver::SolutionInfo> Solver::solveSerial(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
         auto sol = std::make_unique<SolutionInfo>();
         if (RRTStrategy::Single == rrtStrategy) {

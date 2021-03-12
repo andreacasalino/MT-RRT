@@ -9,7 +9,7 @@
 #define MT_RRT_EXTENDER_H
 
 #include <Tree.h>
-#include <sampler/UniformEngine.h>
+#include <sampler/engine/UniformEngine.h>
 #include <set>
 
 #ifdef SHOW_PROGRESS
@@ -34,7 +34,7 @@ namespace mt {
 		*/
 		inline std::size_t getIterationsDone() const { return this->iterationsDone; };
 
-		inline const std::set<Solution>& getSolutions() { return this->solutionsFound; };
+		inline const std::set<Solution>& getSolutions() const { return this->solutionsFound; };
 
 		std::vector<NodeState> computeBestSolutionSequence() const {
 			if (this->solutionsFound.empty()) {
@@ -68,11 +68,11 @@ namespace mt {
 		};
 
 	// data
-		sampling::UniformRandomEngine randEngine;
-		const bool			cumulateSolutions;
-		const double		deterministicCoefficient;
-		size_t				iterationsDone = 0;
-		std::set<Solution>  solutionsFound;
+		sampling::UniformEngine randEngine;
+		const bool				cumulateSolutions;
+		const double			deterministicCoefficient;
+		size_t					iterationsDone = 0;
+		std::set<Solution>  	solutionsFound;
 	};
 
 	std::vector<NodeState> convert(const std::list<const NodeState*> nodes);

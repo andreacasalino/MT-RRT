@@ -23,8 +23,8 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header>
         $<INSTALL_INTERFACE:header>
 	PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn/header>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree/header>
 )
 
 find_package(Threads)

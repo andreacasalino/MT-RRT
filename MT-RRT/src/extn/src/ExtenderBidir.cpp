@@ -29,7 +29,7 @@ namespace mt {
 		};
 
 		BidirSolution makeSolution(const Node* a, const Node* b, const bool& caso) const {
-			float cost = a->cost2Root() + this->problem.cost2Go(a->getState(), b->getState(), true) + b->cost2Root();
+			float cost = a->cost2Root() + this->problem.getTrajManager()->cost2Go(a->getState(), b->getState(), true) + b->cost2Root();
 			if (caso) {
 				return std::make_tuple(a, b, cost);
 			}
@@ -98,7 +98,7 @@ namespace mt {
 			std::swap(Master, Slave);
 			caso = !caso;
 
-			++this->iterationsDone;
+			this->iterationsDone += 2;
 #ifdef SHOW_PROGRESS
 			ProgressPrinter::show(this->iterationsDone);
 #endif

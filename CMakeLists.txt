@@ -18,7 +18,7 @@ include(GroupSources)
 include(AutoCollect)
 include(CopyPythonCode)
 
-add_subdirectory(src)
+add_subdirectory(MT-RRT)
 if(BUILD_SAMPLES)
    add_subdirectory(Samples)
 endif()
