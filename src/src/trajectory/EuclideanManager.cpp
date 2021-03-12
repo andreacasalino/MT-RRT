@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <trajectory/Euclidean.h>
+#include <trajectory/EuclideanManager.h>
 #include <math.h>
 
 namespace mt::traj {
@@ -17,11 +17,11 @@ namespace mt::traj {
         return distance;
     }
 
-    Euclidean::Euclidean(const float& steerDegree)
+    EuclideanManager::EuclideanManager(const float& steerDegree)
         : steerDegree(static_cast<float>(fabs(steerDegree))) {
     }
 
-    float Euclidean::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
+    float EuclideanManager::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
         float distance = squaredDistance(start, ending_node);
         if (ignoreConstraints) {
             return distance;
@@ -42,7 +42,6 @@ namespace mt::traj {
         : Trajectory(start, target)
         , steerDegree(steerDegree) {
         this->cumulatedCost = 0.f;
-        this->previousState = start;
     }
 
     Trajectory::AdvanceInfo EuclideanTraj::advance() {

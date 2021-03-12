@@ -9,36 +9,28 @@
 #include <Error.h>
 
 namespace mt {
-    Problem::Problem(sampling::SamplerPtr sampler, traj::ManagerPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry)
-        : stateSpaceSize(stateSpaceSize)
+    Problem::Problem(sampling::SamplerPtr sampler, traj::TrajectoryManagerPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry)
+        : stateSpaceSize(1, stateSpaceSize)
         , gamma(gamma)
         , simmetry(simmetry) {
-        if (this->stateSpaceSize <= 1) throw Error("invalid state space size");
         if (nullptr == sampler) throw Error("found null sampler");
         this->sampler = std::move(sampler);
         if (nullptr == manager) throw Error("found null trajectory manager");
         this->trajManager = std::move(manager);
-        if (this->gamma < 0.f) throw Error("invalid negative gamma");
     }
 
     Problem::Problem(const Problem& o)
-        : Problem(o.sampler->copy(), o.trajManager->copy(), o.stateSpaceSize, o.gamma, o.simmetry) {
-        this->steerTrials = o.steerTrials;
-    }
-
-    void Problem::setSteerTrials(const std::size_t& trials) {
-        if (0 == trials) {
-            throw Error("0 is invalid as steer trials");
-        }
-        this->steerTrials = trials;
+        : Problem(o.sampler->copy(), o.trajManager->copy(), o.stateSpaceSize.get(), o.gamma.get(), o.simmetry) {
+        this->steerTrials.set(o.steerTrials.get());
     }
 
     NodePtr Problem::steer(Node& start, const NodeState& trg, bool& trg_reached) {
         traj::TrajectoryPtr traj = this->trajManager->getTrajectory(start.getState() , trg);
         NodeState steered;
         trg_reached = false;
-        for (std::size_t t = 0; t < this->steerTrials; ++t) {
-            auto info = traj->advance();
+        traj::Trajectory::AdvanceInfo info;
+        for (std::size_t t = 0; t < this->steerTrials.get(); ++t) {
+            info = traj->advance();
             if (traj::Trajectory::AdvanceInfo::blocked == info) break;
             steered = traj->getCursor();
             if (traj::Trajectory::AdvanceInfo::targetReached == info) {
@@ -48,7 +40,7 @@ namespace mt {
         }
         if (steered.empty()) return nullptr;
         NodePtr ptr = std::make_unique<Node>(steered);
-        ptr->setFather(&start, traj->getCummulatedCost());
+        ptr->setFather(&start, traj->getCumulatedCost());
         return ptr;
     }
 }

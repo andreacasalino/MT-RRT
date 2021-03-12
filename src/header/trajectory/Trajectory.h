@@ -9,12 +9,11 @@
 #define MT_RRT_TRAJECTORY_H
 
 #include <Node.h>
+#include <trajectory/Cost.h>
 
 namespace mt::traj {
     class Trajectory {
     public:
-        static const float COST_MAX;
-
         virtual	~Trajectory() = default;
 
         Trajectory(const Trajectory&) = delete;
@@ -22,10 +21,9 @@ namespace mt::traj {
 
         inline const NodeState& getCursor() const { return this->cursor; };
 
-        inline float getCummulatedCost() const { return this->cumulatedCost; };
+        inline float getCumulatedCost() const { return this->cumulatedCost.get(); };
 
         enum AdvanceInfo { blocked, advanced, targetReached };
-
         // return false when the advancement was not possible
         virtual AdvanceInfo advance() = 0;
 
@@ -36,7 +34,7 @@ namespace mt::traj {
         const NodeState& target;
 
         NodeState cursor;
-        float cumulatedCost = COST_MAX;
+        Cost cumulatedCost;
     };
 
     typedef std::unique_ptr<Trajectory> TrajectoryPtr;

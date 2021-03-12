@@ -22,7 +22,7 @@ namespace mt {
 		Tree(const Tree&) = delete;
 		Tree& operator=(const Tree&) = delete;
 
-        // random extension
+        // random extension + addition to the tree
         Node* extendRandom();
 
         // deterministic extension

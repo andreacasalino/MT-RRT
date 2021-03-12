@@ -8,15 +8,15 @@
 #ifndef MT_RRT_TRAJECTORY_EUCLIDEAN_H
 #define MT_RRT_TRAJECTORY_EUCLIDEAN_H
 
-#include <trajectory/Manager.h>
+#include <trajectory/TrajectoryManager.h>
 
 namespace mt::traj {
-    class Euclidean : public Manager {
+    class EuclideanManager : public TrajectoryManager {
     public:
         float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const override;
 
     protected:
-        Euclidean(const float& steerDegree);
+        EuclideanManager(const float& steerDegree);
 
         float steerDegree;
     };

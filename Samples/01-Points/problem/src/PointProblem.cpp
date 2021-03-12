@@ -26,7 +26,7 @@ namespace mt::sample {
     PointProblem::PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles) 
         : Problem(make_sampler(boundaries),
                   std::make_unique<traj::LineManager>(getSteerDegree(boundaries), obstacles),
-                  2, 50.f) {
+                  2, 500.f) {
     }
 
     const std::vector<sample::Obstacle>& PointProblem::getObstacles() const {

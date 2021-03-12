@@ -9,8 +9,6 @@
 #include <limits>
 
 namespace mt::traj {
-    const float Trajectory::COST_MAX = std::numeric_limits<float>::max();
-
     Trajectory::Trajectory(const NodeState& start, const NodeState& target)
         : target(target)
         , cursor(start) {

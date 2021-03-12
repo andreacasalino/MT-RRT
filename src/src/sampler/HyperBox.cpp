@@ -5,13 +5,16 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <sampler/Box.h>
+#include <sampler/HyperBox.h>
 #include <Error.h>
 #include <time.h>
 #include <random>
 
 namespace mt::sampling {
     NodeState computeDelta(const NodeState lowerCorner, const NodeState upperCorner) {
+        if(lowerCorner.size() != upperCorner.size()) {
+            throw Error("lower and upper corners should have the same sizes");
+        }
         NodeState delta = upperCorner;
         for (std::size_t k = 0; k < lowerCorner.size(); ++k) {
             if (lowerCorner[k] > upperCorner[k]) {
@@ -21,20 +24,16 @@ namespace mt::sampling {
         }
         return delta;
     }
-    Box::Box(const NodeState lowerCorner, const NodeState upperCorner, const unsigned int& seed)
+    HyperBox::HyperBox(const NodeState lowerCorner, const NodeState upperCorner)
         : lowerLimits(lowerCorner) 
-        , deltaLimits(computeDelta(lowerCorner, upperCorner))
-        , seed(seed) {
-        if (0 == seed) {
-            this->seed = static_cast<unsigned int>(time(NULL));
-        }
+        , deltaLimits(computeDelta(lowerCorner, upperCorner)) {
     }
 
-    std::unique_ptr<Sampler> Box::copy() const {
-        return std::make_unique<Box>(*this);
+    std::unique_ptr<Sampler> HyperBox::copy() const {
+        return std::make_unique<HyperBox>(*this);
     }
 
-    NodeState Box::randomState() const {
+    NodeState HyperBox::randomState() const {
         NodeState randState = this->lowerLimits;
         for (std::size_t k = 0; k < this->deltaLimits.size(); ++k) {
             randState[k] += this->deltaLimits[k] * this->engine();

@@ -5,16 +5,16 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SAMPLER_BOX_H
-#define MT_RRT_SAMPLER_BOX_H
+#ifndef MT_RRT_HYPER_BOX_H
+#define MT_RRT_HYPER_BOX_H
 
 #include <sampler/Sampler.h>
-#include <sampler/UniformEngine.h>
+#include <sampler/engine/UniformEngine.h>
 
 namespace mt::sampling {
-	class Box : public Sampler {
+	class HyperBox : public Sampler {
     public:
-        Box(const NodeState lowerCorner, const NodeState upperCorner, const unsigned int& seed = 0);
+        HyperBox(const NodeState lowerCorner, const NodeState upperCorner);
 
         std::unique_ptr<Sampler> copy() const override;
 
@@ -25,10 +25,9 @@ namespace mt::sampling {
 
     private:
     // data
-        UniformRandomEngine engine;
+        UniformEngine engine;
         const NodeState lowerLimits;
         const NodeState deltaLimits;
-        unsigned int seed;
 	};
 }
 
