@@ -8,8 +8,9 @@
 #ifndef MT_RRT_EXTENDER_H
 #define MT_RRT_EXTENDER_H
 
-#include <Tree.h>
+#include <TreeCore.h>
 #include <sampler/engine/UniformEngine.h>
+#include <list>
 #include <set>
 
 #ifdef SHOW_PROGRESS
@@ -76,6 +77,8 @@ namespace mt {
 	};
 
 	std::vector<NodeState> convert(const std::list<const NodeState*> nodes);
+
+	TreeCore* convert(Tree* t);
 
 	template<typename Extender>
 	std::size_t getIterationsDone(const std::vector<Extender>& battery) {

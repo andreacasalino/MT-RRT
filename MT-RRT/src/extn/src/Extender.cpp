@@ -6,6 +6,7 @@
  **/
 
 #include <Extender.h>
+#include <Error.h>
 
 #ifdef SHOW_PROGRESS
 #include <iostream>
@@ -20,6 +21,12 @@ namespace mt {
             result.emplace_back(**it);
         }
         return result;
+    }
+
+    TreeCore* convert(Tree* t) {
+        TreeCore* temp = dynamic_cast<TreeCore*>(t);
+        if(nullptr == temp) throw Error("conversion not possible");
+        return temp;
     }
 
 #ifdef SHOW_PROGRESS

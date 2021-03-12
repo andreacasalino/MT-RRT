@@ -11,7 +11,7 @@
 namespace mt {
     ExtSingle::ExtSingle(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& tree, const NodeState& target)
         : Extender<SingleSolution>(cumulateSolutions, deterministicCoefficient)
-        , tree(tree)
+        , tree(*convert(&tree))
         , target(target) {
     }
 

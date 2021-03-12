@@ -13,15 +13,15 @@
 #include <type_traits>
 
 namespace mt {
-	typedef TreeCore TC;
+	template<typename TC>
 	class TreeStar 
 		: public TC
 		, public TreeRewirer {
 		static_assert(std::is_base_of<TreeCore, TC>::value , "TC should derive from TreeCore");
 	public:
 		template<typename ... Args>
-		TreeStar(Args ... args)
-			: TC(args...) {
+		TreeStar(Problem& problem, NodePtr root, Args ... args)
+			: TC(problem, std::move(root), args...) {
 		};
 
 		Node* add(NodePtr node) override {
@@ -35,6 +35,8 @@ namespace mt {
 			return temp;
 		}
 	};
+
+	typedef TreeStar<TreeCore> TreeStarBasic;
 }
 
 #endif

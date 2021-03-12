@@ -8,6 +8,7 @@
 #ifndef MT_RRT_EXTENDER_SINGLE_H
 #define MT_RRT_EXTENDER_SINGLE_H
 
+#include <TreeCore.h>
 #include "Extender.h"
 
 namespace mt {
@@ -25,7 +26,7 @@ namespace mt {
         std::vector<NodeState> computeSolutionSequence(const SingleSolution& sol) const override;
 
     private:
-        Tree& tree;
+        TreeCore& tree;
         NodeState target;
     };
 

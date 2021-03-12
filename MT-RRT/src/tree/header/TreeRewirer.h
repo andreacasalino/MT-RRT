@@ -22,6 +22,8 @@ namespace mt {
 
     class TreeRewirer: virtual public Tree {
 	protected:
+		TreeRewirer() = default;
+
 		virtual std::list<Rewire> computeRewires(Node& pivot) const;
 
 		virtual std::set<Node*> nearSet(const NodeState& state) const;

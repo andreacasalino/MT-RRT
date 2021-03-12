@@ -42,7 +42,7 @@ namespace mt {
     Node* TreeCore::nearestNeighbour(const NodeState& state) const {
 		auto it = this->getDelimiter();
 		Node* nearest = it->get();
-		const Problem& prb = this->getProblem();
+		const Problem& prb = this->getProblemConst();
 		float nearestCost = prb.getTrajManager()->cost2Go((*it)->getState(), state, true), temp;
 		++it;
 		for (it; it != this->getNodes().rend(); ++it) {

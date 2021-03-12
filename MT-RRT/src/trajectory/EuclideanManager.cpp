@@ -32,7 +32,7 @@ namespace mt::traj {
         while (Trajectory::AdvanceInfo::advanced == advInfo) {
             advInfo = line->advance();
             if (Trajectory::AdvanceInfo::blocked == advInfo) {
-                return Trajectory::COST_MAX;
+                return Cost::COST_MAX;
             }
         }
         return distance;
@@ -41,7 +41,7 @@ namespace mt::traj {
     EuclideanTraj::EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree)
         : Trajectory(start, target)
         , steerDegree(steerDegree) {
-        this->cumulatedCost = 0.f;
+        this->cumulatedCost.set(0.f);
     }
 
     Trajectory::AdvanceInfo EuclideanTraj::advance() {
@@ -58,7 +58,7 @@ namespace mt::traj {
 
         std::swap(this->previousState, this->cursor);
         this->cursor = this->target;
-        this->cumulatedCost += c * squaredDistance(this->previousState, this->cursor);
+        this->cumulatedCost.set(this->cumulatedCost.get() + c * squaredDistance(this->previousState, this->cursor));
 
         if (1.f == c) {
             return AdvanceInfo::targetReached;

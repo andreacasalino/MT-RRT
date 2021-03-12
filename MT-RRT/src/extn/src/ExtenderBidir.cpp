@@ -15,8 +15,8 @@ namespace mt {
 
     ExtBidir::ExtBidir(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& leftTree, Tree& rightTree)
         : Extender<BidirSolution>(cumulateSolutions, deterministicCoefficient)
-        , leftTree(leftTree)
-        , rightTree(rightTree) {
+        , leftTree(*convert(&leftTree))
+        , rightTree(*convert(&rightTree)) {
 		if (&this->leftTree == &this->rightTree) {
 			throw Error("trees should be different for bidirectional extender");
 		}
@@ -24,7 +24,7 @@ namespace mt {
 
 	class BidirSolutionFactory {
 	public:
-		BidirSolutionFactory(Problem& problem) 
+		BidirSolutionFactory(const Problem& problem) 
 			: problem(problem) {
 		};
 
@@ -37,15 +37,15 @@ namespace mt {
 		};
 
 	private:
-		Problem& problem;
+		const Problem& problem;
 	};
 
     void ExtBidir::extend(const size_t& Iterations) {
 		bool newSolFound = false;
 		bool caso = true;
-		Tree* Master = &this->leftTree;
-		Tree* Slave = &this->rightTree;
-		BidirSolutionFactory solFactory(this->leftTree.getProblem());
+		TreeCore* Master = &this->leftTree;
+		TreeCore* Slave = &this->rightTree;
+		BidirSolutionFactory solFactory(this->leftTree.getProblemConst());
 
 		auto add2Solutions = [this, &newSolFound, &solFactory](const Node* a, const Node* b, const bool& caso) {
 			auto newSol = solFactory.makeSolution(a, b, caso);

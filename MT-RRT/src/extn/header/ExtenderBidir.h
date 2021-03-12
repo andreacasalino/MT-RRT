@@ -8,6 +8,7 @@
 #ifndef MT_RRT_EXTENDER_BIDIR_H
 #define MT_RRT_EXTENDER_BIDIR_H
 
+#include <TreeCore.h>
 #include "Extender.h"
 #include <tuple>
 
@@ -26,8 +27,8 @@ namespace mt {
         std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const override;
 
     private:
-        Tree& leftTree;
-        Tree& rightTree;
+        TreeCore& leftTree;
+        TreeCore& rightTree;
     };
 
     std::vector<ExtBidir> make_battery(const bool& cumulateSolutions, const double& deterministicCoefficient, const std::vector<TreePtr>& treesA, const std::vector<TreePtr>& treesB);

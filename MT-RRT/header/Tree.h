@@ -25,7 +25,7 @@ namespace mt {
 
 		virtual const Nodes& getNodes() const = 0;
 
-		virtual const Problem& getProblem() const = 0;
+		virtual const Problem& getProblemConst() const = 0;
 
 	protected:
 		Tree() = default;

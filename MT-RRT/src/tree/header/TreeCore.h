@@ -13,6 +13,8 @@
 namespace mt {
 	class TreeCore : virtual public Tree {
 	public:
+		TreeCore(Problem& problem, NodePtr root);	
+
 		std::pair<NodePtr, bool> extend(const NodeState& target);
 
         Node* extendRandom();
@@ -21,11 +23,9 @@ namespace mt {
 
 		inline const Nodes& getNodes() const override { return this->nodes; };
 
-		inline const Problem& getProblem() const override { return this->problem; }
+		inline const Problem& getProblemConst() const override { return this->problem; }
 
 	protected:
-		TreeCore(Problem& problem, NodePtr root);	
-
 		inline Problem& getProblem() override { return this->problem; };
 		
 		virtual Node* nearestNeighbour(const NodeState& state) const;	

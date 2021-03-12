@@ -12,16 +12,16 @@ namespace mt {
 
 	float TreeRewirer::nearSetRay() const {
 		float Tree_size = static_cast<float>(std::distance(this->getDelimiter(), this->getNodes().rbegin()));
-		return this->getProblem().getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->getProblem().getProblemSize()));
+		return this->getProblemConst().getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->getProblemConst().getProblemSize()));
 	}
 
     std::set<Node*> TreeRewirer::nearSet(const NodeState& state) const {
-		const Problem& prb = this->getProblem();
+		const Problem& prb = this->getProblemConst();
 		float ray = this->nearSetRay();
         float dist_att;
         std::set<Node*> nearS;
 		for (auto itN = this->getDelimiter(); itN != this->getNodes().rend(); ++itN) {
-			dist_att = this->getProblem().getTrajManager()->cost2Go((*itN)->getState(), state, true);
+			dist_att = this->getProblemConst().getTrajManager()->cost2Go((*itN)->getState(), state, true);
 			if (dist_att <= ray) {
 				nearS.emplace((*itN).get());
 			}
@@ -47,7 +47,7 @@ namespace mt {
 			return {};
 		}
 
-		const Problem& prb = this->getProblem();
+		const Problem& prb = this->getProblemConst();
 		std::list<Rewire> rewirds;
 		std::list<float> costs2RootNear_set;
 		float costMin = mt::traj::Cost::COST_MAX, costAtt;
