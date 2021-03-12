@@ -24,7 +24,7 @@ namespace mt {
 	protected:
 		TreeRewirer() = default;
 
-		virtual std::list<Rewire> computeRewires(Node& pivot) const;
+		std::list<Rewire> computeRewires(Node& pivot) const;
 
 		virtual std::set<Node*> nearSet(const NodeState& state) const;
 

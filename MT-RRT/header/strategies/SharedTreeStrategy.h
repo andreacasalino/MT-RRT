@@ -5,13 +5,13 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SERIAL_STRATEGY_H
-#define MT_RRT_SERIAL_STRATEGY_H
+#ifndef MT_RRT_SHARED_TREE_STRATEGY_H
+#define MT_RRT_SHARED_TREE_STRATEGY_H
 
 #include <solver/Strategy.h>
 
 namespace mt::solver {
-    class Serial : public Strategy {
+    class SharedTreeStrategy : public Strategy {
     public:
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
     };

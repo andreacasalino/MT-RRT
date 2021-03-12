@@ -9,10 +9,10 @@
 #include <Error.h>
 
 namespace mt {
-    TreeCore::TreeCore(Problem& problem, NodePtr root)
+    TreeCore::TreeCore(NodePtr root, Problem& problem)
         : problem(problem) {
         if (nullptr == root) {
-            throw Error("null root is impossible for TreeConcrete");
+            throw Error("null root is impossible for TreeCore");
         }
         this->nodes.emplace_back(std::move(root));
     }
@@ -40,12 +40,13 @@ namespace mt {
     }
 
     Node* TreeCore::nearestNeighbour(const NodeState& state) const {
-		auto it = this->getDelimiter();
+		auto it = this->rbegin();
 		Node* nearest = it->get();
 		const Problem& prb = this->getProblemConst();
 		float nearestCost = prb.getTrajManager()->cost2Go((*it)->getState(), state, true), temp;
 		++it;
-		for (it; it != this->getNodes().rend(); ++it) {
+        auto itEnd = this->rend();
+		for (it; it != itEnd; ++it) {
 			temp = prb.getTrajManager()->cost2Go((*it)->getState(), state, true);
 			if (temp < nearestCost) {
 				nearestCost = temp;

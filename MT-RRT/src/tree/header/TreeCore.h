@@ -13,7 +13,7 @@
 namespace mt {
 	class TreeCore : virtual public Tree {
 	public:
-		TreeCore(Problem& problem, NodePtr root);	
+		TreeCore(NodePtr root, Problem& problem);	
 
 		std::pair<NodePtr, bool> extend(const NodeState& target);
 
@@ -21,7 +21,8 @@ namespace mt {
 
 		Node* add(NodePtr node) override;
 
-		inline const Nodes& getNodes() const override { return this->nodes; };
+		inline Nodes::const_reverse_iterator rend() const override { return this->nodes.rend(); };
+		inline Nodes::const_reverse_iterator rbegin() const override { return this->nodes.rbegin(); };
 
 		inline const Problem& getProblemConst() const override { return this->problem; }
 
@@ -30,7 +31,6 @@ namespace mt {
 		
 		virtual Node* nearestNeighbour(const NodeState& state) const;	
 
-	private:
 		Problem& problem;
 		Nodes nodes;
 	};

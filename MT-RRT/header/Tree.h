@@ -23,7 +23,9 @@ namespace mt {
 
 		virtual Node* add(NodePtr node) = 0;
 
-		virtual const Nodes& getNodes() const = 0;
+		virtual Nodes::const_reverse_iterator rend() const = 0;
+		virtual Nodes::const_reverse_iterator rbegin() const = 0;
+		inline Node* front() { auto temp = this->rend(); --temp; return temp->get(); };
 
 		virtual const Problem& getProblemConst() const = 0;
 
@@ -31,8 +33,6 @@ namespace mt {
 		Tree() = default;
 
 		virtual Problem& getProblem() = 0;
-
-		inline virtual Nodes::const_reverse_iterator getDelimiter() const { return this->getNodes().rbegin(); };
     };
 
     typedef std::unique_ptr<Tree> TreePtr;

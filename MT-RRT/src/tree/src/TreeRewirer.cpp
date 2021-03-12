@@ -9,10 +9,10 @@
 #include <math.h>
 
 namespace mt {
-
 	float TreeRewirer::nearSetRay() const {
-		float Tree_size = static_cast<float>(std::distance(this->getDelimiter(), this->getNodes().rbegin()));
-		return this->getProblemConst().getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(this->getProblemConst().getProblemSize()));
+		float Tree_size = static_cast<float>(std::distance(this->rbegin(), this->rend()));
+		const Problem& problem = this->getProblemConst();
+		return problem.getGamma() * powf(logf(Tree_size) / Tree_size, 1.f / static_cast<float>(problem.getProblemSize()));
 	}
 
     std::set<Node*> TreeRewirer::nearSet(const NodeState& state) const {
@@ -20,8 +20,9 @@ namespace mt {
 		float ray = this->nearSetRay();
         float dist_att;
         std::set<Node*> nearS;
-		for (auto itN = this->getDelimiter(); itN != this->getNodes().rend(); ++itN) {
-			dist_att = this->getProblemConst().getTrajManager()->cost2Go((*itN)->getState(), state, true);
+		auto itEnd = this->rend();
+		for (auto itN = this->rbegin(); itN != itEnd; ++itN) {
+			dist_att = prb.getTrajManager()->cost2Go((*itN)->getState(), state, true);
 			if (dist_att <= ray) {
 				nearS.emplace((*itN).get());
 			}

@@ -64,9 +64,9 @@ namespace mt {
 
 		auto extendSlave = [this, &newSolFound, &solFactory, &Slave, &Master, &caso, &add2Solutions](const Node* ext) {
 			if (nullptr == ext) {
-				auto temp = Slave->extend(Master->getNodes().front()->getState());
+				auto temp = Slave->extend(Master->front()->getState());
 				if (temp.second) {
-					add2Solutions(temp.first->getFather(), Master->getNodes().front().get(), !caso);
+					add2Solutions(temp.first->getFather(), Master->front(), !caso);
 				}
 				else Slave->add(std::move(temp.first));
 			}
@@ -81,9 +81,9 @@ namespace mt {
 
 		for (size_t k = 0; k < Iterations; k += 2) {
 			if (this->randEngine() < this->deterministicCoefficient) {
-				auto temp = Master->extend(Slave->getNodes().front()->getState());
+				auto temp = Master->extend(Slave->front()->getState());
 				if (temp.second) {
-					add2Solutions(temp.first->getFather(), Slave->getNodes().front().get(), caso);
+					add2Solutions(temp.first->getFather(), Slave->front(), caso);
 				}
 				else {
 					Node* pt = temp.first.get();

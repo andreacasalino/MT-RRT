@@ -20,8 +20,8 @@ namespace mt {
 		static_assert(std::is_base_of<TreeCore, TC>::value , "TC should derive from TreeCore");
 	public:
 		template<typename ... Args>
-		TreeStar(Problem& problem, NodePtr root, Args ... args)
-			: TC(problem, std::move(root), args...) {
+		TreeStar(Args&&... args)
+			: TC(std::forward<Args>(args)...) {
 		};
 
 		Node* add(NodePtr node) override {
