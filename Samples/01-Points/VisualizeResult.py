@@ -39,5 +39,5 @@ class Result:
         self.solution_line.set_xdata(self.solution_x)
         self.solution_line.set_ydata(self.solution_y)
           
-def make_result(fig, ax, problem, result_ij):
+def VisualizeResult(fig, ax, problem, result_ij):
     return Result(fig, ax, problem, result_ij)

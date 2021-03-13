@@ -80,6 +80,12 @@ namespace mt::solver {
 
 		std::size_t								getThreadAvailability() const;
 
+		template<typename User>
+		void									useProblem(const User& user) {
+			std::lock_guard<std::mutex> lck(this->data->solverMutex);
+			user(*this->data->problemsBattery.front().get());
+		};
+
 	private:
 	// data
 		std::shared_ptr<SolverData>						data;

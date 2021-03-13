@@ -11,6 +11,12 @@
 #include <Interpolator.h>
 #include <iostream>
 
+#include <strategies/SerialStrategy.h>
+#include <strategies/QueryParallStrategy.h>
+#include <strategies/SharedTreeStrategy.h>
+#include <strategies/LinkedTreesStrategy.h>
+#include <strategies/MultiAgentStrategy.h>
+
 namespace mt::sample {
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize) {
         for (std::size_t k = 0; k < dataSize; ++k) {
@@ -26,17 +32,14 @@ namespace mt::sample {
         f << data.str();
     }
 
-    std::string tostring(const Solver::RRTStrategy& rrtStrategy) {
+    std::string tostring(const solver::RRTStrategy& rrtStrategy) {
         switch (rrtStrategy) {
-        case Solver::RRTStrategy::Single:
+        case solver::RRTStrategy::Single:
             return "Single";
-            break;
-        case Solver::RRTStrategy::Bidir:
+        case solver::RRTStrategy::Bidir:
             return "Bidir";
-            break;
-        case Solver::RRTStrategy::Star:
+        case solver::RRTStrategy::Star:
             return "Star";
-            break;
         default:
             throw Error("unknown");
             break;
@@ -44,29 +47,43 @@ namespace mt::sample {
         throw Error("unknown");
     };
 
-    std::string tostring(const Solver::MTStrategy& mtStrategy) {
+    std::string tostring(const StrategyType& mtStrategy) {
         switch (mtStrategy) {
-        case Solver::MTStrategy::Serial:
+        case StrategyType::Serial:
             return "Serial";
-            break;
-        case Solver::MTStrategy::MtQueryParall:
+        case StrategyType::MtQueryParall:
             return "Qparal";
-            break;
-        case Solver::MTStrategy::MtSharedTree:
+        case StrategyType::MtSharedTree:
             return "Shared";
-            break;
-        case Solver::MTStrategy::MtCopiedTrees:
+        case StrategyType::MtLinkedTrees:
             return "Copied";
-            break;
-        case Solver::MTStrategy::MtMultiAgent:
+        case StrategyType::MtMultiAgent:
             return "Multiag";
-            break;
         default:
             throw Error("unknown");
             break;
         }
         throw Error("unknown");
     };
+
+    std::unique_ptr<solver::Strategy> make_strategy(const StrategyType& type) {
+        switch (type) {
+        case StrategyType::Serial:
+            return std::make_unique<solver::SerialStrategy>();
+        case StrategyType::MtQueryParall:
+            return std::make_unique<solver::QueryParallStrategy>();
+        case StrategyType::MtSharedTree:
+            return std::make_unique<solver::SharedTreeStrategy>();
+        case StrategyType::MtLinkedTrees:
+            return std::make_unique<solver::LinkedTreesStrategy>();
+        case StrategyType::MtMultiAgent:
+            return std::make_unique<solver::MultiAgentStrategy>();
+        default:
+            throw Error("unknown");
+            break;
+        }
+        return nullptr;
+    }
 
     structJSON Results::getJSON() const {
         structJSON json;
@@ -80,7 +97,7 @@ namespace mt::sample {
         return json;
     }
 
-    void Results::addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution) {
+    void Results::addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution) {
         structJSON result;
         result.addEndl();
 
@@ -95,9 +112,12 @@ namespace mt::sample {
 
         {
             arrayJSON solutionJSON;
-            auto sol = solver.getLastSolution();
+            auto sol = solver.copyLastSolution();
             if(interpolateSolution) {
-                sol = interpolate(sol, *solver.getProblem().getTrajManager());
+                auto interp = [&sol](Problem& p){
+                    sol = interpolate(sol, *p.getTrajManager());
+                };
+                solver.useProblem(interp);
             }
             for (auto it = sol.begin(); it != sol.end(); ++it) {
                 arrayJSON stateJSON;
@@ -110,21 +130,22 @@ namespace mt::sample {
 
         {
             arrayJSON treesJSON;
-            auto trees = solver.getLastTrees();
+            auto trees = solver.extractLastTrees();
             for (auto it = trees.begin(); it != trees.end(); ++it) {
                 arrayJSON treeJSON;
-                auto itN = (*it)->getNodes().begin();
-                arrayJSON stateJSON;
-                addValues(stateJSON, (*itN)->getState().data(), (*itN)->getState().size());
-                addValues(stateJSON, (*itN)->getState().data(), (*itN)->getState().size());
-                treeJSON.addElement(stateJSON);
-                ++itN;
-                for (itN; itN != (*it)->getNodes().end(); ++itN) {
+                auto itNend = (*it)->rend();
+                --itNend;
+                auto itN = (*it)->rbegin();
+                for(itN; itN!=itNend; ++itN) {
                     arrayJSON stateJSON;
                     addValues(stateJSON, (*itN)->getState().data(), (*itN)->getState().size());
                     addValues(stateJSON, (*itN)->getFather()->getState().data(), (*itN)->getFather()->getState().size());
                     treeJSON.addElement(stateJSON);
                 }
+                arrayJSON stateJSON;
+                addValues(stateJSON, (*itN)->getState().data(), (*itN)->getState().size());
+                addValues(stateJSON, (*itN)->getState().data(), (*itN)->getState().size());
+                treeJSON.addElement(stateJSON);
                 treesJSON.addElement(treeJSON);
             }
             result.addElement("trees", treesJSON);
@@ -133,46 +154,49 @@ namespace mt::sample {
 
         auto itR = this->resultMatrix.find(mtStrategy);
         if (itR == this->resultMatrix.end()) {
-            itR = this->resultMatrix.emplace(mtStrategy, std::map<Solver::RRTStrategy, structJSON>{}).first;
+            itR = this->resultMatrix.emplace(mtStrategy, std::map<solver::RRTStrategy, structJSON>{}).first;
         }
         itR->second.emplace(rrtStrategy, std::move(result));
     }
 
-    Results::Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution) {
-        auto usePossibleRrtStrategies = [&](const Solver::MTStrategy& strgt) {
-            solver.solve(start, end, Solver::RRTStrategy::Single, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Single, interpolateSolution);
+    Results::Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution) {
+        auto usePossibleRrtStrategies = [&](const StrategyType& strgt) {
+            solver.setStrategy( make_strategy(strgt) );
 
-            solver.solve(start, end, Solver::RRTStrategy::Bidir, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Bidir, interpolateSolution);
+            solver.solve(start, end, solver::RRTStrategy::Single);
+            this->addResult(solver, strgt, solver::RRTStrategy::Single, interpolateSolution);
 
-            solver.solve(start, end, Solver::RRTStrategy::Star, strgt);
-            this->addResult(solver, strgt, Solver::RRTStrategy::Star, interpolateSolution);
+            solver.solve(start, end, solver::RRTStrategy::Bidir);
+            this->addResult(solver, strgt, solver::RRTStrategy::Bidir, interpolateSolution);
+
+            solver.solve(start, end, solver::RRTStrategy::Star);
+            this->addResult(solver, strgt, solver::RRTStrategy::Star, interpolateSolution);
         };
 
         std::cout << "Serial started" << std::endl;
-        usePossibleRrtStrategies(Solver::MTStrategy::Serial);
+        usePossibleRrtStrategies(StrategyType::Serial);
         std::cout << "done" << std::endl;
 
         solver.setThreadAvailability(threads);
 
         std::cout << "Query Parall started" << std::endl;
-        usePossibleRrtStrategies(Solver::MTStrategy::MtQueryParall);
+        usePossibleRrtStrategies(StrategyType::MtQueryParall);
         std::cout << "done" << std::endl;
 
         std::cout << "Shared tree started" << std::endl;
-        usePossibleRrtStrategies(Solver::MTStrategy::MtSharedTree);
+        usePossibleRrtStrategies(StrategyType::MtSharedTree);
         std::cout << "done" << std::endl;
 
         std::cout << "Copied trees started" << std::endl;
-        usePossibleRrtStrategies(Solver::MTStrategy::MtCopiedTrees);
+        usePossibleRrtStrategies(StrategyType::MtLinkedTrees);
         std::cout << "done" << std::endl;
 
+        solver.setStrategy( make_strategy(StrategyType::MtMultiAgent) );
         std::cout << "Multi agent started" << std::endl;
-        solver.solve(start, end, Solver::RRTStrategy::Single, Solver::MTStrategy::MtMultiAgent);
-        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Single, interpolateSolution);
-        solver.solve(start, end, Solver::RRTStrategy::Star, Solver::MTStrategy::MtMultiAgent);
-        this->addResult(solver, Solver::MTStrategy::MtMultiAgent, Solver::RRTStrategy::Star, interpolateSolution);
+        solver.solve(start, end, solver::RRTStrategy::Single);
+        this->addResult(solver, StrategyType::MtMultiAgent, solver::RRTStrategy::Single, interpolateSolution);
+        solver.solve(start, end, solver::RRTStrategy::Star);
+        this->addResult(solver, StrategyType::MtMultiAgent, solver::RRTStrategy::Star, interpolateSolution);
         std::cout << "done" << std::endl;
     }
 }

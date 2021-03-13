@@ -13,6 +13,8 @@
 namespace mt::solver {
     class QueryParallStrategy : public Strategy {
     public:
+        QueryParallStrategy() = default;
+
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
     };
 }

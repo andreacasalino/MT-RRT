@@ -9,11 +9,15 @@
 #define MT_RRT_SAMPLE_LOGGER_H
 
 #include <string>
-#include <Solver.h>
+#include <solver/Solver.h>
 #include <JSONstream.h>
 #include <map>
 
 namespace mt::sample {
+    enum StrategyType { Serial, MtQueryParall, MtSharedTree, MtLinkedTrees, MtMultiAgent };
+
+    std::unique_ptr<solver::Strategy> make_strategy(const StrategyType& type);
+
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
     void printData(const streamJSON& data, const std::string& fileName);
@@ -22,15 +26,15 @@ namespace mt::sample {
     public:
         Results() = default;
 
-        // solve with all possible strategies
-        Results(Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution = false);
+        // solve with all possible StrategyType
+        Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution = false);
 
-        void addResult(Solver& solver, const Solver::MTStrategy& mtStrategy, const Solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution = false);
+        void addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution = false);
 
         structJSON getJSON() const;
 
     private:
-        std::map<Solver::MTStrategy, std::map<Solver::RRTStrategy, structJSON> > resultMatrix;
+        std::map<StrategyType, std::map<solver::RRTStrategy, structJSON> > resultMatrix;
     };
 }
 

@@ -13,6 +13,8 @@
 namespace mt::solver {
     class LinkedTreesStrategy : public Strategy {
     public:
+        LinkedTreesStrategy() = default;
+
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
 
         inline Limited<double>& getIterationsMax() { return this->reallignmentCoeff; };

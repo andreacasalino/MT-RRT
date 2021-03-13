@@ -13,6 +13,8 @@
 namespace mt::solver {
     class SerialStrategy : public Strategy {
     public:
+        SerialStrategy() = default;
+
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
     };
 }

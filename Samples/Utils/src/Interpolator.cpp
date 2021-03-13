@@ -9,7 +9,7 @@
 #include <list>
 
 namespace mt::sample {
-    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::Manager& manager) {
+    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::TrajectoryManager& manager) {
         if(solution.empty()) return {};
 
         std::list<NodeState> states;

@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "../header/Point.h"
+#include <Point.h>
 #include <random>
 
 namespace mt::sample::geometry {

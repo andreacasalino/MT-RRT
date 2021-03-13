@@ -106,5 +106,5 @@ class Scene:
             r.setPose(self.solution[index][pos:pos + len(r.links)])
             pos = pos + len(r.links)
 
-def make_result(fig, ax, problem, result_ij):
+def VisualizeResult(fig, ax, problem, result_ij):
     return Scene(fig, ax, problem, result_ij["solution"], result_ij["trees"])

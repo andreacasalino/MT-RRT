@@ -13,6 +13,8 @@
 namespace mt::solver {
     class MultiAgentStrategy : public Strategy {
     public:
+        MultiAgentStrategy() = default;
+
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
 
         inline Limited<double>& getIterationsMax() { return this->reallignmentCoeff; };
