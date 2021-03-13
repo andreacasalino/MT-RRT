@@ -6,7 +6,7 @@
  **/
 
 #include <ManipulatorProblem.h>
-#include <sampler/Box.h>
+#include <sampler/HyperBox.h>
 #include "Line.h"
 #include <Error.h>
 
@@ -36,7 +36,7 @@ namespace mt::sample {
     }
 
     ManipulatorProblem::ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles)
-        : Problem(std::make_unique<sampling::Box>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
+        : Problem(std::make_unique<sampling::HyperBox>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
             std::make_unique<traj::LineManager>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
             Manipulator::dofTot(robots), 5.f) {
         this->data = static_cast<traj::LineManager&>(*this->trajManager).getData();

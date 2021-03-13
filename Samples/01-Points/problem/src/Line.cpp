@@ -9,7 +9,7 @@
 
 namespace mt::traj {
     LineManager::LineManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles)
-        : Euclidean(steerDegree) {
+        : EuclideanManager(steerDegree) {
         this->obstacles = std::make_shared<std::vector<sample::Obstacle>>(obstacles);
     }
 
@@ -23,13 +23,13 @@ namespace mt::traj {
     };
 
     Trajectory::AdvanceInfo Line::advance() {
-        float prevCost = this->cumulatedCost;
+        float prevCost = this->cumulatedCost.get();
         auto temp = this->traj::EuclideanTraj::advance();
         for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
             if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
                 temp = traj::Trajectory::AdvanceInfo::blocked;
                 std::swap(this->cursor, this->previousState);
-                this->cumulatedCost = prevCost;
+                this->cumulatedCost.set(prevCost);
                 break;
             }
         }

@@ -17,8 +17,6 @@ namespace mt::sample {
     public:
         PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles);
 
-        inline std::unique_ptr<Problem> copy() const override { return std::make_unique<PointProblem>(this->getBoundaries(), this->getObstacles()); };
-
         const std::vector<sample::Obstacle>& getObstacles() const;
 
         sample::Obstacle getBoundaries() const;

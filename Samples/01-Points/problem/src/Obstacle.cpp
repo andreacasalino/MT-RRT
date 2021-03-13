@@ -6,7 +6,7 @@
  **/
 
 #include <Obstacle.h>
-#include <sampler/UniformEngine.h>
+#include <sampler/engine/UniformEngine.h>
 
 namespace mt::sample {
 	inline bool are_they_separate(const float& A_min, const float& A_max, const float& B_min, const float& B_max) {
@@ -136,9 +136,9 @@ namespace mt::sample {
 	}
 	std::vector<Obstacle> Obstacle::generateRandomBoxes(const size_t& N_cl, const size_t& N_box) {
 		float aggreg_coeff = 0.7f;
-		sampling::UniformRandomEngine samplerPos(0.f , 1.f);
-		sampling::UniformRandomEngine samplerRadius(0.01f, 0.08f);
-		sampling::UniformRandomEngine samplerAngle(10.f * 3.141f / 180.f, 80.f * 3.141f / 180.f);
+		sampling::UniformEngine samplerPos(0.f , 1.f);
+		sampling::UniformEngine samplerRadius(0.01f, 0.08f);
+		sampling::UniformEngine samplerAngle(10.f * 3.141f / 180.f, 80.f * 3.141f / 180.f);
 
 		size_t N_cluster = N_cl;
 		if (N_cluster == 0)  N_cluster = 1;

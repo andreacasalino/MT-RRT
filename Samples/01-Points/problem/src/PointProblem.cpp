@@ -6,7 +6,7 @@
  **/
 
 #include <PointProblem.h>
-#include <sampler/Box.h>
+#include <sampler/HyperBox.h>
 #include "Line.h"
 
 namespace mt::sample {
@@ -20,7 +20,7 @@ namespace mt::sample {
     sampling::SamplerPtr make_sampler(const sample::Obstacle& boundaries) {
         NodeState low = { boundaries.getXMin() , boundaries.getYMin() };
         NodeState upp = { boundaries.getXMax() , boundaries.getYMax() };
-        return std::make_unique<sampling::Box>(low, upp);
+        return std::make_unique<sampling::HyperBox>(low, upp);
     }
 
     PointProblem::PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles) 
@@ -34,7 +34,7 @@ namespace mt::sample {
     }
 
     sample::Obstacle PointProblem::getBoundaries() const {
-        const sampling::Box* ptSam = static_cast<const sampling::Box*>(this->sampler.get());
+        const sampling::HyperBox* ptSam = static_cast<const sampling::HyperBox*>(this->sampler.get());
         geometry::Point A(ptSam->getLowerLimit().front(), ptSam->getLowerLimit().back());
         geometry::Point B(ptSam->getLowerLimit().front() + ptSam->getDeltaLimit().front(), ptSam->getLowerLimit().back() + ptSam->getDeltaLimit().back());
         return sample::Obstacle(A, B);
