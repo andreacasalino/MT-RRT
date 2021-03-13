@@ -9,6 +9,8 @@
 #include <sampler/HyperBox.h>
 #include "Line.h"
 #include <Error.h>
+#include <fstream>
+#include <list>
 
 namespace mt::sample {
     NodeState make_limit(const std::size_t& size, const float& value) {
@@ -65,5 +67,109 @@ namespace mt::sample {
 
         }
         return result;
+    }
+
+    inline float convert(const std::string& buff) {
+        return static_cast<float>(std::atoi(buff.c_str()));
+    }
+
+    std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName) {
+        std::ifstream f(configFileName);
+        if(!f.is_open()) {
+            throw Error("invalid config file");
+        }
+
+        auto trimmer = [](const std::string& line) -> std::list<std::string> {
+            std::istringstream iss(line);
+            std::list<std::string> slices;
+            while (!iss.eof()) {
+                slices.emplace_back(std::string());
+                iss >> slices.back();
+                if(slices.back().empty()) slices.pop_back();
+            }
+            return slices;
+        };
+
+        std::vector<Manipulator> robots;
+        std::vector<Sphere> obstacles;
+        NodeState start;
+        NodeState target;
+
+        std::string line;
+        std::list<std::string> slices;
+        while (!f.eof()) {
+            std::getline(f, line);
+            slices = trimmer(line);
+
+            if(slices.empty()) {
+                throw Error("invalid config file");
+            }
+
+            if(0 == slices.front().compare("obstacle")) {
+                slices.pop_back();
+                float coor[3];
+                coor[0] = convert(slices.front());
+                slices.pop_back();
+                coor[1] = convert(slices.front());
+                slices.pop_back();
+                coor[2] = convert(slices.front());
+                slices.pop_back();
+                obstacles.push_back(Sphere(coor[0], coor[1], coor[2]));
+            }
+            else if(0 == slices.front().compare("robot")) {
+                slices.pop_back();
+                if(slices.size() % 2 != 0) {
+                    throw Error("invalid robot data");
+                }
+                if(slices.size() <= 2) {
+                    throw Error("invalid robot data");
+                }
+                float bx = convert(slices.front());
+                slices.pop_back();
+                float by = convert(slices.front());
+                slices.pop_back();
+                geometry::Point base(bx, by, 0.f);
+                std::vector<Manipulator::Link> links;
+                while (!slices.empty()) {
+                    Manipulator::Link temp;
+                    temp.length = convert(slices.front());
+                    slices.front();
+                    temp.ray = convert(slices.front());
+                    slices.front();
+                    links.push_back(temp);
+                }
+                robots.push_back(Manipulator(base , links));
+            }
+            else if(0 == slices.front().compare("start")) {
+                slices.pop_back();
+                if(!start.empty()) {
+                    throw Error("multiple start configurations found");
+                }
+                while (!slices.empty()) {
+                    start.push_back(convert(slices.front()));
+                }
+            }
+            else if(0 == slices.front().compare("target")) {
+                slices.pop_back();
+                if(!target.empty()) {
+                    throw Error("multiple target configurations found");
+                }
+                while (!slices.empty()) {
+                    target.push_back(convert(slices.front()));
+                }
+            }
+            else{
+                throw Error("invalid config file");
+            }
+        }
+
+        ProblemPtr problem = std::make_unique<ManipulatorProblem>(robots, obstacles);
+        if(problem->getProblemSize() != start.size()) {
+            throw Error("inconsistent state size");
+        }
+        if(problem->getProblemSize() != target.size()) {
+            throw Error("inconsistent state size");
+        }
+        return std::make_tuple(std::move(problem), start, target);
     }
 }

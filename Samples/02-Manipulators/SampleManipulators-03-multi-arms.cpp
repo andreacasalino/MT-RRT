@@ -16,7 +16,7 @@ int main() {
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
 	{
-		auto imported = mt::sample::importProblem(std::string(CONFIG_FOLDER) + "/Sample01-config");
+		auto imported = mt::sample::importProblem(std::string(CONFIG_FOLDER) + "/Sample03-config");
 		problem = std::move(std::get<0>(imported));
 		start = mt::sample::degree2rad(std::get<1>(imported));
 		target = mt::sample::degree2rad(std::get<2>(imported));
@@ -51,7 +51,7 @@ int main() {
 	});
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Result01.json");
+	printData(log, "Result03.json");
 
 	return EXIT_SUCCESS;
 }

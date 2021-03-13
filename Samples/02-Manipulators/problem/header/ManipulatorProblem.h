@@ -34,6 +34,8 @@ namespace mt::sample {
     private:
         std::shared_ptr<ProblemData> data;
     };
+
+    std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName);
 }
 
 #endif

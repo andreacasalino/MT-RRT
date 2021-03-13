@@ -23,27 +23,10 @@ int main() {
 	}
 	mt::solver::Solver solver(std::move(problem));
 
-	auto strategy = mt::sample::make_strategy(strategyType);
-	strategy->getIterationsMax().set(Iterations);
-	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
 	solver.setSteerTrials(5);
 
-	mt::sample::Results results;
-
-	solver.solve(start, target, mt::solver::RRTStrategy::Single);
-	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single);
-
-	try {
-		// not possible for the multi agent approach
-		solver.solve(start, target, mt::solver::RRTStrategy::Bidir);
-		results.addResult(solver, strategyType, mt::solver::RRTStrategy::Bidir);
-	}
-	catch(...) {
-	}
-
-	solver.solve(start, target, mt::solver::RRTStrategy::Star);
-	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star);
+	mt::sample::Results results(solver, start, target, 0, true);
 
 	mt::sample::structJSON log;
 	solver.useProblem([&log](const mt::Problem& problem){
@@ -51,7 +34,7 @@ int main() {
 	});
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Result01.json");
+	printData(log, "Result02.json");
 
 	return EXIT_SUCCESS;
 }
