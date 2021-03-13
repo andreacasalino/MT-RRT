@@ -1,27 +1,16 @@
+MakeLib("MT-RRT")
+
 option(SHOW_PROGRESS_OPT "show extension progresses enabled (ON) or disabled (OFF)" OFF)
-
-set(PROJECT_SHORTNAME "MT-RRT")
-project(${PROJECT_SHORTNAME} VERSION ${VERSION} LANGUAGES CXX)
-
-CollectSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} SOURCES)
-GroupSources(${CMAKE_CURRENT_SOURCE_DIR})
-
-if(LIB_OPT)
-	add_library(${PROJECT_NAME} SHARED ${SOURCES})
-else()
-	add_library(${PROJECT_NAME} STATIC ${SOURCES})
+if(SHOW_PROGRESS_OPT)
+	target_compile_definitions(${PROJECT_SHORTNAME}
+	PRIVATE
+		SHOW_PROGRESS
+	)
 endif()
-add_library(MT::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-target_compile_features(${PROJECT_NAME}
-    PUBLIC cxx_auto_type
-    PRIVATE cxx_variadic_templates
-)
-
-target_include_directories(${PROJECT_NAME}
+target_include_directories(${PROJECT_SHORTNAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header>
-        $<INSTALL_INTERFACE:header>
 	PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extn/header>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/tree/header>
@@ -29,16 +18,9 @@ target_include_directories(${PROJECT_NAME}
 
 find_package(Threads)
 find_package(OpenMP)
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_SHORTNAME} 
 	PUBLIC
 		${CMAKE_THREAD_LIBS_INIT} 
 	PRIVATE 
 		OpenMP::OpenMP_CXX
 )
-
-if(SHOW_PROGRESS_OPT)
-	target_compile_definitions(${PROJECT_NAME}
-	PRIVATE
-		SHOW_PROGRESS
-	)
-endif()

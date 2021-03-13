@@ -10,6 +10,7 @@
 
 #include <string>
 #include <solver/Solver.h>
+#include <solver/Strategy.h>
 #include <JSONstream.h>
 #include <map>
 

@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-option(LIB_OPT "Compile shared libraries (ON) or static (OFF)" OFF)
-option(BUILD_SAMPLES "Build the samples showing how to use EFG" ON)
-
 project(MT-RRT-PRJ)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -16,7 +13,11 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 set(WITH_SOURCE_TREE ON)
 include(GroupSources)
 include(AutoCollect)
-include(CopyPythonCode)
+include(CopyPythonVisualizer)
+include(MakeLib)
+
+option(LIB_OPT "Compile shared libraries (ON) or static (OFF)" OFF)
+option(BUILD_SAMPLES "Build the samples showing how to use EFG" ON)
 
 add_subdirectory(MT-RRT)
 if(BUILD_SAMPLES)

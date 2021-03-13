@@ -10,22 +10,24 @@
 using namespace std;
 
 int main() {
-	size_t Iterations = 1500;
+	const size_t Iterations = 2500;
 
-	mt::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f),
-																					  mt::sample::geometry::Point(1.1f, 1.1f)),
-																 mt::sample::Obstacle::generateRandomBoxes(10, 100)));
+	mt::solver::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f)),
+																 		 mt::sample::Obstacle::generateRandomBoxes(10, 100)
+																		));
 
-	solver.setMaxIterations(Iterations);
+	solver.setThreadAvailability(0);
 	solver.setSteerTrials(5);
 
 	mt::sample::Results results(solver, { -0.1f, -0.1f }, { 1.1f, 1.1f }, 0);
 
 	mt::sample::structJSON log;
-	log.addElement("problem", static_cast<const mt::sample::PointProblem&>(solver.getProblem()).getJSON());
+	solver.useProblem([&log](const mt::Problem& problem){
+		log.addElement("problem", static_cast<const mt::sample::PointProblem&>(problem).getJSON());
+	});
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Sample-cluttered.json");
+	printData(log, "Result02.json");
 
 	return EXIT_SUCCESS;
 }

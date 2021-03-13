@@ -11,31 +11,40 @@ using namespace std;
 
 int main() {
 	const size_t Iterations = 2500;
-	const mt::Solver::MTStrategy mtStrategy = mt::Solver::MTStrategy::MtCopiedTrees; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
 
-	mt::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f),
-																					  mt::sample::geometry::Point(1.1f, 1.1f)),
-																 mt::sample::Obstacle::generateRandomBoxes(5, 30)));
+	mt::solver::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f)),
+																 		 mt::sample::Obstacle::generateRandomBoxes(5, 30)
+																		));
 
-	solver.setMaxIterations(Iterations);
-	solver.setThreadAvailability(3); // ignored when using serial approach
+	auto strategy = mt::sample::make_strategy(strategyType);
+	strategy->getIterationsMax().set(Iterations);
+	solver.setStrategy(std::move(strategy));
+	solver.setThreadAvailability(0);
 
 	mt::sample::Results results;
 
-	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::Solver::RRTStrategy::Single, mtStrategy);
-	results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Single);
+	solver.solve({ -0.1f, -0.1f }, {1.1f, 1.1f }, mt::solver::RRTStrategy::Single);
+	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single);
 
-	solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::Solver::RRTStrategy::Bidir, mtStrategy);
-	results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Bidir);
+	try {
+		// not possible for the multi agent approach
+		solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::solver::RRTStrategy::Bidir);
+		results.addResult(solver, strategyType, mt::solver::RRTStrategy::Bidir);
+	}
+	catch(...) {
+	}
 
-	solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::Solver::RRTStrategy::Star, mtStrategy);
-	results.addResult(solver, mtStrategy, mt::Solver::RRTStrategy::Star);
+	solver.solve({ -0.1f, -0.1f }, { 1.1f, 1.1f }, mt::solver::RRTStrategy::Star);
+	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star);
 
 	mt::sample::structJSON log;
-	log.addElement("problem", static_cast<const mt::sample::PointProblem&>(solver.getProblem()).getJSON());
+	solver.useProblem([&log](const mt::Problem& problem){
+		log.addElement("problem", static_cast<const mt::sample::PointProblem&>(problem).getJSON());
+	});
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Sample-open.json");
+	printData(log, "Result01.json");
 
 	return EXIT_SUCCESS;
 }

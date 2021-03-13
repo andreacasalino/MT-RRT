@@ -31,7 +31,7 @@ int main() {
 	log.addElement("problem", static_cast<const mt::sample::ManipulatorProblem&>(solver.getProblem()).getJSON());
 	log.addEndl();
 	log.addElement("results", results.getJSON());
-	printData(log, "Sample-multi-arm.json");
+	printData(log, "Result02.json");
 
 	return EXIT_SUCCESS;
 }

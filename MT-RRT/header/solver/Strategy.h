@@ -38,7 +38,7 @@ namespace mt::solver {
         inline LowerLimited<std::size_t>& getIterationsMax() { return this->parameters.Iterations_Max; };
 
     protected:
-        Strategy();
+        Strategy() = default;
 
         Parameters parameters;
 

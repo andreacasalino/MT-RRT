@@ -9,25 +9,11 @@
 #define MT_RRT_SAMPLE_MANIPULATOR_PROBLEM_H
 
 #include <Manipulator.h>
+#include <Sphere.h>
 #include <Problem.h>
 #include <JSONstream.h>
 
 namespace mt::sample {
-    class Sphere {
-    public:
-        Sphere(const float& x, const float& y, const float& ray);
-
-        Sphere(const Sphere&) = default;
-        Sphere& operator=(const Sphere&) = default;
-
-        inline const geometry::Point& getCenter() const { return this->center; };
-        inline const float& getRay() const { return this->ray; };
-
-    private:
-        geometry::Point center;
-        float ray;
-    };
-
     struct ProblemData {
         std::vector<Manipulator> robots;
         std::vector<Sphere> obstacles;

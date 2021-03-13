@@ -166,9 +166,13 @@ namespace mt::sample {
             solver.solve(start, end, solver::RRTStrategy::Single);
             this->addResult(solver, strgt, solver::RRTStrategy::Single, interpolateSolution);
 
-            solver.solve(start, end, solver::RRTStrategy::Bidir);
-            this->addResult(solver, strgt, solver::RRTStrategy::Bidir, interpolateSolution);
-
+            try {
+                solver.solve(start, end, solver::RRTStrategy::Bidir);
+                this->addResult(solver, strgt, solver::RRTStrategy::Bidir, interpolateSolution);
+            }
+            catch(...) {
+            }
+            
             solver.solve(start, end, solver::RRTStrategy::Star);
             this->addResult(solver, strgt, solver::RRTStrategy::Star, interpolateSolution);
         };
@@ -191,12 +195,8 @@ namespace mt::sample {
         usePossibleRrtStrategies(StrategyType::MtLinkedTrees);
         std::cout << "done" << std::endl;
 
-        solver.setStrategy( make_strategy(StrategyType::MtMultiAgent) );
         std::cout << "Multi agent started" << std::endl;
-        solver.solve(start, end, solver::RRTStrategy::Single);
-        this->addResult(solver, StrategyType::MtMultiAgent, solver::RRTStrategy::Single, interpolateSolution);
-        solver.solve(start, end, solver::RRTStrategy::Star);
-        this->addResult(solver, StrategyType::MtMultiAgent, solver::RRTStrategy::Star, interpolateSolution);
+        usePossibleRrtStrategies(StrategyType::MtMultiAgent);
         std::cout << "done" << std::endl;
     }
 }

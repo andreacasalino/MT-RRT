@@ -27,12 +27,12 @@ class Result:
         self.solution_x = []
         self.solution_y = []
         self.solution_line, = ax.plot(self.solution_x, self.solution_y, 'r', linewidth = 2)
-        self.animation = FuncAnimation(fig, func=self.updateSolution, frames=range(0 , len(self.solution_data), 1), interval=1, repeat=True)
+        self.animation = FuncAnimation(fig, func=self.updateSolution, frames=range(0 , len(self.solution_data), 1), interval=10, repeat=True)
 
     def updateSolution(self, index):
         if(index == 0):
-            self.solution_x = []
-            self.solution_y = []
+            self.solution_x = [self.solution_data[index][0]]
+            self.solution_y = [self.solution_data[index][1]]
         else:
             self.solution_x.append(self.solution_data[index][0])
             self.solution_y.append(self.solution_data[index][1])
