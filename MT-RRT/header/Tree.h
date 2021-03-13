@@ -25,14 +25,13 @@ namespace mt {
 
 		virtual Nodes::const_reverse_iterator rend() const = 0;
 		virtual Nodes::const_reverse_iterator rbegin() const = 0;
-		inline Node* front() { auto temp = this->rend(); --temp; return temp->get(); };
+		inline const Node* front() const { auto temp = this->rend(); --temp; return temp->get(); };
 
-		virtual const Problem& getProblemConst() const = 0;
+		virtual Problem* getProblem() const = 0;
+		virtual void resetProblem() = 0;
 
 	protected:
 		Tree() = default;
-
-		virtual Problem& getProblem() = 0;
     };
 
     typedef std::unique_ptr<Tree> TreePtr;

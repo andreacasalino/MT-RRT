@@ -11,13 +11,13 @@
 namespace mt::solver::qpar {
     TreeQPar::TreeQPar(NodePtr root, const std::vector<ProblemPtr>& problems)
         : TreeCore(std::move(root), *problems.front())
-        , problems(make_battery(problems)) {
+        , ProblemBattery(problems) {
         this->pool = std::make_shared<Pool>();
     }
 
     TreeQPar::TreeQPar(NodePtr root, const TreeQPar& o)
         : TreeCore(std::move(root), *o.problems.front())
-        , problems(o.problems)
+        , ProblemBattery(o)
         , pool(o.pool) {
     }
 

@@ -13,14 +13,13 @@ namespace mt::solver::shared {
     }
 
     Node* TreeStarShared::add(NodePtr node) {
-        Node* temp = this->TreeShared::add(std::move(node));
-        if(nullptr != nullptr) {
-            auto rew = this->TreeRewirer::computeRewires(*temp);
+        if(nullptr != node) {
             std::lock_guard<std::mutex> lock(this->mtx);
+            auto rew = this->TreeRewirer::computeRewires(*node);
             for (auto it = rew.begin(); it != rew.end(); ++it) {
                 it->involved.setFather(&it->newFather, it->newCostFromFather);
             }
         }
-        return temp;
+        return this->TreeShared::add(std::move(node));
     }
 }

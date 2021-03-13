@@ -27,6 +27,8 @@ namespace mt {
         std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const override;
 
     private:
+        BidirSolution makeSolution(const Node* a, const Node* b, const bool& caso) const;
+
         TreeCore& leftTree;
         TreeCore& rightTree;
     };

@@ -23,7 +23,7 @@ namespace mt::solver {
             solveBidir(*sol, this->parameters);
         }
         else {
-            sol->trees.emplace_back(std::make_unique<TreeStarBasic>(std::make_unique<Node>(start), prb));
+            sol->trees.emplace_back(std::make_unique<TreeStar<TreeCore>>(std::make_unique<Node>(start), prb));
             solveSingle(*sol, this->parameters, end);
         }
         return sol;

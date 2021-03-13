@@ -8,15 +8,6 @@
 #include "Commons.h"
 
 namespace mt {
-    std::vector<Problem*> make_battery(const std::vector<ProblemPtr>& problems) {
-        std::vector<Problem*> battery;
-        battery.reserve(problems.size());
-        for (auto it = problems.begin(); it != problems.end(); ++it) {
-            battery.emplace_back(it->get());
-        }
-        return battery;
-    }
-
     template<typename Extender>
     void solveT(solver::SolutionInfo& info, solver::Parameters& param, Extender& ext) {
         ext.extend(param.Iterations_Max.get());

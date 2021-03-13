@@ -7,6 +7,7 @@
 
 #include "../header/TreeLinked.h"
 #include "../header/NodeLinked.h"
+#include "../../ProblemBattery.h"
 
 namespace mt::solver::linked {
     TreeLinked::TreeLinked(NodePtr root, Problem& problem)
@@ -35,6 +36,7 @@ namespace mt::solver::linked {
     }
 
     std::vector<TreePtr> TreeLinked::make_trees(NodePtr root, const std::vector<ProblemPtr>& problems) {
+        checkBattery(problems);
         std::vector<TreePtr> group;
         std::vector<ListLinked<NodePtr>*> groupPtr;
         group.reserve(problems.size());

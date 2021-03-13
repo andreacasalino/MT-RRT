@@ -11,7 +11,7 @@
 namespace mt::solver::shared {
     TreeShared::TreeShared(NodePtr root, const std::vector<ProblemPtr>& problems)
         : TreeCore(std::move(root), *problems.front().get())
-        , problems(make_battery(problems)) {
+        , ProblemBattery(problems) {
     }
 
     Node* TreeShared::add(NodePtr node) {
@@ -29,11 +29,7 @@ namespace mt::solver::shared {
         return this->nodes.rbegin();
     };
 
-    Problem& TreeShared::getProblem() {
-        return *this->problems[omp_get_thread_num()];
-    };
-
-    const Problem& TreeShared::getProblemConst() const {
-        return *this->problems[omp_get_thread_num()];
+    Problem* TreeShared::getProblem() const {
+        return this->problems[omp_get_thread_num()];
     };
 }

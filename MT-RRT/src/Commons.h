@@ -8,7 +8,6 @@
 #ifndef MT_RRT_COMMONS_H
 #define MT_RRT_COMMONS_H
 
-#include <Problem.h>
 #include <math.h>
 #include <solver/Strategy.h>
 #include <ExtenderSingle.h>
@@ -18,8 +17,6 @@ namespace mt {
     inline std::size_t computeBatchSize(const std::size_t& iterations, const double& reallCoeff, const std::size_t& threads) {
         return static_cast<size_t>(ceil(reallCoeff * static_cast<double>(iterations) / static_cast<double>(threads)));
     }
-
-    std::vector<Problem*> make_battery(const std::vector<ProblemPtr>& problems);
 
     void solveSingle(solver::SolutionInfo& info, solver::Parameters& param, const NodeState& end);
 

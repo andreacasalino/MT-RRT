@@ -7,6 +7,7 @@
 
 #include "../header/TreeStarLinked.h"
 #include "../header/NodeLinked.h"
+#include "../../ProblemBattery.h"
 #include <omp.h>
 
 namespace mt::solver::linked {
@@ -56,6 +57,7 @@ namespace mt::solver::linked {
     }
 
     std::vector<TreePtr> TreeStarLinked::make_trees(NodePtr root, const std::vector<ProblemPtr>& problems) {
+        checkBattery(problems);
         std::vector<TreePtr> group;
         std::vector<ListLinked<NodePtr>*> groupPtr;
         std::vector<ListLinked<Rewire>*> groupPtr2;

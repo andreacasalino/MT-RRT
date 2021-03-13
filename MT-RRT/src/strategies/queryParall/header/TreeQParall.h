@@ -9,12 +9,13 @@
 #define MT_RRT_TREE_QPAR_H
 
 #include <TreeCore.h>
-#include "../../Commons.h"
+#include "../../ProblemBattery.h"
 #include "Pool.h"
 
 namespace mt::solver::qpar {
 	class TreeQPar 
-		: public TreeCore {
+		: public TreeCore
+		, public ProblemBattery {
 	public:
 		TreeQPar(NodePtr root, const std::vector<ProblemPtr>& problems);
 		TreeQPar(NodePtr root, const TreeQPar& o);
@@ -26,7 +27,6 @@ namespace mt::solver::qpar {
 		Node* nearestNeighbour(const NodeState& state) const override;
 
 		std::shared_ptr<Pool> pool;
-		std::vector<Problem*> problems;
 	};
 }
 

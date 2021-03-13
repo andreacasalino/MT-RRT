@@ -8,35 +8,32 @@
 #ifndef MT_RRT_TREE_STAR_H
 #define MT_RRT_TREE_STAR_H
 
-#include <TreeCore.h>
+#include <TreeBase.h>
 #include <TreeRewirer.h>
 #include <type_traits>
 
 namespace mt {
-	template<typename TC>
+	template<typename TBase>
 	class TreeStar 
-		: public TC
+		: public TBase
 		, public TreeRewirer {
-		static_assert(std::is_base_of<TreeCore, TC>::value , "TC should derive from TreeCore");
+		static_assert(std::is_base_of<TreeBase, TBase>::value , "TC should derive from TreeCore");
 	public:
 		template<typename ... Args>
 		TreeStar(Args&&... args)
-			: TC(std::forward<Args>(args)...) {
+			: TBase(std::forward<Args>(args)...) {
 		};
 
 		Node* add(NodePtr node) override {
-			Node* temp = this->TC::add(std::move(node));
-			if(nullptr != nullptr) {
-				auto rew = this->TreeRewirer::computeRewires(*temp);
+			if(nullptr != node) {
+				auto rew = this->TreeRewirer::computeRewires(*node);
 				for (auto it = rew.begin(); it != rew.end(); ++it) {
 					it->involved.setFather(&it->newFather, it->newCostFromFather);
 				}
 			}
-			return temp;
+			return this->TBase::add(std::move(node));
 		}
 	};
-
-	typedef TreeStar<TreeCore> TreeStarBasic;
 }
 
 #endif

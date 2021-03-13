@@ -9,12 +9,13 @@
 #define MT_RRT_TREE_SHARED_H
 
 #include <TreeCore.h>
-#include "../../Commons.h"
+#include "../../ProblemBattery.h"
 #include <mutex>
 
 namespace mt::solver::shared {
 	class TreeShared 
-		: public TreeCore {
+		: public TreeCore 
+		, public ProblemBattery {
 	public:
 		TreeShared(NodePtr root, const std::vector<ProblemPtr>& problems);
 
@@ -23,13 +24,10 @@ namespace mt::solver::shared {
 		Nodes::const_reverse_iterator rend() const override;
 		Nodes::const_reverse_iterator rbegin() const override;
 
-		const Problem& getProblemConst() const override;
+		Problem* getProblem() const override;
 		
 	protected:
-		Problem& getProblem() override;
-
 		mutable std::mutex mtx;
-		std::vector<Problem*> problems;
 	};
 }
 

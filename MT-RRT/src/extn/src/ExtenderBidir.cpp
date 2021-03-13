@@ -22,22 +22,12 @@ namespace mt {
 		}
     }
 
-	class BidirSolutionFactory {
-	public:
-		BidirSolutionFactory(const Problem& problem) 
-			: problem(problem) {
-		};
-
-		BidirSolution makeSolution(const Node* a, const Node* b, const bool& caso) const {
-			float cost = a->cost2Root() + this->problem.getTrajManager()->cost2Go(a->getState(), b->getState(), true) + b->cost2Root();
-			if (caso) {
-				return std::make_tuple(a, b, cost);
-			}
-			return std::make_tuple(b, a, cost);
-		};
-
-	private:
-		const Problem& problem;
+	BidirSolution ExtBidir::makeSolution(const Node* a, const Node* b, const bool& caso) const {
+		float cost = a->cost2Root() + this->leftTree.getProblem()->getTrajManager()->cost2Go(a->getState(), b->getState(), true) + b->cost2Root();
+		if (caso) {
+			return std::make_tuple(a, b, cost);
+		}
+		return std::make_tuple(b, a, cost);
 	};
 
     void ExtBidir::extend(const size_t& Iterations) {
@@ -45,10 +35,9 @@ namespace mt {
 		bool caso = true;
 		TreeCore* Master = &this->leftTree;
 		TreeCore* Slave = &this->rightTree;
-		BidirSolutionFactory solFactory(this->leftTree.getProblemConst());
 
-		auto add2Solutions = [this, &newSolFound, &solFactory](const Node* a, const Node* b, const bool& caso) {
-			auto newSol = solFactory.makeSolution(a, b, caso);
+		auto add2Solutions = [this, &newSolFound](const Node* a, const Node* b, const bool& caso) {
+			auto newSol = this->makeSolution(a, b, caso);
 			bool absent = true;
 			for (auto it = this->solutionsFound.begin(); it != this->solutionsFound.end(); ++it) {
 				if (*it == newSol) {
@@ -62,7 +51,7 @@ namespace mt {
 			}
 		};
 
-		auto extendSlave = [this, &newSolFound, &solFactory, &Slave, &Master, &caso, &add2Solutions](const Node* ext) {
+		auto extendSlave = [this, &newSolFound, &Slave, &Master, &caso, &add2Solutions](const Node* ext) {
 			if (nullptr == ext) {
 				auto temp = Slave->extend(Master->front()->getState());
 				if (temp.second) {
