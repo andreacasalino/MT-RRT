@@ -11,23 +11,11 @@
 #include <math.h>
 
 namespace mt::sample {
-    const std::vector<Manipulator::Link>& checkLenghts(const std::vector<Manipulator::Link>& links) {
-        for (auto it = links.begin(); it != links.end(); ++it) {
-            if (it->length < 0.f) {
-                throw Error("negative lenght is not possible");
-            }
-            if (it->ray < 0.f) {
-                throw Error("negative ray is not possible");
-            }
-        }
-        return links;
-    }
-
     Manipulator::Manipulator(const geometry::Point& base, const std::vector<Link>& links)
         : base(base)
-        , links(checkLenghts(links)) {
+        , links(links) {
         if (this->links.empty()) {
-            throw Error("robot shoudl have at least one link");
+            throw Error("robot should have at least one link");
         }
     }
 
@@ -38,14 +26,14 @@ namespace mt::sample {
         float cumulAngle = 0.f;
         for (std::size_t k = 0; k < this->links.size(); ++k) {
             cumulAngle += pose[k];
-            points.emplace_back(std::make_shared<geometry::Point>(points.back()->x() + cosf(cumulAngle) * this->links[k].length, 
-                                                                  points.back()->y() + sinf(cumulAngle) * this->links[k].length));
+            points.emplace_back(std::make_shared<geometry::Point>(points.back()->x() + cosf(cumulAngle) * this->links[k].length.get(), 
+                                                                  points.back()->y() + sinf(cumulAngle) * this->links[k].length.get()));
         }
 
         std::vector<Capsule> capsules;
         capsules.reserve(this->links.size());
         for (std::size_t k = 0; k < this->links.size(); ++k) {
-            capsules.emplace_back(this->links[k].ray, points[k], points[k + 1]);
+            capsules.emplace_back(this->links[k].ray.get(), points[k], points[k + 1]);
         }
         return capsules;
     }
@@ -66,17 +54,9 @@ namespace mt::sample {
         std::vector<Manipulator::Link> links;
         links.resize(dof);
         for(std::size_t k=2; k<data.size(); k += 2) {
-            links[k].length = data[k];
-            links[k].ray = data[k+1];
+            links[k].length.set(data[k]);
+            links[k].ray.set(data[k+1]);
         }
         return Manipulator(base, links);
-    }
-
-    NodeState degree2rad(const NodeState& pose) {
-        NodeState converted = pose;
-        for(std::size_t k=0; k<pose.size(); ++k){
-            converted[k] = pose[k] * 3.141f / 180.f;
-        }
-        return converted;
     }
 }

@@ -33,14 +33,21 @@ namespace mt::sample {
         : Problem(std::make_unique<sampling::HyperBox>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
             std::make_unique<traj::LineManager>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
             Manipulator::dofTot(robots), 5.f) {
-        this->data = static_cast<traj::LineManager&>(*this->trajManager).getData();
     }
+
+    const std::vector<Manipulator>& ManipulatorProblem::getRobots() const {
+        return static_cast<traj::LineManager&>(*this->trajManager).getData()->robots;
+    };
+
+    const std::vector<Sphere>& ManipulatorProblem::getObstacles() const {
+        return static_cast<traj::LineManager&>(*this->trajManager).getData()->obstacles;
+    };
 
     structJSON ManipulatorProblem::getJSON() const {
         structJSON result;
         {
             arrayJSON obstacles;
-            for (auto it = this->data->obstacles.begin(); it != this->data->obstacles.end(); ++it) {
+            for (auto it = this->getObstacles().begin(); it != this->getObstacles().end(); ++it) {
                 arrayJSON temp;
                 temp.addElement(Number<float>(it->getCenter().x()));
                 temp.addElement(Number<float>(it->getCenter().y()));
@@ -51,15 +58,15 @@ namespace mt::sample {
         }
         {
             arrayJSON robots;
-            for (auto it = this->data->robots.begin(); it != this->data->robots.end(); ++it) {
+            for (auto it = this->getRobots().begin(); it != this->getRobots().end(); ++it) {
                 arrayJSON temp;
                 temp.addElement(Number<float>(it->getBase().x()));
                 temp.addElement(Number<float>(it->getBase().y()));
                 for (auto l = it->getLinks().begin(); l != it->getLinks().end(); ++l) {
-                    temp.addElement(Number<float>(l->length));
+                    temp.addElement(Number<float>(l->length.get()));
                 }
                 for (auto l = it->getLinks().begin(); l != it->getLinks().end(); ++l) {
-                    temp.addElement(Number<float>(l->ray));
+                    temp.addElement(Number<float>(l->ray.get()));
                 }
                 robots.addElement(temp);
             }
@@ -70,7 +77,7 @@ namespace mt::sample {
     }
 
     inline float convert(const std::string& buff) {
-        return static_cast<float>(std::atoi(buff.c_str()));
+        return static_cast<float>(std::atof(buff.c_str()));
     }
 
     std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName) {
@@ -101,65 +108,62 @@ namespace mt::sample {
             std::getline(f, line);
             slices = trimmer(line);
 
-            if(slices.empty()) {
-                throw Error("invalid config file");
-            }
-
-            if(0 == slices.front().compare("obstacle")) {
-                slices.pop_back();
-                float coor[3];
-                coor[0] = convert(slices.front());
-                slices.pop_back();
-                coor[1] = convert(slices.front());
-                slices.pop_back();
-                coor[2] = convert(slices.front());
-                slices.pop_back();
-                obstacles.push_back(Sphere(coor[0], coor[1], coor[2]));
-            }
-            else if(0 == slices.front().compare("robot")) {
-                slices.pop_back();
-                if(slices.size() % 2 != 0) {
-                    throw Error("invalid robot data");
+            if(!slices.empty()) {
+                if(0 == slices.front().compare("obstacle")) {
+                    slices.pop_front();
+                    float coor[3];
+                    coor[0] = convert(slices.front());
+                    slices.pop_front();
+                    coor[1] = convert(slices.front());
+                    slices.pop_front();
+                    coor[2] = convert(slices.front());
+                    slices.pop_front();
+                    obstacles.push_back(Sphere(coor[0], coor[1], coor[2]));
                 }
-                if(slices.size() <= 2) {
-                    throw Error("invalid robot data");
+                else if(0 == slices.front().compare("robot")) {
+                    slices.pop_front();
+                    if(slices.size() % 2 != 0) {
+                        throw Error("invalid robot data");
+                    }
+                    if(slices.size() <= 2) {
+                        throw Error("invalid robot data");
+                    }
+                    float bx = convert(slices.front());
+                    slices.pop_front();
+                    float by = convert(slices.front());
+                    slices.pop_front();
+                    geometry::Point base(bx, by, 0.f);
+                    std::vector<Manipulator::Link> links;
+                    while (!slices.empty()) {
+                        Manipulator::Link temp;
+                        temp.length = convert(slices.front());
+                        slices.pop_front();
+                        temp.ray = convert(slices.front());
+                        slices.pop_front();
+                        links.push_back(temp);
+                    }
+                    robots.push_back(Manipulator(base , links));
                 }
-                float bx = convert(slices.front());
-                slices.pop_back();
-                float by = convert(slices.front());
-                slices.pop_back();
-                geometry::Point base(bx, by, 0.f);
-                std::vector<Manipulator::Link> links;
-                while (!slices.empty()) {
-                    Manipulator::Link temp;
-                    temp.length = convert(slices.front());
-                    slices.front();
-                    temp.ray = convert(slices.front());
-                    slices.front();
-                    links.push_back(temp);
+                else if(0 == slices.front().compare("start")) {
+                    slices.pop_front();
+                    if(!start.empty()) {
+                        throw Error("multiple start configurations found");
+                    }
+                    while (!slices.empty()) {
+                        start.push_back(convert(slices.front()));
+                        slices.pop_front();
+                    }
                 }
-                robots.push_back(Manipulator(base , links));
-            }
-            else if(0 == slices.front().compare("start")) {
-                slices.pop_back();
-                if(!start.empty()) {
-                    throw Error("multiple start configurations found");
+                else if(0 == slices.front().compare("target")) {
+                    slices.pop_front();
+                    if(!target.empty()) {
+                        throw Error("multiple target configurations found");
+                    }
+                    while (!slices.empty()) {
+                        target.push_back(convert(slices.front()));
+                        slices.pop_front();
+                    }
                 }
-                while (!slices.empty()) {
-                    start.push_back(convert(slices.front()));
-                }
-            }
-            else if(0 == slices.front().compare("target")) {
-                slices.pop_back();
-                if(!target.empty()) {
-                    throw Error("multiple target configurations found");
-                }
-                while (!slices.empty()) {
-                    target.push_back(convert(slices.front()));
-                }
-            }
-            else{
-                throw Error("invalid config file");
             }
         }
 
@@ -171,5 +175,13 @@ namespace mt::sample {
             throw Error("inconsistent state size");
         }
         return std::make_tuple(std::move(problem), start, target);
+    }
+
+    NodeState degree2rad(const NodeState& pose) {
+        NodeState converted = pose;
+        for(std::size_t k=0; k<pose.size(); ++k){
+            converted[k] = pose[k] * 3.141f / 180.f;
+        }
+        return converted;
     }
 }

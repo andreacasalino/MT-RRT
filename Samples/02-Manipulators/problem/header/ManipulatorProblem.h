@@ -23,19 +23,16 @@ namespace mt::sample {
     public:
         ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles);
 
-        inline std::unique_ptr<Problem> copy() const override { return std::make_unique<ManipulatorProblem>(this->getRobots(), this->getObstacles()); };
+        const std::vector<Manipulator>& getRobots() const;
 
-        inline const std::vector<Manipulator>& getRobots() const { return this->data->robots; };
-
-        inline const std::vector<Sphere>& getObstacles() const { return this->data->obstacles; };
+        const std::vector<Sphere>& getObstacles() const;
 
         structJSON getJSON() const;
-
-    private:
-        std::shared_ptr<ProblemData> data;
     };
 
     std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName);
+
+    NodeState degree2rad(const NodeState& pose);
 }
 
 #endif

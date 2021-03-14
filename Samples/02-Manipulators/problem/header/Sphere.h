@@ -9,6 +9,7 @@
 #define MT_RRT_SAMPLE_SPHERE_H
 
 #include <Point.h>
+#include <Limited.h>
 
 namespace mt::sample {
     class Sphere {
@@ -16,14 +17,13 @@ namespace mt::sample {
         Sphere(const float& x, const float& y, const float& ray);
 
         Sphere(const Sphere&) = default;
-        Sphere& operator=(const Sphere&) = default;
-
+        
         inline const geometry::Point& getCenter() const { return this->center; };
-        inline const float& getRay() const { return this->ray; };
+        inline float getRay() const { return this->ray.get(); };
 
     private:
         geometry::Point center;
-        float ray;
+        mt::Positive<float> ray;
     };
 }
 

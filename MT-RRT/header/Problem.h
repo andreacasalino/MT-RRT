@@ -21,7 +21,7 @@ namespace mt {
 	public:
 		Problem& operator=(const Problem& ) = delete;
 
-		inline std::unique_ptr<Problem> copy() const override { return std::unique_ptr<Problem>(new Problem(*this)); };
+		inline std::unique_ptr<Problem> copy() const final { return std::unique_ptr<Problem>(new Problem(*this)); };
 
 		/** \brief Performs a steering operation, Section 1.2.1 of the documentation, from a staring node to a target one.
 		\details The node returned contains the steered state. In case a steering operation is not possible, a Node with a NULL State is returned.

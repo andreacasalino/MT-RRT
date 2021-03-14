@@ -28,6 +28,8 @@ namespace mt {
             : Limited(lowerBound, upperBound, lowerBound) {
         };
 
+        Limited(const Limited& ) = default;
+
         inline const T& getLowerBound() const { return this->lowerBound; };
         inline const T& getUpperBound() const { return this->upperBound; };
 
@@ -66,6 +68,11 @@ namespace mt {
     public:
         Positive(const T& initialValue = static_cast<T>(0))
             : LowerLimited<T>(static_cast<T>(0), initialValue) {
+        };
+
+        Positive& operator=(const Positive& o) {
+            this->value = o.value;
+            return *this;
         };
     };
 

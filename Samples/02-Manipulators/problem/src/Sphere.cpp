@@ -11,10 +11,6 @@
 namespace mt::sample {
     Sphere::Sphere(const float& x, const float& y, const float& ray)
         : center(x, y) {
-        if (ray < 0.f) {
-            throw Error("negavive ray");
-        }
-        this->ray = ray;
+        this->ray.set(ray);
     }
-
 }

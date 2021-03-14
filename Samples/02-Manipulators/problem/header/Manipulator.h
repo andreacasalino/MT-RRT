@@ -11,7 +11,7 @@
 #include <Point.h>
 #include <vector>
 #include <memory>
-#include <Node.h>
+#include <Limited.h>
 
 namespace mt::sample {
     typedef std::shared_ptr<const geometry::Point> PointShared;
@@ -24,16 +24,16 @@ namespace mt::sample {
             , pointB(pointB) {
         };
 
-        const float& ray;
-        const PointShared pointA;
-        const PointShared pointB;
+        float ray;
+        PointShared pointA;
+        PointShared pointB;
     };
 
     class Manipulator {
     public:
         struct Link {
-            float length;
-            float ray;
+            mt::Positive<float> length;
+            mt::Positive<float> ray;
         };
         Manipulator(const geometry::Point& base, const std::vector<Link>& lenghts);
 
@@ -53,8 +53,6 @@ namespace mt::sample {
     };
 
     Manipulator make_manipulator(const std::vector<float>& data);
-
-    NodeState degree2rad(const NodeState& pose);
 }
 
 #endif

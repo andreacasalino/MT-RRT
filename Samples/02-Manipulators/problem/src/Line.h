@@ -18,7 +18,7 @@ namespace mt::traj {
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, this->data); };
+        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, std::make_shared<sample::ProblemData>(*this->data)); };
 
         inline std::shared_ptr<sample::ProblemData> getData() { return this->data; };
 
