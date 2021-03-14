@@ -17,6 +17,9 @@ namespace mt::solver::shared {
 		TreeStarShared(NodePtr root, const std::vector<ProblemPtr>& problems);
 
 		Node* add(NodePtr node) override;
+
+	private:
+		std::mutex rewireMtx;
 	};
 }
 

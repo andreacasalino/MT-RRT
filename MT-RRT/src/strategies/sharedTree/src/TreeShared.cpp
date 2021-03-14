@@ -19,11 +19,6 @@ namespace mt::solver::shared {
         return this->TreeCore::add(std::move(node));
     }
 
-    Nodes::const_reverse_iterator TreeShared::rend() const {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        return this->nodes.rend();
-    };
-
     Nodes::const_reverse_iterator TreeShared::rbegin() const {
         std::lock_guard<std::mutex> lock(this->mtx);
         return this->nodes.rbegin();

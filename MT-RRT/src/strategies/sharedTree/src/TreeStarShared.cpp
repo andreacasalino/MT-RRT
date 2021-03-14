@@ -14,7 +14,7 @@ namespace mt::solver::shared {
 
     Node* TreeStarShared::add(NodePtr node) {
         if(nullptr != node) {
-            std::lock_guard<std::mutex> lock(this->mtx);
+            std::lock_guard<std::mutex> lock(this->rewireMtx);
             auto rew = this->TreeRewirer::computeRewires(*node);
             for (auto it = rew.begin(); it != rew.end(); ++it) {
                 it->involved.setFather(&it->newFather, it->newCostFromFather);

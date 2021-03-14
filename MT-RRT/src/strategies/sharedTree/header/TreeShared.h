@@ -21,7 +21,6 @@ namespace mt::solver::shared {
 
 		Node* add(NodePtr node) override;
 
-		Nodes::const_reverse_iterator rend() const override;
 		Nodes::const_reverse_iterator rbegin() const override;
 
 		Problem* getProblem() const override;
