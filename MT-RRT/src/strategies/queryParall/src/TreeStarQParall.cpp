@@ -13,16 +13,15 @@ namespace mt::solver::qpar {
         : TreeStar<TreeQPar>(std::move(root), problems) {
     }
 
-    class Result : public Query {
+    class QueryNearSet : public Query {
     public:
-        template<typename ... IterArgs>
-        Result(Problem& problem, IterArgs ... args) 
-            : Query(problem, args...) {
+        QueryNearSet(Problem& problem, const TreeIterator& iterator) 
+            : Query(problem, iterator) {
         };
 
         void operator()(const NodeState& state, const float& ray) const {
             float dist_att;
-            while (this->iterator.get() != this->iterator.getEnd()) {
+            while (this->iterator.get() != this->iterator.end()) {
                 dist_att = this->problem.getTrajManager()->cost2Go(this->iterator.get()->get()->getState(), state, true);
                 if (dist_att <= ray) {
                     this->set.emplace(this->iterator.get()->get());
@@ -36,11 +35,11 @@ namespace mt::solver::qpar {
 
     std::set<Node*> TreeStarQPar::nearSet(const NodeState& state) const {
         float ray = this->nearSetRay();
-        std::vector<Result> results = make_results<Result>(this->problems, this->rend(), this->rbegin());
+        std::vector<QueryNearSet> results = make_results<QueryNearSet>(this->problems, *this);
         std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
-        for (std::size_t k = 0; k < this->problems.size(); ++k) {
-            Result* temp = &results[k];
+        for(auto it=results.begin(); it!=results.end(); ++it) {
+            QueryNearSet* temp = &(*it);
             jobs.emplace_back([temp, &state, &ray]() { (*temp)(state, ray); });
         }
         this->pool->addJob(jobs);

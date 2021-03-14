@@ -13,6 +13,10 @@ namespace mt::solver::qpar {
         this->opened = std::make_shared<std::atomic_bool>(false);
     }
 
+    Pool::~Pool() {
+        this->close();
+    }
+
     void Pool::JobExecutor::spin() {
         while (true == *this->opened) {
             std::lock_guard<std::mutex> jobLock(this->mtx);
@@ -48,10 +52,6 @@ namespace mt::solver::qpar {
         }
         this->threads.clear();
         this->jobs.clear();
-    }
-
-    Pool::~Pool() {
-        this->close();
     }
 
     void Pool::addJob(const std::vector<Job>& jobs) {

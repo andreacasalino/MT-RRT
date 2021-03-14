@@ -21,16 +21,15 @@ namespace mt::solver::qpar {
         , pool(o.pool) {
     }
 
-    class Result : public Query {
+    class QueryNeigh : public Query {
     public:
-        template<typename ... IterArgs>
-        Result(Problem& problem, IterArgs ... args) 
-            : Query(problem, args...) {
+        QueryNeigh(Problem& problem, const TreeIterator& iterator) 
+            : Query(problem, iterator) {
         };
 
         void operator()(const NodeState& state) const {
             float temp;
-            while (this->iterator.get() != this->iterator.getEnd()) {
+            while (this->iterator.get() != this->iterator.end()) {
                 temp = this->problem.getTrajManager()->cost2Go(this->iterator.get()->get()->getState(), state, true);
                 if (temp < this->cost) {
                     this->cost = temp;
@@ -45,11 +44,11 @@ namespace mt::solver::qpar {
     };
 
     Node* TreeQPar::nearestNeighbour(const NodeState& state) const {
-        std::vector<Result> results = make_results<Result>(this->problems, this->rend(), this->rbegin());
+        std::vector<QueryNeigh> results = make_results<QueryNeigh>(this->problems, *this);
         std::vector<Job> jobs;
         jobs.reserve(this->problems.size());
-        for (std::size_t k = 0; k < this->problems.size(); ++k) {
-            Result* temp = &results[k];
+        for(auto it=results.begin(); it!=results.end(); ++it) {
+            QueryNeigh* temp = &(*it);
             jobs.emplace_back([temp, &state]() { (*temp)(state); });
         }
         this->pool->addJob(jobs);
@@ -57,14 +56,13 @@ namespace mt::solver::qpar {
 
         // reduction
         auto it = results.begin();
-        Result* bestResult = &(*it);
+        QueryNeigh* bestResult = &(*it);
         ++it;
         for (it; it != results.end(); ++it) {
             if (it->cost < bestResult->cost) {
                 bestResult = &(*it);
             }
         }
-        if (nullptr == bestResult->node) return this->nodes.front().get();
         return bestResult->node;
     }
 }

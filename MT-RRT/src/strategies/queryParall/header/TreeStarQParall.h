@@ -16,6 +16,7 @@ namespace mt::solver::qpar {
 	public:
 		TreeStarQPar(NodePtr root, const std::vector<ProblemPtr>& problems);
 
+	protected:
 		std::set<Node*> nearSet(const NodeState& state) const override;
 	};
 }
