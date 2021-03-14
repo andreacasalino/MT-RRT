@@ -7,6 +7,7 @@
 
 #include "../header/TreeMaster.h"
 #include "../../ProblemBattery.h"
+#include <omp.h>
 
 namespace mt::solver::multiag {
     TreeMaster::TreeMaster(NodePtr root, const std::vector<ProblemPtr>& problems)
@@ -19,6 +20,9 @@ namespace mt::solver::multiag {
     }
 
     void TreeMaster::gather() {
+        if(0 != omp_get_thread_num()) {
+            return;
+        }
         for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
             Nodes& nodes = (*it)->getNodes();
             auto itN = nodes.begin();

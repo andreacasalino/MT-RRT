@@ -19,6 +19,11 @@ namespace mt::solver::multiag {
 		TreeStarMaster(NodePtr root, const std::vector<ProblemPtr>& problems);
 
         void gather() override;
+
+	protected:
+		std::set<Node*> nearSet(const NodeState& state) const override;
+
+		std::vector<std::list<NodePtr>> temporaryBuffer;
 	};
 }
 

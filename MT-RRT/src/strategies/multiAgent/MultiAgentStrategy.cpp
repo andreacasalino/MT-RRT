@@ -55,6 +55,7 @@ num_threads(static_cast<int>(Threads))
                     if (!life) break;
                     Solver_to_use->extend(Batch_size);
 #pragma omp barrier
+                    master->gather();
                 }
             }
         }
