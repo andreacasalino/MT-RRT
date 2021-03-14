@@ -16,6 +16,7 @@ namespace mt::solver {
     template<typename E>
     void solveParallel(std::vector<E>& battery, const std::size_t& iterations) {
         std::atomic_bool life = true;
+        mt::sampling::SeedFactory::resetSeeds();
 #pragma omp parallel \
 num_threads(static_cast<int>(battery.size()))
         {

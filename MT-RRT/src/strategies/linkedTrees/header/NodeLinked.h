@@ -16,15 +16,11 @@ namespace mt::solver::linked {
 
     class NodeLinked : public Node {
     public:
-        NodeLinked(NodeLinked&&) = delete;
-
         static std::vector<std::unique_ptr<NodeLinked>> make_roots(Node& node, const std::size_t& threadsNumber);
 
         static std::vector<std::unique_ptr<NodeLinked>> make_linked(Node& node);
 
         inline const std::vector<NodeLinked*>& getLinked() const { return this->linkedNodes; };
-
-        class NodeLinkedFactory;
 
     private:
         NodeLinked(const NodeState& state);

@@ -19,6 +19,7 @@ namespace mt::solver {
         std::atomic_bool life = true;
         std::size_t Threads = battery.size();
         std::size_t Batch_size = computeBatchSize(iterations, reallCoeff, Threads);
+        mt::sampling::SeedFactory::resetSeeds();
 
 #pragma omp parallel \
 num_threads(static_cast<int>(Threads))
@@ -65,6 +66,7 @@ num_threads(static_cast<int>(Threads))
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), linked::Gatherer(sol->trees));
             fillSolutionInfo(*sol, this->parameters, battery);
+            sol->trees.resize(1);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
             sol->trees = linked::TreeLinked::make_trees(std::make_unique<Node>(start), this->solverData->problemsBattery);
@@ -79,12 +81,15 @@ num_threads(static_cast<int>(Threads))
             }
             solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), gatherer);
             fillSolutionInfo(*sol, this->parameters, battery);
+            std::swap(sol->trees[1], sol->trees[this->solverData->problemsBattery.size()]);
+            sol->trees.resize(2);
         }
         else {
             sol->trees = linked::TreeStarLinked::make_trees(std::make_unique<Node>(start), this->solverData->problemsBattery);
             std::vector<ExtSingle> battery = make_extBattery1();
             solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), linked::Gatherer(sol->trees));
             fillSolutionInfo(*sol, this->parameters, battery);
+            sol->trees.resize(1);
         }
         return sol;
     }

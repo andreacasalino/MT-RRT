@@ -48,12 +48,7 @@ namespace mt::solver::linked {
 
     void TreeStarLinked::gather() {
         this->TreeLinked::gather();
-        for (auto in = this->ListLinked<Rewire>::incomings.begin(); in != this->ListLinked<Rewire>::incomings.end(); ++in) {
-            for (auto it = in->begin(); it != in->end(); ++it) {
-                it->involved.setFather(&it->newFather, it->newCostFromFather);
-            }
-            in->clear();
-        }
+        this->ListLinked<Rewire>::gather([](Rewire& r){ r.involved.setFather(&r.newFather, r.newCostFromFather); });
     }
 
     std::vector<TreePtr> TreeStarLinked::make_trees(NodePtr root, const std::vector<ProblemPtr>& problems) {

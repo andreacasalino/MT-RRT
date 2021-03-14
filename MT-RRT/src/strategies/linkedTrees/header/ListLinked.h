@@ -16,7 +16,6 @@ namespace mt::solver::linked {
     template<typename T>
     class ListLinked {
     public:
-        ListLinked() = default;
         ListLinked(const ListLinked<T>&) = delete;
         ListLinked& operator=(const ListLinked<T>&) = delete;
 
@@ -42,6 +41,18 @@ namespace mt::solver::linked {
         };
 
     protected:
+        ListLinked() = default;
+
+        template<typename Action>
+        void gather(const Action& action) {
+            for (auto in = this->incomings.begin(); in != this->incomings.end(); ++in) {
+                for (auto it = in->begin(); it != in->end(); ++it) {
+                    action(*it);
+                }
+                in->clear();
+            }
+        };
+        
         std::list<std::list<T>> incomings;
         std::list<std::list<T>*> outgoings;
     };

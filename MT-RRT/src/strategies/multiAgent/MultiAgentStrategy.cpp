@@ -19,6 +19,7 @@ namespace mt::solver {
         std::atomic_bool life = true;
         std::size_t Threads = battery.size();
         std::size_t Batch_size = computeBatchSize(iterations, reallCoeff, Threads);
+        mt::sampling::SeedFactory::resetSeeds();
 
 #pragma omp parallel \
 num_threads(static_cast<int>(Threads))

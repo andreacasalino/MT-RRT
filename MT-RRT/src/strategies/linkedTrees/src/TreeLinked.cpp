@@ -27,12 +27,7 @@ namespace mt::solver::linked {
     }
 
     void TreeLinked::gather() {
-        for (auto in = this->ListLinked<NodePtr>::incomings.begin(); in != this->ListLinked<NodePtr>::incomings.end(); ++in) {
-            for (auto it = in->begin(); it != in->end(); ++it) {
-                this->TreeCore::add(std::move(*it));
-            }
-            in->clear();
-        }
+        this->ListLinked<NodePtr>::gather([this](NodePtr& n){ this->TreeCore::add(std::move(n)); });
     }
 
     std::vector<TreePtr> TreeLinked::make_trees(NodePtr root, const std::vector<ProblemPtr>& problems) {
