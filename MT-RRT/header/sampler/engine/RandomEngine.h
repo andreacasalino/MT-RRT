@@ -22,6 +22,11 @@ namespace mt::sampling {
             : distribution(args...) {
             SeedFactory::addToRegister(&this->generator);
         };
+        RandomEngine(const RandomEngine& o)
+            : generator(o.generator)
+            , distribution(o.distribution) {
+            SeedFactory::addToRegister(&this->generator);
+        };
         ~RandomEngine() {
             SeedFactory::removeFromRegister(&this->generator);
         };
