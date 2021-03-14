@@ -27,6 +27,6 @@ namespace mt::solver::linked {
     }
 
     void TreeLinked::gather() {
-        this->ListLinked<NodePtr>::gather([this](NodePtr& n){ this->TreeCore::add(std::move(n)); });
+        this->ListLinked<NodePtr>::gatherResult([this](NodePtr& n){ this->TreeCore::add(std::move(n)); });
     }
 }

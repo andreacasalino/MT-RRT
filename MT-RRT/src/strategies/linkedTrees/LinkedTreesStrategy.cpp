@@ -30,11 +30,11 @@ num_threads(static_cast<int>(Threads))
                     life = false;
                 }
 #pragma omp barrier
+                int ttt = omp_get_thread_num();
                 gatherer();
             }
-#pragma omp barrier
-            gatherer();
         }
+        gatherer();
     }
 
     std::unique_ptr<SolutionInfo> LinkedTreesStrategy::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
@@ -61,7 +61,7 @@ num_threads(static_cast<int>(Threads))
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<linked::TreeLinkedContainer>(std::make_unique<Node>(start),  this->solverData->problemsBattery) );
             std::vector<ExtSingle> battery = make_extBattery1(dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->getAsBattery() );
-            solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), [&sol](){ dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->gather(); });
+            solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), [&sol](){ dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->doGather(); });
             fillSolutionInfo(*sol, this->parameters, battery);
         }
         else if (RRTStrategy::Bidir == rrtStrategy) {
@@ -70,15 +70,15 @@ num_threads(static_cast<int>(Threads))
             std::vector<ExtBidir> battery = make_extBattery2(dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->getAsBattery(),
                                                              dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.back().get())->getAsBattery() );
             solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), [&sol](){ 
-                dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->gather();  
-                dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.back().get())->gather(); 
+                dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->doGather();  
+                dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.back().get())->doGather(); 
                 });
-            fillSolutionInfo(*sol, this->parameters, battery);
+            fillSolutionInfo(*sol, this->parameters, battery); 
         }
         else {
             sol->trees.emplace_back(std::make_unique<linked::TreeStarLinkedContainer>(std::make_unique<Node>(start),  this->solverData->problemsBattery) );
-            std::vector<ExtSingle> battery = make_extBattery1(dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->getAsBattery() );
-            solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), [&sol](){ dynamic_cast<linked::TreeLinkedContainer*>(sol->trees.front().get())->gather(); });
+            std::vector<ExtSingle> battery = make_extBattery1(dynamic_cast<linked::TreeStarLinkedContainer*>(sol->trees.front().get())->getAsBattery() );
+            solveParallel(battery, this->parameters.Iterations_Max.get(), this->reallignmentCoeff.get(), [&sol](){ dynamic_cast<linked::TreeStarLinkedContainer*>(sol->trees.front().get())->doGather(); });
             fillSolutionInfo(*sol, this->parameters, battery);
         }
         return sol;

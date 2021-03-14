@@ -19,7 +19,7 @@ namespace mt::solver::linked {
         : public TreeT {
         static_assert(std::is_base_of<TreeLinked, TreeT>::value , "invalid tree type");
     public:
-        inline TreeT& getTree() {
+        TreeT& getTree() {
             std::size_t thId = omp_get_team_num();
             if(0 == thId) {
                 return *this;
@@ -27,14 +27,15 @@ namespace mt::solver::linked {
             return *this->linkedTrees[thId - 1].get();
         };
 
-        inline void gather() override {
+        void doGather() {
             std::size_t thId = omp_get_team_num();
             if(0 == thId) {
-                this->TreeT::gather();
+                this->gather();
+                return;
             }
             this->linkedTrees[thId - 1]->gather();
         };
-
+        
         std::vector<TreeLinked*> getAsBattery() {
             std::vector<TreeLinked*> group;
             group.reserve(this->linkedTrees.size() + 1);

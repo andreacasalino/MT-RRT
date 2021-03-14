@@ -48,6 +48,6 @@ namespace mt::solver::linked {
 
     void TreeStarLinked::gather() {
         this->TreeLinked::gather();
-        this->ListLinked<Rewire>::gather([](Rewire& r){ r.involved.setFather(&r.newFather, r.newCostFromFather); });
+        this->ListLinked<Rewire>::gatherResult([](Rewire& r){ r.involved.setFather(&r.newFather, r.newCostFromFather); });
     }
 }

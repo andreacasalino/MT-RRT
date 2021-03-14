@@ -44,7 +44,7 @@ namespace mt::solver::linked {
         ListLinked() = default;
 
         template<typename Action>
-        void gather(const Action& action) {
+        void gatherResult(const Action& action) {
             for (auto in = this->incomings.begin(); in != this->incomings.end(); ++in) {
                 for (auto it = in->begin(); it != in->end(); ++it) {
                     action(*it);
