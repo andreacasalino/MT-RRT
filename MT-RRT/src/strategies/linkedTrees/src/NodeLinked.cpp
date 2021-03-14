@@ -9,10 +9,10 @@
 #include <omp.h>
 
 namespace mt::solver::linked {
-    std::vector<NodePtr> make_copies(Node& node, const std::size_t& copiesNumber) {
+    std::vector<NodePtr> make_copies(Node& node) {
         std::vector<NodePtr> group;
-        group.reserve(copiesNumber);
-        for (std::size_t k = 0; k < copiesNumber; ++k) {
+        group.reserve(omp_get_num_threads());
+        for (std::size_t k = 0; k < group.capacity(); ++k) {
             group.emplace_back(std::make_unique<Node>(node.getState()));
             group.back()->setFather(node.getFather(), node.getCostFromFather());
         }

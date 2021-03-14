@@ -10,20 +10,18 @@
 
 #include <TreeCore.h>
 #include "ListLinked.h"
+#include "NodeLinked.h"
 
 namespace mt::solver::linked {
     class TreeLinked
         : public TreeCore
         , public ListLinked<NodePtr> {
     public:
-        static std::vector<TreePtr> make_trees(NodePtr root, const std::vector<ProblemPtr>& problems);
+        TreeLinked(NodePtr root, Problem& problem);      
 
         Node* add(NodePtr node) override;
 
         virtual void gather();
-
-    protected:
-        TreeLinked(NodePtr root, Problem& problem);
     };
 }
 

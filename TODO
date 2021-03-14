@@ -17,3 +17,5 @@ fare cmake script per copiare roba python nei vari esempi
 disegnare percorso tcp del robot in python script
 aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
+mettere in doc che linked tree hanno problema che quando distruggi linkati, alcuni nodi non hanno piu padre
+lasciare possibilita di salvare o meno alberi dopo solve, per risparmiare spazio in memoria

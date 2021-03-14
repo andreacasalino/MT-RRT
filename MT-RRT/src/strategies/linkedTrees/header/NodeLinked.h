@@ -12,7 +12,7 @@
 #include <utility>
 
 namespace mt::solver::linked {
-    std::vector<NodePtr> make_copies(Node& node, const std::size_t& copiesNumber);
+    std::vector<NodePtr> make_copies(Node& node);
 
     class NodeLinked : public Node {
     public:

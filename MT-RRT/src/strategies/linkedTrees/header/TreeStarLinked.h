@@ -17,14 +17,11 @@ namespace mt::solver::linked {
         , public TreeRewirer
         , public ListLinked<Rewire> {
     public:
-        static std::vector<TreePtr> make_trees(NodePtr root, const std::vector<ProblemPtr>& problems);
+        TreeStarLinked(NodePtr root, Problem& problem);
 
         Node* add(NodePtr node) override;
 
         void gather() override;
-
-    private:
-        TreeStarLinked(NodePtr root, Problem& problem);
     };
 }
 

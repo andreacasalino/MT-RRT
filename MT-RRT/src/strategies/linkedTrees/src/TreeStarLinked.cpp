@@ -50,24 +50,4 @@ namespace mt::solver::linked {
         this->TreeLinked::gather();
         this->ListLinked<Rewire>::gather([](Rewire& r){ r.involved.setFather(&r.newFather, r.newCostFromFather); });
     }
-
-    std::vector<TreePtr> TreeStarLinked::make_trees(NodePtr root, const std::vector<ProblemPtr>& problems) {
-        checkBattery(problems);
-        std::vector<TreePtr> group;
-        std::vector<ListLinked<NodePtr>*> groupPtr;
-        std::vector<ListLinked<Rewire>*> groupPtr2;
-        group.reserve(problems.size());
-        groupPtr.reserve(problems.size());
-        groupPtr2.reserve(problems.size());
-        auto roots = NodeLinked::make_roots(*root, problems.size());
-        for (std::size_t k = 0; k < problems.size(); ++k) {
-            auto temp = new TreeStarLinked(std::move(roots[k]), *problems[k]);
-            group.emplace_back(temp);
-            groupPtr.emplace_back(temp);
-            groupPtr2.emplace_back(temp);
-        }
-        ListLinked<NodePtr>::link(groupPtr);
-        ListLinked<Rewire>::link(groupPtr2);
-        return group;
-    }
 }

@@ -15,7 +15,7 @@ namespace mt {
 
 	Node::Node(const NodeState& state)
 		: state(state) {
-		if (this->state.empty()) throw Error("empty state for cost to go");
+		if (this->state.empty()) throw Error("empty state not valid for describing node state");
 	}
 
 	void Node::setFather(Node* new_father, const float& cost_from_father) {
