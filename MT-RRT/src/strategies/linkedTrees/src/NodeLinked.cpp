@@ -11,7 +11,7 @@
 namespace mt::solver::linked {
     std::vector<NodePtr> make_copies(Node& node) {
         std::vector<NodePtr> group;
-        group.reserve(omp_get_num_threads());
+        group.reserve(omp_get_num_threads() - 1);
         for (std::size_t k = 0; k < group.capacity(); ++k) {
             group.emplace_back(std::make_unique<Node>(node.getState()));
             group.back()->setFather(node.getFather(), node.getCostFromFather());
