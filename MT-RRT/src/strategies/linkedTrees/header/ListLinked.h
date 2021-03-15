@@ -34,7 +34,7 @@ namespace mt::solver::linked {
                 auto index = posTot;
                 index.erase(index.find(c));
                 for(auto it = index.begin(); it!=index.end(); ++it) {
-                    buff[c].emplace(*it; std::make_shared<std::list<T>>());
+                    buff[c].emplace(*it, std::make_shared<std::list<T>>());
                 }
             }
             // fill incomings
@@ -48,10 +48,10 @@ namespace mt::solver::linked {
             // fill outgoings
             for (c = 0; c < group.size(); ++c) {
                 auto index = posTot;
-                index.erase(index.find(k));
+                index.erase(index.find(c));
                 group[c]->outgoings.clear();
                 group[c]->outgoings.reserve(index.size());
-                for(std::size_t i=index.begin(); i!=index.end(); ++i) {
+                for(auto i=index.begin(); i!=index.end(); ++i) {
                     group[c]->outgoings.emplace_back(buff[*i].find(c)->second);
                 }
             }
@@ -66,7 +66,7 @@ namespace mt::solver::linked {
                 for (auto it = (*in)->begin(); it != (*in)->end(); ++it) {
                     action(*it);
                 }
-                in->clear();
+                (*in)->clear();
             }
         };
         
