@@ -37,7 +37,7 @@ namespace mt::solver::linked {
         int threadsNumber = omp_get_num_threads();
         std::vector<std::unique_ptr<NodeLinked>> group;
         group.resize(threadsNumber);
-        std::size_t thId = static_cast<std::size_t>(omp_get_thread_num());
+        std::size_t thId = static_cast<std::size_t>(threadsNumber);
         const std::vector<NodeLinked*>& linkedFather = static_cast<NodeLinked*>(node.getFather())->getLinked();
         std::size_t c = 0;
         for (std::size_t k = 0; k < threadsNumber; ++k) {
