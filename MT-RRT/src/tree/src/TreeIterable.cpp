@@ -5,19 +5,18 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <TreeBase.h>
+#include <TreeIterable.h>
 #include <Error.h>
 
 namespace mt {
-    TreeBase::TreeBase(NodePtr root, Problem& problem)
-        : problem(&problem) {
+    TreeIterable::TreeIterable(NodePtr root) {
         if (nullptr == root) {
-            throw Error("null root is impossible for TreeBase");
+            throw Error("null root is impossible for TreeIterable");
         }
         this->nodes.emplace_back(std::move(root));
     }
 
-    Node* TreeBase::add(NodePtr node) { 
+    Node* TreeIterable::add(NodePtr node) { 
         if(nullptr != node) {
             this->nodes.emplace_back(std::move(node));
             return this->nodes.back().get(); 

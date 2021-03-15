@@ -8,15 +8,13 @@
 #ifndef MT_RRT_TREE_EXTENDABLE_H
 #define MT_RRT_TREE_EXTENDABLE_H
 
-#include <Tree.h>
+#include <TreeBase.h>
 
 namespace mt {
-	class TreeExtendable : virtual public Tree {
+	class TreeExtendable : virtual public TreeBase {
 	public:
 		std::pair<NodePtr, bool> extend(const NodeState& target);
-
-        Node* extendRandom();
-
+		
 	protected:
 		TreeExtendable() = default;	
 

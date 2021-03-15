@@ -8,7 +8,7 @@
 #ifndef MT_RRT_TREE_REWIRER_H
 #define MT_RRT_TREE_REWIRER_H
 
-#include <Tree.h>
+#include <TreeBase.h>
 #include <set>
 
 namespace mt {
@@ -20,7 +20,7 @@ namespace mt {
 		float newCostFromFather;
 	};
 
-    class TreeRewirer: virtual public Tree {
+    class TreeRewirer: virtual public TreeBase {
 	protected:
 		TreeRewirer() = default;
 
