@@ -8,15 +8,17 @@
 #ifndef MT_RRT_TREE_CORE_H
 #define MT_RRT_TREE_CORE_H
 
-#include <TreeBase.h>
+#include <TreeIterable.h>
 #include <TreeExtendable.h>
 
 namespace mt {
-	class TreeCore
-		: public TreeBase
+	class TreeCore 
+		: public TreeIterable
 		, public TreeExtendable {
 	public:
 		TreeCore(NodePtr root, Problem& problem);	
+
+        Node* extendRandom();
 	};
 }
 

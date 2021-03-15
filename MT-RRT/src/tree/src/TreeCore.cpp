@@ -6,9 +6,16 @@
  **/
 
 #include <TreeCore.h>
+#include <Error.h>
 
 namespace mt {
-    TreeCore::TreeCore(NodePtr root, Problem& problem) 
-        : TreeBase(std::move(root), problem) {
+    TreeCore::TreeCore(NodePtr root, Problem& problem)
+        : TreeIterable(std::move(root)) {
+        this->problem = &problem;
+    }
+
+    Node* TreeCore::extendRandom() {
+        auto temp = this->extend(this->getProblem()->getSampler()->randomState());
+        return this->add(std::move(temp.first));
     }
 }

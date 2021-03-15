@@ -8,12 +8,13 @@
 #ifndef MT_RRT_TREE_H
 #define MT_RRT_TREE_H
 
-#include <Problem.h>
+#include <Node.h>
 #include <list>
 
 namespace mt {
 	typedef std::list<NodePtr> Nodes;
 
+	// an iterable tree
     class Tree {
     public:
         virtual	~Tree() = default;
@@ -21,14 +22,9 @@ namespace mt {
 		Tree(const Tree&) = delete;
 		Tree& operator=(const Tree&) = delete;
 
-		virtual Node* add(NodePtr node) = 0;
-
 		virtual Nodes::const_reverse_iterator rend() const = 0;
 		virtual Nodes::const_reverse_iterator rbegin() const = 0;
 		inline const Node* front() const { auto temp = this->rend(); --temp; return temp->get(); };
-
-		virtual Problem* getProblem() const = 0;
-		virtual void resetProblem() = 0;
 
 	protected:
 		Tree() = default;
