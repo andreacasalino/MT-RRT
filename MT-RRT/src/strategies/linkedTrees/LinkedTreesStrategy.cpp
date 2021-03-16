@@ -15,11 +15,11 @@ namespace mt::solver {
     template<typename E, typename Gather>
     void solveParallel(std::vector<E>& battery, const std::size_t& iterations, const double& reallCoeff, const Gather& gatherer) {
         std::atomic_bool life = true;
-        mt::sampling::SeedFactory::resetSeeds();
         std::size_t Threads = battery.size();
         std::size_t Batch_size = computeBatchSize(iterations, reallCoeff, Threads);
 
         for (size_t k = 0; k < iterations; k += Batch_size * Threads) {
+        mt::sampling::SeedFactory::resetSeeds();
 #pragma omp parallel \
 num_threads(static_cast<int>(Threads))
         {
