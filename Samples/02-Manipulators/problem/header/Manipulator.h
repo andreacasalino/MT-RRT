@@ -37,6 +37,8 @@ namespace mt::sample {
         };
         Manipulator(const geometry::Point& base, const std::vector<Link>& lenghts);
 
+        Manipulator(const std::vector<float>& data);
+
         inline std::size_t dof() const { return this->links.size(); };
 
         static std::size_t dofTot(const std::vector<Manipulator>& robots);
@@ -51,8 +53,6 @@ namespace mt::sample {
         geometry::Point base;
         std::vector<Link> links;
     };
-
-    Manipulator make_manipulator(const std::vector<float>& data);
 }
 
 #endif
