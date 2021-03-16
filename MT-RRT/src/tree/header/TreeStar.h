@@ -8,20 +8,20 @@
 #ifndef MT_RRT_TREE_STAR_H
 #define MT_RRT_TREE_STAR_H
 
-#include <TreeBase.h>
+#include <TreeCore.h>
 #include <TreeRewirer.h>
 #include <type_traits>
 
 namespace mt {
-	template<typename TBase>
+	template<typename TCore>
 	class TreeStar 
-		: public TBase
+		: public TCore
 		, public TreeRewirer {
-		static_assert(std::is_base_of<TreeBase, TBase>::value , "TC should derive from TreeCore");
+		static_assert(std::is_base_of<TreeCore, TCore>::value , "TCore should derive from TreeCore");
 	public:
 		template<typename ... Args>
 		TreeStar(Args&&... args)
-			: TBase(std::forward<Args>(args)...) {
+			: TCore(std::forward<Args>(args)...) {
 		};
 
 		Node* add(NodePtr node) override {
@@ -31,7 +31,7 @@ namespace mt {
 					it->involved.setFather(&it->newFather, it->newCostFromFather);
 				}
 			}
-			return this->TBase::add(std::move(node));
+			return this->TCore::add(std::move(node));
 		}
 	};
 }

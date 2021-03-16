@@ -15,11 +15,6 @@ namespace mt {
 		return {std::move(ext) , temp};
 	}
 
-    Node* TreeExtendable::extendRandom() {
-        auto temp = this->extend(this->getProblem()->getSampler()->randomState());
-        return this->add(std::move(temp.first));
-    }
-
     Node* TreeExtendable::nearestNeighbour(const NodeState& state) const {
 		auto it = this->rbegin();
 		Node* nearest = it->get();

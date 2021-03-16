@@ -46,10 +46,6 @@ namespace mt::solver {
 		this->lastSolution = this->strategy->solve(start, end, rrtStrategy);
 		this->lastSolution->time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tic);
 		this->strategy->setCumulateFlag(cumulFlagOld);
-		// reset pointer to problems inside trees
-		for(auto it= this->lastSolution->trees.begin(); it!=this->lastSolution->trees.end(); ++it) {
-			(*it)->resetProblem();
-		}
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
