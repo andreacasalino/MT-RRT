@@ -1,22 +1,10 @@
 size_t -> std::size_t
 rendere const attributi il piu possibile
 rendere const method il piu possibile
-collassare Node e Trajectory ad essere la stessa classe?
 usare explicit in c'tor
-che fare con DISPLAY_ITERATIONS?
-replace rand with thread safe rand everywhere
-quando calcolo rewird devo eseguirlo per il pivot o no?
-flag per usare seed deterministico o random
 mettere documentazione latex
-ricontrollare bene funzione che fa i rewirds
 ricontrollare tutti ++
-randomizzare seme all'interno di thread
 improve code recycle between solvers
-migliorare gather master star
-fare cmake script per copiare roba python nei vari esempi
-disegnare percorso tcp del robot in python script
 aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
-mettere in doc che linked tree hanno problema che quando distruggi linkati, alcuni nodi non hanno piu padre
 lasciare possibilita di salvare o meno alberi dopo solve, per risparmiare spazio in memoria
-return nullptr when trajectory is impossible

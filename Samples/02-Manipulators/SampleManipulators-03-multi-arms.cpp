@@ -28,6 +28,7 @@ int main() {
 	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
 	solver.setSteerTrials(5);
+	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results;
 

@@ -28,6 +28,7 @@ namespace mt::solver {
 	struct SolverData {
 		std::mutex solverMutex;
 		std::vector<ProblemPtr> problemsBattery;
+		bool saveComputedTrees = false;
 	};
 	
 	/** \brief Interface for a planner.
@@ -85,6 +86,9 @@ namespace mt::solver {
 			std::lock_guard<std::mutex> lck(this->data->solverMutex);
 			user(*this->data->problemsBattery.front().get());
 		};
+
+		void									saveTreesAfterSolve();
+		void									discardTreesAfterSolve();
 
 	private:
 	// data

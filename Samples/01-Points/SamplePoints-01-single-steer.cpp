@@ -21,6 +21,7 @@ int main() {
 	strategy->getIterationsMax().set(Iterations);
 	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
+	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results;
 

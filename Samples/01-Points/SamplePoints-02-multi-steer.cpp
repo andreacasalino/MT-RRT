@@ -18,6 +18,7 @@ int main() {
 
 	solver.setThreadAvailability(0);
 	solver.setSteerTrials(5);
+	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results(solver, { -0.1f, -0.1f }, { 1.1f, 1.1f }, 0);
 

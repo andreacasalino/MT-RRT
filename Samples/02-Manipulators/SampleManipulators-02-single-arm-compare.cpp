@@ -25,6 +25,7 @@ int main() {
 
 	solver.setThreadAvailability(0);
 	solver.setSteerTrials(5);
+	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results(solver, start, target, 0, true);
 

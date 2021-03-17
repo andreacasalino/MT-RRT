@@ -46,6 +46,9 @@ namespace mt::solver {
 		this->lastSolution = this->strategy->solve(start, end, rrtStrategy);
 		this->lastSolution->time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tic);
 		this->strategy->setCumulateFlag(cumulFlagOld);
+		if(!this->data->saveComputedTrees) {
+			this->lastSolution->trees.clear();
+		}
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
@@ -124,5 +127,15 @@ namespace mt::solver {
 		}
 		this->lastSolution->trees.clear();
 		return temp;
+	}
+
+	void Solver::saveTreesAfterSolve() {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		this->data->saveComputedTrees = true;
+	}
+
+	void Solver::discardTreesAfterSolve() {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		this->data->saveComputedTrees = false;
 	}
 }
