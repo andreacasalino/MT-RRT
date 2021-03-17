@@ -7,7 +7,7 @@
 
 #include <PointProblem.h>
 #include <sampler/HyperBox.h>
-#include "Line.h"
+#include "LineWithCheck.h"
 
 namespace mt::sample {
     float getSteerDegree(const sample::Obstacle& boundaries) {
@@ -25,12 +25,12 @@ namespace mt::sample {
 
     PointProblem::PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles) 
         : Problem(make_sampler(boundaries),
-                  std::make_unique<traj::LineManager>(getSteerDegree(boundaries), obstacles),
+                  std::make_unique<traj::LineWithCheckManager>(getSteerDegree(boundaries), obstacles),
                   2, 500.f) {
     }
 
     const std::vector<sample::Obstacle>& PointProblem::getObstacles() const {
-        return static_cast<traj::LineManager*>(this->trajManager.get())->getObstacles();
+        return static_cast<traj::LineWithCheckManager*>(this->trajManager.get())->getObstacles();
     }
 
     sample::Obstacle PointProblem::getBoundaries() const {

@@ -7,7 +7,7 @@
 
 #include <ManipulatorProblem.h>
 #include <sampler/HyperBox.h>
-#include "Line.h"
+#include "Bubble.h"
 #include <Error.h>
 #include <fstream>
 #include <list>
@@ -31,16 +31,16 @@ namespace mt::sample {
 
     ManipulatorProblem::ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles)
         : Problem(std::make_unique<sampling::HyperBox>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
-            std::make_unique<traj::LineManager>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
+            std::make_unique<traj::BubbleManager>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
             Manipulator::dofTot(robots), 5.f) {
     }
 
     const std::vector<Manipulator>& ManipulatorProblem::getRobots() const {
-        return static_cast<traj::LineManager&>(*this->trajManager).getData().robots;
+        return static_cast<traj::BubbleManager&>(*this->trajManager).getData().robots;
     };
 
     const std::vector<geometry::Sphere>& ManipulatorProblem::getObstacles() const {
-        return static_cast<traj::LineManager&>(*this->trajManager).getData().obstacles;
+        return static_cast<traj::BubbleManager&>(*this->trajManager).getData().obstacles;
     };
 
     structJSON ManipulatorProblem::getJSON() const {

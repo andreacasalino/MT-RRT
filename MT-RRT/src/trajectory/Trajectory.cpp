@@ -9,8 +9,7 @@
 #include <limits>
 
 namespace mt::traj {
-    Trajectory::Trajectory(const NodeState& start, const NodeState& target)
-        : target(target)
-        , cursor(start) {
+    Trajectory::Trajectory(const NodeState& start)
+        : cursor(start) {
     }
 }

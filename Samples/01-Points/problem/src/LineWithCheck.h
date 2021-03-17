@@ -8,17 +8,17 @@
 #ifndef MT_RRT_SAMPLE_PROBLEM_POINT_LINE_H
 #define MT_RRT_SAMPLE_PROBLEM_POINT_LINE_H
 
-#include <trajectory/EuclideanManager.h>
+#include <trajectory/Line.h>
 #include <Obstacle.h>
 
 namespace mt::traj {
-    class LineManager : public traj::EuclideanManager {
+    class LineWithCheckManager : public traj::LineManager {
     public:
-        LineManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles);
+        LineWithCheckManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, this->obstacles); };
+        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineWithCheckManager>(this->steerDegree, this->obstacles); };
 
         inline const std::vector<sample::Obstacle>& getObstacles() const { return this->obstacles; }
 
@@ -26,9 +26,9 @@ namespace mt::traj {
         const std::vector<sample::Obstacle> obstacles;
     };
 
-    class Line : public traj::EuclideanTraj {
+    class LineWithCheck : public traj::Line {
     public:
-        Line(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::Obstacle>* obstacles);
+        LineWithCheck(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::Obstacle>* obstacles);
 
         AdvanceInfo advance() override;
 

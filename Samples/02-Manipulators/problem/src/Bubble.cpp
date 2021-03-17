@@ -5,27 +5,27 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "Line.h"
+#include "Bubble.h"
 #include <Checker.h>
 
 namespace mt::traj {
-    LineManager::LineManager(const float& steerDegree, const sample::ProblemData& data)
-        : EuclideanManager(steerDegree)
+    BubbleManager::BubbleManager(const float& steerDegree, const sample::ProblemData& data)
+        : LineManager(steerDegree)
         , data(data) {
     }
 
-    traj::TrajectoryPtr LineManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
-        return std::make_unique<Line>(start, ending_node, this->steerDegree, &this->data);
+    traj::TrajectoryPtr BubbleManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
+        return std::make_unique<Bubble>(start, ending_node, this->steerDegree, &this->data);
     }
 
-    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::ProblemData* data)
-        : EuclideanTraj(start, target, steerDegree)
+    Bubble::Bubble(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::ProblemData* data)
+        : Line(start, target, steerDegree)
         , data(data) {
     };
 
-    Trajectory::AdvanceInfo Line::advance() {
+    Trajectory::AdvanceInfo Bubble::advance() {
         float prevCost = this->cumulatedCost.get();
-        auto temp = this->traj::EuclideanTraj::advance();
+        auto temp = this->traj::Line::advance();
         const float* pose = this->cursor.data();
         std::size_t cursor = 0;
         sample::geometry::SegmentPointChecker checker;

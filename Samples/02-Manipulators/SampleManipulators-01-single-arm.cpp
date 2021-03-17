@@ -11,7 +11,7 @@ using namespace std;
 
 int main() {
 	size_t Iterations = 2000;
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;

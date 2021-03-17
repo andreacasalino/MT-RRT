@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <trajectory/EuclideanManager.h>
+#include <trajectory/Line.h>
 #include <math.h>
 
 namespace mt::traj {
@@ -17,11 +17,11 @@ namespace mt::traj {
         return distance;
     }
 
-    EuclideanManager::EuclideanManager(const float& steerDegree)
+    LineManager::LineManager(const float& steerDegree)
         : steerDegree(static_cast<float>(fabs(steerDegree))) {
     }
 
-    float EuclideanManager::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
+    float LineManager::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
         float distance = squaredDistance(start, ending_node);
         if (ignoreConstraints) {
             return distance;
@@ -38,13 +38,14 @@ namespace mt::traj {
         return distance;
     }
 
-    EuclideanTraj::EuclideanTraj(const NodeState& start, const NodeState& target, const float& steerDegree)
-        : Trajectory(start, target)
+    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree)
+        : Trajectory(start)
+        , target(target)
         , steerDegree(steerDegree) {
         this->cumulatedCost.set(0.f);
     }
 
-    Trajectory::AdvanceInfo EuclideanTraj::advance() {
+    Trajectory::AdvanceInfo Line::advance() {
         float c = 1.f, delta, catt;
         for (std::size_t k = 0; k<this->target.size() ; ++k) {
             delta = fabsf(this->target[k] - this->cursor[k]);

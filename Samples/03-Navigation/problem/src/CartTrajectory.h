@@ -10,15 +10,19 @@
 
 #include <trajectory/Trajectory.h>
 
-namespace mt::sample {
+namespace mt::traj {
     class CartTrajectoryManager {
     public:
-        
     };
 
-    class CartTrajectory {
+    class CartTrajectory : public Trajectory {
     public:
+        static TrajectoryPtr make();
+        
+        Trajectory::AdvanceInfo advance() override;
 
+    protected:
+        CartTrajectory(const NodeState& start, const NodeState& target);
     };
 }
 

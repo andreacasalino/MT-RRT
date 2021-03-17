@@ -22,6 +22,7 @@ namespace mt::traj {
 		*/
         virtual float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const = 0;
 
+        // return nullptr when a traj is not possible between the passed states
         virtual TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const = 0;
     };
 

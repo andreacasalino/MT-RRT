@@ -19,3 +19,4 @@ aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
 mettere in doc che linked tree hanno problema che quando distruggi linkati, alcuni nodi non hanno piu padre
 lasciare possibilita di salvare o meno alberi dopo solve, per risparmiare spazio in memoria
+return nullptr when trajectory is impossible

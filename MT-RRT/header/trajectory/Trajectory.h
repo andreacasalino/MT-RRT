@@ -28,11 +28,9 @@ namespace mt::traj {
         virtual AdvanceInfo advance() = 0;
 
     protected:
-        Trajectory(const NodeState& start, const NodeState& target);
+        Trajectory(const NodeState& start);
 
     // data
-        const NodeState& target;
-
         NodeState cursor;
         Cost cumulatedCost;
     };

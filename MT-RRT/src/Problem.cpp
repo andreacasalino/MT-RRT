@@ -26,6 +26,7 @@ namespace mt {
 
     NodePtr Problem::steer(Node& start, const NodeState& trg, bool& trg_reached) {
         traj::TrajectoryPtr traj = this->trajManager->getTrajectory(start.getState() , trg);
+        if(nullptr == traj) return nullptr;
         NodeState steered;
         trg_reached = false;
         traj::Trajectory::AdvanceInfo info;
