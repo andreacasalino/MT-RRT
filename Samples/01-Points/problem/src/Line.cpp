@@ -9,15 +9,15 @@
 
 namespace mt::traj {
     LineManager::LineManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles)
-        : EuclideanManager(steerDegree) {
-        this->obstacles = std::make_shared<std::vector<sample::Obstacle>>(obstacles);
+        : EuclideanManager(steerDegree)
+        , obstacles(obstacles) {
     }
 
     traj::TrajectoryPtr LineManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
-        return std::make_unique<Line>(start, ending_node, this->steerDegree, this->obstacles);
+        return std::make_unique<Line>(start, ending_node, this->steerDegree, &this->obstacles);
     }
 
-    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Obstacle>> obstacles)
+    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::Obstacle>* obstacles)
         : EuclideanTraj(start, target, steerDegree) {
         this->obstacles = obstacles;
     };

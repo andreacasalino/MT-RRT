@@ -9,16 +9,16 @@
 #include <Checker.h>
 
 namespace mt::traj {
-    LineManager::LineManager(const float& steerDegree, std::shared_ptr<sample::ProblemData> data)
+    LineManager::LineManager(const float& steerDegree, const sample::ProblemData& data)
         : EuclideanManager(steerDegree)
         , data(data) {
     }
 
     traj::TrajectoryPtr LineManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
-        return std::make_unique<Line>(start, ending_node, this->steerDegree, this->data);
+        return std::make_unique<Line>(start, ending_node, this->steerDegree, &this->data);
     }
 
-    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<sample::ProblemData> data)
+    Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::ProblemData* data)
         : EuclideanTraj(start, target, steerDegree)
         , data(data) {
     };

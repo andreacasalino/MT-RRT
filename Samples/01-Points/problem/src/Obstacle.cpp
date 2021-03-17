@@ -41,7 +41,7 @@ namespace mt::sample {
 		}
 	}
 
-	bool Obstacle::collideWithSegment(const float* pointA, const float* pointB) {
+	bool Obstacle::collideWithSegment(const float* pointA, const float* pointB) const {
 		float B_min, B_max;
 		//x axis
 		if (pointA[0] < pointB[0]) {
@@ -113,7 +113,7 @@ namespace mt::sample {
 		max = max_x + max_y;
 	}
 
-	bool Obstacle::collideWithPoint(const float* coordinates) {
+	bool Obstacle::collideWithPoint(const float* coordinates) const {
 		if ((coordinates[0] > this->x_max) || (coordinates[0] < this->x_min)) return false;
 		if ((coordinates[1] > this->y_max) || (coordinates[1] < this->y_min)) return false;
 		return true;

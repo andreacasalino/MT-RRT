@@ -22,10 +22,10 @@ namespace mt::sample {
         return lim;
     }
 
-    std::shared_ptr<sample::ProblemData> make_data(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles) {
-        std::shared_ptr<sample::ProblemData> data = std::make_shared<sample::ProblemData>();
-        data->obstacles = obstacles;
-        data->robots = robots;
+    sample::ProblemData make_data(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles) {
+        sample::ProblemData data;
+        data.obstacles = obstacles;
+        data.robots = robots;
         return data;
     }
 
@@ -36,11 +36,11 @@ namespace mt::sample {
     }
 
     const std::vector<Manipulator>& ManipulatorProblem::getRobots() const {
-        return static_cast<traj::LineManager&>(*this->trajManager).getData()->robots;
+        return static_cast<traj::LineManager&>(*this->trajManager).getData().robots;
     };
 
     const std::vector<Sphere>& ManipulatorProblem::getObstacles() const {
-        return static_cast<traj::LineManager&>(*this->trajManager).getData()->obstacles;
+        return static_cast<traj::LineManager&>(*this->trajManager).getData().obstacles;
     };
 
     structJSON ManipulatorProblem::getJSON() const {

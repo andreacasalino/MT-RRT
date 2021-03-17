@@ -18,22 +18,22 @@ namespace mt::traj {
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, *this->obstacles); };
+        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineManager>(this->steerDegree, this->obstacles); };
 
-        inline const std::vector<sample::Obstacle>& getObstacles() { return *this->obstacles; }
+        inline const std::vector<sample::Obstacle>& getObstacles() const { return this->obstacles; }
 
     private:
-        std::shared_ptr<std::vector<sample::Obstacle>> obstacles;
+        const std::vector<sample::Obstacle> obstacles;
     };
 
     class Line : public traj::EuclideanTraj {
     public:
-        Line(const NodeState& start, const NodeState& target, const float& steerDegree, std::shared_ptr<std::vector<sample::Obstacle>> obstacles);
+        Line(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::Obstacle>* obstacles);
 
         AdvanceInfo advance() override;
 
     private:
-        std::shared_ptr<std::vector<sample::Obstacle>> obstacles;
+        const std::vector<sample::Obstacle>* obstacles;
     };
 }
 
