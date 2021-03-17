@@ -11,7 +11,7 @@
 #include <Point.h>
 #include <Limited.h>
 
-namespace mt::sample {
+namespace mt::sample::geometry {
     class Sphere {
     public:
         Sphere(const float& x, const float& y, const float& ray);

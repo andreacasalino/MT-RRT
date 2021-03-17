@@ -16,16 +16,16 @@
 namespace mt::sample {
     struct ProblemData {
         std::vector<Manipulator> robots;
-        std::vector<Sphere> obstacles;
+        std::vector<geometry::Sphere> obstacles;
     };
 
     class ManipulatorProblem : public Problem {
     public:
-        ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles);
+        ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles);
 
         const std::vector<Manipulator>& getRobots() const;
 
-        const std::vector<Sphere>& getObstacles() const;
+        const std::vector<geometry::Sphere>& getObstacles() const;
 
         structJSON getJSON() const;
     };

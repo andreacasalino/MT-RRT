@@ -8,7 +8,7 @@
 #include <Sphere.h>
 #include <Error.h>
 
-namespace mt::sample {
+namespace mt::sample::geometry {
     Sphere::Sphere(const float& x, const float& y, const float& ray)
         : center(x, y) {
         this->ray.set(ray);

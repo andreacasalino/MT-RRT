@@ -22,14 +22,14 @@ namespace mt::sample {
         return lim;
     }
 
-    sample::ProblemData make_data(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles) {
+    sample::ProblemData make_data(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles) {
         sample::ProblemData data;
         data.obstacles = obstacles;
         data.robots = robots;
         return data;
     }
 
-    ManipulatorProblem::ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<Sphere>& obstacles)
+    ManipulatorProblem::ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles)
         : Problem(std::make_unique<sampling::HyperBox>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
             std::make_unique<traj::LineManager>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
             Manipulator::dofTot(robots), 5.f) {
@@ -39,7 +39,7 @@ namespace mt::sample {
         return static_cast<traj::LineManager&>(*this->trajManager).getData().robots;
     };
 
-    const std::vector<Sphere>& ManipulatorProblem::getObstacles() const {
+    const std::vector<geometry::Sphere>& ManipulatorProblem::getObstacles() const {
         return static_cast<traj::LineManager&>(*this->trajManager).getData().obstacles;
     };
 
@@ -98,7 +98,7 @@ namespace mt::sample {
         };
 
         std::vector<Manipulator> robots;
-        std::vector<Sphere> obstacles;
+        std::vector<geometry::Sphere> obstacles;
         NodeState start;
         NodeState target;
 
@@ -118,7 +118,7 @@ namespace mt::sample {
                     slices.pop_front();
                     coor[2] = convert(slices.front());
                     slices.pop_front();
-                    obstacles.push_back(Sphere(coor[0], coor[1], coor[2]));
+                    obstacles.push_back(geometry::Sphere(coor[0], coor[1], coor[2]));
                 }
                 else if(0 == slices.front().compare("robot")) {
                     slices.pop_front();
