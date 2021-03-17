@@ -5,8 +5,8 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SAMPLE_CART_TRAJECTORY_H
-#define MT_RRT_SAMPLE_CART_TRAJECTORY_H
+#ifndef MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
+#define MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
 
 #include <trajectory/Trajectory.h>
 

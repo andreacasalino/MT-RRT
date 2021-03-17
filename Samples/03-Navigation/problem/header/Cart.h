@@ -5,8 +5,8 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SAMPLE_CART_H
-#define MT_RRT_SAMPLE_CART_H
+#ifndef MT_RRT_SAMPLE_NAVIGATION_CART_H
+#define MT_RRT_SAMPLE_NAVIGATION_CART_H
 
 #include <Sphere.h>
 
