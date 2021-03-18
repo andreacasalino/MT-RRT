@@ -7,4 +7,3 @@ ricontrollare tutti ++
 improve code recycle between solvers
 aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
-lasciare possibilita di salvare o meno alberi dopo solve, per risparmiare spazio in memoria

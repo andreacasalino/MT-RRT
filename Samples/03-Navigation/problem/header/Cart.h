@@ -9,21 +9,32 @@
 #define MT_RRT_SAMPLE_NAVIGATION_CART_H
 
 #include <Sphere.h>
+#include <Limited.h>
+#include <Checker.h>
+#include <array>
+#include <memory>
 
 namespace mt::sample {
     class Cart {
     public:
-        Cart(const float& width, const float& length);
+        Cart(const Positive<float>& width, const Positive<float>& length);
 
         // pose buffer should be [x,y,angle]
         bool isColliding(const float* pose, const geometry::Sphere& obstacle) const;
 
-        inline const float& getWidth() const { return this->width; };
-        inline const float& getLength() const { return this->length; };
+        const float getWidth() const;
+        const float getLength() const;
 
     private:
-        float width;
-        float length;
+        typedef std::unique_ptr<geometry::Segment> SegmentPtr;
+
+    // data
+        std::array<geometry::Point, 4> vertices;
+        std::array<SegmentPtr, 4> segments;
+
+        mutable geometry::Point relativePos;
+        mutable geometry::SegmentPointChecker checker0;
+        mutable geometry::SegmentPointChecker checker1;
     };
 }
 

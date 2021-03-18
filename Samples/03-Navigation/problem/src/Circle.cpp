@@ -29,7 +29,7 @@ namespace mt::traj {
             this->angleCursor = this->info.angleEnd;
             return traj::Trajectory::AdvanceInfo::targetReached;
         }
-        this->angleCursor += angleDelta;
+        this->angleCursor += this->angleSteer * static_cast<float>(angleDelta > 0.0);
         return traj::Trajectory::AdvanceInfo::advanced;
     }
 }

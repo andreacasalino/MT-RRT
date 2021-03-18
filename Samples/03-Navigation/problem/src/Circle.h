@@ -33,7 +33,7 @@ namespace mt::traj {
 
         float getCumulatedCost() const { return this->info.ray * fabs(this->angleCursor - this->info.angleStart); };
 
-        inline bool isClockWise() const { return (this->info.angleEnd < this->info.angleStart); };
+        inline bool isAntiClockWise() const { return (this->info.angleEnd >= this->info.angleStart); };
 
     private:
         const CircleInfo info;
