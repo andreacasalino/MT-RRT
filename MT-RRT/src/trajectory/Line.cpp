@@ -9,13 +9,12 @@
 #include <math.h>
 
 namespace mt::traj {
-    float squaredDistance(const float* bufferA, const float* bufferB, const std::size_t& buffersSize) {
+    float euclideanDistance(const float* bufferA, const float* bufferB, const std::size_t& buffersSize) {
         float distance = 0.f;
         for (std::size_t p = 0; p < buffersSize; ++p) {
             distance += powf(bufferA[p] - bufferB[p], 2.f);
         }
-        return distance;
-
+        return sqrtf(distance);
     }
 
     LineFactory::LineFactory(const float& steerDegree)
@@ -23,13 +22,13 @@ namespace mt::traj {
     }
 
     float LineFactory::cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const {
-        // Squared Distance
-        return sqrtf(squaredDistance(start.data(), ending_node.data(), start.size()));
+        return euclideanDistance(start.data(), ending_node.data(), start.size());
     }
 
     Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree)
         : target(target)
         , steerDegree(steerDegree) {
+        this->cursor = start;
     }
 
     AdvanceInfo Line::advance() {
@@ -46,7 +45,7 @@ namespace mt::traj {
 
         std::swap(this->previousState, this->cursor);
         this->cursor = this->target;
-        this->cumulatedCost.set(this->cumulatedCost.get() + c * squaredDistance(this->previousState.data(), this->cursor.data(), this->cursor.size()));
+        this->cumulatedCost.set(this->cumulatedCost.get() + c * euclideanDistance(this->previousState.data(), this->cursor.data(), this->cursor.size()));
 
         if (1.f == c) {
             return AdvanceInfo::targetReached;

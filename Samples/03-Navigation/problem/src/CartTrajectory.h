@@ -29,7 +29,14 @@ namespace mt::traj {
         inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<CartTrajectoryFactory>(this->description); };
 
     private:
+        float cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const;
+
         const float steerDegree;
+
+    // cache used to compute the trajectories
+        mutable NodeState blendStart;
+        mutable NodeState blendEnd;
+        mutable CircleInfo blendInfo;
     };
 
     class CartTrajectory : public Trajectory {
@@ -43,9 +50,11 @@ namespace mt::traj {
         
         AdvanceInfo advance() override;
 
+        float cost2Go() const;
+
     protected:
-        AdvanceInfo CartTrajectory::advanceNoCheck();
-        float CartTrajectory::sumCosts() const;
+        AdvanceInfo advanceNoCheck();
+        float sumCosts() const;
         
         const sample::Description* data;
         

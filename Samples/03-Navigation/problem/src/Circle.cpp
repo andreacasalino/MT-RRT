@@ -9,9 +9,15 @@
 #include <math.h>
 
 namespace mt::traj {
-    Circle::Circle(const CircleInfo& info, const float& angleSteer)
+    float angularSteer(const CircleInfo& info, const float& cartesianSteer) {
+        float deltaAngle = fabs(info.angleEnd - info.angleStart);
+        float pieces = ceilf(deltaAngle * info.ray / cartesianSteer);  
+        return  deltaAngle / pieces;
+    };
+
+    Circle::Circle(const CircleInfo& info, const float& cartesianSteer)
         : info(info)
-        , angleSteer(angleSteer) {
+        , angleSteer(angularSteer(info, cartesianSteer)) {
         this->angleCursor = info.angleStart;
     }
 

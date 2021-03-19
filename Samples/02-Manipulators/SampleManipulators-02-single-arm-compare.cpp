@@ -11,7 +11,7 @@
 using namespace std;
 
 int main() {
-	size_t Iterations = 3500;
+	size_t Iterations = 2000;
 	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
 
 	mt::ProblemPtr problem;
@@ -25,7 +25,7 @@ int main() {
 	mt::solver::Solver solver(std::move(problem));
 
 	solver.setThreadAvailability(0);
-	solver.setSteerTrials(5);
+	solver.setSteerTrials(10);
 	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results(solver, start, target, 0, true);

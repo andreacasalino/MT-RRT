@@ -142,7 +142,7 @@ namespace mt::sample {
         std::size_t dofTot = Manipulator::dofTot(std::get<0>(data).robots);
         auto problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
                                          std::make_unique<traj::BubbleFactory>(std::get<0>(data)),
-                                         2, 500.f);
+                                         dofTot, 10.f);
         return std::make_tuple(std::move(problem), std::get<1>(data),  std::get<2>(data));
     }
 }

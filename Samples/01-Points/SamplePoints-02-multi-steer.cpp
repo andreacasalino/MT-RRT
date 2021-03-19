@@ -20,7 +20,7 @@ int main() {
 	solver.setSteerTrials(5);
 	solver.saveTreesAfterSolve();
 
-	mt::sample::Results results(solver, { -0.1f, -0.1f }, { 1.1f, 1.1f }, 0);
+	mt::sample::Results results(solver, { -0.1f, -0.1f }, { 1.1f, 1.1f }, 0, true);
 
 	mt::sample::structJSON log;
 	solver.useProblem([&log](const mt::Problem& problem){

@@ -11,7 +11,7 @@
 #include <trajectory/TrajectoryFactory.h>
 
 namespace mt::traj {
-    float squaredDistance(const float* bufferA, const float* bufferB, const std::size_t& buffersSize);
+    float euclideanDistance(const float* bufferA, const float* bufferB, const std::size_t& buffersSize);
     
     class LineFactory : public TrajectoryFactory  {
     protected:

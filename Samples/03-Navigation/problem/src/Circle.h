@@ -24,15 +24,13 @@ namespace mt::traj {
     
     class Circle : public Trajectory {
     public:
-        Circle(const CircleInfo& info, const float& angleSteer);
+        Circle(const CircleInfo& info, const float& cartesianSteer);
 
         NodeState getCursor() const override;
 
         inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
 
         AdvanceInfo advance() override;
-
-        inline bool isAntiClockWise() const { return (this->info.angleEnd >= this->info.angleStart); };
 
     private:
         const CircleInfo info;

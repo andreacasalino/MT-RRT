@@ -12,7 +12,7 @@ using namespace std;
 
 int main() {
 	size_t Iterations = 2000;
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
@@ -29,7 +29,7 @@ int main() {
 	strategy->getDeterministicCoefficient().set(0.1f);
 	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
-	solver.setSteerTrials(20);
+	solver.setSteerTrials(10);
 	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results;

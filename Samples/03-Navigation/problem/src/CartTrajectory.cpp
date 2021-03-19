@@ -34,9 +34,22 @@ namespace mt::traj {
         return result;
     }
 
+    float getSteerDegree(const sample::geometry::Rectangle& boundaries) {
+        float temp1 = 0.05f * (boundaries.getXMax() - boundaries.getXMin());
+        float temp2 = 0.05f * (boundaries.getYMax() - boundaries.getYMin());
+        if (temp1 < temp2) return temp1;
+        return temp2;
+    }
+
+    CartTrajectoryFactory::CartTrajectoryFactory(const sample::Description& description)
+        : sample::SampleDescription<sample::Description>(description)
+        , steerDegree(getSteerDegree(description.boundaries)) {
+    }
+
     inline float atan2Delta (const float* pointA, const float* pointB) {
         return atan2(pointB[1] - pointA[1] , pointB[0] - pointA[0]);
     };
+    
     TrajectoryPtr CartTrajectoryFactory::getTrajectory(const NodeState& start, const NodeState& target) const {
         float cosStart = cosf(start[2]);
         float sinStart = sinf(start[2]);
@@ -72,29 +85,35 @@ namespace mt::traj {
         float angleMiddle = 0.5f * (target[3] - start[3]);
         float blendDistance = this->description.blendRadius / tanf(fabs(angleMiddle - target[2]));
         
-        NodeState blendStart;
-        NodeState blendEnd;
-        if((squaredDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance * blendDistance) || 
-           (squaredDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance * blendDistance)) {
+        if((euclideanDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance) || 
+           (euclideanDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance)) {
             angleMiddle += 3.141f;
-            blendStart = {checker.getClosesetInA().x() + cosStart * blendDistance , checker.getClosesetInA().y() + sinStart * blendDistance};
-            blendEnd = {checker.getClosesetInA().x() - cosEnd * blendDistance     , checker.getClosesetInA().y() - sinEnd * blendDistance};
+            this->blendStart = {checker.getClosesetInA().x() + cosStart * blendDistance , checker.getClosesetInA().y() + sinStart * blendDistance};
+            this->blendEnd = {checker.getClosesetInA().x() - cosEnd * blendDistance     , checker.getClosesetInA().y() - sinEnd * blendDistance};
         }
         else {
-            blendStart = {checker.getClosesetInA().x() - cosStart * blendDistance , checker.getClosesetInA().y() - sinStart * blendDistance};
-            blendEnd = {checker.getClosesetInA().x() + cosEnd * blendDistance     , checker.getClosesetInA().y() + sinEnd * blendDistance};
+            this->blendStart = {checker.getClosesetInA().x() - cosStart * blendDistance , checker.getClosesetInA().y() - sinStart * blendDistance};
+            this->blendEnd = {checker.getClosesetInA().x() + cosEnd * blendDistance     , checker.getClosesetInA().y() + sinEnd * blendDistance};
         }
-        CircleInfo blendInfo;
-        blendInfo.angleStart = atan2Delta(checker.getClosesetInA().data(), blendStart.data());
-        blendInfo.angleEnd = atan2Delta(checker.getClosesetInA().data(), blendEnd.data());
-        blendInfo.ray = this->description.blendRadius;
+        this->blendInfo.angleStart = atan2Delta(checker.getClosesetInA().data(), blendStart.data());
+        this->blendInfo.angleEnd = atan2Delta(checker.getClosesetInA().data(), blendEnd.data());
+        this->blendInfo.ray = this->description.blendRadius;
         float centerDistance2Focal = this->description.blendRadius / sinf(angleMiddle);
-        blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
-        blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
+        this->blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
+        this->blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
 
         return std::make_unique<CartTrajectory>(std::make_unique<Line2>(start, blendStart, this->steerDegree), 
-                                                std::make_unique<Circle>(blendInfo), 
+                                                std::make_unique<Circle>(blendInfo, this->steerDegree), 
                                                 std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->description);
+    }
+
+    float CartTrajectoryFactory::cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const {
+        auto trj = this->getTrajectory(start, ending_node);
+        if(nullptr == trj) return Cost::COST_MAX;
+        float cost = euclideanDistance(start.data(), this->blendStart.data(), 2);
+        cost += this->blendInfo.ray * fabs(this->blendInfo.angleEnd - this->blendInfo.angleStart);
+        cost += euclideanDistance(this->blendEnd.data(), ending_node.data(), 2);
+        return cost;
     }
 
     CartTrajectory::CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 
