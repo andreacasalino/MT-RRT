@@ -9,31 +9,44 @@
 #define MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
 
 #include <trajectory/Trajectory.h>
+#include "Line2.h"
+#include "Circle.h"
+#include <NavigationProblem.h>
 #include <list>
 
 namespace mt::traj {
-    class CartTrajectoryManager {
+    class CartTrajectoryFactory : public TrajectoryFactory {
     public:
+        TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const;
+
+    private:
+        const sample::ProblemData data;
+        const float steerDegree;
     };
 
     class CartTrajectory : public Trajectory {
     public:
-        static TrajectoryPtr make(const NodeState& start, const NodeState& target);
+        CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::ProblemData* data);
+        CartTrajectory(std::unique_ptr<Line> line, const sample::ProblemData* data);
         
-        Trajectory::AdvanceInfo advance() override;
+        inline NodeState getCursor() const override { return (*this->piecesCursor)->getCursor(); };
+
+        inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
+        
+        AdvanceInfo advance() override;
 
     protected:
-        CartTrajectory(const NodeState& start, TrajectoryPtr lineStart,TrajectoryPtr circle,TrajectoryPtr lineEnd);
-        CartTrajectory(const NodeState& start, TrajectoryPtr line);
+        AdvanceInfo CartTrajectory::advanceNoCheck();
+        float CartTrajectory::sumCosts() const;
+        
 
-        Trajectory::AdvanceInfo advanceNoCheck();
-
-        float sumCosts() const;
-
-        NodeState previousState;
+        const sample::ProblemData* data;
+        
         std::list<TrajectoryPtr> pieces;
         std::list<TrajectoryPtr>::iterator piecesCursor;
-        std::list<float> costs;
+
+        Cost cumulatedCost;
+        std::list<float> cumulatedCostContributions;
     };
 }
 

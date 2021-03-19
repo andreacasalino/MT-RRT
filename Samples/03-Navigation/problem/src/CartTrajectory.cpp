@@ -6,55 +6,98 @@
  **/
 
 #include "CartTrajectory.h"
-#include <trajectory/Line.h>
 #include <Checker.h>
 #include <math.h>
 
 namespace mt::traj {
-    TrajectoryPtr CartTrajectory::make(const NodeState& start, const NodeState& target) {
+    constexpr float CLOSENESS_TOLERANCE = 0.01f;
+
+    inline float atan2Delta (const float* pointA, const float* pointB) {
+        return atan2(pointB[1] - pointA[1] , pointB[0] - pointA[0]);
+    };
+    TrajectoryPtr CartTrajectoryFactory::getTrajectory(const NodeState& start, const NodeState& target) const {
+        float cosStart = cosf(start[2]);
+        float sinStart = sinf(start[2]);
+        float cosEnd   = cosf(target[2]);
+        float sinEnd   = sinf(target[2]);
+
         sample::geometry::Point startVectorBegin (start[0], start[1]);
-        sample::geometry::Point startVectorEnd (start[0] + cosf(start[3]), start[1]+ sinf(start[3]));
+        sample::geometry::Point startVectorEnd (start[0] + cosStart, start[1] + sinStart);
         sample::geometry::Segment startVector(startVectorBegin, startVectorEnd);
 
         sample::geometry::Point endVectorBegin (target[0], target[1]);
-        sample::geometry::Point endVectorEnd (target[0] + cosf(target[3]), target[1]+ sinf(target[3]));
+        sample::geometry::Point endVectorEnd (target[0] + cosEnd, target[1] + sinEnd);
         sample::geometry::Segment endVector(endVectorBegin, endVectorEnd);
 
         sample::geometry::LineLineChecker checker;
         checker.check(startVector, endVector);
 
-        if() {
-
+        if(checker.wereParallel()) {
+            if(checker.getDistance() > CLOSENESS_TOLERANCE) {
+                return nullptr;
+            }
+            float dot = cosStart * (target[0] - start[0]);
+            dot += sinStart * (target[1] - start[1]);
+            if(dot >= 0.0) {
+                return std::make_unique<CartTrajectory>(std::make_unique<Line>(start , target, this->steerDegree) , &this->data);
+            }
+            return nullptr;
         }
-        else if( (checker.getCoeffA() >= 0.0) && (checker.getCoeffB() <= 0.0) ) {
 
+        if(checker.getCoeffA() < 0.0) return nullptr;
+        if(checker.getCoeffB() > 0.0) return nullptr;
+
+        float angleMiddle = 0.5f * (target[3] - start[3]);
+        float blendDistance = this->data.blendRadius / tanf(fabs(angleMiddle - target[2]));
+        
+        NodeState blendStart;
+        NodeState blendEnd;
+        if((squaredDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance * blendDistance) || 
+           (squaredDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance * blendDistance)) {
+            angleMiddle += 3.141f;
+            blendStart = {checker.getClosesetInA().x() + cosStart * blendDistance , checker.getClosesetInA().y() + sinStart * blendDistance};
+            blendEnd = {checker.getClosesetInA().x() - cosEnd * blendDistance     , checker.getClosesetInA().y() - sinEnd * blendDistance};
         }
-        return nullptr;
+        else {
+            blendStart = {checker.getClosesetInA().x() - cosStart * blendDistance , checker.getClosesetInA().y() - sinStart * blendDistance};
+            blendEnd = {checker.getClosesetInA().x() + cosEnd * blendDistance     , checker.getClosesetInA().y() + sinEnd * blendDistance};
+        }
+        CircleInfo blendInfo;
+        blendInfo.angleStart = atan2Delta(checker.getClosesetInA().data(), blendStart.data());
+        blendInfo.angleEnd = atan2Delta(checker.getClosesetInA().data(), blendEnd.data());
+        blendInfo.ray = this->data.blendRadius;
+        float centerDistance2Focal = this->data.blendRadius / sinf(angleMiddle);
+        blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
+        blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
+
+        return std::make_unique<CartTrajectory>(std::make_unique<Line2>(start, blendStart, this->steerDegree), 
+                                                std::make_unique<Circle>(blendInfo), 
+                                                std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->data);
     }
 
-    CartTrajectory::CartTrajectory(const NodeState& start, TrajectoryPtr lineStart,TrajectoryPtr circle,TrajectoryPtr lineEnd) 
-        : CartTrajectory(start, std::move(lineStart)) {
+    CartTrajectory::CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::ProblemData* data) 
+        : CartTrajectory(std::move(lineStart), data) {
         this->pieces.emplace_back(std::move(circle));
         this->pieces.emplace_back(std::move(lineEnd));
-        this->costs.push_back(0.f);
         // remove line if too short
         throw Error("not implemented");
     }
 
-    CartTrajectory::CartTrajectory(const NodeState& start, TrajectoryPtr line) 
-        : Trajectory(start) {
+    CartTrajectory::CartTrajectory(std::unique_ptr<Line> line, const sample::ProblemData* data) {
+        this->data = data;
         this->cumulatedCost.set(0.f);
+        this->cumulatedCostContributions.push_back(0.f);
         this->pieces.emplace_back(std::move(line));
         this->piecesCursor = this->pieces.begin();
     }
 
-    Trajectory::AdvanceInfo CartTrajectory::advance() {
-        float prevCost = this->cumulatedCost.get();
+    AdvanceInfo CartTrajectory::advance() {
+        float prevCost = this->cumulatedCostContributions.back();
         auto temp = this->advanceNoCheck();
-        for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
-            if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
-                temp = traj::Trajectory::AdvanceInfo::blocked;
-                std::swap(this->cursor, this->previousState);
+        for (auto it = this->data->obstacles.begin(); it != this->data->obstacles.end(); ++it) {
+            if (this->data->cart.isColliding((*this->piecesCursor)->getCursor().data(), *it)) {
+                temp = traj::AdvanceInfo::blocked;
+                // std::swap(this->cursor, this->previousState);
                 this->cumulatedCost.set(prevCost);
                 break;
             }
@@ -62,29 +105,27 @@ namespace mt::traj {
         return temp;
     };
 
-    Trajectory::AdvanceInfo CartTrajectory::advanceNoCheck() {
-        std::swap(this->cursor, this->previousState);
+    AdvanceInfo CartTrajectory::advanceNoCheck() {
+        // this->previousState = this->getCursor();
         auto info = (*this->piecesCursor)->advance();
-        this->cursor = (*this->piecesCursor)->getCursor();
-        this->costs.back() = (*this->piecesCursor)->getCumulatedCost();
-        this->cumulatedCost.set(this->sumCosts());
-        if(Trajectory::AdvanceInfo::targetReached == info) {
+        if(AdvanceInfo::targetReached == info) {
             ++this->piecesCursor;
             if(this->piecesCursor == this->pieces.end()){
                 --this->piecesCursor;
-                return Trajectory::AdvanceInfo::targetReached;
+                return AdvanceInfo::targetReached;
             }
             else {
-                this->costs.emplace_back(0.f);
-                return Trajectory::AdvanceInfo::advanced;
+                this->cumulatedCostContributions.push_back(0.f);
             }
         }
         return info;
     }
 
     float CartTrajectory::sumCosts() const {
-        float res = 0.f;
-        for(auto it=this->costs.begin(); it!=this->costs.end(); ++it) {
+        auto it=this->cumulatedCostContributions.begin();
+        float res = *it;
+        ++it;
+        for(it; it!=this->cumulatedCostContributions.end(); ++it) {
             res += *it;
         }
         return res;

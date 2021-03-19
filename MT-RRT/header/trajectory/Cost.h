@@ -15,7 +15,7 @@ namespace mt::traj {
     public:
         static const float COST_MAX;
 
-        Cost();  // COST_MAX is assumed as initial value
+        Cost();  // 0 is assumed as initial value
     };
 }
 

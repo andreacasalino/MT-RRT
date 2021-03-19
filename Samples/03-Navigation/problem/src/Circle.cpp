@@ -6,6 +6,7 @@
  **/
 
 #include "Circle.h"
+#include <math.h>
 
 namespace mt::traj {
     Circle::Circle(const CircleInfo& info, const float& angleSteer)
@@ -23,13 +24,13 @@ namespace mt::traj {
         return state;
     }
 
-    traj::Trajectory::AdvanceInfo Circle::advance() {
+    traj::AdvanceInfo Circle::advance() {
         float angleDelta = this->info.angleEnd - this->angleCursor;
         if(fabs(angleDelta) < this->angleSteer) {
             this->angleCursor = this->info.angleEnd;
-            return traj::Trajectory::AdvanceInfo::targetReached;
+            return traj::AdvanceInfo::targetReached;
         }
         this->angleCursor += this->angleSteer * static_cast<float>(angleDelta > 0.0);
-        return traj::Trajectory::AdvanceInfo::advanced;
+        return traj::AdvanceInfo::advanced;
     }
 }
