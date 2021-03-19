@@ -9,4 +9,4 @@ aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
 usare bubble per problemi manipolators
 ma e davvero necessario portare cursor a pos previous se ce collisione?
-cachare calolo seni coseni di angoli in CartTrajectory
+auto rescale plot python sulla base di pose e ostacoli loggati

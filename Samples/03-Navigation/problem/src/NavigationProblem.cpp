@@ -9,7 +9,7 @@
 #include <sampler/HyperBox.h>
 #include "CartTrajectory.h"
 #include <Error.h>
-#include <fstream>
+#include <Importer.h>
 
 namespace mt::sample {
     sampling::SamplerPtr make_sampler(const geometry::Rectangle& boundaries) {
@@ -27,112 +27,35 @@ namespace mt::sample {
     }
 
     std::tuple<Description, NodeState, NodeState> importProblem(const std::string& configFileName) {
-        std::ifstream f(configFileName);
-        if(!f.is_open()) {
-            throw Error("invalid config file");
-        }
+        Importer importer(configFileName, "bound", "cart", "start", "target");
 
-        auto trimmer = [](const std::string& line) -> std::list<std::string> {
-            std::istringstream iss(line);
-            std::list<std::string> slices;
-            while (!iss.eof()) {
-                slices.emplace_back(std::string());
-                iss >> slices.back();
-                if(slices.back().empty()) slices.pop_back();
-            }
-            return slices;
-        };
-
-        std::unique_ptr<geometry::Rectangle> boundaries;
+        auto boundRaw = importer.find("bound");
+        geometry::Rectangle boundaries( geometry::Point((*boundRaw[0])[0], (*boundRaw[0])[1]), geometry::Point((*boundRaw[0])[2], (*boundRaw[0])[3]) );
         std::vector<geometry::Sphere> obstacles;
-        std::unique_ptr<Cart> cart;
-        std::unique_ptr<float> radius;
-        NodeState start;
-        NodeState target;
-
-        std::string line;
-        std::list<std::string> slices;
-        while (!f.eof()) {
-            std::getline(f, line);
-            slices = trimmer(line);
-
-            if(!slices.empty()) {
-                if(0 == slices.front().compare("obstacle")) {
-                    slices.pop_front();
-                    float coor[3];
-                    coor[0] = convert(slices.front());
-                    slices.pop_front();
-                    coor[1] = convert(slices.front());
-                    slices.pop_front();
-                    coor[2] = convert(slices.front());
-                    slices.pop_front();
-                    obstacles.push_back(geometry::Sphere(coor[0], coor[1], coor[2]));
+        {
+            auto obstaclesRaw = importer.find("obstacle");
+            obstacles.reserve(obstaclesRaw.size());
+            for(auto it =obstaclesRaw.begin(); it!=obstaclesRaw.end(); ++it) {
+                if(3 != (*it)->size()) {
+                    throw Error("invalid obstacle");
                 }
-                else if(0 == slices.front().compare("bound")) {
-                    slices.pop_front();
-                    if(slices.size() != 4) {
-                        throw Error("invalid boudnaries");
-                    }                    
-                    float x_min = convert(slices.front());
-                    slices.pop_front();
-                    float y_min = convert(slices.front());
-                    slices.pop_front();  
-                    float x_max = convert(slices.front());
-                    slices.pop_front();
-                    float y_max = convert(slices.front());
-                    slices.pop_front();
-                    boundaries = std::make_unique<geometry::Rectangle>(geometry::Point(x_min, y_min),  geometry::Point(x_max, y_max));
-                }
-                else if(0 == slices.front().compare("cart")) {
-                    slices.pop_front();
-                    if(slices.size() != 3) {
-                        throw Error("invalid cart data");
-                    }                    
-                    float w = convert(slices.front());
-                    slices.pop_front();
-                    float h = convert(slices.front());
-                    slices.pop_front();
-                    cart = std::make_unique<Cart>(Positive<float>(w), Positive<float>(h));
-                    radius = std::make_unique<float>(convert(slices.front()));
-                }
-                else if(0 == slices.front().compare("start")) {
-                    slices.pop_front();
-                    if(!start.empty()) {
-                        throw Error("multiple start configurations found");
-                    }
-                    while (!slices.empty()) {
-                        start.push_back(convert(slices.front()));
-                        slices.pop_front();
-                    }
-                }
-                else if(0 == slices.front().compare("target")) {
-                    slices.pop_front();
-                    if(!target.empty()) {
-                        throw Error("multiple target configurations found");
-                    }
-                    while (!slices.empty()) {
-                        target.push_back(convert(slices.front()));
-                        slices.pop_front();
-                    }
-                }
+                obstacles.emplace_back(geometry::Sphere((**it)[0], (**it)[1], (**it)[2]));
             }
         }
 
-        if(nullptr == boundaries) {
-            throw Error("boudnaries not specified");
-        }
-        if(nullptr == cart) {
-            throw Error("cart data not specified");
-        }
-        if(nullptr == radius) {
-            throw Error("blending radius not specified");
-        }
+        auto cartRaw = importer.find("cart");
+        Cart cart = Cart{Positive<float>((*cartRaw[0])[0]) , Positive<float>((*cartRaw[0])[1]) };
+        float radius = (*cartRaw[0])[2];
+
+        NodeState start = *importer.find("start").front();
         if(3 != start.size()) {
             throw Error("inconsistent state size");
         }
+        NodeState target = *importer.find("target").front();
         if(3 != target.size()) {
             throw Error("inconsistent state size");
         }
-        return std::make_tuple(make_data(*boundaries, obstacles, *cart, *radius), start, target);
+
+        return std::make_tuple(make_data(boundaries, obstacles, cart, radius), start, target);
     }
 }
