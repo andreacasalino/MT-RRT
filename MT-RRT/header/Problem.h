@@ -10,7 +10,7 @@
 
 #include <Copiable.h>
 #include <sampler/Sampler.h>
-#include <trajectory/TrajectoryManager.h>
+#include <trajectory/TrajectoryFactory.h>
 #include <Limited.h>
 
 namespace mt {
@@ -49,10 +49,10 @@ namespace mt {
 
 		inline sampling::Sampler* getSampler() const { return this->sampler.get(); };
 		
-		inline traj::TrajectoryManager* getTrajManager() const { return this->trajManager.get(); };
+		inline traj::TrajectoryFactory* getTrajManager() const { return this->trajManager.get(); };
 
 	protected:
-		Problem(sampling::SamplerPtr sampler, traj::TrajectoryManagerPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
+		Problem(sampling::SamplerPtr sampler, traj::TrajectoryFactoryPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem(const Problem& o);
 
 	// data
@@ -63,7 +63,7 @@ namespace mt {
 		LowerLimited<std::size_t> steerTrials = LowerLimited<std::size_t>(1,1);
 
 		sampling::SamplerPtr sampler;
-		traj::TrajectoryManagerPtr trajManager;
+		traj::TrajectoryFactoryPtr trajManager;
 	};
 
 	typedef std::unique_ptr<Problem> ProblemPtr;

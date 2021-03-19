@@ -8,18 +8,18 @@
 #ifndef MT_RRT_SAMPLE_POINT_PROBLEM_H
 #define MT_RRT_SAMPLE_POINT_PROBLEM_H
 
-#include <Obstacle.h>
+#include <Rectangle.h>
 #include <Problem.h>
 #include <JSONstream.h>
 
 namespace mt::sample {
     class PointProblem : public Problem {
     public:
-        PointProblem(const sample::Obstacle& boundaries, const std::vector<sample::Obstacle>& obstacles);
+        PointProblem(const geometry::Rectangle& boundaries, const std::vector<geometry::Rectangle>& obstacles);
 
-        const std::vector<sample::Obstacle>& getObstacles() const;
+        const std::vector<geometry::Rectangle>& getObstacles() const;
 
-        sample::Obstacle getBoundaries() const;
+        geometry::Rectangle getBoundaries() const;
 
         structJSON getJSON() const;
     };

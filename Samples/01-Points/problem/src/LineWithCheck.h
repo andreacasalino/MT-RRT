@@ -9,31 +9,31 @@
 #define MT_RRT_SAMPLE_PROBLEM_POINT_LINE_H
 
 #include <trajectory/Line.h>
-#include <Obstacle.h>
+#include <Rectangle.h>
 
 namespace mt::traj {
-    class LineWithCheckManager : public traj::LineManager {
+    class LineWithCheckFactory : public traj::LineFactory {
     public:
-        LineWithCheckManager(const float& steerDegree, const std::vector<sample::Obstacle>& obstacles);
+        LineWithCheckFactory(const float& steerDegree, const std::vector<sample::geometry::Rectangle>& obstacles);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<LineWithCheckManager>(this->steerDegree, this->obstacles); };
+        inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<LineWithCheckFactory>(this->steerDegree, this->obstacles); };
 
-        inline const std::vector<sample::Obstacle>& getObstacles() const { return this->obstacles; }
+        inline const std::vector<sample::geometry::Rectangle>& getObstacles() const { return this->obstacles; }
 
     private:
-        const std::vector<sample::Obstacle> obstacles;
+        const std::vector<sample::geometry::Rectangle> obstacles;
     };
 
     class LineWithCheck : public traj::Line {
     public:
-        LineWithCheck(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::Obstacle>* obstacles);
+        LineWithCheck(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::geometry::Rectangle>* obstacles);
 
         AdvanceInfo advance() override;
 
     private:
-        const std::vector<sample::Obstacle>* obstacles;
+        const std::vector<sample::geometry::Rectangle>* obstacles;
     };
 }
 

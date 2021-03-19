@@ -12,13 +12,13 @@
 #include <ManipulatorProblem.h>
 
 namespace mt::traj {
-    class BubbleManager : public traj::LineManager {
+    class BubbleFactory : public traj::LineFactory {
     public:
-        BubbleManager(const float& steerDegree, const sample::ProblemData& data);
+        BubbleFactory(const float& steerDegree, const sample::ProblemData& data);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryManager> copy() const override { return std::make_unique<BubbleManager>(this->steerDegree, this->data); };
+        inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<BubbleFactory>(this->steerDegree, this->data); };
 
         inline const sample::ProblemData& getData() { return this->data; };
 

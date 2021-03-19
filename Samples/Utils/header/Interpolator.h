@@ -11,7 +11,7 @@
 #include <Problem.h>
 
 namespace mt::sample {
-    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::TrajectoryManager& manager);
+    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::TrajectoryFactory& manager);
 }
 
 #endif

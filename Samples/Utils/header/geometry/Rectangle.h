@@ -5,23 +5,23 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SAMPLE_OBSTACLE_H
-#define MT_RRT_SAMPLE_OBSTACLE_H
+#ifndef MT_RRT_SAMPLE_RECTANGLE_H
+#define MT_RRT_SAMPLE_RECTANGLE_H
 
 #include <Point.h>
 #include <list>
 #include <vector>
 
-namespace mt::sample {
+namespace mt::sample::geometry {
 	/** \brief Data type describing a box like obstacle
 	*/
-	class Obstacle {
+	class Rectangle {
 	public:
 		/** \brief Constructor. It takes two point in the space delimitating the box, i.e. the two vertices having the maximal and the minium possible x,y coordinates
 		* @param[in] A the first vertex describing the box
 		* @param[in] B the second vertex describing the box
 		*/
-		Obstacle(const geometry::Point& A, const geometry::Point& B);
+		Rectangle(const geometry::Point& A, const geometry::Point& B);
 
 		/** \brief Check whether the passed segment (described by the two passed points) collides with this box.
 		\details Seg_A and Seg_B are the vertices at the beginning and the ending of the segment.
@@ -61,7 +61,7 @@ namespace mt::sample {
 		* @param[in] N_boxes the number of boxes to generate
 		* @param[out] boxes the random set of generated boxes
 		*/
-		static std::vector<Obstacle> generateRandomBoxes(const size_t& N_cluster, const size_t& N_boxes);
+		static std::vector<Rectangle> generateRandomBoxes(const size_t& N_cluster, const size_t& N_boxes);
 
 	private:
 		void getExtremal(float& val_x, float& val_y, const geometry::Point& direction) const;

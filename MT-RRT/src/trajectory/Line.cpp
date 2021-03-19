@@ -17,35 +17,22 @@ namespace mt::traj {
         return distance;
     }
 
-    LineManager::LineManager(const float& steerDegree)
+    LineFactory::LineFactory(const float& steerDegree)
         : steerDegree(static_cast<float>(fabs(steerDegree))) {
     }
 
-    float LineManager::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
-        float distance = squaredDistance(start, ending_node);
-        if (ignoreConstraints) {
-            return distance;
-        }
-
-        auto line = this->getTrajectory(start, ending_node);
-        Trajectory::AdvanceInfo advInfo = Trajectory::AdvanceInfo::advanced;
-        while (Trajectory::AdvanceInfo::advanced == advInfo) {
-            advInfo = line->advance();
-            if (Trajectory::AdvanceInfo::blocked == advInfo) {
-                return Cost::COST_MAX;
-            }
-        }
-        return distance;
+    float LineFactory::cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const {
+        // Squared Distance
+        return sqrtf(squaredDistance(start, ending_node));
     }
 
     Line::Line(const NodeState& start, const NodeState& target, const float& steerDegree)
-        : Trajectory(start)
-        , target(target)
+        : target(target)
         , steerDegree(steerDegree) {
         this->cumulatedCost.set(0.f);
     }
 
-    Trajectory::AdvanceInfo Line::advance() {
+    AdvanceInfo Line::advance() {
         float c = 1.f, delta, catt;
         for (std::size_t k = 0; k<this->target.size() ; ++k) {
             delta = fabsf(this->target[k] - this->cursor[k]);

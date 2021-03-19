@@ -9,12 +9,12 @@
 #include <Checker.h>
 
 namespace mt::traj {
-    BubbleManager::BubbleManager(const float& steerDegree, const sample::ProblemData& data)
-        : LineManager(steerDegree)
+    BubbleFactory::BubbleFactory(const float& steerDegree, const sample::ProblemData& data)
+        : LineFactory(steerDegree)
         , data(data) {
     }
 
-    traj::TrajectoryPtr BubbleManager::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
+    traj::TrajectoryPtr BubbleFactory::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
         return std::make_unique<Bubble>(start, ending_node, this->steerDegree, &this->data);
     }
 
@@ -23,7 +23,7 @@ namespace mt::traj {
         , data(data) {
     };
 
-    Trajectory::AdvanceInfo Bubble::advance() {
+    AdvanceInfo Bubble::advance() {
         float prevCost = this->cumulatedCost.get();
         auto temp = this->traj::Line::advance();
         const float* pose = this->cursor.data();
@@ -35,7 +35,7 @@ namespace mt::traj {
                 for (auto itC = capsules.begin(); itC != capsules.end(); ++itC) {
                     checker.check(sample::geometry::Segment{*itC->pointA , *itC->pointB }, itO->getCenter());
                     if (checker.getDistance() < (itO->getRay() + itC->ray)) {
-                        temp = traj::Trajectory::AdvanceInfo::blocked;
+                        temp = traj::AdvanceInfo::blocked;
                         std::swap(this->cursor, this->previousState);
                         this->cumulatedCost.set(prevCost);
                         break;

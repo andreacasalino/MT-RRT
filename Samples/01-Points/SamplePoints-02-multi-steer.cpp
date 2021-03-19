@@ -12,8 +12,8 @@ using namespace std;
 int main() {
 	const size_t Iterations = 2000;
 
-	mt::solver::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::Obstacle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f)),
-																 		 mt::sample::Obstacle::generateRandomBoxes(10, 100)
+	mt::solver::Solver solver(std::make_unique<mt::sample::PointProblem>(mt::sample::geometry::Rectangle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f)),
+																 		 mt::sample::geometry::Rectangle::generateRandomBoxes(10, 100)
 																		));
 
 	solver.setThreadAvailability(0);

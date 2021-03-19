@@ -8,29 +8,36 @@
 #ifndef MT_RRT_LINE_H
 #define MT_RRT_LINE_H
 
-#include <trajectory/TrajectoryManager.h>
+#include <trajectory/TrajectoryFactory.h>
 
 namespace mt::traj {
-    class LineManager : public TrajectoryManager {
-    public:
-        float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const override;
-
+    class LineFactory : public TrajectoryFactory  {
     protected:
-        LineManager(const float& steerDegree);
+        LineFactory(const float& steerDegree);
 
-        float steerDegree;
+        float cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const override;
+
+        const float steerDegree;
     };
 
     class Line : public Trajectory {
     public:
         Line(const NodeState& start, const NodeState& target, const float& steerDegree);
 
+        inline NodeState getCursor() const override { return this->cursor; };
+
+        inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
+
         AdvanceInfo advance() override;
 
     protected:
         const NodeState& target;
+        const float steerDegree;
+
+        NodeState cursor;
+        Cost cumulatedCost;
+
         NodeState previousState;
-        float steerDegree;
     };
 }
 

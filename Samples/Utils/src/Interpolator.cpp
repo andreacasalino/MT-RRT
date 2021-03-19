@@ -9,15 +9,15 @@
 #include <list>
 
 namespace mt::sample {
-    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::TrajectoryManager& manager) {
+    std::vector<NodeState> interpolate(const std::vector<NodeState>& solution, const traj::TrajectoryFactory& manager) {
         if(solution.empty()) return {};
 
         std::list<NodeState> states;
         states.emplace_back(solution.front());
         for(std::size_t p=1; p<solution.size(); ++p) {
             auto traj = manager.getTrajectory(states.back(), solution[p]);
-            traj::Trajectory::AdvanceInfo info = traj::Trajectory::AdvanceInfo::advanced;
-            while (traj::Trajectory::AdvanceInfo::targetReached != info) {
+            traj::AdvanceInfo info = traj::AdvanceInfo::advanced;
+            while (traj::AdvanceInfo::targetReached != info) {
                 info =  traj->advance();
                 states.emplace_back(traj->getCursor());
             }

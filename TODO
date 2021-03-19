@@ -7,3 +7,4 @@ ricontrollare tutti ++
 improve code recycle between solvers
 aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
+funzione di json log delle geometries definita once for all
