@@ -19,6 +19,7 @@ namespace mt {
 	*/
 	class Problem : public Copiable<Problem> {
 	public:
+		Problem(sampling::SamplerPtr sampler, traj::TrajectoryFactoryPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem& operator=(const Problem& ) = delete;
 
 		inline std::unique_ptr<Problem> copy() const final { return std::unique_ptr<Problem>(new Problem(*this)); };
@@ -52,7 +53,6 @@ namespace mt {
 		inline traj::TrajectoryFactory* getTrajManager() const { return this->trajManager.get(); };
 
 	protected:
-		Problem(sampling::SamplerPtr sampler, traj::TrajectoryFactoryPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem(const Problem& o);
 
 	// data

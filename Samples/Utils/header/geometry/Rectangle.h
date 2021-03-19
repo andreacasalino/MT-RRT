@@ -22,6 +22,7 @@ namespace mt::sample::geometry {
 		* @param[in] B the second vertex describing the box
 		*/
 		Rectangle(const geometry::Point& A, const geometry::Point& B);
+		Rectangle(const Rectangle& o);
 
 		/** \brief Check whether the passed segment (described by the two passed points) collides with this box.
 		\details Seg_A and Seg_B are the vertices at the beginning and the ending of the segment.

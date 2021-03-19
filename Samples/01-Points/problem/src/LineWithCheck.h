@@ -9,21 +9,21 @@
 #define MT_RRT_SAMPLE_PROBLEM_POINT_LINE_H
 
 #include <trajectory/Line.h>
-#include <Rectangle.h>
+#include <PointProblem.h>
+#include <SampleDescription.h>
 
 namespace mt::traj {
-    class LineWithCheckFactory : public traj::LineFactory {
+    class LineWithCheckFactory 
+        : public traj::LineFactory
+        , public sample::SampleDescription<sample::Description> {
     public:
-        LineWithCheckFactory(const float& steerDegree, const std::vector<sample::geometry::Rectangle>& obstacles);
+        LineWithCheckFactory(const sample::Description& description);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<LineWithCheckFactory>(this->steerDegree, this->obstacles); };
+        sample::structJSON logDescription() const override;
 
-        inline const std::vector<sample::geometry::Rectangle>& getObstacles() const { return this->obstacles; }
-
-    private:
-        const std::vector<sample::geometry::Rectangle> obstacles;
+        inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<LineWithCheckFactory>(this->description); };
     };
 
     class LineWithCheck : public traj::Line {

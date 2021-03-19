@@ -18,6 +18,7 @@ namespace mt::sample {
     class Cart {
     public:
         Cart(const Positive<float>& width, const Positive<float>& length);
+        Cart(const Cart& o);
 
         // pose buffer should be [x,y,angle]
         bool isColliding(const float* pose, const geometry::Sphere& obstacle) const;

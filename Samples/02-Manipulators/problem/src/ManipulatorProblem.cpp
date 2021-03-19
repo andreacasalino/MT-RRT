@@ -11,7 +11,6 @@
 #include <Error.h>
 #include <fstream>
 #include <list>
-#include <geometry/SphereLogger.h>
 
 namespace mt::sample {
     NodeState make_limit(const std::size_t& size, const float& value) {
@@ -23,61 +22,18 @@ namespace mt::sample {
         return lim;
     }
 
-    sample::ProblemData make_data(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles) {
-        sample::ProblemData data;
+    Description make_data(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles) {
+        Description data;
         data.obstacles = obstacles;
         data.robots = robots;
         return data;
-    }
-
-    ManipulatorProblem::ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles)
-        : Problem(std::make_unique<sampling::HyperBox>(make_limit(Manipulator::dofTot(robots), -4.712389f), make_limit(Manipulator::dofTot(robots), 4.712389f)),
-            std::make_unique<traj::BubbleFactory>(2 * 3.141f / 180.f, make_data(robots, obstacles)),
-            Manipulator::dofTot(robots), 5.f) {
-    }
-
-    const std::vector<Manipulator>& ManipulatorProblem::getRobots() const {
-        return static_cast<traj::BubbleFactory&>(*this->trajManager).getData().robots;
-    };
-
-    const std::vector<geometry::Sphere>& ManipulatorProblem::getObstacles() const {
-        return static_cast<traj::BubbleFactory&>(*this->trajManager).getData().obstacles;
-    };
-
-    structJSON ManipulatorProblem::getJSON() const {
-        structJSON result;
-        {
-            arrayJSON obstacles;
-            for (auto it = this->getObstacles().begin(); it != this->getObstacles().end(); ++it) {
-                obstacles.addElement(log(*it));
-            }
-            result.addElement("obstacles", obstacles);
-        }
-        {
-            arrayJSON robots;
-            for (auto it = this->getRobots().begin(); it != this->getRobots().end(); ++it) {
-                arrayJSON temp;
-                temp.addElement(Number<float>(it->getBase().x()));
-                temp.addElement(Number<float>(it->getBase().y()));
-                for (auto l = it->getLinks().begin(); l != it->getLinks().end(); ++l) {
-                    temp.addElement(Number<float>(l->length.get()));
-                }
-                for (auto l = it->getLinks().begin(); l != it->getLinks().end(); ++l) {
-                    temp.addElement(Number<float>(l->ray.get()));
-                }
-                robots.addElement(temp);
-            }
-            result.addElement("robots", robots);
-
-        }
-        return result;
     }
 
     inline float convert(const std::string& buff) {
         return static_cast<float>(std::atof(buff.c_str()));
     }
 
-    std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName) {
+    std::tuple<Description, NodeState, NodeState> importProblem(const std::string& configFileName) {
         std::ifstream f(configFileName);
         if(!f.is_open()) {
             throw Error("invalid config file");
@@ -164,14 +120,13 @@ namespace mt::sample {
             }
         }
 
-        ProblemPtr problem = std::make_unique<ManipulatorProblem>(robots, obstacles);
-        if(problem->getProblemSize() != start.size()) {
+        if(Manipulator::dofTot(robots) != start.size()) {
             throw Error("inconsistent state size");
         }
-        if(problem->getProblemSize() != target.size()) {
+        if(Manipulator::dofTot(robots) != target.size()) {
             throw Error("inconsistent state size");
         }
-        return std::make_tuple(std::move(problem), start, target);
+        return std::make_tuple(make_data(robots, obstacles), start, target);
     }
 
     NodeState degree2rad(const NodeState& pose) {
@@ -180,5 +135,14 @@ namespace mt::sample {
             converted[k] = pose[k] * 3.141f / 180.f;
         }
         return converted;
+    }
+
+    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName) {
+        auto data = importProblem(configFileName);
+        std::size_t dofTot = Manipulator::dofTot(std::get<0>(data).robots);
+        auto problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
+                                         std::make_unique<traj::BubbleFactory>(std::get<0>(data)),
+                                         2, 500.f);
+        return std::make_tuple(std::move(problem), std::get<1>(data),  std::get<2>(data));
     }
 }

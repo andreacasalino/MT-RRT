@@ -12,30 +12,16 @@
 #include <Sphere.h>
 #include <Cart.h>
 #include <Problem.h>
-#include <JSONstream.h>
 
 namespace mt::sample {
-    struct ProblemData {
+    struct Description {
         geometry::Rectangle boundaries;
         std::vector<geometry::Sphere> obstacles;
         Cart cart;
         float blendRadius;
     };
 
-    class NavigationProblem : public Problem {
-    public:
-        NavigationProblem(const geometry::Rectangle& boundaries, const std::vector<geometry::Sphere>& obstacles);
-
-        geometry::Rectangle getBoundaries() const;
-
-        const std::vector<geometry::Sphere>& getObstacles() const;
-
-        float  getBlendRadius() const;
-
-        structJSON getJSON() const;
-    };
-
-    std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName);
+    // std::tuple<ProblemPtr, NodeState, NodeState> importNavigationProblem(const std::string& configFileName);
 }
 
 #endif

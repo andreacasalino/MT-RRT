@@ -21,6 +21,10 @@ namespace mt::sample::geometry {
 		return ((max - min) < 0.f);
 	}
 
+	Rectangle::Rectangle(const Rectangle& o)
+		: Rectangle(Point(o.x_min, o.y_min), Point(o.x_max, o.y_max)) {
+	}
+
 	Rectangle::Rectangle(const geometry::Point& A, const geometry::Point& B) {
 		if (A.x() < B.x()) {
 			this->x_min = A.x();

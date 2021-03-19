@@ -25,6 +25,11 @@ namespace mt::sample {
         this->relativePos.z() = 0.0;
     }
 
+    Cart::Cart(const Cart& o) 
+        : Cart(Positive<float>(this->getWidth()), 
+               Positive<float>(this->getLength()) ) {
+    }
+
     const float Cart::getWidth() const {
         return 2.0 * this->vertices[0].x();
     }

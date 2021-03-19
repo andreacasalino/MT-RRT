@@ -8,9 +8,31 @@
 #include "CartTrajectory.h"
 #include <Checker.h>
 #include <math.h>
+#include <geometry/SphereLogger.h>
+#include <geometry/RectangleLogger.h>
 
 namespace mt::traj {
     constexpr float CLOSENESS_TOLERANCE = 0.01f;
+
+    sample::structJSON CartTrajectoryFactory::logDescription() const {
+        sample::structJSON result;
+        {
+            sample::arrayJSON obstacles;
+            for (auto it = this->description.obstacles.begin(); it != this->description.obstacles.end(); ++it) {
+                obstacles.addElement(log(*it));
+            }
+            result.addElement("obstacles", obstacles);
+        }
+        result.addElement("boundaries" , log(this->description.boundaries));
+        result.addElement("blending", sample::Number<float>(this->description.blendRadius));
+        {
+            sample::structJSON cart;
+            cart.addElement("width", sample::Number<float>(this->description.cart.getWidth()));
+            cart.addElement("lenght", sample::Number<float>(this->description.cart.getLength()));
+            result.addElement("cart", cart);
+        }
+        return result;
+    }
 
     inline float atan2Delta (const float* pointA, const float* pointB) {
         return atan2(pointB[1] - pointA[1] , pointB[0] - pointA[0]);
@@ -39,7 +61,7 @@ namespace mt::traj {
             float dot = cosStart * (target[0] - start[0]);
             dot += sinStart * (target[1] - start[1]);
             if(dot >= 0.0) {
-                return std::make_unique<CartTrajectory>(std::make_unique<Line>(start , target, this->steerDegree) , &this->data);
+                return std::make_unique<CartTrajectory>(std::make_unique<Line>(start , target, this->steerDegree) , &this->description);
             }
             return nullptr;
         }
@@ -48,7 +70,7 @@ namespace mt::traj {
         if(checker.getCoeffB() > 0.0) return nullptr;
 
         float angleMiddle = 0.5f * (target[3] - start[3]);
-        float blendDistance = this->data.blendRadius / tanf(fabs(angleMiddle - target[2]));
+        float blendDistance = this->description.blendRadius / tanf(fabs(angleMiddle - target[2]));
         
         NodeState blendStart;
         NodeState blendEnd;
@@ -65,25 +87,23 @@ namespace mt::traj {
         CircleInfo blendInfo;
         blendInfo.angleStart = atan2Delta(checker.getClosesetInA().data(), blendStart.data());
         blendInfo.angleEnd = atan2Delta(checker.getClosesetInA().data(), blendEnd.data());
-        blendInfo.ray = this->data.blendRadius;
-        float centerDistance2Focal = this->data.blendRadius / sinf(angleMiddle);
+        blendInfo.ray = this->description.blendRadius;
+        float centerDistance2Focal = this->description.blendRadius / sinf(angleMiddle);
         blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
         blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
 
         return std::make_unique<CartTrajectory>(std::make_unique<Line2>(start, blendStart, this->steerDegree), 
                                                 std::make_unique<Circle>(blendInfo), 
-                                                std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->data);
+                                                std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->description);
     }
 
-    CartTrajectory::CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::ProblemData* data) 
+    CartTrajectory::CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 
         : CartTrajectory(std::move(lineStart), data) {
         this->pieces.emplace_back(std::move(circle));
         this->pieces.emplace_back(std::move(lineEnd));
-        // remove line if too short
-        throw Error("not implemented");
     }
 
-    CartTrajectory::CartTrajectory(std::unique_ptr<Line> line, const sample::ProblemData* data) {
+    CartTrajectory::CartTrajectory(std::unique_ptr<Line> line, const sample::Description* data) {
         this->data = data;
         this->cumulatedCost.set(0.f);
         this->cumulatedCostContributions.push_back(0.f);

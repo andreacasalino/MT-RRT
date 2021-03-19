@@ -10,19 +10,14 @@
 
 #include <Rectangle.h>
 #include <Problem.h>
-#include <JSONstream.h>
 
 namespace mt::sample {
-    class PointProblem : public Problem {
-    public:
-        PointProblem(const geometry::Rectangle& boundaries, const std::vector<geometry::Rectangle>& obstacles);
-
-        const std::vector<geometry::Rectangle>& getObstacles() const;
-
-        geometry::Rectangle getBoundaries() const;
-
-        structJSON getJSON() const;
+    struct Description {
+        geometry::Rectangle boundaries;
+        std::vector<geometry::Rectangle> obstacles;
     };
+
+    ProblemPtr makeProblemPoint(const geometry::Rectangle& boundaries, const std::vector<geometry::Rectangle>& obstacles);
 }
 
 #endif
