@@ -11,6 +11,7 @@
 #include <Error.h>
 #include <fstream>
 #include <list>
+#include <geometry/SphereLogger.h>
 
 namespace mt::sample {
     NodeState make_limit(const std::size_t& size, const float& value) {
@@ -48,11 +49,7 @@ namespace mt::sample {
         {
             arrayJSON obstacles;
             for (auto it = this->getObstacles().begin(); it != this->getObstacles().end(); ++it) {
-                arrayJSON temp;
-                temp.addElement(Number<float>(it->getCenter().x()));
-                temp.addElement(Number<float>(it->getCenter().y()));
-                temp.addElement(Number<float>(it->getRay()));
-                obstacles.addElement(temp);
+                obstacles.addElement(log(*it));
             }
             result.addElement("obstacles", obstacles);
         }

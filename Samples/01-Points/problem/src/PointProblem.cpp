@@ -8,6 +8,7 @@
 #include <PointProblem.h>
 #include <sampler/HyperBox.h>
 #include "LineWithCheck.h"
+#include <geometry/RectangleLogger.h>
 
 namespace mt::sample {
     float getSteerDegree(const geometry::Rectangle& boundaries) {
@@ -43,23 +44,12 @@ namespace mt::sample {
     structJSON PointProblem::getJSON() const {
         structJSON result;
 
-        arrayJSON limits;
-        auto Lim = this->getBoundaries();
-        limits.addElement(Number<float>(Lim.getXMin()));
-        limits.addElement(Number<float>(Lim.getYMin()));
-        limits.addElement(Number<float>(Lim.getXMax()));
-        limits.addElement(Number<float>(Lim.getYMax()));
-        result.addElement("limits", limits);
+        result.addElement("limits", log(this->getBoundaries()));
 
         arrayJSON obstacles;
         const std::vector<geometry::Rectangle>& obst = this->getObstacles();
         for (auto it = obst.begin(); it != obst.end(); ++it) {
-            arrayJSON obstacle;
-            obstacle.addElement(Number<float>(it->getXMin()));
-            obstacle.addElement(Number<float>(it->getYMin()));
-            obstacle.addElement(Number<float>(it->getXMax()));
-            obstacle.addElement(Number<float>(it->getYMax()));
-            obstacles.addElement(obstacle);
+            obstacles.addElement(log(*it));
         }
         result.addElement("obstacles", obstacles);
 
