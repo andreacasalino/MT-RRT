@@ -1,0 +1,8 @@
+bound x_min y_min x_max y_max
+start x y angle
+target x y angle
+cart w l blenRadius
+obstacle 752 47 44
+obstacle 752 47 44
+obstacle 752 47 44
+obstacle 752 47 44

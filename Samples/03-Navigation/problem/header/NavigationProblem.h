@@ -21,7 +21,7 @@ namespace mt::sample {
         float blendRadius;
     };
 
-    // std::tuple<ProblemPtr, NodeState, NodeState> importNavigationProblem(const std::string& configFileName);
+    std::tuple<ProblemPtr, NodeState, NodeState> importNavigationProblem(const std::string& configFileName);
 }
 
 #endif
