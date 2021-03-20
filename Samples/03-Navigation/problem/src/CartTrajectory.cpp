@@ -87,9 +87,11 @@ namespace mt::traj {
         float angleDelta = fabs(angleMiddle - target[2]);
         float blendDistance = this->description.blendRadius / tanf(angleDelta );
         
+        bool useLongerArc = false;
         if((euclideanDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance) || 
            (euclideanDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance)) {
             angleMiddle += M_PI;
+            useLongerArc = true;
             startOrientation *= blendDistance;
             endOrientation *= -blendDistance;
         }
@@ -106,6 +108,12 @@ namespace mt::traj {
 
         this->blendInfo.angleStart = atan2(this->blendStart[1] - this->blendInfo.centerY, this->blendStart[0] - this->blendInfo.centerX);
         this->blendInfo.angleEnd = atan2(this->blendEnd[1] - this->blendInfo.centerY, this->blendEnd[0] - this->blendInfo.centerX);
+        if(useLongerArc) {
+            if(fabs(this->blendInfo.angleEnd - this->blendInfo.angleStart) < M_PI) {
+                if(this->blendInfo.angleEnd > 0.f) this->blendInfo.angleEnd -= 2.f * M_PI;
+                else                               this->blendInfo.angleEnd += 2.f * M_PI;
+            }
+        }
         this->blendInfo.ray = this->description.blendRadius;
 
         return std::make_unique<CartTrajectory>(std::make_unique<LineTrgSaved>(start, blendStart, this->steerDegree), 

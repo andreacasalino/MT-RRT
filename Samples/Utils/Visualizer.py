@@ -17,11 +17,13 @@ class Visualizer:
                     rrtStrt = list(data["results"][mtStrt].keys())[0]
                     ax.set_title(rrtStrt)
                     self.results.append(VisualizeResult(fig, ax, data["problem"], data["results"][mtStrt][rrtStrt]))
+                    ax.set_aspect('equal', 'box')
                 else:    
                     a = 0
                     for rrtStrt in data["results"][mtStrt]:
                         ax[a].set_title(rrtStrt)
                         self.results.append(VisualizeResult(fig, ax[a], data["problem"], data["results"][mtStrt][rrtStrt]))
+                        ax[a].set_aspect('equal', 'box')
                         a = a+1
                 self.figures.append(fig)
                 self.axes.append(ax)

@@ -8,6 +8,5 @@ improve code recycle between solvers
 aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
 usare bubble per problemi manipolators
-ma e davvero necessario portare cursor a pos previous se ce collisione?
 auto rescale plot python sulla base di pose e ostacoli loggati
 usare M_PI invece di 3.141 ovunque
