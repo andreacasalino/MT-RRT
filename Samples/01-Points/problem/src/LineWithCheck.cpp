@@ -44,15 +44,11 @@ namespace mt::traj {
         this->obstacles = obstacles;
     };
 
-    AdvanceInfo LineWithCheck::advance() {
-        float prevCost = this->cumulatedCost.get();
-        auto temp = this->traj::Line::advance();
+    AdvanceInfo LineWithCheck::advanceInternal() {
+        auto temp = this->traj::Line::advanceInternal();
         for (auto it = this->obstacles->begin(); it != this->obstacles->end(); ++it) {
             if (it->collideWithSegment(this->cursor.data(), this->previousState.data())) {
-                temp = traj::AdvanceInfo::blocked;
-                std::swap(this->cursor, this->previousState);
-                this->cumulatedCost.set(prevCost);
-                break;
+                return traj::AdvanceInfo::blocked;
             }
         }
         return temp;

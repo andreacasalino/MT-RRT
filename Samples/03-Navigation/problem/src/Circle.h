@@ -8,7 +8,7 @@
 #ifndef MT_RRT_SAMPLE_NAVIGATION_CIRCLE_H
 #define MT_RRT_SAMPLE_NAVIGATION_CIRCLE_H
 
-#include <trajectory/Trajectory.h>
+#include <trajectory/TrajectoryBase.h>
 #include <Node.h>
 
 namespace mt::traj {
@@ -22,21 +22,18 @@ namespace mt::traj {
 
     float cost2Go(const CircleInfo& circleInfo);
     
-    class Circle : public Trajectory {
+    class Circle : public TrajectoryBase {
     public:
         Circle(const CircleInfo& info, const float& cartesianSteer);
 
         NodeState getCursor() const override;
 
-        inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
-
-        AdvanceInfo advance() override;
-
     private:
+        AdvanceInfo advanceInternal() override;
+
         const CircleInfo info;
         const float angleSteer;
-
-        Cost cumulatedCost;
+        
         float angleCursor;
     };
 }

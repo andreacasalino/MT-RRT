@@ -102,7 +102,7 @@ namespace mt::traj {
         this->blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
         this->blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
 
-        return std::make_unique<CartTrajectory>(std::make_unique<Line2>(start, blendStart, this->steerDegree), 
+        return std::make_unique<CartTrajectory>(std::make_unique<LineTrgSaved>(start, blendStart, this->steerDegree), 
                                                 std::make_unique<Circle>(blendInfo, this->steerDegree), 
                                                 std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->description);
     }
@@ -116,7 +116,7 @@ namespace mt::traj {
         return cost;
     }
 
-    CartTrajectory::CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 
+    CartTrajectory::CartTrajectory(std::unique_ptr<LineTrgSaved> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 
         : CartTrajectory(std::move(lineStart), data) {
         this->pieces.emplace_back(std::move(circle));
         this->pieces.emplace_back(std::move(lineEnd));

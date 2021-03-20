@@ -30,9 +30,9 @@ namespace mt::traj {
     public:
         Bubble(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data);
 
-        AdvanceInfo advance() override;
-
     private:
+        AdvanceInfo advanceInternal() override;
+
         const sample::Description* data;
     };
 }

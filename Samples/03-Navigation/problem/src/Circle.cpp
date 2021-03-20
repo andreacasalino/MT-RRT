@@ -30,13 +30,15 @@ namespace mt::traj {
         return state;
     }
 
-    traj::AdvanceInfo Circle::advance() {
+    traj::AdvanceInfo Circle::advanceInternal() {
         float angleDelta = this->info.angleEnd - this->angleCursor;
         if(fabs(angleDelta) < this->angleSteer) {
             this->angleCursor = this->info.angleEnd;
+            this->cumulatedCost.set(this->cumulatedCost.get() + fabs(angleDelta) * this->info.ray);
             return traj::AdvanceInfo::targetReached;
         }
         this->angleCursor += this->angleSteer * static_cast<float>(angleDelta > 0.0);
+        this->cumulatedCost.set(this->cumulatedCost.get() + this->angleSteer * this->info.ray);
         return traj::AdvanceInfo::advanced;
     }
 }

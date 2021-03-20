@@ -31,7 +31,7 @@ namespace mt::traj {
         this->cursor = start;
     }
 
-    AdvanceInfo Line::advance() {
+    AdvanceInfo Line::advanceInternal() {
         float c = 1.f, delta, catt;
         for (std::size_t k = 0; k<this->target.size() ; ++k) {
             delta = fabsf(this->target[k] - this->cursor[k]);

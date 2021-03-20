@@ -9,7 +9,7 @@
 #define MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
 
 #include <trajectory/Trajectory.h>
-#include "Line2.h"
+#include <trajectory/LineTrgSaved.h>
 #include "Circle.h"
 #include <NavigationProblem.h>
 #include <SampleDescription.h>
@@ -41,7 +41,7 @@ namespace mt::traj {
 
     class CartTrajectory : public Trajectory {
     public:
-        CartTrajectory(std::unique_ptr<Line2> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data);
+        CartTrajectory(std::unique_ptr<LineTrgSaved> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data);
         CartTrajectory(std::unique_ptr<Line> line, const sample::Description* data);
         
         inline NodeState getCursor() const override { return (*this->piecesCursor)->getCursor(); };

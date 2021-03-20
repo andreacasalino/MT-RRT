@@ -9,6 +9,7 @@
 #define MT_RRT_LINE_H
 
 #include <trajectory/TrajectoryFactory.h>
+#include <trajectory/TrajectoryBase.h>
 
 namespace mt::traj {
     float euclideanDistance(const float* bufferA, const float* bufferB, const std::size_t& buffersSize);
@@ -22,23 +23,19 @@ namespace mt::traj {
         const float steerDegree;
     };
 
-    class Line : public Trajectory {
+    class Line : public TrajectoryBase {
     public:
         Line(const NodeState& start, const NodeState& target, const float& steerDegree);
 
         inline NodeState getCursor() const override { return this->cursor; };
 
-        inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
-
-        AdvanceInfo advance() override;
-
     protected:
+        AdvanceInfo advanceInternal() override;
+
         const NodeState& target;
         const float steerDegree;
 
         NodeState cursor;
-        Cost cumulatedCost;
-
         NodeState previousState;
     };
 }

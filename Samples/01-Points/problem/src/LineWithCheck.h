@@ -30,9 +30,9 @@ namespace mt::traj {
     public:
         LineWithCheck(const NodeState& start, const NodeState& target, const float& steerDegree, const std::vector<sample::geometry::Rectangle>* obstacles);
 
-        AdvanceInfo advance() override;
-
     private:
+        AdvanceInfo advanceInternal() override;
+
         const std::vector<sample::geometry::Rectangle>* obstacles;
     };
 }

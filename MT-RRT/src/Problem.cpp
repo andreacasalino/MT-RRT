@@ -28,12 +28,14 @@ namespace mt {
         traj::TrajectoryPtr traj = this->trajManager->getTrajectory(start.getState() , trg);
         if(nullptr == traj) return nullptr;
         NodeState steered;
+        float cost = traj->getCumulatedCost().get();
         trg_reached = false;
         traj::AdvanceInfo info;
         for (std::size_t t = 0; t < this->steerTrials.get(); ++t) {
             info = traj->advance();
             if (traj::AdvanceInfo::blocked == info) break;
             steered = traj->getCursor();
+            cost = traj->getCumulatedCost().get();
             if (traj::AdvanceInfo::targetReached == info) {
                 trg_reached = true;
                 break;
