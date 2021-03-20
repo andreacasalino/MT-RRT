@@ -1,8 +1,7 @@
-bound x_min y_min x_max y_max
-start x y angle
-target x y angle
-cart w l blenRadius
-obstacle 752 47 44
-obstacle 752 47 44
-obstacle 752 47 44
-obstacle 752 47 44
+start 344 538.1499977111816 -2.4199378027250322
+target 1188, 439.14999771118164, 2.0926306066093074
+cart 33.266876220703125 74.8 50
+bound 0 0 1496 665.3375244140625
+obstacle 620 211 87
+obstacle 1401 146 109
+obstacle 914 541 87
