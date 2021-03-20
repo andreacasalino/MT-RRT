@@ -8,12 +8,11 @@
 #ifndef MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
 #define MT_RRT_SAMPLE_NAVIGATION_CART_TRAJECTORY_H
 
-#include <trajectory/Trajectory.h>
+#include <trajectory/TrajectoryComposite.h>
 #include <trajectory/LineTrgSaved.h>
 #include "Circle.h"
 #include <NavigationProblem.h>
 #include <SampleDescription.h>
-#include <list>
 
 namespace mt::traj {
     class CartTrajectoryFactory 
@@ -39,30 +38,15 @@ namespace mt::traj {
         mutable CircleInfo blendInfo;
     };
 
-    class CartTrajectory : public Trajectory {
+    class CartTrajectory : public TrajectoryComposite {
     public:
         CartTrajectory(std::unique_ptr<LineTrgSaved> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data);
         CartTrajectory(std::unique_ptr<Line> line, const sample::Description* data);
         
-        inline NodeState getCursor() const override { return (*this->piecesCursor)->getCursor(); };
+    protected:        
+        AdvanceInfo advanceInternal() override;
 
-        inline const Cost& getCumulatedCost() const override { return this->cumulatedCost; };
-        
-        AdvanceInfo advance() override;
-
-        float cost2Go() const;
-
-    protected:
-        AdvanceInfo advanceNoCheck();
-        float sumCosts() const;
-        
         const sample::Description* data;
-        
-        std::list<TrajectoryPtr> pieces;
-        std::list<TrajectoryPtr>::iterator piecesCursor;
-
-        Cost cumulatedCost;
-        std::list<float> cumulatedCostContributions;
     };
 }
 

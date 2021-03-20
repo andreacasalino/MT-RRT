@@ -117,56 +117,22 @@ namespace mt::traj {
     }
 
     CartTrajectory::CartTrajectory(std::unique_ptr<LineTrgSaved> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 
-        : CartTrajectory(std::move(lineStart), data) {
-        this->pieces.emplace_back(std::move(circle));
-        this->pieces.emplace_back(std::move(lineEnd));
-    }
-
-    CartTrajectory::CartTrajectory(std::unique_ptr<Line> line, const sample::Description* data) {
+        : TrajectoryComposite(std::move(lineStart), std::move(circle), std::move(lineEnd)) {
         this->data = data;
-        this->cumulatedCost.set(0.f);
-        this->cumulatedCostContributions.push_back(0.f);
-        this->pieces.emplace_back(std::move(line));
-        this->piecesCursor = this->pieces.begin();
     }
 
-    AdvanceInfo CartTrajectory::advance() {
-        float prevCost = this->cumulatedCostContributions.back();
-        auto temp = this->advanceNoCheck();
+    CartTrajectory::CartTrajectory(std::unique_ptr<Line> line, const sample::Description* data) 
+        : TrajectoryComposite(std::move(line)) {
+        this->data = data;
+    }
+
+    AdvanceInfo CartTrajectory::advanceInternal() {
+        auto info = this->TrajectoryComposite::advanceInternal();
         for (auto it = this->data->obstacles.begin(); it != this->data->obstacles.end(); ++it) {
             if (this->data->cart.isColliding((*this->piecesCursor)->getCursor().data(), *it)) {
-                temp = traj::AdvanceInfo::blocked;
-                // std::swap(this->cursor, this->previousState);
-                this->cumulatedCost.set(prevCost);
-                break;
-            }
-        }
-        return temp;
-    };
-
-    AdvanceInfo CartTrajectory::advanceNoCheck() {
-        // this->previousState = this->getCursor();
-        auto info = (*this->piecesCursor)->advance();
-        if(AdvanceInfo::targetReached == info) {
-            ++this->piecesCursor;
-            if(this->piecesCursor == this->pieces.end()){
-                --this->piecesCursor;
-                return AdvanceInfo::targetReached;
-            }
-            else {
-                this->cumulatedCostContributions.push_back(0.f);
+                return traj::AdvanceInfo::blocked;
             }
         }
         return info;
-    }
-
-    float CartTrajectory::sumCosts() const {
-        auto it=this->cumulatedCostContributions.begin();
-        float res = *it;
-        ++it;
-        for(it; it!=this->cumulatedCostContributions.end(); ++it) {
-            res += *it;
-        }
-        return res;
-    }
+    };
 }

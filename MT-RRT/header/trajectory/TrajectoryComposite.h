@@ -8,22 +8,18 @@
 #ifndef MT_RRT_TRAJECTORY_COMPOSITE_H
 #define MT_RRT_TRAJECTORY_COMPOSITE_H
 
-#include <trajectory/Trajectory.h>
+#include <trajectory/TrajectoryBase.h>
 #include <list>
 
 namespace mt::traj {
-    class TrajectoryComposite : public Trajectory {
+    class TrajectoryComposite : public TrajectoryBase {
     public:
         inline NodeState getCursor() const override { return (*this->piecesCursor)->getCursor(); };
 
-        inline float getCumulatedCost() const override { return this->cumulatedCost.get() + (*this->piecesCursor)->getCumulatedCost(); };
-
-        inline AdvanceInfo advance() override;
-
     protected:
         template<typename ... Pieces>
-        TrajectoryComposite(Pieces ... otherPieces) {
-            parsePieces(otherPieces...);
+        TrajectoryComposite(Pieces&& ... piecess) {
+            parsePieces(std::forward<Pieces>(piecess)...);
 
             for(auto it = this->pieces.begin(); it!=this->pieces.end(); ++it) {
                 if(nullptr == *it) {
@@ -33,15 +29,17 @@ namespace mt::traj {
             this->piecesCursor = this->pieces.begin();
         };
 
+        AdvanceInfo advanceInternal() override;
+
         std::list<TrajectoryPtr>           pieces;
         std::list<TrajectoryPtr>::iterator piecesCursor;
-        Cost cumulatedCost; // previous pieces completely traversed
+        Cost cumulatedCostPrevPieces; // previous pieces completely traversed
 
     private:
         template<typename ... Pieces>
-        void parsePieces(TrajectoryPtr piece, Pieces ... pieces) {
+        void parsePieces(TrajectoryPtr piece, Pieces&& ... piecess) {
             this->pieces.emplace_back(std::move(piece));
-            parsePieces(pieces...);
+            parsePieces(std::forward<Pieces>(piecess)...);
         };
         void parsePieces(TrajectoryPtr piece) {
             this->pieces.emplace_back(std::move(piece));
