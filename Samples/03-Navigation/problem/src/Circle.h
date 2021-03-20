@@ -30,9 +30,10 @@ namespace mt::traj {
 
     private:
         AdvanceInfo advanceInternal() override;
+        float getOrientation() const;
 
         const CircleInfo info;
-        const float angleSteer;
+        const float angleDelta;
         
         float angleCursor;
     };

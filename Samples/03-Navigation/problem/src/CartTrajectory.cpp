@@ -6,6 +6,7 @@
  **/
 
 #include "CartTrajectory.h"
+#include <complex>
 #include <Checker.h>
 #include <math.h>
 #include <geometry/SphereLogger.h>
@@ -35,8 +36,8 @@ namespace mt::traj {
     }
 
     float getSteerDegree(const sample::geometry::Rectangle& boundaries) {
-        float temp1 = 0.05f * (boundaries.getXMax() - boundaries.getXMin());
-        float temp2 = 0.05f * (boundaries.getYMax() - boundaries.getYMin());
+        float temp1 = 0.01f * (boundaries.getXMax() - boundaries.getXMin());
+        float temp2 = 0.01f * (boundaries.getYMax() - boundaries.getYMin());
         if (temp1 < temp2) return temp1;
         return temp2;
     }
@@ -46,22 +47,16 @@ namespace mt::traj {
         , steerDegree(getSteerDegree(description.boundaries)) {
     }
 
-    inline float atan2Delta (const float* pointA, const float* pointB) {
-        return atan2(pointB[1] - pointA[1] , pointB[0] - pointA[0]);
-    };
-    
     TrajectoryPtr CartTrajectoryFactory::getTrajectory(const NodeState& start, const NodeState& target) const {
-        float cosStart = cosf(start[2]);
-        float sinStart = sinf(start[2]);
-        float cosEnd   = cosf(target[2]);
-        float sinEnd   = sinf(target[2]);
+        std::complex<float> startOrientation = {cosf(start[2]), sinf(start[2]) };
+        std::complex<float> endOrientation = {cosf(target[2]), sinf(target[2]) };
 
         sample::geometry::Point startVectorBegin (start[0], start[1]);
-        sample::geometry::Point startVectorEnd (start[0] + cosStart, start[1] + sinStart);
+        sample::geometry::Point startVectorEnd (start[0] + startOrientation.real(), start[1] + startOrientation.imag());
         sample::geometry::Segment startVector(startVectorBegin, startVectorEnd);
 
         sample::geometry::Point endVectorBegin (target[0], target[1]);
-        sample::geometry::Point endVectorEnd (target[0] + cosEnd, target[1] + sinEnd);
+        sample::geometry::Point endVectorEnd (target[0] + endOrientation.real(), target[1] + endOrientation.imag());
         sample::geometry::Segment endVector(endVectorBegin, endVectorEnd);
 
         sample::geometry::LineLineChecker checker;
@@ -71,9 +66,9 @@ namespace mt::traj {
             if(checker.getDistance() > CLOSENESS_TOLERANCE) {
                 return nullptr;
             }
-            float dot = cosStart * (target[0] - start[0]);
-            dot += sinStart * (target[1] - start[1]);
-            if(dot >= 0.0) {
+            float dot = startOrientation.real() * (target[0] - start[0]);
+            dot += startOrientation.imag() * (target[1] - start[1]);
+            if((dot >= 0.0) && (fabs(start[2] - target[2]) < 0.1f)) {
                 return std::make_unique<CartTrajectory>(std::make_unique<Line>(start , target, this->steerDegree) , &this->description);
             }
             return nullptr;
@@ -82,25 +77,36 @@ namespace mt::traj {
         if(checker.getCoeffA() < 0.0) return nullptr;
         if(checker.getCoeffB() > 0.0) return nullptr;
 
-        float angleMiddle = 0.5f * (target[3] - start[3]);
-        float blendDistance = this->description.blendRadius / tanf(fabs(angleMiddle - target[2]));
+        float angleMiddle;
+        {
+            std::complex<float> middleDir = endOrientation;
+            middleDir -= startOrientation;
+            angleMiddle = atan2(middleDir.imag() , middleDir.real());
+        }
+
+        float angleDelta = fabs(angleMiddle - target[2]);
+        float blendDistance = this->description.blendRadius / tanf(angleDelta );
         
         if((euclideanDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance) || 
            (euclideanDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance)) {
-            angleMiddle += 3.141f;
-            this->blendStart = {checker.getClosesetInA().x() + cosStart * blendDistance , checker.getClosesetInA().y() + sinStart * blendDistance};
-            this->blendEnd = {checker.getClosesetInA().x() - cosEnd * blendDistance     , checker.getClosesetInA().y() - sinEnd * blendDistance};
+            angleMiddle += M_PI;
+            startOrientation *= blendDistance;
+            endOrientation *= -blendDistance;
         }
         else {
-            this->blendStart = {checker.getClosesetInA().x() - cosStart * blendDistance , checker.getClosesetInA().y() - sinStart * blendDistance};
-            this->blendEnd = {checker.getClosesetInA().x() + cosEnd * blendDistance     , checker.getClosesetInA().y() + sinEnd * blendDistance};
+            startOrientation *= -blendDistance;
+            endOrientation *= blendDistance;
         }
-        this->blendInfo.angleStart = atan2Delta(checker.getClosesetInA().data(), blendStart.data());
-        this->blendInfo.angleEnd = atan2Delta(checker.getClosesetInA().data(), blendEnd.data());
-        this->blendInfo.ray = this->description.blendRadius;
-        float centerDistance2Focal = this->description.blendRadius / sinf(angleMiddle);
+        this->blendStart = {checker.getClosesetInA().x() + startOrientation.real() , checker.getClosesetInA().y() + startOrientation.imag(), start[2]};
+        this->blendEnd = {checker.getClosesetInA().x() + endOrientation.real()     , checker.getClosesetInA().y() + endOrientation.imag(), target[2]};
+
+        float centerDistance2Focal = this->description.blendRadius / sinf(angleDelta);
         this->blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
         this->blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
+
+        this->blendInfo.angleStart = atan2(this->blendStart[1] - this->blendInfo.centerY, this->blendStart[0] - this->blendInfo.centerX);
+        this->blendInfo.angleEnd = atan2(this->blendEnd[1] - this->blendInfo.centerY, this->blendEnd[0] - this->blendInfo.centerX);
+        this->blendInfo.ray = this->description.blendRadius;
 
         return std::make_unique<CartTrajectory>(std::make_unique<LineTrgSaved>(start, blendStart, this->steerDegree), 
                                                 std::make_unique<Circle>(blendInfo, this->steerDegree), 

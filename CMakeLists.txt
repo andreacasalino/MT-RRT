@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 set(WITH_SOURCE_TREE ON)
 include(GroupSources)
 include(AutoCollect)
+include(CopyFile)
 include(CopyPythonVisualizer)
 include(MakeLib)
 

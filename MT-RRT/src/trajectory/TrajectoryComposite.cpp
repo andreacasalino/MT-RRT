@@ -12,12 +12,15 @@ namespace mt::traj {
         auto info = (*this->piecesCursor)->advance();
         if(AdvanceInfo::targetReached == info) {
             ++this->piecesCursor;
-            this->cumulatedCostPrevPieces.set(this->cumulatedCostPrevPieces.get() + (*this->piecesCursor)->getCumulatedCost());
-            this->cumulatedCost.set(this->cumulatedCostPrevPieces.get());
             if(this->piecesCursor == this->pieces.end()) {
                 --this->piecesCursor;
+                // this->cumulatedCostPrevPieces.set(this->cumulatedCostPrevPieces.get() + (*this->piecesCursor)->getCumulatedCost());
+                this->cumulatedCost.set(this->cumulatedCostPrevPieces.get());
                 return AdvanceInfo::targetReached;
             }
+            this->cumulatedCostPrevPieces.set(this->cumulatedCostPrevPieces.get() + (*this->piecesCursor)->getCumulatedCost());
+            this->cumulatedCost.set(this->cumulatedCostPrevPieces.get());
+            info = AdvanceInfo::advanced;
         }
         this->cumulatedCost.set(this->cumulatedCostPrevPieces.get() + (*this->piecesCursor)->getCumulatedCost());
         return info;

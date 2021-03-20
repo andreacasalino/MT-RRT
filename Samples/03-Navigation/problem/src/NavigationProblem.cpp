@@ -13,8 +13,8 @@
 
 namespace mt::sample {
     sampling::SamplerPtr make_sampler(const geometry::Rectangle& boundaries) {
-        NodeState low = { boundaries.getXMin() , boundaries.getYMin(), -3.141f };
-        NodeState upp = { boundaries.getXMax() , boundaries.getYMax(),  3.141f };
+        NodeState low = { boundaries.getXMin() , boundaries.getYMin(), -M_PI };
+        NodeState upp = { boundaries.getXMax() , boundaries.getYMax(),  M_PI };
         return std::make_unique<sampling::HyperBox>(low, upp);
     }
 
@@ -57,5 +57,13 @@ namespace mt::sample {
         }
 
         return std::make_tuple(make_data(boundaries, obstacles, cart, radius), start, target);
+    }
+
+    std::tuple<ProblemPtr, NodeState, NodeState> importNavigationProblem(const std::string& configFileName) {
+        auto data = importProblem(configFileName);
+        auto problem = std::make_unique<Problem>(make_sampler(std::get<0>(data).boundaries),
+                                         std::make_unique<traj::CartTrajectoryFactory>(std::get<0>(data)),
+                                         3, 50.f, false);
+        return std::make_tuple(std::move(problem), std::get<1>(data),  std::get<2>(data));
     }
 }

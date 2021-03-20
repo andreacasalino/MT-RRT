@@ -14,6 +14,6 @@ namespace mt::traj {
 
     LineTrgSaved::LineTrgSaved(const NodeState& start, const NodeState& target, const float& steerDegree)
         : TargetStorer(target)
-        , Line(this->targetStored, target, steerDegree) {
+        , Line(start, this->targetStored, steerDegree) {
     }
 }
