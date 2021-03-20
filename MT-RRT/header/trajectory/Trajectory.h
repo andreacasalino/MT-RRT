@@ -23,7 +23,7 @@ namespace mt::traj {
 
         // spiegare che questi 2 ritornano un numero senza senso se ultimo advance e stato blocked
         virtual NodeState getCursor() const = 0;
-        virtual const Cost& getCumulatedCost() const = 0;
+        virtual float getCumulatedCost() const = 0;
 
         virtual AdvanceInfo advance() = 0;
 

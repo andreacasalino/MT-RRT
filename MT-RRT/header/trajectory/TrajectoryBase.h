@@ -15,7 +15,7 @@ namespace mt::traj {
     public:
         AdvanceInfo advance() final;
 
-        inline const Cost& getCumulatedCost() const final { return this->cumulatedCost; };
+        inline float getCumulatedCost() const final { return this->cumulatedCost.get(); };
 
     protected:
         TrajectoryBase() =  default;

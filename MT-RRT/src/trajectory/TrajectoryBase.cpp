@@ -10,8 +10,8 @@
 
 namespace mt::traj {
     AdvanceInfo TrajectoryBase::advance() {
-        if(AdvanceInfo::blocked == this->lastAdvanceResult) {
-            throw Error("A blocked trajectory can't be advanced");
+        if(AdvanceInfo::advanced != this->lastAdvanceResult) {
+            throw Error("This trajectory can't be advanced further");
         }
         this->lastAdvanceResult = this->advanceInternal();
         return this->lastAdvanceResult;
