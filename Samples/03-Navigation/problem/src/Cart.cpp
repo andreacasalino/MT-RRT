@@ -11,11 +11,11 @@
 namespace mt::sample {
     Cart::Cart(const Positive<float>& width, const Positive<float>& length) {
         const float halfW = 0.5f * width.get();
-        const float halfH = 0.5f * length.get();
-        this->vertices[0] = geometry::Point(halfW , -halfH);
-        this->vertices[1] = geometry::Point(halfW , halfH);
-        this->vertices[2] = geometry::Point(-halfW , halfH);
-        this->vertices[3] = geometry::Point(-halfW , -halfH);
+        const float halfL = 0.5f * length.get();
+        this->vertices[0] = geometry::Point(halfL , -halfW);
+        this->vertices[1] = geometry::Point(halfL , halfW);
+        this->vertices[2] = geometry::Point(-halfL , halfW);
+        this->vertices[3] = geometry::Point(-halfL , -halfW);
 
         this->segments[0] = std::make_unique<geometry::Segment>(this->vertices[0], this->vertices[1]);
         this->segments[1] = std::make_unique<geometry::Segment>(this->vertices[1], this->vertices[2]);
@@ -26,16 +26,16 @@ namespace mt::sample {
     }
 
     Cart::Cart(const Cart& o) 
-        : Cart(Positive<float>(this->getWidth()), 
-               Positive<float>(this->getLength()) ) {
+        : Cart(Positive<float>(o.getWidth()), 
+               Positive<float>(o.getLength()) ) {
     }
 
     const float Cart::getWidth() const {
-        return 2.f * this->vertices[0].x();
+        return 2.f * this->vertices[1].y();
     }
 
     const float Cart::getLength() const {
-        return 2.f * this->vertices[0].y();
+        return 2.f * this->vertices[1].x();
     }
 
     bool Cart::isColliding(const float* pose, const geometry::Sphere& obstacle) const {

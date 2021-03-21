@@ -6,6 +6,7 @@
  **/
 
 #include <NavigationProblem.h>
+#include <SampleDescription.h>
 #include <Logger.h>
 #include <math.h>
 using namespace std;
@@ -46,14 +47,17 @@ int main() {
 
     addTraj(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
     addTraj(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * M_PI / 4.f});
-    addTraj(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
-    addTraj(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
-    addTraj(std::vector<float>{0.f, 0.f, -0.25f * M_PI}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
-    for(std::size_t k=0; k<20; ++k) {
-        addTraj(problem->getSampler()->randomState() , problem->getSampler()->randomState());
-    }
+    // addTraj(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
+    // addTraj(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
+    // addTraj(std::vector<float>{0.f, 0.f, -0.25f * M_PI}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
+    // for(std::size_t k=0; k<20; ++k) {
+    //     addTraj(problem->getSampler()->randomState() , problem->getSampler()->randomState());
+    // }
 
-    mt::sample::printData(trajGenLog , "TrajGen.json");
+    mt::sample::structJSON log;
+	log.addElement("problem", dynamic_cast<const mt::sample::SampleDescription<mt::sample::Description>*>(problem->getTrajManager())->logDescription());
+    log.addElement("traj", trajGenLog);
+    mt::sample::printData(log , "TrajGen.json");
 
     return EXIT_SUCCESS;
 }
