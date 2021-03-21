@@ -47,6 +47,9 @@ namespace mt::traj {
         , steerDegree(getSteerDegree(description.boundaries)) {
     }
 
+    inline float cross(const std::complex<float>& a, const std::complex<float>& b) {
+        return a.real()*b.imag() - a.imag()*b.real();
+    }
     TrajectoryPtr CartTrajectoryFactory::getTrajectory(const NodeState& start, const NodeState& target) const {
         std::complex<float> startOrientation = {cosf(start[2]), sinf(start[2]) };
         std::complex<float> endOrientation = {cosf(target[2]), sinf(target[2]) };
@@ -77,57 +80,60 @@ namespace mt::traj {
         if(checker.getCoeffA() < 0.0) return nullptr;
         if(checker.getCoeffB() > 0.0) return nullptr;
 
-        float angleMiddle;
+        float coneAngleAmplitude = 0.5f * acosf(-startOrientation.real()*endOrientation.real() - startOrientation.imag()*endOrientation.imag());
+        float coneAngleMiddle;
         {
-            std::complex<float> middleDir = endOrientation;
-            middleDir -= startOrientation;
-            angleMiddle = atan2(middleDir.imag() , middleDir.real());
+            std::complex<float> middleOrientation = endOrientation - startOrientation;
+            coneAngleMiddle = atan2(middleOrientation.imag(), middleOrientation.real());
         }
-
-        float angleDelta = fabs(angleMiddle - target[2]);
-        float blendDistance = this->description.blendRadius / tanf(angleDelta );
+        float blendDistance = this->description.blendRadius / tanf(coneAngleAmplitude);
+        float centerDistance2Focal = this->description.blendRadius / sinf(coneAngleAmplitude);
         
-        bool useLongerArc = false;
+        CircleInfo info; 
+        float phaseDelta;
+        info.ray = this->description.blendRadius;
+        bool isClockwise = false;
         if((euclideanDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance) || 
            (euclideanDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance)) {
-            angleMiddle += M_PI;
-            useLongerArc = true;
+            coneAngleMiddle += M_PI;
+            phaseDelta = M_PI + 2.f *coneAngleAmplitude;
             startOrientation *= blendDistance;
             endOrientation *= -blendDistance;
+            if((cross(startOrientation, endOrientation) < 0.f)) {
+                isClockwise = true;
+            }
         }
         else {
             startOrientation *= -blendDistance;
             endOrientation *= blendDistance;
-        }
-        this->blendStart = {checker.getClosesetInA().x() + startOrientation.real() , checker.getClosesetInA().y() + startOrientation.imag(), start[2]};
-        this->blendEnd = {checker.getClosesetInA().x() + endOrientation.real()     , checker.getClosesetInA().y() + endOrientation.imag(), target[2]};
-
-        float centerDistance2Focal = this->description.blendRadius / sinf(angleDelta);
-        this->blendInfo.centerX = checker.getClosesetInA().x() + cosf(angleMiddle) * centerDistance2Focal;
-        this->blendInfo.centerY = checker.getClosesetInA().y() + sinf(angleMiddle) * centerDistance2Focal;
-
-        this->blendInfo.angleStart = atan2(this->blendStart[1] - this->blendInfo.centerY, this->blendStart[0] - this->blendInfo.centerX);
-        this->blendInfo.angleEnd = atan2(this->blendEnd[1] - this->blendInfo.centerY, this->blendEnd[0] - this->blendInfo.centerX);
-        if(useLongerArc) {
-            if(fabs(this->blendInfo.angleEnd - this->blendInfo.angleStart) < M_PI) {
-                if(this->blendInfo.angleEnd > 0.f) this->blendInfo.angleEnd -= 2.f * M_PI;
-                else                               this->blendInfo.angleEnd += 2.f * M_PI;
+            phaseDelta = 2.f * (M_PI_2 - coneAngleAmplitude);
+            if((cross(startOrientation, endOrientation) > 0.f)) {
+                isClockwise = true;
             }
         }
-        this->blendInfo.ray = this->description.blendRadius;
+        phaseDelta = fabs(phaseDelta);
+        info.center[0] = checker.getClosesetInA().x() + cosf(coneAngleMiddle) * centerDistance2Focal;
+        info.center[1] = checker.getClosesetInA().y() + sinf(coneAngleMiddle) * centerDistance2Focal;
+        NodeState blendStart = {checker.getClosesetInA().x() + startOrientation.real() , checker.getClosesetInA().y() + startOrientation.imag(), start[2]};
+        NodeState blendEnd = {checker.getClosesetInA().x() + endOrientation.real()     , checker.getClosesetInA().y() + endOrientation.imag(), target[2]};
+        this->lastTrajectoryCost2Go = 2.f * phaseDelta * this->description.blendRadius;
+        info.phaseStart = atan2(blendStart[1] - info.center[1] , blendStart[0] - info.center[0]);
+        if(isClockwise) {
+            info.phaseEnd = info.phaseStart - phaseDelta;
+        }
+        else {
+            info.phaseEnd = info.phaseStart + phaseDelta;
+        }
 
         return std::make_unique<CartTrajectory>(std::make_unique<LineTrgSaved>(start, blendStart, this->steerDegree), 
-                                                std::make_unique<Circle>(blendInfo, this->steerDegree), 
+                                                std::make_unique<Circle>(info, this->steerDegree), 
                                                 std::make_unique<Line>(blendEnd, target, this->steerDegree), &this->description);
     }
 
     float CartTrajectoryFactory::cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const {
         auto trj = this->getTrajectory(start, ending_node);
         if(nullptr == trj) return Cost::COST_MAX;
-        float cost = euclideanDistance(start.data(), this->blendStart.data(), 2);
-        cost += this->blendInfo.ray * fabs(this->blendInfo.angleEnd - this->blendInfo.angleStart);
-        cost += euclideanDistance(this->blendEnd.data(), ending_node.data(), 2);
-        return cost;
+        return this->lastTrajectoryCost2Go;
     }
 
     CartTrajectory::CartTrajectory(std::unique_ptr<LineTrgSaved> lineStart,std::unique_ptr<Circle> circle, std::unique_ptr<Line> lineEnd, const sample::Description* data) 

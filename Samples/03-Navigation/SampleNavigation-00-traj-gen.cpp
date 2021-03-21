@@ -48,7 +48,7 @@ int main() {
     addTraj(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * 3.141f});
     addTraj(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * 3.141f});
     addTraj(std::vector<float>{0.f, 0.f, -0.25f * 3.141f}, std::vector<float>{200.f, 100.f, 0.25f * 3.141f});
-    for(std::size_t k=0; k<5; ++k) {
+    for(std::size_t k=0; k<20; ++k) {
         addTraj(problem->getSampler()->randomState() , problem->getSampler()->randomState());
     }
 

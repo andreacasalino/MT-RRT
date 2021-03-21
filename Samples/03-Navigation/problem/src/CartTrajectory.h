@@ -28,14 +28,11 @@ namespace mt::traj {
         inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<CartTrajectoryFactory>(this->description); };
 
     private:
+        // cache 
+        mutable float lastTrajectoryCost2Go;
         float cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const;
 
         const float steerDegree;
-
-    // cache used to compute the trajectories
-        mutable NodeState blendStart;
-        mutable NodeState blendEnd;
-        mutable CircleInfo blendInfo;
     };
 
     class CartTrajectory : public TrajectoryComposite {

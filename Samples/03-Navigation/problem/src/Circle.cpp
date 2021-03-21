@@ -9,47 +9,46 @@
 #include <math.h>
 
 namespace mt::traj {
-    float computedDelta(const CircleInfo& info, const float& cartesianSteer) {
-        float deltaAngle = info.angleEnd - info.angleStart;
-        float pieces = ceilf(fabs(deltaAngle) * info.ray / cartesianSteer);
-        return  deltaAngle / pieces;
+    float computePhaseDelta(const CircleInfo& info, const float& cartesianSteer) {
+        float phaseDelta = info.phaseEnd - info.phaseStart;
+        float pieces = ceilf(fabs(phaseDelta) * info.ray / cartesianSteer);
+        return  phaseDelta / pieces;
     };
 
     Circle::Circle(const CircleInfo& info, const float& cartesianSteer)
         : info(info)
-        , angleDelta(computedDelta(info, cartesianSteer)) {
-        this->angleCursor = info.angleStart;
+        , phaseDelta(computePhaseDelta(info, cartesianSteer)) {
+        this->phaseCursor = info.phaseStart;
     }
 
     NodeState Circle::getCursor() const {
         return NodeState {
-            this->info.centerX + this->info.ray * cosf(this->angleCursor),
-            this->info.centerY + this->info.ray * sinf(this->angleCursor),
+            this->info.center[0] + this->info.ray * cosf(this->phaseCursor),
+            this->info.center[1] + this->info.ray * sinf(this->phaseCursor),
             this->getOrientation()
         };
     }
 
     float Circle::getOrientation() const {
-        float orientation;
-        if(this->info.angleEnd > this->info.angleStart) {
-            orientation = M_PI_2;
+        float orientation = this->phaseCursor;
+        if(this->info.phaseEnd > this->info.phaseStart) {
+            orientation += M_PI_2;
         }
         else {
-            orientation = -M_PI_2;
+            orientation -= M_PI_2;
         }
-        orientation += this->angleCursor;
         return atan2(sinf(orientation), cosf(orientation) );
     }
 
     traj::AdvanceInfo Circle::advanceInternal() {
-        float delta = this->info.angleEnd - this->angleCursor;
-        if(fabs(delta) < fabs(this->angleDelta)) {
-            this->angleCursor = this->info.angleEnd;
-            this->cumulatedCost.set(this->cumulatedCost.get() + fabs(delta) * this->info.ray);
+        float delta = fabs(this->info.phaseEnd - this->phaseCursor);
+        if(delta < fabs(this->phaseDelta)) {
+            this->phaseCursor = this->info.phaseEnd;
+            this->cumulatedCost.set(this->cumulatedCost.get() + delta * this->info.ray);
             return traj::AdvanceInfo::targetReached;
         }
-        this->angleCursor += this->angleDelta;
-        this->cumulatedCost.set(this->cumulatedCost.get() + fabs(this->angleDelta) * this->info.ray);
+        this->phaseCursor += this->phaseDelta;
+        this->cumulatedCost.set(this->cumulatedCost.get() + fabs(this->phaseDelta) * this->info.ray);
         return traj::AdvanceInfo::advanced;
     }
 }

@@ -13,11 +13,10 @@
 
 namespace mt::traj {
     struct CircleInfo {
-        float centerX;
-        float centerY;
+        float center[2];
         float ray;
-        float angleStart;
-        float angleEnd;
+        float phaseStart;
+        float phaseEnd;
     };
 
     float cost2Go(const CircleInfo& circleInfo);
@@ -33,9 +32,9 @@ namespace mt::traj {
         float getOrientation() const;
 
         const CircleInfo info;
-        const float angleDelta;
+        const float phaseDelta;
         
-        float angleCursor;
+        float phaseCursor;
     };
 }
 
