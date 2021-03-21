@@ -38,6 +38,11 @@ namespace mt::solver {
 			throw Error("start configuration has inconsistent size");
 		}
 
+		if((RRTStrategy::Bidir == rrtStrategy) &&
+		   (!this->data->problemsBattery.front()->isProblemSimmetric())) {
+			throw Error("bidirectional strategy is not possible for this problem");
+		}
+
 		bool cumulFlagOld = this->strategy->getCumulateFlag();
 		if (RRTStrategy::Star == rrtStrategy) {
 			this->strategy->setCumulateFlag(true);

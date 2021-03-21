@@ -44,11 +44,11 @@ namespace mt::traj {
         float delta = fabs(this->info.phaseEnd - this->phaseCursor);
         if(delta < fabs(this->phaseDelta)) {
             this->phaseCursor = this->info.phaseEnd;
-            this->cumulatedCost.set(this->cumulatedCost.get() + delta * this->info.ray);
+            this->cumulatedCost.set(fabs(this->phaseCursor - this->info.phaseStart) * this->info.ray);
             return traj::AdvanceInfo::targetReached;
         }
         this->phaseCursor += this->phaseDelta;
-        this->cumulatedCost.set(this->cumulatedCost.get() + fabs(this->phaseDelta) * this->info.ray);
+        this->cumulatedCost.set(fabs(this->phaseCursor - this->info.phaseStart) * this->info.ray);
         return traj::AdvanceInfo::advanced;
     }
 }

@@ -66,14 +66,16 @@ private:
 int main() {
     TrajectoryGenLog logger;
 
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * M_PI}, std::vector<float>{100.f, 100.f, 0.25f * M_PI});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * M_PI}, std::vector<float>{100.f, 100.f, 0.f});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
-    // logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * M_PI / 4.f});
-    // logger.addTrajectory(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
-    // logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
-    // logger.addTrajectory(std::vector<float>{0.f, 0.f, -0.25f * M_PI}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
-    // for(std::size_t k=0; k<5; ++k) {
-    //     logger.addTrajectory(logger.getSampler()->randomState() , logger.getSampler()->randomState());
-    // }
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * M_PI / 4.f});
+    logger.addTrajectory(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, -0.25f * M_PI}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
+    for(std::size_t k=0; k<5; ++k) {
+        logger.addTrajectory(logger.getSampler()->randomState() , logger.getSampler()->randomState());
+    }
 
     return EXIT_SUCCESS;
 }
