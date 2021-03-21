@@ -31,20 +31,22 @@ namespace mt::sample {
     }
 
     const float Cart::getWidth() const {
-        return 2.0 * this->vertices[0].x();
+        return 2.f * this->vertices[0].x();
     }
 
-
     const float Cart::getLength() const {
-        return 2.0 * this->vertices[0].y();
+        return 2.f * this->vertices[0].y();
     }
 
     bool Cart::isColliding(const float* pose, const geometry::Sphere& obstacle) const {
         float cosAngle = cosf(pose[2]);
         float sinAngle = sinf(pose[2]);
-        float delta[2] = {pose[0] - obstacle.getCenter().x() , pose[1] - obstacle.getCenter().y()};
+        float delta[2] = {obstacle.getCenter().x() - pose[0] , obstacle.getCenter().y() - pose[1]};
         this->relativePos.x() = cosAngle * delta[0] + sinAngle * delta[1];
         this->relativePos.y() = -sinAngle * delta[0] + cosAngle * delta[1];
+
+        if(fabs(this->relativePos.x()) < this->vertices[0].x()) return true;
+        if(fabs(this->relativePos.y()) < this->vertices[0].y()) return true;
         
         bool positiveNess[2] = {this->relativePos.x() >= 0.0 , this->relativePos.y() >= 0.0};
         if(positiveNess[0] && positiveNess[1]) {

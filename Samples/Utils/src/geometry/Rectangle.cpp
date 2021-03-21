@@ -142,7 +142,7 @@ namespace mt::sample::geometry {
 		float aggreg_coeff = 0.7f;
 		sampling::UniformEngine samplerPos(0.f , 1.f);
 		sampling::UniformEngine samplerRadius(0.01f, 0.08f);
-		sampling::UniformEngine samplerAngle(10.f * 3.141f / 180.f, 80.f * 3.141f / 180.f);
+		sampling::UniformEngine samplerAngle(10.f * M_PI / 180.f, 80.f * M_PI / 180.f);
 
 		size_t N_cluster = N_cl;
 		if (N_cluster == 0)  N_cluster = 1;

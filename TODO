@@ -9,4 +9,4 @@ aggiornare documentazione
 scrivere dentro codice esempi che puoi visualize res con python code
 usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
-usare M_PI invece di 3.141 ovunque
+documentare per bene come e' calcolata traiettoria cart
