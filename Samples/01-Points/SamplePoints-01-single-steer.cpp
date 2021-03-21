@@ -12,7 +12,7 @@ using namespace std;
 
 int main() {
 	const size_t Iterations = 2000;
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtLinkedTrees; // use the one you want
 
 	mt::solver::Solver solver(mt::sample::makeProblemPoint(mt::sample::geometry::Rectangle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f))
 							  			  			      ,mt::sample::geometry::Rectangle::generateRandomBoxes(5, 30)));
