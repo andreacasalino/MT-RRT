@@ -45,8 +45,10 @@ namespace mt::sample {
         this->relativePos.x() = cosAngle * delta[0] + sinAngle * delta[1];
         this->relativePos.y() = -sinAngle * delta[0] + cosAngle * delta[1];
 
-        if(fabs(this->relativePos.x()) < this->vertices[0].x()) return true;
-        if(fabs(this->relativePos.y()) < this->vertices[0].y()) return true;
+        if(fabs(this->relativePos.x()) < this->vertices[1].x() &&
+           fabs(this->relativePos.y()) < this->vertices[1].y()) {
+            return true;
+        }
         
         bool positiveNess[2] = {this->relativePos.x() >= 0.0 , this->relativePos.y() >= 0.0};
         if(positiveNess[0] && positiveNess[1]) {

@@ -10,7 +10,8 @@
 namespace mt::traj {
     float TrajectoryFactory::cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const {
         float distance = this->cost2GoIgnoringConstraints(start, ending_node);
-        if (ignoreConstraints) {
+        if ((ignoreConstraints) || 
+            (Cost::COST_MAX == distance)) {
             return distance;
         }
 

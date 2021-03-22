@@ -11,8 +11,8 @@
 using namespace std;
 
 int main() {
-	size_t Iterations = 2000;
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
+	size_t Iterations = 3000;
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtSharedTree; // use the one you want
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
@@ -29,7 +29,7 @@ int main() {
 	strategy->getDeterministicCoefficient().set(0.1f);
 	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
-	solver.setSteerTrials(10);
+	solver.setSteerTrials(15);
 	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results;
@@ -37,8 +37,8 @@ int main() {
 	solver.solve(start, target, mt::solver::RRTStrategy::Single);
 	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single, true);
 
-	// solver.solve(start, target, mt::solver::RRTStrategy::Star);
-	// results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star, true);
+	solver.solve(start, target, mt::solver::RRTStrategy::Star);
+	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star, true);
 
 	mt::sample::structJSON log;
 	solver.useProblem([&log](const mt::Problem& problem){

@@ -38,6 +38,7 @@ class Scene:
             self.showTree(ax, trees[1], 'green')
         # enable the animation
         if(len(solution) > 0):
+            ax.plot(self.cart.curveTraj.x , self.cart.curveTraj.y, color="blue", linewidth=0.35)
             self.animation = FuncAnimation(fig, func=self.setIndex, frames=range(0,len(solution),1), interval=50, repeat=True)
         #set axis limit
         ax.set_xlim(problem["boundaries"][0], problem["boundaries"][2])
