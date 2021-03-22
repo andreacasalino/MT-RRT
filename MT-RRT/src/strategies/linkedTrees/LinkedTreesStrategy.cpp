@@ -36,7 +36,7 @@ num_threads(static_cast<int>(Threads))
     }
 
     std::unique_ptr<SolutionInfo> LinkedTreesStrategy::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
-        auto sol = std::make_unique<SolutionInfo>();
+        auto sol = std::make_unique<SolutionInfo>(start, end);
 
         auto make_extBattery1 = [this, &end](const linked::TreeContainer& container) -> std::vector<ExtSingle> {           
             std::vector<ExtSingle> battery;            

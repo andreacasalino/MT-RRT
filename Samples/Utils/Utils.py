@@ -53,6 +53,18 @@ def makeRectangle(ax, width, length, color, alpha=1):
 
     return makePatch(ax, vertices, color, alpha)
 
+# state = [x, y, angle]
+def makearrow(ax, state, length, color, width):
+    x = [state[0], state[0] + length * np.cos(state[2])]
+    y = [state[1], state[1] + length * np.sin(state[2])]
+    ax.plot(x , y, color, linewidth = width)
+    coeff = 0.1
+    vertices = np.zeros((4,2) , dtype=np.float64)
+    vertices[:,0] = np.array([0, -length*coeff, -length*coeff, 0])
+    vertices[:,1] = np.array([0, 0.5*length*coeff, -0.5*length*coeff, 0])
+    arrow = makePatch(ax, vertices, color)
+    locatePatch(ax, arrow, state[0] + length * np.cos(state[2]), state[1] + length * np.sin(state[2]), state[2])
+
 
 class AnimableCurve:
     def __init__(self, ax, x, y):

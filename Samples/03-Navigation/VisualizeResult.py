@@ -27,7 +27,7 @@ class AnimableCart:
         self.curveTraj.setIndex(index)
 
 class Scene:
-    def __init__(self, fig, ax, problem, solution, trees):
+    def __init__(self, fig, ax, problem, solution, trees, start, target):
         for o in problem["obstacles"]:
             makeSphere(ax, [o[0], o[1]], o[2], "#E75328")
         self.robots = []
@@ -42,6 +42,11 @@ class Scene:
         #set axis limit
         ax.set_xlim(problem["boundaries"][0], problem["boundaries"][2])
         ax.set_ylim(problem["boundaries"][1], problem["boundaries"][3])
+        # plot start end
+        delta = [problem["boundaries"][0] - problem["boundaries"][2] , problem["boundaries"][3] - problem["boundaries"][1]]
+        L = 0.1 * np.sqrt(delta[0]*delta[0] + delta[1]*delta[1])
+        makearrow(ax, start, L, "red", 2)
+        makearrow(ax, target, L, "#F07F00", 2)
 
     def showTree(self, ax, tree, color):
         if(len(tree) < 50):
@@ -55,7 +60,7 @@ class Scene:
         self.cart.setIndex(index)
 
 def VisualizeResult(fig, ax, problem, result_ij):
-    return Scene(fig, ax, problem, result_ij["solution"], result_ij["trees"])
+    return Scene(fig, ax, problem, result_ij["solution"], result_ij["trees"],result_ij["start"], result_ij["target"])
 
 
 
@@ -67,10 +72,10 @@ class DebuggerTraj:
         self.cart = AnimableCart( self.ax, problem["cart"]["width"], problem["cart"]["lenght"], traj["states"])
         self.L = self.getL(traj)
 
-        self.addQuiver(traj["start"], "red", 2)
-        self.addQuiver(traj["end"], "#F07F00", 2)
+        makearrow(self.ax, traj["start"], self.L, "red", 2)
+        makearrow(self.ax, traj["end"], self.L, "#F07F00", 2)
         for t in traj["states"]:
-            self.addQuiver(t, "#7E65EE", 0.7)
+            makearrow(self.ax, t, self.L, "#7E65EE", 0.7)
 
         if(len(traj["states"]) > 0):
             self.anim = FuncAnimation(self.fig, func=self.cart.setIndex, frames=range(0,len(traj["states"]),1), interval=50, repeat=True)

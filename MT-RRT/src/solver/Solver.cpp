@@ -11,6 +11,11 @@
 #include <omp.h>
 
 namespace mt::solver {
+	SolutionInfo::SolutionInfo(const NodeState& start, const NodeState& target)
+		: start(start)
+		, target(target) {
+	}
+
 	Solver::Solver(ProblemPtr problemDescription) {
 		if (nullptr == problemDescription) {
 			throw Error("problem description can't be null");
@@ -105,6 +110,18 @@ namespace mt::solver {
 		if (nullptr == this->lastSolution) return 0;
 		return this->lastSolution->iterations;
 	}
+
+	NodeState Solver::getLastStart() const {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		if (nullptr == this->lastSolution) return {};
+		return this->lastSolution->start;
+	};
+
+	NodeState Solver::getLastTarget() const {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		if (nullptr == this->lastSolution) return {};
+		return this->lastSolution->target;
+	};
 
 	std::vector<NodeState> Solver::copyLastSolution() const {
 		std::lock_guard<std::mutex> lock(this->data->solverMutex);

@@ -17,7 +17,7 @@ namespace mt::solver {
     }
 
     std::unique_ptr<SolutionInfo> QueryParallStrategy::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
-        auto sol = std::make_unique<SolutionInfo>();
+        auto sol = std::make_unique<SolutionInfo>(start, end);
         qpar::TreeQPar* poolRef = nullptr;
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees.emplace_back(std::make_unique<qpar::TreeQPar>(std::make_unique<Node>(start), this->solverData->problemsBattery));

@@ -11,7 +11,7 @@
 
 namespace mt::solver {
     std::unique_ptr<SolutionInfo> SerialStrategy::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
-        auto sol = std::make_unique<SolutionInfo>();
+        auto sol = std::make_unique<SolutionInfo>(start, end);
         Problem& prb = *this->solverData->problemsBattery.front().get();
         if (RRTStrategy::Single == rrtStrategy) {
             sol->trees.emplace_back( std::make_unique<TreeCore>( std::make_unique<Node>(start), prb ));

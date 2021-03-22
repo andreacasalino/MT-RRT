@@ -17,7 +17,7 @@ int main() {
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
 	{
-		auto imported = mt::sample::importNavigationProblem(std::string(CONFIG_FOLDER) + "/Sample00-config");
+		auto imported = mt::sample::importNavigationProblem(std::string(CONFIG_FOLDER) + "/Sample01-config");
 		problem = std::move(std::get<0>(imported));
 		start = std::get<1>(imported);
 		target = std::get<2>(imported);
