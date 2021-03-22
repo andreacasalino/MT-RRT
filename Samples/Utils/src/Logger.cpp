@@ -18,6 +18,12 @@
 #include <strategies/MultiAgentStrategy.h>
 
 namespace mt::sample {
+    arrayJSON makeValues(const NodeState& state) {
+        arrayJSON temp;
+        addValues(temp, state.data(), state.size());
+        return temp;
+    };
+
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize) {
         for (std::size_t k = 0; k < dataSize; ++k) {
             array.addElement(Number<float>(data[k]));
@@ -108,6 +114,12 @@ namespace mt::sample {
         result.addEndl();
 
         result.addElement("threads", Number<std::size_t>(solver.getThreadAvailability()));
+        result.addEndl();
+
+        result.addElement("start", makeValues(solver.getLastStart()));
+        result.addEndl();
+
+        result.addElement("target", makeValues(solver.getLastTarget()));
         result.addEndl();
 
         {

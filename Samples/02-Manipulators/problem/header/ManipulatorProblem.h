@@ -11,28 +11,16 @@
 #include <Manipulator.h>
 #include <Sphere.h>
 #include <Problem.h>
-#include <JSONstream.h>
 
 namespace mt::sample {
-    struct ProblemData {
+    NodeState degree2rad(const NodeState& pose);
+
+    struct Description {
         std::vector<Manipulator> robots;
         std::vector<geometry::Sphere> obstacles;
     };
 
-    class ManipulatorProblem : public Problem {
-    public:
-        ManipulatorProblem(const std::vector<Manipulator>& robots, const std::vector<geometry::Sphere>& obstacles);
-
-        const std::vector<Manipulator>& getRobots() const;
-
-        const std::vector<geometry::Sphere>& getObstacles() const;
-
-        structJSON getJSON() const;
-    };
-
-    std::tuple<ProblemPtr, NodeState, NodeState> importProblem(const std::string& configFileName);
-
-    NodeState degree2rad(const NodeState& pose);
+    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName);
 }
 
 #endif

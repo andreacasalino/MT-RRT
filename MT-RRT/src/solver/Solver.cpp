@@ -11,6 +11,11 @@
 #include <omp.h>
 
 namespace mt::solver {
+	SolutionInfo::SolutionInfo(const NodeState& start, const NodeState& target)
+		: start(start)
+		, target(target) {
+	}
+
 	Solver::Solver(ProblemPtr problemDescription) {
 		if (nullptr == problemDescription) {
 			throw Error("problem description can't be null");
@@ -38,6 +43,11 @@ namespace mt::solver {
 			throw Error("start configuration has inconsistent size");
 		}
 
+		if((RRTStrategy::Bidir == rrtStrategy) &&
+		   (!this->data->problemsBattery.front()->isProblemSimmetric())) {
+			throw Error("bidirectional strategy is not possible for this problem");
+		}
+
 		bool cumulFlagOld = this->strategy->getCumulateFlag();
 		if (RRTStrategy::Star == rrtStrategy) {
 			this->strategy->setCumulateFlag(true);
@@ -46,6 +56,9 @@ namespace mt::solver {
 		this->lastSolution = this->strategy->solve(start, end, rrtStrategy);
 		this->lastSolution->time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tic);
 		this->strategy->setCumulateFlag(cumulFlagOld);
+		if(!this->data->saveComputedTrees) {
+			this->lastSolution->trees.clear();
+		}
 	}
 
 	void Solver::setThreadAvailability(const std::size_t& threads) {
@@ -98,6 +111,18 @@ namespace mt::solver {
 		return this->lastSolution->iterations;
 	}
 
+	NodeState Solver::getLastStart() const {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		if (nullptr == this->lastSolution) return {};
+		return this->lastSolution->start;
+	};
+
+	NodeState Solver::getLastTarget() const {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		if (nullptr == this->lastSolution) return {};
+		return this->lastSolution->target;
+	};
+
 	std::vector<NodeState> Solver::copyLastSolution() const {
 		std::lock_guard<std::mutex> lock(this->data->solverMutex);
 		if (nullptr == this->lastSolution) return {};
@@ -124,5 +149,15 @@ namespace mt::solver {
 		}
 		this->lastSolution->trees.clear();
 		return temp;
+	}
+
+	void Solver::saveTreesAfterSolve() {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		this->data->saveComputedTrees = true;
+	}
+
+	void Solver::discardTreesAfterSolve() {
+		std::lock_guard<std::mutex> lock(this->data->solverMutex);
+		this->data->saveComputedTrees = false;
 	}
 }

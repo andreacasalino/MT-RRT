@@ -7,16 +7,17 @@
 
 #include <ManipulatorProblem.h>
 #include <Logger.h>
+#include <SampleDescription.h>
 using namespace std;
 
 int main() {
-	size_t Iterations = 3500;
+	size_t Iterations = 2000;
 	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
 	{
-		auto imported = mt::sample::importProblem(std::string(CONFIG_FOLDER) + "/Sample03-config");
+		auto imported = mt::sample::importManipulatorProblem(std::string(CONFIG_FOLDER) + "/Sample03-config");
 		problem = std::move(std::get<0>(imported));
 		start = mt::sample::degree2rad(std::get<1>(imported));
 		target = mt::sample::degree2rad(std::get<2>(imported));
@@ -27,7 +28,8 @@ int main() {
 	strategy->getIterationsMax().set(Iterations);
 	solver.setStrategy(std::move(strategy));
 	solver.setThreadAvailability(0);
-	solver.setSteerTrials(5);
+	solver.setSteerTrials(10);
+	solver.saveTreesAfterSolve();
 
 	mt::sample::Results results;
 
@@ -47,7 +49,7 @@ int main() {
 
 	mt::sample::structJSON log;
 	solver.useProblem([&log](const mt::Problem& problem){
-		log.addElement("problem", static_cast<const mt::sample::ManipulatorProblem&>(problem).getJSON());
+		log.addElement("problem", dynamic_cast<const mt::sample::SampleDescription<mt::sample::Description>*>(problem.getTrajManager())->logDescription());
 	});
 	log.addEndl();
 	log.addElement("results", results.getJSON());

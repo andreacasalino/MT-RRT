@@ -12,6 +12,8 @@
 #include <trajectory/Cost.h>
 
 namespace mt::traj {
+    enum AdvanceInfo { blocked, advanced, targetReached };
+
     class Trajectory {
     public:
         virtual	~Trajectory() = default;
@@ -19,22 +21,14 @@ namespace mt::traj {
         Trajectory(const Trajectory&) = delete;
         Trajectory& operator=(const Trajectory&) = delete;
 
-        inline const NodeState& getCursor() const { return this->cursor; };
+        // spiegare che questi 2 ritornano un numero senza senso se ultimo advance e stato blocked
+        virtual NodeState getCursor() const = 0;
+        virtual float getCumulatedCost() const = 0;
 
-        inline float getCumulatedCost() const { return this->cumulatedCost.get(); };
-
-        enum AdvanceInfo { blocked, advanced, targetReached };
-        // return false when the advancement was not possible
         virtual AdvanceInfo advance() = 0;
 
     protected:
-        Trajectory(const NodeState& start, const NodeState& target);
-
-    // data
-        const NodeState& target;
-
-        NodeState cursor;
-        Cost cumulatedCost;
+        Trajectory() = default;
     };
 
     typedef std::unique_ptr<Trajectory> TrajectoryPtr;

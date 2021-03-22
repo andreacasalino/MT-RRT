@@ -39,7 +39,7 @@ num_threads(static_cast<int>(Threads))
     }
 
     std::unique_ptr<SolutionInfo> MultiAgentStrategy::solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) {
-        auto sol = std::make_unique<SolutionInfo>();
+        auto sol = std::make_unique<SolutionInfo>(start, end);
 
         auto make_extBattery = [this, &end, &sol]() -> std::vector<ExtSingle> {
             std::vector<ExtSingle> battery;

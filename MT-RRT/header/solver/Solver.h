@@ -19,6 +19,11 @@ namespace mt::solver {
 	class Strategy;
 
 	struct SolutionInfo {
+		SolutionInfo(const NodeState& start, const NodeState& target);
+
+		const NodeState start;
+		const NodeState target;
+		
 		std::chrono::milliseconds		time = std::chrono::milliseconds(0);
 		std::size_t						iterations = 0;
 		std::vector<NodeState>			solution;
@@ -28,6 +33,7 @@ namespace mt::solver {
 	struct SolverData {
 		std::mutex solverMutex;
 		std::vector<ProblemPtr> problemsBattery;
+		bool saveComputedTrees = false;
 	};
 	
 	/** \brief Interface for a planner.
@@ -72,6 +78,9 @@ namespace mt::solver {
 
 		std::chrono::milliseconds				getLastElapsedTime() const;
 
+		NodeState								getLastStart() const;
+		NodeState								getLastTarget() const;
+
 		// copied
 		std::vector<NodeState>					copyLastSolution() const;
 
@@ -85,6 +94,9 @@ namespace mt::solver {
 			std::lock_guard<std::mutex> lck(this->data->solverMutex);
 			user(*this->data->problemsBattery.front().get());
 		};
+
+		void									saveTreesAfterSolve();
+		void									discardTreesAfterSolve();
 
 	private:
 	// data

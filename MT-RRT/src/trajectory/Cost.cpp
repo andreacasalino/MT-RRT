@@ -11,6 +11,6 @@ namespace mt::traj {
     const float Cost::COST_MAX = std::numeric_limits<float>::max();
 
     Cost::Cost()
-        : Positive<float>(COST_MAX) {
+        : Positive<float>(0.f) {
     }
 }

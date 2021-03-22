@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from Utils import *
 
 class Result:
     def __init__(self, fig, ax, problem, result_ij):
@@ -11,7 +10,8 @@ class Result:
 
     def showProblem(self, ax, problem):
         for b in problem["obstacles"]:
-            ax.broken_barh([(b[0],b[2] - b[0])], (b[1],b[3] - b[1]), facecolors='tab:orange')
+            rect = makeRectangle(ax, b[3] - b[1], b[2] - b[0], "#E75328")
+            locatePatch(ax, rect, 0.5 * (b[0] + b[2]), 0.5 * (b[1] + b[3]), 0)
         ax.set_xlim(problem["limits"][0], problem["limits"][2])
         ax.set_ylim(problem["limits"][1], problem["limits"][3])
         
