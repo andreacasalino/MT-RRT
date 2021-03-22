@@ -12,18 +12,18 @@
 using namespace std;
 
 
-class TrajectoryGenLog {
+class DebugLog {
 public:
-    TrajectoryGenLog() {
+    DebugLog() {
         auto data = mt::sample::importNavigationProblem(std::string(CONFIG_FOLDER) + "/Sample00-config");
         this->problem = std::move(std::get<0>(data));
 	    this->problemLog = dynamic_cast<const mt::sample::SampleDescription<mt::sample::Description>*>(problem->getTrajManager())->logDescription();
     };
-    ~TrajectoryGenLog() {
+    ~DebugLog() {
         mt::sample::structJSON log;
         log.addElement("problem", this->problemLog);
         log.addElement("traj", this->trajLog);
-        mt::sample::printData(log , "TrajGen.json");
+        mt::sample::printData(log , "DebugLog.json");
     };
 
     inline mt::sampling::Sampler* getSampler() const { return this->problem->getSampler(); };
@@ -64,12 +64,14 @@ private:
 };
 
 int main() {
-    TrajectoryGenLog logger;
+    DebugLog logger;
 
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * M_PI}, std::vector<float>{100.f, 100.f, 0.25f * M_PI});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * M_PI}, std::vector<float>{100.f, 100.f, 0.f});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * M_PI / 4.f});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{-100.f, -100.f, -3.f * M_PI / 4.f});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, -100.f, -3.f * M_PI / 4.f});
     logger.addTrajectory(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * M_PI});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, -0.25f * M_PI}, std::vector<float>{200.f, 100.f, 0.25f * M_PI});

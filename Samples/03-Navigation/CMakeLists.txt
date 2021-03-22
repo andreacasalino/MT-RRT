@@ -11,7 +11,8 @@ endmacro()
 
 add_executable(SampleNavigation-00-traj-gen SampleNavigation-00-traj-gen.cpp)
 target_link_libraries(SampleNavigation-00-traj-gen PUBLIC Samples-Navigation)
-CopyFile(SampleNavigation-00-traj-gen   VisualizeTrajectories.py   VisualizeTrajectories.py)
+CopyPythonVisualizer(SampleNavigation-00-traj-gen)
+CopyFile(SampleNavigation-00-traj-gen   DebugLog.py   DebugLog.py)
 ADD_CONFIG_FOLDER(SampleNavigation-00-traj-gen)
 
 add_executable(SampleNavigation-01-open SampleNavigation-01-open.cpp)
