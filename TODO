@@ -10,3 +10,4 @@ scrivere dentro codice esempi che puoi visualize res con python code
 usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
 documentare per bene come e' calcolata traiettoria cart
+controllare che parametri solver siano settati correttamente in esempi (deter coedd, iteration, etc.)

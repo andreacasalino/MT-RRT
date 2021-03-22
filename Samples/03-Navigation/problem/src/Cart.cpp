@@ -67,8 +67,8 @@ namespace mt::sample {
             this->checker0.check(*this->segments[2] , this->relativePos);
             this->checker1.check(*this->segments[3] , this->relativePos);
         }
-        if (this->checker0.getDistance() <= obstacle.getRay()) return true;
-        if (this->checker1.getDistance() <= obstacle.getRay()) return true;
+        if (this->checker0.getDistance() <= obstacle.getRay() * 1.1f) return true;
+        if (this->checker1.getDistance() <= obstacle.getRay() * 1.1f) return true;
         return false;
     }
 }
