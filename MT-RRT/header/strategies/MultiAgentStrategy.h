@@ -17,6 +17,8 @@ namespace mt::solver {
     public:
         MultiAgentStrategy() = default;
 
+        /** @throw passing Bidir as rrtStrategy
+         */
         std::unique_ptr<SolutionInfo> solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy) final;
 
         inline Limited<double>& getIterationsMax() { return this->reallignmentCoeff; };

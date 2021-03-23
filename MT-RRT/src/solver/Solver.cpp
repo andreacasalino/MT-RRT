@@ -96,9 +96,6 @@ namespace mt::solver {
 	};
 
 	void Solver::setSteerTrials(const std::size_t& trials) {
-		if (0 == trials) {
-			throw Error("invalid steer trials");
-		}
 		std::lock_guard<std::mutex> lock(this->data->solverMutex);
 		for (auto it = this->data->problemsBattery.begin(); it != this->data->problemsBattery.end(); ++it) {
 			(*it)->setSteerTrials(trials);

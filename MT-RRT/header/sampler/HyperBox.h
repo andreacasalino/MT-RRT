@@ -22,6 +22,7 @@ namespace mt::sampling {
     public:
         /** @param the lower corner of the hyperbox 
          *  @param the upper corner of the hyperbox
+         *  @throw if lowerCorner and upperCorner size mismatch or some of the values inside lowerCorner are greater than ones in upperCorner
          */
         HyperBox(const NodeState lowerCorner, const NodeState upperCorner);
 

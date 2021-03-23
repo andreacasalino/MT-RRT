@@ -7,6 +7,4 @@ usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
 documentare per bene come e' calcolata traiettoria cart
 aggiungere references in codice a parti latex
-document throw
 document src of MT-RRT
-controllare in doc return -> brief

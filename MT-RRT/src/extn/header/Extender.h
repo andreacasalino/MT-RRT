@@ -18,25 +18,31 @@
 #endif
 
 namespace mt {
+	/** @brief Used to extend one or two connected search trees 
+	 */
 	template<typename Solution>
 	class Extender {
 	public:
 		virtual ~Extender() = default;
 
-		/** \brief Perform the specified number of estensions on a wrapped tree(s).
-		\details This function may be called multiple times, for performing batch of extensions.
-		If the cumulation of the solution was not enabled, calling this method when a solution was already
-		found raise an exception.
-		* @param[in] Iterations the number of extensions to perform
-		*/
+		/** @brief Perform the specified number of estensions on the wrapped tree(s).
+		 * This function may be called multiple times, for performing batch of extensions.
+		 * All the solutions found while extending are saved and stored in this object.
+		 * @param the number of extension to perform		
+		 */
 		virtual void extend(const std::size_t& Iterations) = 0;
 
-		/** \brief Get the extensions so far done.
-		*/
+		/** @brief Get the extensions done so far.
+		 */
 		inline std::size_t getIterationsDone() const { return this->iterationsDone; };
 
+		/** @brief Get the collection solutions found
+		 */
 		inline const std::set<Solution>& getSolutions() const { return this->solutionsFound; };
 
+		/** @return the sequence of states pertaining to the best solution found.
+		 * In case no solution were found at all, an empty vector is returned
+		 */
 		std::vector<NodeState> computeBestSolutionSequence() const {
 			if (this->solutionsFound.empty()) {
 				return {};
@@ -44,6 +50,9 @@ namespace mt {
 			return this->computeSolutionSequence(*this->solutionsFound.begin());
 		};
 
+		/** @return the sequence of states pertaining to the best solution found, among all the ones
+		 * stored in all the passed extenders
+		 */
 		template<typename ExtT>
 		static std::vector<NodeState> computeBestSolutionSequence(const std::vector<ExtT> extenders) {
 			std::set<Solution> solutions;
@@ -70,6 +79,8 @@ namespace mt {
 
 	// data
 		sampling::UniformEngine randEngine;
+		/** @brief when set true, the extension process is not arrested when a first solution is found
+		 */
 		const bool				cumulateSolutions;
 		const double			deterministicCoefficient;
 		std::size_t					iterationsDone = 0;
@@ -80,6 +91,8 @@ namespace mt {
 
 	TreeCore* convert(Tree* t);
 
+	/** @return the sum of extensions done by all the passed extenders
+	 */
 	template<typename Extender>
 	std::size_t getIterationsDone(const std::vector<Extender>& battery) {
 		std::size_t iter = 0;

@@ -19,7 +19,8 @@ namespace mt {
 	class Node {
 	public:
 		/** @param the values inside the vector respresenting this state
-		*/
+		 *  @throw when passing an empty state
+		 */
 		Node(const NodeState& state);
 
 		virtual ~Node() = default;
@@ -30,6 +31,7 @@ namespace mt {
 		Node& operator=(Node&&) = delete;
 
 		/** @return Computes the cost to get from the root to this node, see METTERE.
+		 *  @throw when the root is not reached, cause loopy connections were made
 		 */
 		float													cost2Root() const;
 

@@ -67,12 +67,14 @@ namespace mt::solver {
 		Solver& operator=(const Solver&) = delete;
 
 		/** @param the problem description, i.e. the obect consumed by the solver to extend exploring trees and find solution(s)
+		 *  @throw passing nullptr as problemDescription 
 		 */
 		Solver(ProblemPtr problemDescription);
 
 		/** @param the problem description, i.e. the obect consumed by the solver to extend exploring trees and find solution(s)
 		 *  @param the solving strategy to use for the following planning problems to solve (same as building the object with no
 		 *  strategy and then call setStrategy(...))
+		 *  @throw passing nullptr as problemDescription
 		 */
 		Solver(ProblemPtr problemDescription, std::unique_ptr<Strategy> solverStrategy);
 
@@ -91,6 +93,9 @@ namespace mt::solver {
 		 * @param the ending state of the problem to solve
 		 * @param the rrt strategy to use
 		 * @throw if no @Strategy was set before calling this method. 
+		 * @throw if size of start is inconsistent
+		 * @throw if size of end is inconsistent 
+		 * @throw passing Bidir for  rrtStrategy for a problem that is not symmetric, see METTERE
 		 */
 		void solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
@@ -135,7 +140,7 @@ namespace mt::solver {
 		 */
 		std::size_t								getThreadAvailability() const;
 
-		/** @return Use the problem stored inside this solver for some external purpose
+		/** @brief Use the problem stored inside this solver for some external purpose
 		 */
 		template<typename User>
 		void									useProblem(const User& user) {

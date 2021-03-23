@@ -23,6 +23,7 @@ namespace mt {
 		*  @param the dimension of the state space of the problem to solve. Refer to METTERE
 		*  @param the parameters described in METTERE
 		*  @param true when the problem is simmetric. Refer to METTERE
+		*  @throw if sampler or manager are nullptr
 	 	*/
 		Problem(sampling::SamplerPtr sampler, traj::TrajectoryFactoryPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
 		Problem& operator=(const Problem& ) = delete;
