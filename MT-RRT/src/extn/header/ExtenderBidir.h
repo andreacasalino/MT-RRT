@@ -22,7 +22,7 @@ namespace mt {
     public:
         ExtBidir(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& leftTree, Tree& rightTree);
 
-        void extend(const size_t& Iterations) override;
+        void extend(const std::size_t& Iterations) override;
 
         std::vector<NodeState> computeSolutionSequence(const BidirSolution& sol) const override;
 

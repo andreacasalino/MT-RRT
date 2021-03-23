@@ -1,13 +1,10 @@
-size_t -> std::size_t
 rendere const attributi il piu possibile
 rendere const method il piu possibile
 usare explicit in c'tor
 mettere documentazione latex
-ricontrollare tutti ++
-improve code recycle between solvers
 aggiornare documentazione
-scrivere dentro codice esempi che puoi visualize res con python code
 usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
 documentare per bene come e' calcolata traiettoria cart
-controllare che parametri solver siano settati correttamente in esempi (deter coedd, iteration, etc.)
+aggiungere references in codice a parti latex
+document throw

@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 namespace mt {
-    /** @brief A runtime error that can be raised when using any object in mt::
+    /** @brief A runtime error that can be raised by any object inside mt::
 	 */
     class Error : public std::runtime_error {
     public:

@@ -15,9 +15,9 @@ namespace mt {
         , target(target) {
     }
 
-    void ExtSingle::extend(const size_t& Iterations) {
+    void ExtSingle::extend(const std::size_t& Iterations) {
 		bool newSolFound = false;
-		for (size_t k = 0; k < Iterations; ++k) {
+		for (std::size_t k = 0; k < Iterations; ++k) {
 			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = this->tree.extend(this->target);
 				if (temp.second) {

@@ -14,10 +14,12 @@
 namespace mt {
 	typedef std::vector<float> NodeState;
 
-	/** \brief Used internally by a tree (see Tree.h) for representing a state  x \in \underline{\mathcal{X}}, Section 1.2.1 of the documentation.
+	/** @brief Used for representing a state  x \in \underline{\mathcal{X}}, Section METTERE of the documentation.
 	*/
 	class Node {
 	public:
+		/** @param the values inside the vector respresenting this state
+		*/
 		Node(const NodeState& state);
 
 		virtual ~Node() = default;
@@ -27,33 +29,26 @@ namespace mt {
 		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
-		/** \brief Similar to Node::Cost_to_root(float* result), but throwing an exception when the length of the path that must be followed to reach the root
-		is higher than I_max.
-		\details This method is called by Tree_star to detect the existance of loop in the tree. It is never used when _REW_DEBUG (check Tree.h) is not activated
-		*/
+		/** @return Computes the cost to get from the root to this node, see METTERE.
+		 */
 		float													cost2Root() const;
 
-		/** \brief Computes the cost to go from the father of this node to this node.
-		* @param[out] return the cost to go to return.
-		*/
+		/** @return The cost to go from the father of this node to this node.
+		 */
 		inline const float&									    getCostFromFather() const { return this->costFromFather; };
 
-		/** \brief Returns the state represented by this node.
-		* @param[out] return the address of the first value of the array representing the state.
-		*/
+		/** @return the state describing this node
+		 */
 		inline const NodeState&									getState() const { return this->state; };
 		
-		/** \brief Returns the father of this node.
-		\details Each node has a single father and can be the father of many nodes. 
-		* @param[out] return the father node of this node.
-		*/
+		/** @return the node to reach before this one, in the path connecting the root to this node. Returns nullptr for the root
+		 */
 		inline Node*											getFather() const { return this->father; };
 
-		/** \brief Connect this node to the new one passed as input.
-		\details Each node has a single father and can be the father of many nodes. 
-		* @param[in] new_father the node to assume as new father
-		* @param[in] cost_from_father the cost to go from the new father
-		*/
+		/** @brief Connect this node to the new one passed as input.
+		 *  @param the node to assume as new father
+		 *  @param the cost to go from the new father to set
+		 */
 		void													setFather(Node* new_father, const float& cost_from_father);
 
 	private:

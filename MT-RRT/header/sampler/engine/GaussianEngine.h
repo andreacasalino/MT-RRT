@@ -11,10 +11,19 @@
 #include <sampler/engine/RandomEngine.h>
 
 namespace mt::sampling {
+    /** @brief Used to draw samples from a normal distribution
+     */
     class GaussianEngine : public RandomEngine<std::normal_distribution<float>> {
     public:
+        /** @param the mean of the normal distribution
+         *  @param the standard deviation of the normal distribution
+         */
         GaussianEngine(const float& mean, const float& stdDeviation);
-        GaussianEngine();  // [0,1]
+
+        /** @brief Similar to GaussianEngine::GaussianEngine(const float& mean, const float& stdDeviation),
+         * assuming 0 as mean and 1 as standard deviation
+         */
+        GaussianEngine();
     };
 }
 

@@ -21,7 +21,7 @@ namespace mt {
     public:
         ExtSingle(const bool& cumulateSolutions, const double& deterministicCoefficient, Tree& tree, const NodeState& target);
 
-        void extend(const size_t& Iterations) override;
+        void extend(const std::size_t& Iterations) override;
 
         std::vector<NodeState> computeSolutionSequence(const SingleSolution& sol) const override;
 

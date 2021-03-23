@@ -11,9 +11,14 @@
 #include <sampler/engine/SeedFactory.h>
 
 namespace mt::sampling {
+    /** @brief An object used to drawn samples in a thread safe manner.
+     * Use one of the ancestors of this interface instead of rand(), which is not thread safe
+     */
     template<typename Distribution>
     class RandomEngine {
     public:
+        /** @brief Draw an return a new sample
+         */
         inline float operator()() const { return this->distribution(this->generator); };
 
     protected:

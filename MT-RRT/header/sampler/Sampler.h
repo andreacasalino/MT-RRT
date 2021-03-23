@@ -12,12 +12,14 @@
 #include <Node.h>
 
 namespace mt::sampling {
+	/** @brief Interface for a sampler of states.
+	 */
 	class Sampler : public Copiable<Sampler> {
 	public:
-		/** \brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section 1.2.1 of the documentation.
-		\details This function is invoked for randomly growing a searching tree.
-		* @param[out] return the random node computed . 
-		*/
+		/** @brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section METTERE of the documentation.
+		 * This function is invoked mainly for randomly growing a searching tree.
+		 * @return a drawn random state. 
+		 */
         virtual NodeState randomState() const = 0;
 	};
 

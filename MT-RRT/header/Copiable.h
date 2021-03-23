@@ -11,13 +11,15 @@
 #include <memory>
 
 namespace mt {
-    /** @brief Interface for a copiable object
+    /** @brief Interface for a copiable object.
 	 */
     template<typename T>
     class Copiable {
     public:
         virtual ~Copiable() = default;
 
+       /** @brief A deep copy need to be implemented for the descendant
+        */
         virtual std::unique_ptr<T> copy() const = 0;
 
     protected:

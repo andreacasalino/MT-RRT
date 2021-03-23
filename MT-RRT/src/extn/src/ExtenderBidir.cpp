@@ -30,7 +30,7 @@ namespace mt {
 		return std::make_tuple(b, a, cost);
 	};
 
-    void ExtBidir::extend(const size_t& Iterations) {
+    void ExtBidir::extend(const std::size_t& Iterations) {
 		bool newSolFound = false;
 		bool caso = true;
 		TreeCore* Master = &this->leftTree;
@@ -68,7 +68,7 @@ namespace mt {
 			}
 		};
 
-		for (size_t k = 0; k < Iterations; k += 2) {
+		for (std::size_t k = 0; k < Iterations; k += 2) {
 			if (this->randEngine() < this->deterministicCoefficient) {
 				auto temp = Master->extend(Slave->front()->getState());
 				if (temp.second) {

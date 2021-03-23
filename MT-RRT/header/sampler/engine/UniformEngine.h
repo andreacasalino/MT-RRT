@@ -11,10 +11,19 @@
 #include <sampler/engine/RandomEngine.h>
 
 namespace mt::sampling {
+    /** @brief Used to draw sample whithin a compact inverval [l, U]
+     */
     class UniformEngine : public RandomEngine<std::uniform_real_distribution<float>> {
     public:
+        /** @param the lower bound of the compact interval
+         *  @param the upper bound of the compact interval
+         */
         UniformEngine(const float& lowerBound, const float& upperBound);
-        UniformEngine();  // [0,1]
+
+        /** @brief Similar to UniformEngine::UniformEngine(const float& lowerBound, const float& upperBound),
+         * assuming 0 as lower bound and 1 as the upper one
+         */
+        UniformEngine();
     };
 }
 

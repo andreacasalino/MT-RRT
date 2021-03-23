@@ -12,9 +12,15 @@
 #include <Error.h>
 
 namespace mt {
+    /** @brief A numeric quantity whose value should always remain between defined bounds
+    */
     template<typename T>
     class Limited {
     public:
+       /** @param lower bound for the value
+        *  @param upper bound for the value
+        *  @param initial value to set
+        */
         Limited(const T& lowerBound, const T& upperBound, const T& initialValue)
             : lowerBound(lowerBound)
             , upperBound(upperBound) {
@@ -24,17 +30,26 @@ namespace mt {
             this->set(initialValue);
         };
 
+       /** @brief similar to Limited::Limited(const T& lowerBound, const T& upperBound, const T& initialValue),
+        * assuming lowerBound as initial value
+        */
         Limited(const T& lowerBound, const T& upperBound)
             : Limited(lowerBound, upperBound, lowerBound) {
         };
 
         Limited(const Limited& ) = default;
+        Limited& operator=(const Limited& ) = default;
 
         inline const T& getLowerBound() const { return this->lowerBound; };
         inline const T& getUpperBound() const { return this->upperBound; };
 
+       /** @return the current value
+        */
         inline T get() const { return this->value; };
 
+       /** @param the new value to assumed
+        *  @throw if the value is not consistent with the bounds
+        */
         void set(const T& newValue) {
             if(newValue < this->lowerBound) {
                 throw Error("the new value is lower than bound");
@@ -51,6 +66,8 @@ namespace mt {
         const T upperBound;
     };
 
+    /** @brief A @Limited quantity, having +infinite as upper bound
+    */
     template<typename T>
     class LowerLimited : public Limited<T> {
     public:
@@ -63,6 +80,8 @@ namespace mt {
         };
     };
 
+    /** @brief A @LowerLimited quantity, having 0.0 as lower bound
+    */
     template<typename T>
     class Positive : public LowerLimited<T> {
     public:
@@ -76,6 +95,8 @@ namespace mt {
         };
     };
 
+    /** @brief A @Limited quantity, having -infinite as lower bound
+    */
     template<typename T>
     class UpperLimited : public Limited<T> {
     public:

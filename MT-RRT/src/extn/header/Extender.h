@@ -29,7 +29,7 @@ namespace mt {
 		found raise an exception.
 		* @param[in] Iterations the number of extensions to perform
 		*/
-		virtual void extend(const size_t& Iterations) = 0;
+		virtual void extend(const std::size_t& Iterations) = 0;
 
 		/** \brief Get the extensions so far done.
 		*/
@@ -72,7 +72,7 @@ namespace mt {
 		sampling::UniformEngine randEngine;
 		const bool				cumulateSolutions;
 		const double			deterministicCoefficient;
-		size_t					iterationsDone = 0;
+		std::size_t					iterationsDone = 0;
 		std::set<Solution>  	solutionsFound;
 	};
 
