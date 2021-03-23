@@ -1,4 +1,5 @@
 from Utils import *
+from matplotlib.animation import FuncAnimation
 
 class Result:
     def __init__(self, fig, ax, problem, result_ij):

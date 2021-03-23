@@ -11,7 +11,9 @@
 using namespace std;
 
 int main() {
-	size_t Iterations = 3000;
+	mt::sample::StrategyParameter parameters;
+	parameters.iterations = 3000;
+	parameters.steerTrials = 15;
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
@@ -23,19 +25,9 @@ int main() {
 	}
 	mt::solver::Solver solver(std::move(problem));
 
-	solver.setThreadAvailability(0);
-	solver.setSteerTrials(15);
-	solver.saveTreesAfterSolve();
+	mt::sample::Results results(solver, start, target, parameters);
 
-	mt::sample::Results results(solver, start, target, 0, true);
-
-	mt::sample::structJSON log;
-	solver.useProblem([&log](const mt::Problem& problem){
-		log.addElement("problem", dynamic_cast<const mt::sample::SampleDescription<mt::sample::Description>*>(problem.getTrajManager())->logDescription());
-	});
-	log.addEndl();
-	log.addElement("results", results.getJSON());
-	printData(log, "Result02.json");
+	mt::sample::logResults<mt::sample::SampleDescription<mt::sample::Description>>("Result02.json", solver, results);
 
 	return EXIT_SUCCESS;
 }

@@ -11,8 +11,10 @@
 using namespace std;
 
 int main() {
-	size_t Iterations = 3000;
 	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
+	mt::sample::StrategyParameter parameters;
+	parameters.iterations = 3000;
+	parameters.steerTrials = 15;
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
@@ -24,29 +26,21 @@ int main() {
 	}
 	mt::solver::Solver solver(std::move(problem));
 
-	auto strategy = mt::sample::make_strategy(strategyType);
-	strategy->getIterationsMax().set(Iterations);
-	strategy->getDeterministicCoefficient().set(0.1f);
-	solver.setStrategy(std::move(strategy));
-	solver.setThreadAvailability(0);
-	solver.setSteerTrials(15);
-	solver.saveTreesAfterSolve();
+	mt::sample::setStrategy(solver , strategyType, parameters);
 
 	mt::sample::Results results;
 
 	solver.solve(start, target, mt::solver::RRTStrategy::Single);
-	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single, true);
-
+	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single);
+	if(mt::sample::StrategyType::MtMultiAgent != strategyType) {
+		// not possible for the multi agent approach
+		solver.solve(start, target, mt::solver::RRTStrategy::Bidir);
+		results.addResult(solver, strategyType, mt::solver::RRTStrategy::Bidir);
+	}
 	solver.solve(start, target, mt::solver::RRTStrategy::Star);
-	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star, true);
+	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star);
 
-	mt::sample::structJSON log;
-	solver.useProblem([&log](const mt::Problem& problem){
-		log.addElement("problem", dynamic_cast<const mt::sample::SampleDescription<mt::sample::Description>*>(problem.getTrajManager())->logDescription());
-	});
-	log.addEndl();
-	log.addElement("results", results.getJSON());
-	printData(log, "Result03.json");
+	mt::sample::logResults<mt::sample::SampleDescription<mt::sample::Description>>("Result03.json", solver, results);
 
 	return EXIT_SUCCESS;
 }

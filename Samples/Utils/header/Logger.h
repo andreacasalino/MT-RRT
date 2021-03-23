@@ -13,11 +13,17 @@
 #include <solver/Strategy.h>
 #include <JSONstream.h>
 #include <map>
+#include <iostream>
 
 namespace mt::sample {
     enum StrategyType { Serial, MtQueryParall, MtSharedTree, MtLinkedTrees, MtMultiAgent };
-
-    std::unique_ptr<solver::Strategy> make_strategy(const StrategyType& type);
+    struct StrategyParameter {
+        std::size_t iterations = 1000;
+        std::size_t steerTrials = 1;
+        float determinism = 0.1f;
+        std::size_t threads = 0;
+    };
+    void setStrategy(solver::Solver& solver,  const StrategyType& type, const StrategyParameter& parameters);
 
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
@@ -28,15 +34,27 @@ namespace mt::sample {
         Results() = default;
 
         // solve with all possible StrategyType
-        Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution = false);
+        Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters);
 
-        void addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution = false);
+        void addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy);
 
         structJSON getJSON() const;
 
     private:
         std::map<StrategyType, std::map<solver::RRTStrategy, structJSON> > resultMatrix;
     };
+
+    template<typename LoggableTrajManager>
+    void logResults(const std::string& fileName, solver::Solver& solver, const Results& results) {
+        mt::sample::structJSON log;
+        solver.useProblem([&log](const mt::Problem& problem){
+            log.addElement("problem", dynamic_cast<const LoggableTrajManager*>(problem.getTrajManager())->logDescription());
+        });
+        log.addEndl();
+        log.addElement("results", results.getJSON());
+        printData(log, fileName);
+        std::cout << "use the python script Visualizer.py to visually check the results" << std::endl;
+    }
 }
 
 #endif

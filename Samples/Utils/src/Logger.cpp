@@ -91,6 +91,16 @@ namespace mt::sample {
         return nullptr;
     }
 
+    void setStrategy(solver::Solver& solver,  const StrategyType& type, const StrategyParameter& parameters) {
+        auto strategy = make_strategy(type);
+        strategy->getIterationsMax().set(parameters.iterations);
+        solver.setSteerTrials(parameters.steerTrials);
+        strategy->getDeterministicCoefficient().set(parameters.determinism);
+        solver.setThreadAvailability(parameters.threads);
+        solver.saveTreesAfterSolve();
+        solver.setStrategy(std::move(strategy));
+    };
+
     structJSON Results::getJSON() const {
         structJSON json;
         for (auto r = this->resultMatrix.begin(); r != this->resultMatrix.end(); ++r) {
@@ -103,7 +113,7 @@ namespace mt::sample {
         return json;
     }
 
-    void Results::addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy, const bool& interpolateSolution) {
+    void Results::addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy) {
         structJSON result;
         result.addEndl();
 
@@ -125,12 +135,11 @@ namespace mt::sample {
         {
             arrayJSON solutionJSON;
             auto sol = solver.copyLastSolution();
-            if(interpolateSolution) {
-                auto interp = [&sol](Problem& p){
-                    sol = interpolate(sol, *p.getTrajManager());
-                };
-                solver.useProblem(interp);
-            }
+            // interpolate the solution
+            auto interp = [&sol](Problem& p){
+                sol = interpolate(sol, *p.getTrajManager());
+            };
+            solver.useProblem(interp);
             for (auto it = sol.begin(); it != sol.end(); ++it) {
                 arrayJSON stateJSON;
                 addValues(stateJSON, it->data(), it->size());
@@ -171,29 +180,27 @@ namespace mt::sample {
         itR->second.emplace(rrtStrategy, std::move(result));
     }
 
-    Results::Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const std::size_t& threads, const bool& interpolateSolution) {
+    Results::Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters) {
         auto usePossibleRrtStrategies = [&](const StrategyType& strgt) {
-            solver.setStrategy( make_strategy(strgt) );
+            setStrategy(solver, strgt, parameters);
 
             solver.solve(start, end, solver::RRTStrategy::Single);
-            this->addResult(solver, strgt, solver::RRTStrategy::Single, interpolateSolution);
+            this->addResult(solver, strgt, solver::RRTStrategy::Single);
 
             try {
                 solver.solve(start, end, solver::RRTStrategy::Bidir);
-                this->addResult(solver, strgt, solver::RRTStrategy::Bidir, interpolateSolution);
+                this->addResult(solver, strgt, solver::RRTStrategy::Bidir);
             }
             catch(...) {
             }
             
             solver.solve(start, end, solver::RRTStrategy::Star);
-            this->addResult(solver, strgt, solver::RRTStrategy::Star, interpolateSolution);
+            this->addResult(solver, strgt, solver::RRTStrategy::Star);
         };
 
         std::cout << "Serial started" << std::endl;
         usePossibleRrtStrategies(StrategyType::Serial);
         std::cout << "done" << std::endl;
-
-        solver.setThreadAvailability(threads);
 
         std::cout << "Query Parall started" << std::endl;
         usePossibleRrtStrategies(StrategyType::MtQueryParall);
