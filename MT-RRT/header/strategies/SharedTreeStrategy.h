@@ -11,6 +11,8 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
+    /** @brief strategy described in METTERE
+	 */
     class SharedTreeStrategy : public Strategy {
     public:
         SharedTreeStrategy() = default;

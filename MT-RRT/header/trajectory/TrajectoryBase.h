@@ -11,8 +11,13 @@
 #include <trajectory/Trajectory.h>
 
 namespace mt::traj {
+    /** @brief Base class for a Trajectory. Calling advance a second time, after the first one 
+     * returned blocked throw an exception
+	 */
     class TrajectoryBase : public Trajectory {
     public:
+        /** @throw if a previous call to advance returned blocked
+	     */
         AdvanceInfo advance() final;
 
         inline float getCumulatedCost() const final { return this->cumulatedCost.get(); };

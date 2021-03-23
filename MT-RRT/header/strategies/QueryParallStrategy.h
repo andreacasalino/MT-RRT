@@ -11,6 +11,8 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
+    /** @brief strategy described in METTERE
+	 */
     class QueryParallStrategy : public Strategy {
     public:
         QueryParallStrategy() = default;

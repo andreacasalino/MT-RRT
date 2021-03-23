@@ -11,8 +11,12 @@
 #include <Limited.h>
 
 namespace mt::traj {
+    /** @brief Describes a cost to go
+	 */
     class Cost : public Positive<float> {
     public:
+        /** @brief Equal to the maximum possible float and assumed as upper bound for this object
+	     */
         static const float COST_MAX;
 
         Cost();  // 0 is assumed as initial value

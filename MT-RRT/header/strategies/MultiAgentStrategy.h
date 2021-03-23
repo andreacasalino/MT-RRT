@@ -11,6 +11,8 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
+    /** @brief strategy described in METTERE
+	 */
     class MultiAgentStrategy : public Strategy {
     public:
         MultiAgentStrategy() = default;
@@ -20,6 +22,8 @@ namespace mt::solver {
         inline Limited<double>& getIterationsMax() { return this->reallignmentCoeff; };
 
     private:
+        /** @brief refer to METTERE
+	     */
         Limited<double> reallignmentCoeff = Limited<double>(0.01, 0.99, 0.05f);
     };
 }

@@ -12,6 +12,8 @@
 #include <list>
 
 namespace mt::traj {
+    /** @brief Base class for a Trajectory made of pieces of sub-ones.
+	 */
     class TrajectoryComposite : public TrajectoryBase {
     public:
         inline NodeState getCursor() const override { return (*this->piecesCursor)->getCursor(); };

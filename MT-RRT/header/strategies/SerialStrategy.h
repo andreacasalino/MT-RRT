@@ -11,6 +11,8 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
+    /** @brief The standard serial strategy described in METTERE
+	 */
     class SerialStrategy : public Strategy {
     public:
         SerialStrategy() = default;

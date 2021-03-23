@@ -18,6 +18,9 @@ namespace mt::traj {
         const NodeState targetStored;
     };
 
+    /** @brief Internally saves the target state, in order for the const refernce stored in Line
+     * to remain meaningful.
+	 */
     class LineTrgSaved
         : TargetStorer
         , public Line {
