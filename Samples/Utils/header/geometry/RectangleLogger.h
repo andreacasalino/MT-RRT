@@ -12,7 +12,8 @@
 #include <Logger.h>
 
 namespace mt::sample::geometry {
-    // [xMin, yMin, xMax, yMax]
+    /** @return "[xMin, yMin, xMax, yMax]" of the passed rectangle
+	 */
     arrayJSON log(const Rectangle& rectangle);
 }
 

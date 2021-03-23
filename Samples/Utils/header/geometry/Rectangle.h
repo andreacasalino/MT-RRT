@@ -13,55 +13,48 @@
 #include <vector>
 
 namespace mt::sample::geometry {
-	/** \brief Data type describing a box like obstacle
-	*/
 	class Rectangle {
 	public:
-		/** \brief Constructor. It takes two point in the space delimitating the box, i.e. the two vertices having the maximal and the minium possible x,y coordinates
-		* @param[in] A the first vertex describing the box
-		* @param[in] B the second vertex describing the box
-		*/
+		/** @param lower corner of the box
+		 *  @param upper corner of the box
+		 */
 		Rectangle(const geometry::Point& A, const geometry::Point& B);
 		Rectangle(const Rectangle& o);
 
-		/** \brief Check whether the passed segment (described by the two passed points) collides with this box.
-		\details Seg_A and Seg_B are the vertices at the beginning and the ending of the segment.
-		* @param[out] return true in case a collision is present.
-		* @param[in] Seg_A the first vertex describing the segement to check for the collision
-		* @param[in] Seg_B the second vertex describing the segement to check for the collision
-		*/
+		/** @brief Check whether the segment described by the passed points collides with this box.
+		 *  @param the first point of the segment to check
+		 *  @param the second point of the segment to check
+		 */
 		bool collideWithSegment(const float* pointA, const float* pointB) const;
 
-		/** \brief Check whether the passed point (described by the two passed coordinates) is contained in this box.
-		* @param[out] return true in case the point is contained.
-		* @param[in] Seg_A the first vertex describing the segement to check for the collision
-		* @param[in] Seg_B the second vertex describing the segement to check for the collision
-		*/
+		/** @brief Check whether the passed point collides with this box.
+		 *  @param the point to check
+		 */
 		bool collideWithPoint(const float* coordinates) const;
 
-		/** \brief get the minimum value along the x axis of this box
-		*/
+		/** @brief get the minimum value along the x axis of this box
+		 */
 		inline const float& getXMin() const { return this->x_min; };
 
-		/** \brief get the maximal value along the x axis of this box
-		*/
+		/** @brief get the maximal value along the x axis of this box
+		 */
 		inline const float& getXMax() const { return this->x_max; };
 
-		/** \brief get the minimum value along the y axis of this box
-		*/
+		/** @brief get the minimum value along the y axis of this box
+		 */
 		inline const float& getYMin()  const { return this->y_min; };
 
-		/** \brief get the maximal value along the y axis of this box
-		*/
+		/** @brief get the maximal value along the y axis of this box
+		 */
 		inline const float& getYMax()  const { return this->y_max; };
 
-		/** \brief Initializes a random set of boxes.
-		\details N_boxes are randomly placed in the space and then an algorithms tries to addense
-		these boxes around N_cluster clusters.
-		* @param[in] N_cluster the number of clusters to consider
-		* @param[in] N_boxes the number of boxes to generate
-		* @param[out] boxes the random set of generated boxes
-		*/
+		/** @brief Computes a random set of boxes.
+		 * N_boxes are randomly placed in the space and then an algorithms tries to addense
+		 * these boxes around N_cluster clusters.
+		 * @param the number of clusters to consider
+		 * @param the number of boxes to generate
+		 * @return set of random rectangles
+		 */
 		static std::vector<Rectangle> generateRandomBoxes(const size_t& N_cluster, const size_t& N_boxes);
 
 	private:

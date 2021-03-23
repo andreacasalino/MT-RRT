@@ -23,12 +23,16 @@ namespace mt::sample {
         float determinism = 0.1f;
         std::size_t threads = 0;
     };
+    /** @brief Builds, configure and set for the solver a solving strategy
+      */
     void setStrategy(solver::Solver& solver,  const StrategyType& type, const StrategyParameter& parameters);
 
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
     void printData(const streamJSON& data, const std::string& fileName);
 
+    /** @brief Object used to save the data obtained from a Solver, inside the provided samples
+      */
     class Results {
     public:
         Results() = default;

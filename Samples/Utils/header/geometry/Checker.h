@@ -11,6 +11,8 @@
 #include <Point.h>
 
 namespace mt::sample::geometry {
+    /** @brief Object used to check collision of pair of geometries
+	 */
     class Checker {
     public:
         inline const float& getDistance() { return this->distance; };
@@ -18,19 +20,26 @@ namespace mt::sample::geometry {
         inline const Point& getClosesetInB() { return this->closestInB; };
 
     protected:
+        /** @brief The minimum distance of the last checked pair. 0 when a collision is present
+	     */
         float	distance;
+        /** @brief Closest points of the last checked pair. Meaningful if the last pair did not collide
+	     */
         Point	closestInA;
         Point	closestInB;
     };
 
+    /** @brief Infinite line against a sphere
+	 */
     class LinePointChecker : public Checker {
     public:
         LinePointChecker() = default;
 
         virtual void check(const Segment& line, const Point& point);
 
-        //closest point to sphere is obtained as the following convex combination:
-        //closest = seg.V1 + s * (seg.V2 - seg.V1)
+        /** @brief closest point in the line is obtained as the following convex combination:
+         * closest = line.A + a * (line.A - line.B)
+	     */
         inline const float& getCoeff() { return this->coeff; };
 
     protected:
@@ -40,6 +49,8 @@ namespace mt::sample::geometry {
         float		coeff;
     };
 
+    /** @brief Finite segment against a sphere
+	 */
     class SegmentPointChecker : public LinePointChecker {
     public:
         SegmentPointChecker() = default;
@@ -47,6 +58,8 @@ namespace mt::sample::geometry {
         void check(const Segment& seg, const Point& point) override;
     };
 
+    /** @brief Infinite line against another infinite line
+	 */
     class LineLineChecker : public Checker {
     public:
         LineLineChecker() = default;
@@ -55,11 +68,13 @@ namespace mt::sample::geometry {
 
         inline bool wereParallel() { return this->parallelism; };
 
-        //closest point in segA is obtained as the following convex combination:
-        //closest = segA.V1 + a * (segA.V2 - segA.V1)
+        /** @brief closest point in segA is obtained as the following convex combination:
+         * closest = segA.A + a * (segA.A - segA.B)
+	     */
         inline const float& getCoeffA() { return this->coeffA; };
-        //closest point in segB is obtained as the following convex combination:
-        //closest = segB.V1 + b * (segB.V2 - segB.V1)
+        /** @brief closest point in segB is obtained as the following convex combination:
+         * closest = segB.A + a * (segB.A - segBS.B)
+	     */
         inline const float& getCoeffB() { return this->coeffB; };
 
     protected:
@@ -71,6 +86,8 @@ namespace mt::sample::geometry {
         float		coeffB;
     };
 
+    /** @brief Finite segment against another finite segment
+	 */
     class SegmentSegmentChecker : public LineLineChecker {
     public:
         SegmentSegmentChecker() = default;

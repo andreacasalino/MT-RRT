@@ -16,12 +16,22 @@
 namespace mt::sample {
     class Importer {
     public:
+        /** @brief Reads and parse a textual file wher each row should have at least 2 values.
+         * The first value in each row respresents the name of a field, while all the following should
+         * be numbers to associate to that field.
+         * The numbers parsed and related to a specific field can be accessed using find(...)
+         *  @param the file storing the data to parse
+         *  @param the fields that should be present in the file. Additional fields might be present but the passed ones should be mandatory
+         *  present at least once in the file
+         */
         template<typename ... Args>
         Importer(const std::string& fileName, Args ... requiredFields) 
             : requiredFields(parseRequired(requiredFields...)) {
             this->parseData(fileName);
         };
 
+        /** @return the values associated to a field name (which might be repeated in the file)
+         */
         std::vector<std::vector<float>*> find(const std::string& field);
 
     private:

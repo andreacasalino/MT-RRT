@@ -11,6 +11,8 @@
 #include <JSONstream.h>
 
 namespace mt::sample {
+    /** @brief Interface for an object storing the information that completely defines a planning problem
+     */
     template<typename Description>
     class SampleDescription {
     public:

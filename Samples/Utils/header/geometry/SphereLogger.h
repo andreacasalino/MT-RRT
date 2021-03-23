@@ -12,7 +12,8 @@
 #include <Logger.h>
 
 namespace mt::sample::geometry {
-    // [y,y,ray]
+    /** @return "[y,y,ray]" of the passed sphere
+	 */
     arrayJSON log(const Sphere& sphere);
 }
 

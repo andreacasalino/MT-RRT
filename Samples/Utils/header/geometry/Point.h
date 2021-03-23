@@ -9,9 +9,15 @@
 #define MT_RRT_SAMPLE_POINT_H
 
 namespace mt::sample::geometry {
+    /** @brief A 3d point in the space
+	 */
     class Point {
     public:
-        Point(); // random point
+        /** @brief random values are set for the coordinates
+	     */
+        Point();
+        /** @brief 0 is assumed for z coordinate
+	     */
         Point(const float& x, const float& y);
         Point(const float& x, const float& y, const float& z);
 
