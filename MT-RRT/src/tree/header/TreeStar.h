@@ -13,6 +13,8 @@
 #include <type_traits>
 
 namespace mt {
+	/** @brief A tree that always compute and applies the rewires when adding a new node in the tree
+	 */
 	template<typename TCore>
 	class TreeStar 
 		: public TCore

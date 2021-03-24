@@ -12,6 +12,8 @@
 #include <Problem.h>
 
 namespace mt {
+	/** @brief Base class Tree, storing a problem pointer
+	 */
 	class TreeBase : public Tree {
 	public:	
 		virtual inline Problem* getProblem() const { return this->problem; };
@@ -19,6 +21,8 @@ namespace mt {
 	protected:
         TreeBase() = default;
 
+		/** @brief The problem description this tree should use
+		 */
 		Problem* problem = nullptr;
 	};
 }
