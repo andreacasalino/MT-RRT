@@ -23,7 +23,8 @@ namespace mt::solver::multiag {
 	protected:
 		std::set<Node*> nearSet(const NodeState& state) const override;
 
-		std::vector<std::list<NodePtr>> temporaryBuffer;
+		// using list for Nodes might lead to compile errors on some compilers
+		std::list<Nodes> temporaryBuffers;
 	};
 }
 

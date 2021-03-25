@@ -27,6 +27,7 @@ namespace mt {
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
+
 		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
