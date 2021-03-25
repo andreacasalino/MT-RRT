@@ -11,7 +11,7 @@
 using namespace std;
 
 int main() {
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
 	mt::sample::StrategyParameter parameters;
 	parameters.iterations = 2000;
 	parameters.steerTrials = 5;
