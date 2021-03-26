@@ -19,8 +19,8 @@ namespace mt::traj {
 	 */
     enum AdvanceInfo { blocked, advanced, targetReached };
 
-    /** @brief Interface describing an optimal trajectory connecting 2 states, in a particular problem to solve.
-     * Refer to METTERE. A cursor internally stored the state currently reached. When avancing this object,
+    /** @brief Interface describing an optimal trajectory \tau connecting 2 states, Section 1.2 of the documentation, in a particular problem to solve.
+     * A cursor internally stored the state currently reached. When avancing this object,
      * the cursor is modified in order to traverse the trajectory.
 	 */
     class Trajectory {

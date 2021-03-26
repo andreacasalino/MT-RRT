@@ -11,7 +11,7 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
-    /** @brief strategy described in METTERE
+    /** @brief strategy described in Section 3.0.3 of the documentation
 	 */
     class LinkedTreesStrategy : public Strategy {
     public:
@@ -22,8 +22,6 @@ namespace mt::solver {
         inline Limited<double>& getIterationsMax() { return this->reallignmentCoeff; };
 
     private:
-        /** @brief refer to METTERE
-	     */
         Limited<double> reallignmentCoeff = Limited<double>(0.01, 0.99, 0.05f);
     };
 }

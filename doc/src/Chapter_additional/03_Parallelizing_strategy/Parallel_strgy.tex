@@ -1,9 +1,7 @@
 \chapter{Parallel RRT}
 \label{chap:parallel_RRT}
 
-This Chapter will provide details about the strategies adopted for parallelizing RRT that MT$\_$RRT contains. Further details are contained also in \cite{MT_RRT}, which is the publication were for the first time MT$\_$RRT was presented. In \cite{MT_RRT} you can find also a comparison in terms of computational times.
-\\
-Each strategy described in the following Sections is able to parallelize the three RRT versions exposed in Sections \ref{sec:RRT_single}, \ref{sec:RRT_bidir} and \ref{sec:RRT_star}. The only exception must be made only for the strategy exposed in Section \ref{sec:strtg_multi}, for which a bidirectional RRT (Section \ref{sec:RRT_bidir}) cannot be applied.
+This Chapter will provide details about the multi-threaded strategies provided by MT-RRT. Further details are contained also in \cite{MT_RRT}, which is the publication were for the first time MT-RRT was presented. In \cite{MT_RRT} you can find also a comparison in terms of computational times.
 
  \begin{figure}
 \begin{tabular}{cc}
@@ -36,26 +34,27 @@ Each strategy described in the following Sections is able to parallelize the thr
 \end{figure}
 
 \subsection{Parallelization of the query activities}
+\label{sec:strtg_query}
 
 All the RRT versions spend a significant time in performing query operations on the tree, i.e. operations that require to traverse all the tree.
 Such operations are mainly the nearest neighbour search, algorithm \ref{alg:NearNeigh}, and the determination of the near set, algorithm \ref{alg:Expand_star}.
 \\
-The key idea is to perform the above query operations with a parallel for, where at an average all the threads process the same amount of nodes in the tree, computing their distances for determine the nearest neighbour or the near set. 
-The parallel regions are not re-opened and closed every time, but a thread pooling strategy is adopted: all the threads are spawn when a new planning problem must be solved and remain active and ready to perform the parallel for described before.
+The key idea is to perform the above query operations by making use of a thread pool implementing parallel for regions, where at an average all the threads process the same amount of nodes in the tree, computing their distances for determine the nearest neighbour or the near set. 
+All the threads in the pool are spawn when a new planning problem must be solved and remain active and ready to perform the parallel for described before.
 All the operations of the RRT (regardless the version considered) are done by the main thread, which notifies at the proper time when a new query operation must be process collectively by all the threads. Figure \ref{fig:parall_strategies}.a summarizes the approach.
 \\
-The class implementing this approach is Planner$\_$query$\_$parall.
+The object implementing this approach is QueryParallStrategy.
 
 \subsection{Shared tree critical regions}
+\label{sec:strtg_shared}
 
 Another way to obtain a parallelization is to actually do simultaneously, every single step of the RRT versions. Therefore, we can imagine having threads sharing a common tree (or two trees in the case of a bidirectional strategy), executing in parallel every step of the expansion process. Some critical sections must be designed to allow the threads executing the maintenance of the shared tree(s) (inserting new nodes or executing new rewirds) one at a time.
 More precisely, the steer is done outside and only the insertion of the steered configuration in the tree is performed inside a critical region.
 Similarly, the extending procedure of the RRT*, algorithm \ref{alg:Expand_star}, is modified by shifting the determination of the near set and the Rewird procedure in a critical section. Figure \ref{fig:parall_strategies}.b summarizes the approach.
 \\
-The class implementing this approach is Planner$\_$shared$\_$parall.
+The object implementing this approach is SharedTreeStrategy.
 
-
-\subsection{Parallel expansions of copied trees}
+\subsection{Parallel expansions on linked trees}
 \label{sec:strtg_copied}
 
 To limit as much as possible the overheads induced by the presence of critical sections, we can consider a version similar to the one proposed in the previous Section, but for which every thread has a private copy of the search tree. After a new node is added by a thread to its own tree, $P-1$ copies are computed and dispatched \footnote{They are dispatched into proper buffer, but not directly inserted in the private copies of the other trees.} to the other threads, were $P$ is the number of working threads.
@@ -71,16 +70,12 @@ When searching the best solution at the end of all the iterations, the best conn
 Clearly, the amount memory required by this approach is significantly high, since multiple copies of a node must live in the different threads.
 This can be a problem to account for.
 \\
-The class implementing this approach is Planner$\_$copied$\_$parall.
- 
-%METTERE figura che spiega calcolo path to root
-
+The object implementing this approach is LinkedTreesStrategy.
 
 \subsection{Multi agents approach}
 \label{sec:strtg_multi}
 
-The strategy described in this Section aims at exploiting a significant number of threads, with both a reduced synchronizing need and allocation memory requirements. To this purpose, a variant of the RRT was developed for which every exploring thread has not the entire knowledge of the
-tree, but it is conscious of a small portion of it. 
+The strategy described in this Section aims at exploiting a significant number of threads, with both a reduced synchronizing need and allocation memory requirements. To this purpose, a variant of the RRT was developed for which every exploring thread has not the entire knowledge of the tree, but it is conscious of a small portion of it. 
 Therefore, we can deploy many threads to simultaneously explore the state space $\mathcal{X}$ (ignoring the results found by the other agents) for
 a certain amount of iterations. After completing this sub-exploration task, all data incoming from the agents are collected and stored in a centralized data base while the agents wait to begin a new explorative batch, completely forgetting the nodes found at the previous iteration. 
 The described behaviour resembles one of many exploring ants, which reports the exploring data to a unique anthill.
@@ -89,7 +84,7 @@ Notice that there is no need to physically copy the states computed by the agent
 \\
 When considering this approach a bidirectional search is not implementable, while the RRT* can be extended as reported in the following.
 Essentially, the agents perform a standard non-optimal exploration, implementing the steps of a canonical RRT, Section \ref{sec:RRT_single}.
-Then, at the time of inserting the nodes into the common database, the rewirds are done by the main thread.
+Then, at the time of inserting the nodes into the common database, the rewirds are done.
 \\
 The described multi agent approach is clearly a modification of the canonical RRT versions, since the agents start exploring every time from some new roots, ignoring all the previously computed nodes. However, it was empirically found that the global behaviour of the path search is not deteriorated and the optimality properties of the RRT* seems to be preserved.
 \\
@@ -97,4 +92,4 @@ Before concluding this Section it is worthy to notice that the mean time spent f
 lower, since such operations are performed by agents considering only their own local reduced size trees.
 \\
 Figure \ref{fig:parall_strategies}.d summarizes the approach.
-The class implementing this approach is Planner$\_$multi$\_$agents.
+The object implementing this approach is MultiAgentStrategy.

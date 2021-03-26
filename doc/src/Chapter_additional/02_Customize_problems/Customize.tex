@@ -1,7 +1,7 @@
 \chapter{Customize your own planning problem}
 \label{chap:custom}
 
-MT$\_$RRT can be deployed to solve each possible problems for which RRT can be used. The only thing to do is to derive a specific object from the interface called Node::I$\_$Node$\_$factory to have an object describing your particular problem. The methods contained in this object are in charge of sampling new random states in $\mathcal{X}$ or computing the optimal trajectories $\tau$, which is the pre-requisite for performing steering operations (Figure \ref{fig:Steer}).
+MT-RRT can be deployed to solve each possible problems for which RRT can be used. The only thing to do is to derive a specific object from the interface called Node::I$\_$Node$\_$factory to have an object describing your particular problem. The methods contained in this object are in charge of sampling new random states in $\mathcal{X}$ or computing the optimal trajectories $\tau$, which is the pre-requisite for performing steering operations (Figure \ref{fig:Steer}).
 Such functions are problem-specific and for this reason they must be implemented every time a new kind of problem must be solved.
 \\
 In order to help the user in understanding how to implement a derivation to Node::I$\_$Node$\_$factory, three main kind of examples are part of the library. In the following Sections, they will be briefly reviewed.
@@ -42,7 +42,7 @@ The steering procedure is done as similarly described in Section \ref{sec:steer_
 
 \section{Articulated arm problem}
 
-This is for sure one of the most common problem that can be solved using MT$\_$RRT. Consider a cell having a group of articulated serial robots.
+This is for sure one of the most common problem that can be solved using MT-RRT. Consider a cell having a group of articulated serial robots.
 $Q^{i}$ will denote the vector describing the configuration of the $i^{th}$ robot, i.e. the positional values assumed by each of its joint.
 A generic state $x_i$ is characterized by the series of poses assumed by all the robots in the cell:
 \begin{eqnarray}
