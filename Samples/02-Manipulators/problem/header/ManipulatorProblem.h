@@ -22,7 +22,9 @@ namespace mt::sample {
 
     NodeState degree2rad(const NodeState& pose);
 
-    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName);
+    enum AdvanceApproach { Tunneled, BubbleFreeConfiguration };
+
+    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName, const AdvanceApproach& advanceAppr = AdvanceApproach::BubbleFreeConfiguration);
 }
 
 #endif

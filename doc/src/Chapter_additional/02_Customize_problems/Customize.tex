@@ -133,7 +133,7 @@ where $\mathcal{B}_O$ contains describes the region containing the poses guarant
 \sum_i R^{ji} | Q^{ji} - \bar{Q}^{ji} | + \sum_i R^{ki} | Q^{ki} - \bar{Q}^{ki} | \leq d^{jk}_{min}
 \bigg \rbrace 
 \end{eqnarray}
-where $d^j_{min}$ is the minimum distance between the $i^{th}$ robot and all the obstacles in the scene, while $d^{jk}_{min}$ is the minimum distance between the $i^{th}$ and the $k^{th}$ robot. $R^{ki}$ is the distance of the furthest point of the shape of the $k^{th}$ robot to its $i^{th}$ axis of rotation. Refer also to Figure \ref{fig:dist_ray}.
+where $d^j_{min}$ is the minimum distance between the $j^{th}$ robot and all the obstacles in the scene, while $d^{jk}_{min}$ is the minimum distance between the $j^{th}$ and the $k^{th}$ robot. $R^{ki}$ is the distance of the furthest point of the shape of the $k^{th}$ robot to its $i^{th}$ axis of rotation. Refer also to Figure \ref{fig:dist_ray}.
 \\
 Each configuration $Q \in \mathcal{B}$ is guaranteed to be inside the admitted region $\underline{X}$. This fact can be exploited for performing steering operation.
 Indeed, we can take as $Q_{steered}$ the pose at the border of $\mathcal{B}(Q_i)$ along the segment connecting $Q_i$ to $Q_k$. It is not difficult to prove that such a state is equal to:
