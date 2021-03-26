@@ -263,6 +263,7 @@ There are no precise stopping criteria for the RRT*: the more iterations are per
 When solving a planning problem with MT-RRT, the pipeline of Figure \ref{fig:pipeline} should be followed.
 
 \subsubsection{A) Define the problem}
+\label{sec:define_problem}
 
 Whenever you need to solve a new class of planning problem, you should instantiate a Problem object.
 This class should contains all the information describing the particular problem to solve (how to compute the optimal trajectories $\tau$, the shape of the constraints admitted region $\underline{\mathcal{X}}$, etc..) and its made of 2 main components:

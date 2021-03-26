@@ -1,14 +1,13 @@
 \chapter{Customize your own planning problem}
 \label{chap:custom}
 
-MT-RRT can be deployed to solve each possible problems for which RRT can be used. The only thing to do is to derive a specific object from the interface called Node::I$\_$Node$\_$factory to have an object describing your particular problem. The methods contained in this object are in charge of sampling new random states in $\mathcal{X}$ or computing the optimal trajectories $\tau$, which is the pre-requisite for performing steering operations (Figure \ref{fig:Steer}).
-Such functions are problem-specific and for this reason they must be implemented every time a new kind of problem must be solved.
+MT-RRT can be deployed to solve each possible problems for which RRT can be used. The only thing to do is to derive specific concretions of Sampler and TrajectoryFactory containing all the problem-specific information, Section \ref{sec:define_problem}.
 \\
-In order to help the user in understanding how to implement a derivation to Node::I$\_$Node$\_$factory, three main kind of examples are part of the library. In the following Sections, they will be briefly reviewed.
+In order to help the user in understanding how to implement such derivations, three main kind of examples are part of the library. In the following Sections, they will be briefly reviewed.
 
 \section{Planar maze problem}
 
-The state space characterizing this problem is a two dimensional one, having $x_{1,2}$ as coordinates. The aim is to connect two 2D coordinates while avoiding the rectangular obstacles depicted in Figure \ref{fig:Maze_problem}.
+The state space characterizing this problem is two dimensional, having $x_{1,2}$ as coordinates. The aim is to connect two 2D coordinates while avoiding the rectangular obstacles depicted in Figure \ref{fig:Maze_problem}.
 The state space is bounded by two corners describing the maximum and minimum possible $x_1$ and $x_2$, see Figure \ref{fig:Maze_problem}.
 
  \begin{figure}
@@ -36,7 +35,7 @@ C(\tau_{i \rightarrow k}) = \left \| x_i - x_k \right \|
 \end{eqnarray}
 The admissible region $\underline{\mathcal{X}}$ is obtained subtracting the points pertaining to the obstacles. In other words, the segment connecting the states in the tree should not traverse any rectangular obstacle, refer to the right part of Figure \ref{fig:Maze_problem}.
 
-\subsection{Steer procedure}
+\subsection{Advancement along the optimal procedure}
 
 The steering procedure is done as similarly described in Section \ref{sec:steer_articulated}, checking a close state $x_{steered}$ that lies on the segment departing from the state to steer.
 
@@ -82,7 +81,7 @@ Q^{n2}_R \sim U(Q^{n1}_{min},Q^{n1}_{max}) \\
 Similarly to the problem described in Section \ref{sec:traj_maze}, $\tau_{i \rightarrow k}$ is assumed to be a segment in the configurational space and the cost $C$ is the Euclidean distance of a pair of states.
 The admissible region $\underline{X}$ is made by all the configurations $Q$ for which a collision is not present.
 
-\subsection{Steer procedure}
+\subsection{Advancement along the optimal procedure}
 \label{sec:steer_articulated}
 
 The trajectory going from $Q_i$ to $Q_k$ can be parametrized in order to characterize all the possible configurations pertaining to $\tau_{i \rightarrow k}$:
@@ -229,7 +228,7 @@ The cost $C(\tau)$ is assumed to be the total length of $\tau$. It is worthy to 
  \label{fig:traj_feas}
  \end{figure}
 
-\subsection{Steer procedure}
+\subsection{Advancement along the optimal procedure}
 
 The steering from a state $x_i$ toward another $x_j$ is done by moving along the trajectory $\tau_{i \rightarrow j}$, advancing every time of a little quantity of space (also when traversing the circular part of the trajectory).
 The procedure is arrested when a configuration not lying in $\underline{\mathcal{X}}$ is found or $x_j$ is reached. Figure \ref{fig:vehicle_steer} summarizes the steering procedure.

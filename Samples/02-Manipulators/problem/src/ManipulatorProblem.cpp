@@ -11,6 +11,7 @@
 #include <Error.h>
 #include <list>
 #include <Importer.h>
+#include <PI.h>
 
 namespace mt::sample {
     NodeState make_limit(const std::size_t& size, const float& value) {
@@ -69,7 +70,7 @@ namespace mt::sample {
     NodeState degree2rad(const NodeState& pose) {
         NodeState converted = pose;
         for(std::size_t k=0; k<pose.size(); ++k){
-            converted[k] = pose[k] * M_PI / 180.f;
+            converted[k] = pose[k] * C_PI / 180.f;
         }
         return converted;
     }

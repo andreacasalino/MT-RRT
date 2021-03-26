@@ -11,6 +11,7 @@
 #include <math.h>
 #include <geometry/SphereLogger.h>
 #include <geometry/RectangleLogger.h>
+#include <PI.h>
 
 namespace mt::traj {
     constexpr float CLOSENESS_TOLERANCE = 0.01f;
@@ -95,8 +96,8 @@ namespace mt::traj {
         bool isClockwise = false;
         if((euclideanDistance(start.data(), checker.getClosesetInA().data(), 2) < blendDistance) || 
            (euclideanDistance(target.data(), checker.getClosesetInA().data(), 2) < blendDistance)) {
-            coneAngleMiddle += M_PI;
-            phaseDelta = M_PI + 2.f *coneAngleAmplitude;
+            coneAngleMiddle += mt::sample::C_PI;
+            phaseDelta = mt::sample::C_PI + 2.f *coneAngleAmplitude;
             startOrientation *= blendDistance;
             endOrientation *= -blendDistance;
             if((cross(startOrientation, endOrientation) < 0.f)) {
@@ -106,7 +107,7 @@ namespace mt::traj {
         else {
             startOrientation *= -blendDistance;
             endOrientation *= blendDistance;
-            phaseDelta = 2.f * (M_PI_2 - coneAngleAmplitude);
+            phaseDelta = 2.f * (mt::sample::C_PI_2 - coneAngleAmplitude);
             if((cross(startOrientation, endOrientation) > 0.f)) {
                 isClockwise = true;
             }

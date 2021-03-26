@@ -8,7 +8,7 @@
 #include "Bubble.h"
 #include <Checker.h>
 #include <geometry/SphereLogger.h>
-#include <math.h>
+#include <PI.h>
 
 namespace mt::traj {
     sample::structJSON BubbleFactory::logDescription() const {
@@ -41,7 +41,7 @@ namespace mt::traj {
     }
 
     BubbleFactory::BubbleFactory(const sample::Description& description)
-        : LineFactory(2 * M_PI / 180.f)
+        : LineFactory(mt::sample::C_2_PI / 180.f)
         , sample::SampleDescription<sample::Description>(description) {
     }
 

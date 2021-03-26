@@ -8,13 +8,6 @@
 #ifndef MT_RRT_SAMPLE_POINT_H
 #define MT_RRT_SAMPLE_POINT_H
 
-#ifdef _WIN32
-#define _USE_MATH_DEFINES
-#include <cmath> // M_PI
-#else
-#include <math.h> // M_PI
-#endif
-
 namespace mt::sample::geometry {
     /** @brief A 3d point in the space
 	 */

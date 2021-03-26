@@ -14,6 +14,8 @@
 #include <Problem.h>
 
 namespace mt::sample {
+    /** @brief The Problem described in Section 2.3 of the documentation
+     */
     struct Description {
         geometry::Rectangle boundaries;
         std::vector<geometry::Sphere> obstacles;

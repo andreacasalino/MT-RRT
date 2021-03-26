@@ -13,12 +13,14 @@
 #include <Problem.h>
 
 namespace mt::sample {
-    NodeState degree2rad(const NodeState& pose);
-
+    /** @brief The Problem described in Section 2.2 of the documentation
+     */
     struct Description {
         std::vector<Manipulator> robots;
         std::vector<geometry::Sphere> obstacles;
     };
+
+    NodeState degree2rad(const NodeState& pose);
 
     std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName);
 }

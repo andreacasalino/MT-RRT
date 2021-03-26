@@ -23,6 +23,7 @@ namespace mt::sample {
         float determinism = 0.1f;
         std::size_t threads = 0;
     };
+
     /** @brief Builds, configure and set for the solver a solving strategy
       */
     void setStrategy(solver::Solver& solver,  const StrategyType& type, const StrategyParameter& parameters);
@@ -35,11 +36,17 @@ namespace mt::sample {
       */
     class Results {
     public:
+        /** @brief Empty result matrix: result should be later added one by one using addResult
+         */
         Results() = default;
 
-        // solve with all possible StrategyType
+        /** @brief Solve the problem with all the possible rrt algorithms and strategies, storing
+         * internally the matrix results. 
+         */
         Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters);
 
+        /** @brief Add to matrix result the data of the last problem solved by the solver
+         */
         void addResult(solver::Solver& solver, const StrategyType& mtStrategy, const solver::RRTStrategy& rrtStrategy);
 
         structJSON getJSON() const;
