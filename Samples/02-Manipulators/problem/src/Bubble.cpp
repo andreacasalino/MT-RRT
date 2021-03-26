@@ -35,11 +35,7 @@ namespace mt::traj {
         for (std::size_t k = 0; k < links.size(); ++k) {
             rays.push_back(0.f);
             for (k2 = k; k2 < links.size(); ++k2) {
-                rTemp = euclideanDistance(links[k].pointA->data(), links[k2].pointA->data(), 2) + links[k2].ray;
-                if (rTemp > rays.back()) {
-                    rays.back() = rTemp;
-                }
-                rTemp = euclideanDistance(links[k].pointA->data(), links[k2].pointB->data(), 2) + links[k2].ray;
+                rTemp = euclideanDistance(links[k].pointA->data(), links[k2].pointA->data(), 2) + std::fmax(links[k2].ray, links[k].ray);
                 if (rTemp > rays.back()) {
                     rays.back() = rTemp;
                 }
@@ -93,9 +89,10 @@ namespace mt::traj {
     }
 
     AdvanceInfo Bubble::advanceInternal() {
-        NodeState qDelta = this->target;
+        this->qDelta = this->target;
         for (std::size_t k = 0; k < qDelta.size(); ++k) {
             qDelta[k] -= this->cursor[k];
+            qDelta[k] = fabsf(qDelta[k]);
         }
 
         float c = 1.f, cTemp;

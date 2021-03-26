@@ -41,6 +41,8 @@ namespace mt::traj {
         float computeMinDist(const std::vector<sample::Capsule>& linksA, const std::vector<sample::Capsule>& linksB);
 
         const sample::Description* data;
+
+        NodeState qDelta;
     };
 }
 
