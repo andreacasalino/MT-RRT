@@ -28,8 +28,8 @@ num_threads(static_cast<int>(Threads))
             if (!Solver_to_use->getSolutions().empty() && (!Solver_to_use->isCumulating())) {
                 life = false;
             }
-            gatherer();
         }
+            gatherer();
             if (!life) break;
         }
         gatherer();

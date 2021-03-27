@@ -12,7 +12,7 @@ using namespace std;
 
 int main() {
 	mt::sample::StrategyParameter parameters;
-	parameters.iterations = 2000;
+	parameters.iterations = 1500;
 	parameters.steerTrials = 5;
 
 	mt::solver::Solver solver(mt::sample::makeProblemPoint(mt::sample::geometry::Rectangle(mt::sample::geometry::Point(-0.1f, -0.1f), mt::sample::geometry::Point(1.1f, 1.1f))

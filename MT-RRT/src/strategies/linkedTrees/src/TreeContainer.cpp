@@ -38,7 +38,9 @@ namespace mt::solver::linked {
     }
 
     void TreeContainer::gather() {
-        this->contained[omp_get_thread_num()]->gather();
+        for (auto it = this->contained.begin(); it != this->contained.end(); ++it) {
+            (*it)->gather();
+        }
     }
 
     TreeStarContainer::TreeStarContainer(NodePtr root, const std::vector<ProblemPtr>& problems) {
