@@ -9,6 +9,7 @@
 #define MT_RRT_SAMPLE_MANIPULATOR_TUNNELED_H
 
 #include <trajectory/Line.h>
+#include <Checker.h>
 #include "DescriptionLogger.h"
 
 namespace mt::traj {
@@ -21,16 +22,20 @@ namespace mt::traj {
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
         inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<TunneledFactory>(this->description); };
+
+    private:
+        mutable sample::geometry::SegmentPointChecker checker;
     };
 
     class Tunneled : public traj::Line {
     public:
-        Tunneled(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data);
+        Tunneled(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data, sample::geometry::SegmentPointChecker* checker);
 
     private:
         AdvanceInfo advanceInternal() override;
 
         const sample::Description* data;
+        sample::geometry::SegmentPointChecker* checker;
     };
 }
 

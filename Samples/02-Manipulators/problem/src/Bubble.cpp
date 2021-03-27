@@ -19,12 +19,15 @@ namespace mt::traj {
     }
 
     traj::TrajectoryPtr BubbleFactory::getTrajectory(const NodeState& start, const NodeState& ending_node) const {
-        return std::make_unique<Bubble>(start, ending_node, &this->description);
+        return std::make_unique<Bubble>(start, ending_node, &this->description, &this->checkerPoint, &this->checkerSegment);
     }
 
-    Bubble::Bubble(const NodeState& start, const NodeState& target, const sample::Description* data)
+    Bubble::Bubble(const NodeState& start, const NodeState& target, const sample::Description* data,
+        sample::geometry::SegmentPointChecker* checkerPoint, sample::geometry::SegmentSegmentChecker* checkerSegment)
         : Line(start, target, 1.f)
-        , data(data) {
+        , data(data)
+        , checkerPoint(checkerPoint)
+        , checkerSegment(checkerSegment) {
     };
 
     float getFurthest(const sample::Capsule& cap, const sample::geometry::Point& origin) {
@@ -55,12 +58,11 @@ namespace mt::traj {
 
     float Bubble::computeMinDist(const std::vector<sample::Capsule>& links) {
         float minDist = MAX_DISTANCE, temp;
-        sample::geometry::SegmentPointChecker checker;
         std::size_t l;
         for (auto it = this->data->obstacles.begin(); it != this->data->obstacles.end(); ++it) {
             for (l = 0; l < links.size(); ++l) {
-                checker.check(sample::geometry::Segment(*links[l].pointA, *links[l].pointB) , it->getCenter());
-                temp = checker.getDistance() - it->getRay() - links[l].ray;
+                this->checkerPoint->check(sample::geometry::Segment(*links[l].pointA, *links[l].pointB) , it->getCenter());
+                temp = this->checkerPoint->getDistance() - it->getRay() - links[l].ray;
                 if (temp <= 0.f) {
                     return 0.f;
                 }
@@ -79,13 +81,12 @@ namespace mt::traj {
             std::swap(ptA, ptB);
         }
         float minDist = MAX_DISTANCE, temp;
-        sample::geometry::SegmentSegmentChecker checker;
         std::size_t l2;
         for (std::size_t l1 = 0; l1 < ptB->size(); ++l1) {
             for (l2 = l1; l2 < ptA->size(); ++l2) {
-                checker.check(sample::geometry::Segment(*(*ptA)[l2].pointA, *(*ptA)[l2].pointB), 
+                this->checkerSegment->check(sample::geometry::Segment(*(*ptA)[l2].pointA, *(*ptA)[l2].pointB), 
                               sample::geometry::Segment(*(*ptB)[l1].pointA, *(*ptB)[l1].pointB));
-                temp = checker.getDistance() - (*ptA)[l2].ray - (*ptB)[l1].ray;
+                temp = this->checkerSegment->getDistance() - (*ptA)[l2].ray - (*ptB)[l1].ray;
                 if (temp <= 0.f) {
                     return 0.f;
                 }

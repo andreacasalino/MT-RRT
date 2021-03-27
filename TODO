@@ -1,6 +1,2 @@
-rendere const attributi il piu possibile
-rendere const method il piu possibile
-usare explicit in c'tor
 auto rescale plot python sulla base di pose e ostacoli loggati
 mettere in readme che alcuni compilatori potrebbero dare molti warnings per via di virtual inheritance
-cachare i Checker nelle varie factory o no?

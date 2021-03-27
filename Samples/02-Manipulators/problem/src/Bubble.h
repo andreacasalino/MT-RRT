@@ -9,6 +9,7 @@
 #define MT_RRT_SAMPLE_MANIPULATOR_BUBBLE_H
 
 #include <trajectory/Line.h>
+#include <Checker.h>
 #include "DescriptionLogger.h"
 
 namespace mt::traj {
@@ -25,11 +26,16 @@ namespace mt::traj {
         inline float cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const override {
             return euclideanDistance(start.data(), ending_node.data(), start.size());
         };
+
+    private:
+        mutable sample::geometry::SegmentPointChecker checkerPoint;
+        mutable sample::geometry::SegmentSegmentChecker checkerSegment;
     };
 
     class Bubble : public traj::Line {
     public:
-        Bubble(const NodeState& start, const NodeState& target, const sample::Description* data);
+        Bubble(const NodeState& start, const NodeState& target, const sample::Description* data,
+            sample::geometry::SegmentPointChecker* checkerPoint, sample::geometry::SegmentSegmentChecker* checkerSegment);
 
     private:
         AdvanceInfo advanceInternal() override;
@@ -43,6 +49,8 @@ namespace mt::traj {
         const sample::Description* data;
 
         NodeState qDelta;
+        sample::geometry::SegmentPointChecker* checkerPoint;
+        sample::geometry::SegmentSegmentChecker* checkerSegment;
     };
 }
 
