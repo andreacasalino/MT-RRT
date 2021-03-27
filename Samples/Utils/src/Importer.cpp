@@ -27,9 +27,9 @@ namespace mt::sample {
         return static_cast<float>(std::atof(buff.c_str()));
     }
 
-    std::vector<std::vector<float>*> Importer::find(const std::string& field) {
+    std::vector<const std::vector<float>*> Importer::find(const std::string& field) const {
         auto range = this->data.equal_range(field);
-        std::vector<std::vector<float>*> res;
+        std::vector<const std::vector<float>*> res;
         res.reserve(std::distance(range.first, range.second));
         for(auto it = range.first; it!=range.second; ++it) {
             res.push_back(&it->second);

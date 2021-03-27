@@ -15,9 +15,9 @@ namespace mt::sample::geometry {
 	 */
     class Checker {
     public:
-        inline const float& getDistance() { return this->distance; };
-        inline const Point& getClosesetInA() { return this->closestInA; };
-        inline const Point& getClosesetInB() { return this->closestInB; };
+        inline const float& getDistance() const { return this->distance; };
+        inline const Point& getClosesetInA() const { return this->closestInA; };
+        inline const Point& getClosesetInB() const { return this->closestInB; };
 
     protected:
         /** @brief The minimum distance of the last checked pair. 0 when a collision is present
@@ -40,7 +40,7 @@ namespace mt::sample::geometry {
         /** @brief closest point in the line is obtained as the following convex combination:
          * closest = line.A + a * (line.A - line.B)
 	     */
-        inline const float& getCoeff() { return this->coeff; };
+        inline const float& getCoeff() const { return this->coeff; };
 
     protected:
         void computeCoeff(const Segment& line, const Point& point);
@@ -66,16 +66,16 @@ namespace mt::sample::geometry {
 
         virtual void check(const Segment& lineA, const Segment& lineB);
 
-        inline bool wereParallel() { return this->parallelism; };
+        inline bool wereParallel() const { return this->parallelism; };
 
         /** @brief closest point in segA is obtained as the following convex combination:
          * closest = segA.A + a * (segA.A - segA.B)
 	     */
-        inline const float& getCoeffA() { return this->coeffA; };
+        inline const float& getCoeffA() const { return this->coeffA; };
         /** @brief closest point in segB is obtained as the following convex combination:
          * closest = segB.A + a * (segB.A - segBS.B)
 	     */
-        inline const float& getCoeffB() { return this->coeffB; };
+        inline const float& getCoeffB() const { return this->coeffB; };
 
     protected:
         void computeCoeff(const Segment& lineA, const Segment& lineB);

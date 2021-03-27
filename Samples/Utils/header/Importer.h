@@ -32,7 +32,7 @@ namespace mt::sample {
 
         /** @return the values associated to a field name (which might be repeated in the file)
          */
-        std::vector<std::vector<float>*> find(const std::string& field);
+        std::vector<const std::vector<float>*> find(const std::string& field) const;
 
     private:
         template<typename ... Args>

@@ -136,7 +136,7 @@ namespace mt::sample {
             arrayJSON solutionJSON;
             auto sol = solver.copyLastSolution();
             // interpolate the solution
-            auto interp = [&sol](Problem& p){
+            auto interp = [&sol](const Problem& p){
                 sol = interpolate(sol, *p.getTrajManager());
             };
             solver.useProblem(interp);

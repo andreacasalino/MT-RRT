@@ -38,7 +38,7 @@ namespace mt {
 		*  @param set true from the inside of this function, when the target was reached after steering
 		*  @return the steered configuration. Is a nullptr when the steering was not possible at all
 		*/
-		NodePtr steer(Node& start, const NodeState& trg, bool& trg_reached);
+		NodePtr steer(Node& start, const NodeState& trg, bool& trg_reached) const;
 
 	   /** @brief Sets the steering trials used when extending searching trees.
 		*/

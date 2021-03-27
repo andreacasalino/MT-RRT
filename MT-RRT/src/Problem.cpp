@@ -24,7 +24,7 @@ namespace mt {
         this->steerTrials.set(o.steerTrials.get());
     }
 
-    NodePtr Problem::steer(Node& start, const NodeState& trg, bool& trg_reached) {
+    NodePtr Problem::steer(Node& start, const NodeState& trg, bool& trg_reached) const {
         traj::TrajectoryPtr traj = this->trajManager->getTrajectory(start.getState() , trg);
         if(nullptr == traj) return nullptr;
         NodeState steered;

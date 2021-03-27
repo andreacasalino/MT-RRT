@@ -141,11 +141,13 @@ namespace mt::solver {
 		std::size_t								getThreadAvailability() const;
 
 		/** @brief Use the problem stored inside this solver for some external purpose
+		 * User should be a void operator accepting a const Problem& as input.
 		 */
 		template<typename User>
-		void									useProblem(const User& user) {
+		void									useProblem(const User& user) const {
 			std::lock_guard<std::mutex> lck(this->data->solverMutex);
-			user(*this->data->problemsBattery.front().get());
+			const Problem* prblPtr = this->data->problemsBattery.front().get();
+			user(*prblPtr);
 		};
 
 	private:
