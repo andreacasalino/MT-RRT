@@ -5,24 +5,24 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <NavigationProblem.h>
+#include <ManipulatorProblem.h>
 #include <Logger.h>
 #include <SampleDescription.h>
 using namespace std;
 
 int main() {
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
 	mt::sample::StrategyParameter parameters;
-	parameters.iterations = 3000;
-	parameters.steerTrials = 15;
+	parameters.iterations = 2000;
+	parameters.steerTrials = 10;
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
 	{
-		auto imported = mt::sample::importNavigationProblem(std::string(CONFIG_FOLDER) + "/Sample01-config");
+		auto imported = mt::sample::importManipulatorProblem(std::string(CONFIG_FOLDER) + "ConfigA");
 		problem = std::move(std::get<0>(imported));
-		start = std::get<1>(imported);
-		target = std::get<2>(imported);
+		start = mt::sample::degree2rad(std::get<1>(imported));
+		target = mt::sample::degree2rad(std::get<2>(imported));
 	}
 	mt::solver::Solver solver(std::move(problem));
 
