@@ -27,15 +27,24 @@ namespace mt::traj {
         , data(data) {
     };
 
+    float getFurthest(const sample::Capsule& cap, const sample::geometry::Point& origin) {
+        float dist1 = euclideanDistance(cap.pointA->data(), origin.data(), 2) + cap.ray;
+        float dist2 = euclideanDistance(cap.pointB->data(), origin.data(), 2) + cap.ray;
+        if (dist2 < dist1) {
+            return dist2;
+        }
+        return dist1;
+    }
+
     std::vector<float> Bubble::computeRays(const std::vector<sample::Capsule>& links) {
         std::vector<float> rays;
         rays.reserve(links.size());
         std::size_t k2;
         float rTemp;
         for (std::size_t k = 0; k < links.size(); ++k) {
-            rays.push_back(0.f);
-            for (k2 = k; k2 < links.size(); ++k2) {
-                rTemp = euclideanDistance(links[k].pointA->data(), links[k2].pointA->data(), 2) + std::fmax(links[k2].ray, links[k].ray);
+            rays.push_back(euclideanDistance(links[k].pointA->data(), links[k].pointB->data(), 2) + links[k].ray);
+            for (k2 = k + 1; k2 < links.size(); ++k2) {
+                rTemp = getFurthest(links[k2] , *links[k].pointA);
                 if (rTemp > rays.back()) {
                     rays.back() = rTemp;
                 }
@@ -88,6 +97,14 @@ namespace mt::traj {
         return minDist;
     }
 
+    float dot(const float* a, const float* b, const std::size_t& size) {
+        float res = a[0] * b[0];
+        for (std::size_t k = 1; k < size; ++k) {
+            res += a[k] * b[k];
+        }
+        return res;
+    };
+
     AdvanceInfo Bubble::advanceInternal() {
         this->qDelta = this->target;
         for (std::size_t k = 0; k < qDelta.size(); ++k) {
@@ -102,22 +119,14 @@ namespace mt::traj {
         std::vector<float> raysXDeltaQ;
         raysXDeltaQ.reserve(this->data->robots.size());
 
-        auto dot = [](const float* a, const float* b, const std::size_t& size) {
-            float res = a[0] * b[0];
-            for (std::size_t k = 1; k < size; ++k) {
-                res += a[k] * b[k];
-            }
-            return res;
-        };
-
         // links vs obstacles
         std::size_t q = 0;
         for (auto it = this->data->robots.begin(); it != this->data->robots.end(); ++it) {
             shapes.emplace_back(it->directKinematics(&this->cursor.data()[q]));
-            raysXDeltaQ.emplace_back(dot(this->computeRays(shapes.back()).data(),
-                                     &qDelta[q], it->dof()));
-            cTemp = this->computeMinDist(shapes.back());
-            if (cTemp != MAX_DISTANCE) {
+            auto rays = this->computeRays(shapes.back());
+            raysXDeltaQ.emplace_back(dot(rays.data(), &qDelta[q], it->dof()));
+            if (!this->data->obstacles.empty()) {
+                cTemp = this->computeMinDist(shapes.back());
                 cTemp = cTemp / raysXDeltaQ.back();
                 if (cTemp < c) {
                     c = cTemp;
@@ -125,14 +134,16 @@ namespace mt::traj {
             }
             q += it->dof();
         }
-        // links vs links
-        std::size_t r2;
-        for (std::size_t r1 = 0; r1 < (this->data->robots.size()-1); ++r1) {
-            for (r2 = r1 + 1; r2 < this->data->robots.size(); ++r2) {
-                cTemp = this->computeMinDist(shapes[r1], shapes[r2]);
-                cTemp = cTemp / (raysXDeltaQ[r1] + raysXDeltaQ[r2]);
-                if (cTemp < c) {
-                    c = cTemp;
+        if (this->data->robots.size() > 1) {
+            // links vs links
+            std::size_t r2;
+            for (std::size_t r1 = 0; r1 < (this->data->robots.size() - 1); ++r1) {
+                for (r2 = r1 + 1; r2 < this->data->robots.size(); ++r2) {
+                    cTemp = this->computeMinDist(shapes[r1], shapes[r2]);
+                    cTemp = cTemp / (raysXDeltaQ[r1] + raysXDeltaQ[r2]);
+                    if (cTemp < c) {
+                        c = cTemp;
+                    }
                 }
             }
         }
@@ -141,8 +152,10 @@ namespace mt::traj {
             return AdvanceInfo::blocked;
         }
 
+        std::swap(this->previousState, this->cursor);
         this->cursor = this->target;
         this->cumulatedCost.set(this->cumulatedCost.get() + c * euclideanDistance(this->previousState.data(), this->cursor.data(), this->cursor.size()));
+
         if (1.f == c) {
             return AdvanceInfo::targetReached;
         }

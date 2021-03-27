@@ -35,13 +35,13 @@ C(\tau_{i \rightarrow k}) = \left \| x_i - x_k \right \|
 \end{eqnarray}
 The admissible region $\underline{\mathcal{X}}$ is obtained subtracting the points pertaining to the obstacles. In other words, the segment connecting the states in the tree should not traverse any rectangular obstacle, refer to the right part of Figure \ref{fig:Maze_problem}.
 
-\subsection{Advancement along the optimal procedure}
+\subsection{Advancement along the optimal trajectory}
 
 The steering procedure is done as similarly described in Section \ref{sec:steer_articulated}, checking a close state $x_{steered}$ that lies on the segment departing from the state to steer.
 
 \section{Articulated arm problem}
 
-This is for sure one of the most common problem that can be solved using MT-RRT. Consider a cell having a group of articulated serial robots.
+This is for sure one of the most common problem that can be solved using rrt algorithms. Consider a cell having a group of articulated serial robots.
 $Q^{i}$ will denote the vector describing the configuration of the $i^{th}$ robot, i.e. the positional values assumed by each of its joint.
 A generic state $x_i$ is characterized by the series of poses assumed by all the robots in the cell:
 \begin{eqnarray}
@@ -81,7 +81,7 @@ Q^{n2}_R \sim U(Q^{n1}_{min},Q^{n1}_{max}) \\
 Similarly to the problem described in Section \ref{sec:traj_maze}, $\tau_{i \rightarrow k}$ is assumed to be a segment in the configurational space and the cost $C$ is the Euclidean distance of a pair of states.
 The admissible region $\underline{X}$ is made by all the configurations $Q$ for which a collision is not present.
 
-\subsection{Advancement along the optimal procedure}
+\subsection{Advancement along the optimal trajectory}
 \label{sec:steer_articulated}
 
 The trajectory going from $Q_i$ to $Q_k$ can be parametrized in order to characterize all the possible configurations pertaining to $\tau_{i \rightarrow k}$:
@@ -102,9 +102,10 @@ Q_{steered} = \left\{\begin{matrix}
 \textit{else} \Rightarrow Q_i + s_{\Delta} ( Q_k - Q_i ) \textit{   s.t.   } s_{\Delta} \left \| Q_k - Q_i  \right \| = \epsilon
 \end{matrix}\right.
 \end{eqnarray}
-with $\epsilon$ in the order of few degrees. $Q_{steered}$ is checked to be or not in $\underline{X}$ and is consequently marked as $VALID$ or $INVALID$. The class Tunneled$\_$check$\_$collision is in charge of implementing such an extension strategy. It absorbs an object of type I$\_$Collision$\_$checker to check whether for a certain state are present or not collisions. I$\_$Collision$\_$checker is just an interface: you can integrate your own collision checker (using for example \cite{Bullet} or \cite{React}) by deriving an object from this interface.
+with $\epsilon$ in the order of few degrees. $Q_{steered}$ is checked to be or not in $\underline{X}$, by checking the presence of collisions, and is consequently marked as $VALID$ or $INVALID$. 
+This library does not provide a general collision checker (some very basics geometrical functions were implemented in order to run the samples). Anyway when implementing such an approach, you can easily integrate your favourite collision checker (like for example \cite{Bullet} or \cite{React}) to embed in your own TrajectoryFactory.
 \\
-Clearly, multiple tunneled check, starting from $Q_i$, can be done in order to get as close as possible to $Q_k$. This process can be arrested when reaching $Q_k$ or an intermediate state for which a collision check is not passed. This behaviour can be obtained by using I$\_$Node$\_$factory::Set$\_$Steer$\_$iterations.
+Clearly, multiple tunneled check, starting from $Q_i$, can be done in order to get as close as possible to $Q_k$. This process can be arrested when reaching $Q_k$ or an intermediate state for which a collision check is not passed. This behaviour can be obtained by setting a value grater than 1 with Solver::setSteerTrials(...).
 \\
 Figure \ref{fig:Tunnel_check} summarizes the above considerations.
 
@@ -112,7 +113,7 @@ Figure \ref{fig:Tunnel_check} summarizes the above considerations.
 	 \centering
  \def\svgwidth{0.45 \columnwidth}
  \import{../src/Chapter_additional/02_Customize_problems/image/}{Tunneled_check_collision.pdf_tex} 
-	 \caption{Steer extension along the segment connecting two states in the configuration space. On the left a single steer approach, on the right a multiple one.}
+	 \caption{Steer extension along the segment connecting two states in the configuration space. On the left a single steer trial approach, on the right a multiple one.}
  \label{fig:Tunnel_check}
  \end{figure}
 
@@ -149,9 +150,7 @@ s_B &=& min_{j, k\in \lbrace 1,\hdots,n \rbrace, q,q_2} \bigg \lbrace
 \end{eqnarray}
 Also in this case a multiple steer approach is possible for this strategy, refer also to Figure \ref{fig:bubbles}.
 \\
-Bubbles$\_$free$\_$configuration contains the functionalities for performing steering operations using the bubble of free configuration. Then, you have to deploy your own geometric engine in order to compute the distances $d^j_{min}$, $d^{jk}_{min}$ as well as the radii $R^{ki}$, deriving an object from I$\_$Proximity$\_$calculator.
-Robots$\_$info stored in these kind of objects is a structure containing the distance $d^j_{min}$, as well as the radii $R^{ki}$ (with an order that goes from the base to the end effector), while Robot$\_$distance$\_$pairs is a buffer of distances storing all the possible $d^{jk}_{min}$, with the order indicated in Figure \ref{fig:cross_distances}.
-
+Again, you can deploy your own geometric engine in order to compute the distances $d^j_{min}$, $d^{jk}_{min}$ as well as the radii $R^{ki}$ and define your custom TrajectoryFactory implementing the approach described in this Section.
 
  \begin{figure}
 	 \centering
@@ -168,16 +167,6 @@ Robots$\_$info stored in these kind of objects is a structure containing the dis
 	 \caption{Single (left) and multiple (right) steer using the bubbles of free configurations.}
  \label{fig:bubbles}
  \end{figure}
-
-
- \begin{figure}
-	 \centering
- \def\svgwidth{0.45 \columnwidth}
- \import{../src/Chapter_additional/02_Customize_problems/image/}{cross_distances.pdf_tex} 
-	 \caption{Values stored in Robot$\_$distance$\_$pairs.}
- \label{fig:cross_distances}
- \end{figure}
-
 
 \section{Navigation problem}
 
@@ -228,7 +217,7 @@ The cost $C(\tau)$ is assumed to be the total length of $\tau$. It is worthy to 
  \label{fig:traj_feas}
  \end{figure}
 
-\subsection{Advancement along the optimal procedure}
+\subsection{Advancement along the optimal trajectory}
 
 The steering from a state $x_i$ toward another $x_j$ is done by moving along the trajectory $\tau_{i \rightarrow j}$, advancing every time of a little quantity of space (also when traversing the circular part of the trajectory).
 The procedure is arrested when a configuration not lying in $\underline{\mathcal{X}}$ is found or $x_j$ is reached. Figure \ref{fig:vehicle_steer} summarizes the steering procedure.

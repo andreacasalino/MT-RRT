@@ -22,6 +22,8 @@ namespace mt::sample {
 
     NodeState degree2rad(const NodeState& pose);
 
+    /** @brief Used to select between the two advance approaches described in Sections 2.2.3.1 (Tunneled) and Sections 2.2.3.2 (BubbleFreeConfiguration)
+     */
     enum AdvanceApproach { Tunneled, BubbleFreeConfiguration };
 
     std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName, const AdvanceApproach& advanceAppr = AdvanceApproach::BubbleFreeConfiguration);

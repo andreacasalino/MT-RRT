@@ -1,9 +1,6 @@
 rendere const attributi il piu possibile
 rendere const method il piu possibile
 usare explicit in c'tor
-aggiornare documentazione
-usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
-documentare per bene come e' calcolata traiettoria cart
 mettere in readme che alcuni compilatori potrebbero dare molti warnings per via di virtual inheritance
 cachare i Checker nelle varie factory o no?
