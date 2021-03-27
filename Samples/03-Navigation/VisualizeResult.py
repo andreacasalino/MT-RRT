@@ -1,6 +1,14 @@
 from Utils import *
 from matplotlib.animation import FuncAnimation
 
+def adaptLimits(lim, sequence):
+    for s in sequence:
+        if(s < lim[0]):
+            lim[0] = s
+        if(s > lim[1]):
+            lim[1] = s
+    return lim
+
 class AnimableCart:
     def __init__(self, ax, width, length, traj):
         self.w = width
@@ -41,8 +49,13 @@ class Scene:
             ax.plot(self.cart.curveTraj.x , self.cart.curveTraj.y, color="blue", linewidth=0.35)
             self.animation = FuncAnimation(fig, func=self.setIndex, frames=range(0,len(solution),1), interval=50, repeat=True)
         #set axis limit
-        ax.set_xlim(problem["boundaries"][0], problem["boundaries"][2])
-        ax.set_ylim(problem["boundaries"][1], problem["boundaries"][3])
+        xLim = [problem["boundaries"][0], problem["boundaries"][2]]
+        yLim = [problem["boundaries"][1], problem["boundaries"][3]]        
+        if(len(solution) > 0):
+            adaptLimits(xLim, self.cart.curveTraj.x)
+            adaptLimits(yLim, self.cart.curveTraj.y)
+        ax.set_xlim(xLim[0], xLim[1])
+        ax.set_ylim(yLim[0], yLim[1])
         # plot start end
         delta = [problem["boundaries"][0] - problem["boundaries"][2] , problem["boundaries"][3] - problem["boundaries"][1]]
         L = 0.1 * np.sqrt(delta[0]*delta[0] + delta[1]*delta[1])

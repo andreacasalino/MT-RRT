@@ -1,1 +1,2 @@
 auto rescale plot python sulla base di pose e ostacoli loggati
+chiarire ruolo di opt per print iterations in CMake

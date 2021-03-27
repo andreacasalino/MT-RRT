@@ -13,8 +13,9 @@ using namespace std;
 int main() {
 	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
 	mt::sample::StrategyParameter parameters;
-	parameters.iterations = 3000;
+	parameters.iterations = 2500;
 	parameters.steerTrials = 15;
+	parameters.determinism = 0.25f;
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
@@ -32,11 +33,7 @@ int main() {
 
 	solver.solve(start, target, mt::solver::RRTStrategy::Single);
 	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single);
-	if(mt::sample::StrategyType::MtMultiAgent != strategyType) {
-		// not possible for the multi agent approach
-		solver.solve(start, target, mt::solver::RRTStrategy::Bidir);
-		results.addResult(solver, strategyType, mt::solver::RRTStrategy::Bidir);
-	}
+
 	solver.solve(start, target, mt::solver::RRTStrategy::Star);
 	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Star);
 

@@ -63,6 +63,9 @@ namespace mt::solver::qpar {
                 bestResult = &(*it);
             }
         }
+        if (nullptr == bestResult->node) {
+            return this->nodes.front().get();
+        }
         return bestResult->node;
     }
 }

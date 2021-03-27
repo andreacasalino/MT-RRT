@@ -12,8 +12,9 @@ using namespace std;
 
 int main() {
 	mt::sample::StrategyParameter parameters;
-	parameters.iterations = 3000;
+	parameters.iterations = 2500;
 	parameters.steerTrials = 15;
+	parameters.determinism = 0.2f;
 
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
