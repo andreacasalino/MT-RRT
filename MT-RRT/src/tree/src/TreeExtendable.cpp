@@ -10,7 +10,7 @@
 namespace mt {
     std::pair<NodePtr, bool> TreeExtendable::extend(const NodeState& target) {
 		Node* nearest = this->nearestNeighbour(target);
-		bool temp;
+		bool temp = false;
 		NodePtr ext = this->getProblem()->steer(*nearest, target, temp);
 		return {std::move(ext) , temp};
 	}
