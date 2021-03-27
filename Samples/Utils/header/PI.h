@@ -11,7 +11,7 @@
 #include <math.h>
 
 namespace mt::sample {
-    static inline const float C_PI = acosf(0.f);
+    static inline const float C_PI = acosf(-1.f);
 
     static inline const float C_PI_2 = 0.5f * C_PI;
 

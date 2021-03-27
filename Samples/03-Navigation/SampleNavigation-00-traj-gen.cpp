@@ -71,7 +71,7 @@ int main() {
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * mt::sample::C_PI}, std::vector<float>{100.f, 100.f, 0.25f * mt::sample::C_PI});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.25f * mt::sample::C_PI}, std::vector<float>{100.f, 100.f, 0.f});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * mt::sample::C_PI});
-   /* logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * mt::sample::C_PI / 4.f});
+    logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 3.f * mt::sample::C_PI / 4.f});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{-100.f, -100.f, -3.f * mt::sample::C_PI / 4.f});
     logger.addTrajectory(std::vector<float>{0.f, 0.f, 0.f}, std::vector<float>{100.f, -100.f, -3.f * mt::sample::C_PI / 4.f});
     logger.addTrajectory(std::vector<float>{80.f, 0.f, 0.f}, std::vector<float>{100.f, 100.f, 0.5f * mt::sample::C_PI});
@@ -79,7 +79,7 @@ int main() {
     logger.addTrajectory(std::vector<float>{0.f, 0.f, -0.25f * mt::sample::C_PI}, std::vector<float>{200.f, 100.f, 0.25f * mt::sample::C_PI});
     for(std::size_t k=0; k<5; ++k) {
         logger.addTrajectory(logger.getSampler()->randomState() , logger.getSampler()->randomState());
-    }*/
+    }
 
     std::cout << "Launch DebugLog.py to see the results" << std::endl;
 
