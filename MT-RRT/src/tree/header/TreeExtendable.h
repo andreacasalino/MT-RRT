@@ -15,7 +15,7 @@ namespace mt {
 	 */
 	class TreeExtendable : virtual public TreeBase {
 	public:
-		/** @brief tried to extend the tree toward the target, see METTERE
+		/** @brief tried to extend the tree toward the target, performing a steering operation, Section 1.2 of the documentation
 		 *  @return <a, b>:
 		 * 					a: the node containing an extended node, having a father contained in this tree.
 		 * 					   In case the steering procedure was not possible, a nullptr is returned.

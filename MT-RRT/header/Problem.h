@@ -20,9 +20,9 @@ namespace mt {
 	public:
 	   /** @param the sampler to steal
 		*  @param the trajectory factory to steal
-		*  @param the dimension of the state space of the problem to solve. Refer to METTERE
-		*  @param the parameters described in METTERE
-		*  @param true when the problem is simmetric. Refer to METTERE
+		*  @param the dimension of the state space of the problem to solve. Refer to 1.2
+		*  @param the \gamma involved in the near set computation, refer to Section 1.2.3 of the documentation
+		*  @param true when the problem is simmetric.
 		*  @throw if sampler or manager are nullptr
 	 	*/
 		Problem(sampling::SamplerPtr sampler, traj::TrajectoryFactoryPtr manager, const std::size_t& stateSpaceSize, const float& gamma, const bool& simmetry = true);
@@ -32,7 +32,7 @@ namespace mt {
 	 	*/
 		inline std::unique_ptr<Problem> copy() const final { return std::unique_ptr<Problem>(new Problem(*this)); };
 
-	   /** @brief Performs a steering operation, Section METTERE of the documentation, from a staring node to a target one.
+	   /** @brief Performs a steering operation, Sections 1.2.1, 1.2.2 and 1.2.3 of the documentation, from a staring node to a target one.
 		*  @param starting configuration
 		*  @param target configuration to reach
 		*  @param set true from the inside of this function, when the target was reached after steering
@@ -40,15 +40,15 @@ namespace mt {
 		*/
 		NodePtr steer(Node& start, const NodeState& trg, bool& trg_reached);
 
-	   /** @brief Sets the steering trials used when extending searching trees, refer to METTERE
+	   /** @brief Sets the steering trials used when extending searching trees.
 		*/
 		inline void setSteerTrials(const std::size_t& trials) { this->steerTrials.set(trials); };
 
-	   /** @brief Returns the cardinality of \mathcal{X}, Section METTERE of the documentation, of the plannig problem handled by this object.
+	   /** @brief Returns the cardinality of \mathcal{X}, Section 1.2 of the documentation, of the plannig problem handled by this object.
 		*/
 		inline std::size_t getProblemSize() const { return this->stateSpaceSize.get(); };
  
-	   /** @brief Returns the \gamma parameter, Section METTERE of the documentation, regulating the near set size, that RRT* versions must compute.
+	   /** @brief Returns the \gamma parameter, Section 1.2.3 of the documentation, regulating the near set size, that RRT* versions must compute.
 		*/
 		inline float getGamma() const { return this->gamma.get() * this->steerTrials.get(); };
 

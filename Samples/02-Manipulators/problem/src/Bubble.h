@@ -5,35 +5,44 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#ifndef MT_RRT_SAMPLE_PROBLEM_POINT_BUBBLE_H
-#define MT_RRT_SAMPLE_PROBLEM_POINT_BUBBLE_H
+#ifndef MT_RRT_SAMPLE_MANIPULATOR_BUBBLE_H
+#define MT_RRT_SAMPLE_MANIPULATOR_BUBBLE_H
 
 #include <trajectory/Line.h>
-#include <ManipulatorProblem.h>
-#include <SampleDescription.h>
+#include "DescriptionLogger.h"
 
 namespace mt::traj {
-    class BubbleFactory 
-        : public traj::LineFactory
-        , public sample::SampleDescription<sample::Description> {
+    class BubbleFactory
+        : public TrajectoryFactory
+        , public sample::DescriptionLogger {
     public:
         BubbleFactory(const sample::Description& description);
 
         traj::TrajectoryPtr getTrajectory(const NodeState& start, const NodeState& ending_node) const override;
 
-        sample::structJSON logDescription() const override;
-
         inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<BubbleFactory>(this->description); };
+
+        inline float cost2GoIgnoringConstraints(const NodeState& start, const NodeState& ending_node) const override {
+            return euclideanDistance(start.data(), ending_node.data(), start.size());
+        };
     };
 
     class Bubble : public traj::Line {
     public:
-        Bubble(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data);
+        Bubble(const NodeState& start, const NodeState& target, const sample::Description* data);
 
     private:
         AdvanceInfo advanceInternal() override;
 
+        std::vector<float> computeRays(const std::vector<sample::Capsule>& links);
+
+        float computeMinDist(const std::vector<sample::Capsule>& links);
+
+        float computeMinDist(const std::vector<sample::Capsule>& linksA, const std::vector<sample::Capsule>& linksB);
+
         const sample::Description* data;
+
+        NodeState qDelta;
     };
 }
 

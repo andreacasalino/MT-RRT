@@ -12,7 +12,7 @@
 #include <trajectory/Trajectory.h>
 
 namespace mt::traj {
-    /** @brief Creator of optimal trajectories, refer to METTERE.
+    /** @brief Creator of optimal trajectories, refer to Section 1.3.0.1 of the documentation.
      * Each specific problem to solve need to define and use its specific TrajectoryFactory
 	 */
     class TrajectoryFactory : public Copiable<TrajectoryFactory>  {
@@ -20,11 +20,11 @@ namespace mt::traj {
         TrajectoryFactory(const TrajectoryFactory&) = delete;
         TrajectoryFactory& operator=(const TrajectoryFactory&) = delete;
 
-    	/** @brief Evaluates the cost C(\tau), Section METTERE of the documentation, of the trajectory \tau going from the starting node to the ending one, for two nodes not already connected.
+    	/** @brief Evaluates the cost C(\tau), Section 1.2 of the documentation, of the trajectory \tau going from the starting node to the ending one, for two nodes not already connected.
 		 *  @param the starting node in the trajectory whose cost is to evaluate
 		 *  @param the ending node in the trajectory whose cost is to evaluate
-		 *  @param true when the constraints, see METTERE, need to be accounted. Cost::COST_MAX is in this case returned, when a feasible
-         *  trajectory exists, but is not entirely contained in the admitted set METTERE  
+		 *  @param true when the constraints, Section 1.2 of the documentation, need to be accounted. Cost::COST_MAX is in this case returned, when a feasible
+         *  trajectory exists, but is not entirely contained in the admitted set, Section 1.2 of the documentation  
          *  @return the cost to go of the trajectory connecting the states. Cost::COST_MAX is returned when a feasible trajectory does not exist.
 		 */
         float cost2Go(const NodeState& start, const NodeState& ending_node, const bool& ignoreConstraints) const;

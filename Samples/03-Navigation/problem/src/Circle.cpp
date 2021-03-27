@@ -7,6 +7,7 @@
 
 #include "Circle.h"
 #include <math.h>
+#include <PI.h>
 
 namespace mt::traj {
     float computePhaseDelta(const CircleInfo& info, const float& cartesianSteer) {
@@ -32,10 +33,10 @@ namespace mt::traj {
     float Circle::getOrientation() const {
         float orientation = this->phaseCursor;
         if(this->info.phaseEnd > this->info.phaseStart) {
-            orientation += M_PI_2;
+            orientation += mt::sample::C_PI_2;
         }
         else {
-            orientation -= M_PI_2;
+            orientation -= mt::sample::C_PI_2;
         }
         return atan2(sinf(orientation), cosf(orientation) );
     }

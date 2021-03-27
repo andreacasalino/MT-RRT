@@ -11,7 +11,7 @@
 #include <solver/Strategy.h>
 
 namespace mt::solver {
-    /** @brief The standard serial strategy described in METTERE
+    /** @brief The standard mono-thread rrt 
 	 */
     class SerialStrategy : public Strategy {
     public:

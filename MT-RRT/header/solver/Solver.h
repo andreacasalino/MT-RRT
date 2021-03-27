@@ -14,7 +14,7 @@
 #include <chrono>
 
 namespace mt::solver {
-	/** @brief The kind of rrt strategy to use, refer to METTERE
+	/** @brief The kind of rrt strategy to use, refer to the ones described in Sections 1.2.1, 1.2.2 and 1.2.3 of the documentation
      */
 	enum RRTStrategy { Single, Bidir, Star };
 
@@ -95,11 +95,11 @@ namespace mt::solver {
 		 * @throw if no @Strategy was set before calling this method. 
 		 * @throw if size of start is inconsistent
 		 * @throw if size of end is inconsistent 
-		 * @throw passing Bidir for  rrtStrategy for a problem that is not symmetric, see METTERE
+		 * @throw passing Bidir for  rrtStrategy for a problem that is not symmetric
 		 */
 		void solve(const NodeState& start, const NodeState& end, const RRTStrategy& rrtStrategy);
 
-		/** @param regulates the number of steering trials, see METTERE, to use for following plans
+		/** @param regulates the number of steering trials to use for following plans
 		 */
 		void									setSteerTrials(const std::size_t& trials);
 

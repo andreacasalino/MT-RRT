@@ -10,11 +10,12 @@
 #include "CartTrajectory.h"
 #include <Error.h>
 #include <Importer.h>
+#include <PI.h>
 
 namespace mt::sample {
     sampling::SamplerPtr make_sampler(const geometry::Rectangle& boundaries) {
-        NodeState low = { boundaries.getXMin() , boundaries.getYMin(), -M_PI };
-        NodeState upp = { boundaries.getXMax() , boundaries.getYMax(),  M_PI };
+        NodeState low = { boundaries.getXMin() , boundaries.getYMin(), -mt::sample::C_PI };
+        NodeState upp = { boundaries.getXMax() , boundaries.getYMax(),  mt::sample::C_PI };
         return std::make_unique<sampling::HyperBox>(low, upp);
     }
 

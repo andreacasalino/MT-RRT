@@ -1,10 +1,6 @@
 rendere const attributi il piu possibile
 rendere const method il piu possibile
 usare explicit in c'tor
-mettere documentazione latex
-aggiornare documentazione
-usare bubble per problemi manipolators
 auto rescale plot python sulla base di pose e ostacoli loggati
-documentare per bene come e' calcolata traiettoria cart
-aggiungere references in codice a parti latex
-mettere reference a descrizione problem in codice samples
+mettere in readme che alcuni compilatori potrebbero dare molti warnings per via di virtual inheritance
+cachare i Checker nelle varie factory o no?

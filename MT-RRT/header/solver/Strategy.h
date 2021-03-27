@@ -18,7 +18,7 @@ namespace mt::solver {
         /** @brief Don't stop exploring process after a solution is found
          */
         bool Cumulate_sol = false;
-        /** @brief Regulates the determinism used to get a solution, refer to METTERE
+        /** @brief Regulates the determinism used to get a solution, refer to Section 1.2.1 of the documentation
          */
         Limited<double>	Deterministic_coefficient = Limited<double>(0.01, 0.99, 0.2);
         /** @brief the maximal number of iterations to use trying to find a solution

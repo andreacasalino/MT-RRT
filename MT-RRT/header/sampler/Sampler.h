@@ -16,7 +16,7 @@ namespace mt::sampling {
 	 */
 	class Sampler : public Copiable<Sampler> {
 	public:
-		/** @brief Returns a node having a state randomly sampled in the \mathcal{X} space, Section METTERE of the documentation.
+		/** @brief Returns a node having a state randomly sampled in the \mathcal{X} space, Sections 1.2.1, 1.2.2 and 1.2.3 of the documentation.
 		 * This function is invoked mainly for randomly growing a searching tree.
 		 * @return a drawn random state. 
 		 */

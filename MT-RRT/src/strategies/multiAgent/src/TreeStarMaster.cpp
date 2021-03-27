@@ -11,7 +11,9 @@
 namespace mt::solver::multiag {
     TreeStarMaster::TreeStarMaster(NodePtr root, const std::vector<ProblemPtr>& problems)
         : TreeMaster(std::move(root), problems) {
-        this->temporaryBuffer.resize(problems.size());
+        for (std::size_t k = 0; k < problems.size(); ++k) {
+            this->temporaryBuffers.emplace_back();
+        }
     }
 
     std::set<Node*> TreeStarMaster::nearSet(const NodeState& state) const {
@@ -27,7 +29,9 @@ namespace mt::solver::multiag {
 				nearS.emplace((*itN).get());
 			}
 		}
-		for (auto itN = this->temporaryBuffer[thId].begin(); itN != this->temporaryBuffer[thId].end(); ++itN) {
+        auto itBf = this->temporaryBuffers.begin();
+        std::advance(itBf, thId);
+		for (auto itN = itBf->begin(); itN != itBf->end(); ++itN) {
 			dist_att = prb->getTrajManager()->cost2Go((*itN)->getState(), state, true);
 			if (dist_att <= ray) {
 				nearS.emplace((*itN).get());
@@ -42,18 +46,20 @@ namespace mt::solver::multiag {
         Nodes& nodes = this->slaves[thId]->getNodes();
         auto itN = nodes.begin();
         ++itN;
+        auto itBf = this->temporaryBuffers.begin();
+        std::advance(itBf, thId);
         for (itN; itN != nodes.end(); ++itN) {
             auto rew = this->computeRewires(**itN);
             for (auto it = rew.begin(); it != rew.end(); ++it) {
                 rews.push_back(*it);
             }
-            this->temporaryBuffer[thId].emplace_back(std::move(*itN));
+            itBf->emplace_back(std::move(*itN));
         }
         nodes.clear();
         this->slaves[thId]->originalRoot = nullptr;
 #pragma omp barrier
         if(0 == thId) {
-            for(auto it = this->temporaryBuffer.begin(); it!=this->temporaryBuffer.end(); ++it) {
+            for(auto it = this->temporaryBuffers.begin(); it!=this->temporaryBuffers.end(); ++it) {
                 for(auto itt = it->begin(); itt!=it->end(); ++itt) {
                     this->add(std::move(*itt));
                 }

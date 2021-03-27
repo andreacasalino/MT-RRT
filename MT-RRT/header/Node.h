@@ -14,7 +14,7 @@
 namespace mt {
 	typedef std::vector<float> NodeState;
 
-	/** @brief Used for representing a state  x \in \underline{\mathcal{X}}, Section METTERE of the documentation.
+	/** @brief Used for representing a state  x \in \underline{\mathcal{X}}, Section 1.2 of the documentation.
 	*/
 	class Node {
 	public:
@@ -27,10 +27,11 @@ namespace mt {
 
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
+
 		Node(Node&&) = delete;
 		Node& operator=(Node&&) = delete;
 
-		/** @return Computes the cost to get from the root to this node, see METTERE.
+		/** @return Computes the cost to get from the root to this node, see 1.2.
 		 *  @throw when the root is not reached, cause loopy connections were made
 		 */
 		float													cost2Root() const;

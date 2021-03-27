@@ -7,10 +7,12 @@
 
 #include <ManipulatorProblem.h>
 #include <sampler/HyperBox.h>
+#include "Tunneled.h"
 #include "Bubble.h"
 #include <Error.h>
 #include <list>
 #include <Importer.h>
+#include <PI.h>
 
 namespace mt::sample {
     NodeState make_limit(const std::size_t& size, const float& value) {
@@ -69,17 +71,27 @@ namespace mt::sample {
     NodeState degree2rad(const NodeState& pose) {
         NodeState converted = pose;
         for(std::size_t k=0; k<pose.size(); ++k){
-            converted[k] = pose[k] * M_PI / 180.f;
+            converted[k] = pose[k] * C_PI / 180.f;
         }
         return converted;
     }
 
-    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName) {
+    std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName, const AdvanceApproach& advanceAppr) {
         auto data = importProblem(configFileName);
         std::size_t dofTot = Manipulator::dofTot(std::get<0>(data).robots);
-        auto problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
-                                         std::make_unique<traj::BubbleFactory>(std::get<0>(data)),
-                                         dofTot, 10.f);
+
+        ProblemPtr problem;
+        if (advanceAppr == AdvanceApproach::Tunneled) {
+            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
+                std::make_unique<traj::TunneledFactory>(std::get<0>(data)),
+                dofTot, 10.f);
+        }
+        else {
+            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
+                std::make_unique<traj::BubbleFactory>(std::get<0>(data)),
+                dofTot, 10.f);
+        }
+
         return std::make_tuple(std::move(problem), std::get<1>(data),  std::get<2>(data));
     }
 }
