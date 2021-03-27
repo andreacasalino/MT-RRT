@@ -16,13 +16,14 @@ namespace mt::sample {
         states.emplace_back(solution.front());
         for(std::size_t p=1; p<solution.size(); ++p) {
             auto traj = manager.getTrajectory(states.back(), solution[p]);
-            if(nullptr != traj) {
-                traj::AdvanceInfo info = traj::AdvanceInfo::advanced;
-                while (traj::AdvanceInfo::targetReached != info) {
-                    info =  traj->advance();
-                    if(traj::AdvanceInfo::blocked == info) break;
-                    states.emplace_back(traj->getCursor());
-                }
+            if (nullptr == traj) {
+                throw Error("invalid solution");
+            }
+            traj::AdvanceInfo info = traj::AdvanceInfo::advanced;
+            while (traj::AdvanceInfo::targetReached != info) {
+                info = traj->advance();
+                if (traj::AdvanceInfo::blocked == info) throw Error("invalid solution");
+                states.emplace_back(traj->getCursor());
             }
         }
 

@@ -25,13 +25,10 @@ namespace mt::solver::multiag {
         }
         for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
             Nodes* nodes = (*it)->getNodes();
-            auto itN = nodes->begin();
-            ++itN;
-            for (itN; itN != nodes->end(); ++itN) {
+            for (auto itN = nodes->begin(); itN != nodes->end(); ++itN) {
                 this->add(std::move(*itN));
             }
             nodes->clear();
-            (*it)->originalRoot = nullptr;
         }
     }
 
@@ -40,8 +37,7 @@ namespace mt::solver::multiag {
             Node* nearest = this->nearestNeighbour(this->getProblem()->getSampler()->randomState());
             (*it)->getNodes()->clear();
             (*it)->getNodes()->emplace_back( std::make_unique<Node>(nearest->getState()) );
-            (*it)->getNodes()->back()->setFather(nearest->getFather(), nearest->getCostFromFather());
-            (*it)->originalRoot = nearest;
+            (*it)->getNodes()->back()->setFather(nearest, 0.f);
         }
     }
 }

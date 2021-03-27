@@ -35,27 +35,6 @@ namespace mt::solver::multiag {
     }
 
     void TreeStarMaster::gather() {
-        // mono thread gather
-        //if (0 != omp_get_thread_num()) {
-        //    return;
-        //}
-        //for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
-        //    Nodes* nodes = (*it)->getNodes();
-        //    auto itN = nodes->begin();
-        //    ++itN;
-        //    for (itN; itN != nodes->end(); ++itN) {
-        //        /*auto rew = this->TreeRewirer::computeRewires(**itN);
-        //        for (auto r = rew.begin(); r != rew.end(); ++r) {
-        //            r->involved.setFather(&r->newFather, r->newCostFromFather);
-        //        }*/
-        //        this->add(std::move(*itN));
-        //    }
-        //    nodes->clear();
-        //    (*it)->originalRoot = nullptr;
-        //}
-
-
-
         // multi thread gather
         std::size_t thId = omp_get_thread_num();
         auto itBf = this->temporaryBuffers.begin();
@@ -72,10 +51,14 @@ namespace mt::solver::multiag {
             }
             itBf->emplace_back(std::move(*itN));
         }
-        nodes->clear();
-        this->slaves[thId]->originalRoot = nullptr;
 #pragma omp barrier
         if (0 == thId) {
+            for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
+                Nodes* nodes = (*it)->getNodes();
+                this->add(std::move(nodes->front()));
+                nodes->clear();
+            }
+
             for (auto it = this->temporaryBuffers.begin(); it != this->temporaryBuffers.end(); ++it) {
                 for (auto itt = it->begin(); itt != it->end(); ++itt) {
                     this->add(std::move(*itt));

@@ -15,11 +15,7 @@ namespace mt::solver::multiag {
 	public:
 		TreeSlave(Problem& problem);
 
-		Node* add(NodePtr node) override;
-
 		inline Nodes* getNodes() { return &this->nodes; }
-
-		Node* originalRoot = nullptr;
 	};
 }
 
