@@ -25,6 +25,7 @@ namespace mt::solver::multiag {
 
 		// using list for Nodes might lead to compile errors on some compilers
 		std::list<Nodes> temporaryBuffers;
+		std::list<std::list<Rewire>> computedRewirds;
 	};
 }
 

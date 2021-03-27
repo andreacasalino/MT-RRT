@@ -13,22 +13,16 @@ namespace mt::solver::multiag {
         : TreeMaster(std::move(root), problems) {
         for (std::size_t k = 0; k < problems.size(); ++k) {
             this->temporaryBuffers.emplace_back();
+            this->computedRewirds.emplace_back();
         }
     }
 
     std::set<Node*> TreeStarMaster::nearSet(const NodeState& state) const {
+        std::set<Node*> nearS = this->TreeRewirer::nearSet(state);
         std::size_t thId = omp_get_thread_num();
         const Problem* prb = this->slaves[thId]->getProblem();
 		float ray = this->nearSetRay();
         float dist_att;
-        std::set<Node*> nearS;
-		auto itEnd = this->rend();
-		for (auto itN = this->rbegin(); itN != itEnd; ++itN) {
-			dist_att = prb->getTrajManager()->cost2Go((*itN)->getState(), state, true);
-			if (dist_att <= ray) {
-				nearS.emplace((*itN).get());
-			}
-		}
         auto itBf = this->temporaryBuffers.begin();
         std::advance(itBf, thId);
 		for (auto itN = itBf->begin(); itN != itBf->end(); ++itN) {
@@ -41,32 +35,59 @@ namespace mt::solver::multiag {
     }
 
     void TreeStarMaster::gather() {
+        // mono thread gather
+        //if (0 != omp_get_thread_num()) {
+        //    return;
+        //}
+        //for (auto it = this->slaves.begin(); it != this->slaves.end(); ++it) {
+        //    Nodes* nodes = (*it)->getNodes();
+        //    auto itN = nodes->begin();
+        //    ++itN;
+        //    for (itN; itN != nodes->end(); ++itN) {
+        //        /*auto rew = this->TreeRewirer::computeRewires(**itN);
+        //        for (auto r = rew.begin(); r != rew.end(); ++r) {
+        //            r->involved.setFather(&r->newFather, r->newCostFromFather);
+        //        }*/
+        //        this->add(std::move(*itN));
+        //    }
+        //    nodes->clear();
+        //    (*it)->originalRoot = nullptr;
+        //}
+
+
+
+        // multi thread gather
         std::size_t thId = omp_get_thread_num();
-        std::list<Rewire> rews;
-        Nodes& nodes = this->slaves[thId]->getNodes();
-        auto itN = nodes.begin();
-        ++itN;
         auto itBf = this->temporaryBuffers.begin();
         std::advance(itBf, thId);
-        for (itN; itN != nodes.end(); ++itN) {
+        auto itRew = this->computedRewirds.begin();
+        std::advance(itRew, thId);
+        Nodes* nodes = this->slaves[thId]->getNodes();
+        auto itN = nodes->begin();
+        ++itN;
+        for (itN; itN != nodes->end(); ++itN) {
             auto rew = this->computeRewires(**itN);
             for (auto it = rew.begin(); it != rew.end(); ++it) {
-                rews.push_back(*it);
+                itRew->push_back(*it);
             }
             itBf->emplace_back(std::move(*itN));
         }
-        nodes.clear();
+        nodes->clear();
         this->slaves[thId]->originalRoot = nullptr;
 #pragma omp barrier
-        if(0 == thId) {
-            for(auto it = this->temporaryBuffers.begin(); it!=this->temporaryBuffers.end(); ++it) {
-                for(auto itt = it->begin(); itt!=it->end(); ++itt) {
+        if (0 == thId) {
+            for (auto it = this->temporaryBuffers.begin(); it != this->temporaryBuffers.end(); ++it) {
+                for (auto itt = it->begin(); itt != it->end(); ++itt) {
                     this->add(std::move(*itt));
                 }
                 it->clear();
             }
-            for (auto it = rews.begin(); it != rews.end(); ++it) {
-                it->involved.setFather(&it->newFather, it->newCostFromFather);
+
+            for (auto it = this->computedRewirds.begin(); it != this->computedRewirds.end(); ++it) {
+                for (auto itt = it->begin(); itt != it->end(); ++itt) {
+                    itt->involved.setFather(&itt->newFather, itt->newCostFromFather);
+                }
+                it->clear();
             }
         }
     }

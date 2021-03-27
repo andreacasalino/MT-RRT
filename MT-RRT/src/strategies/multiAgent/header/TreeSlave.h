@@ -17,7 +17,7 @@ namespace mt::solver::multiag {
 
 		Node* add(NodePtr node) override;
 
-		inline Nodes& getNodes() { return this->nodes; }
+		inline Nodes* getNodes() { return &this->nodes; }
 
 		Node* originalRoot = nullptr;
 	};
