@@ -11,8 +11,9 @@
 using namespace std;
 
 int main() {
-	const mt::sample::AdvanceApproach advancement = mt::sample::AdvanceApproach::Tunneled; // you can change it
-	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::Serial; // use the one you want
+	const std::string configFile = "/ConfigA";
+	const mt::sample::AdvanceApproach advancement = mt::sample::AdvanceApproach::BubbleFreeConfiguration; // you can change it
+	const mt::sample::StrategyType strategyType = mt::sample::StrategyType::MtMultiAgent; // use the one you want
 	mt::sample::StrategyParameter parameters;
 	parameters.iterations = 1600;
 	parameters.steerTrials = 5;
@@ -20,7 +21,7 @@ int main() {
 	mt::ProblemPtr problem;
 	mt::NodeState start, target;
 	{
-		auto imported = mt::sample::importManipulatorProblem(std::string(CONFIG_FOLDER) + "/ConfigA", advancement);
+		auto imported = mt::sample::importManipulatorProblem(std::string(CONFIG_FOLDER) + configFile, advancement);
 		problem = std::move(std::get<0>(imported));
 		start = mt::sample::degree2rad(std::get<1>(imported));
 		target = mt::sample::degree2rad(std::get<2>(imported));
@@ -29,7 +30,7 @@ int main() {
 
 	mt::sample::setStrategy(solver , strategyType, parameters);
 
-	mt::sample::Results results;
+	mt::sample::Results results(mt::sample::importInterpolator(std::string(CONFIG_FOLDER) + configFile));
 
 	solver.solve(start, target, mt::solver::RRTStrategy::Single);
 	results.addResult(solver, strategyType, mt::solver::RRTStrategy::Single);

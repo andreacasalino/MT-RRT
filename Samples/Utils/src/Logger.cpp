@@ -139,7 +139,12 @@ namespace mt::sample {
             auto interp = [&sol](const Problem& p){
                 sol = interpolate(sol, *p.getTrajManager());
             };
-            solver.useProblem(interp);
+            if (nullptr == this->interpolator) {
+                solver.useProblem(interp);
+            }
+            else {
+                interp(*this->interpolator);
+            }
             for (auto it = sol.begin(); it != sol.end(); ++it) {
                 arrayJSON stateJSON;
                 addValues(stateJSON, it->data(), it->size());
@@ -180,7 +185,12 @@ namespace mt::sample {
         itR->second.emplace(rrtStrategy, std::move(result));
     }
 
-    Results::Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters) {
+    Results::Results(ProblemPtr interpolator) {
+        this->interpolator = std::move(interpolator);
+    }
+
+    Results::Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters, ProblemPtr interpolator)
+        : Results(std::move(interpolator)) {
         auto usePossibleRrtStrategies = [&](const StrategyType& strgt) {
             setStrategy(solver, strgt, parameters);
 

@@ -38,12 +38,12 @@ namespace mt::sample {
     public:
         /** @brief Empty result matrix: result should be later added one by one using addResult
          */
-        Results() = default;
+        Results(ProblemPtr interpolator = nullptr);
 
         /** @brief Solve the problem with all the possible rrt algorithms and strategies, storing
          * internally the matrix results.
          */
-        Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters);
+        Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters, ProblemPtr interpolator = nullptr);
 
         /** @brief Add to matrix result the data of the last problem solved by the solver
          */
@@ -52,6 +52,7 @@ namespace mt::sample {
         structJSON getJSON() const;
 
     private:
+        ProblemPtr interpolator;
         std::map<StrategyType, std::map<solver::RRTStrategy, structJSON> > resultMatrix;
     };
 

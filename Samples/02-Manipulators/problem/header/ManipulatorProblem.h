@@ -27,6 +27,8 @@ namespace mt::sample {
     enum AdvanceApproach { Tunneled, BubbleFreeConfiguration };
 
     std::tuple<ProblemPtr, NodeState, NodeState> importManipulatorProblem(const std::string& configFileName, const AdvanceApproach& advanceAppr);
+
+    ProblemPtr importInterpolator(const std::string& configFileName);
 }
 
 #endif

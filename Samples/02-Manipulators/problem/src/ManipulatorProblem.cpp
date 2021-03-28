@@ -94,4 +94,9 @@ namespace mt::sample {
 
         return std::make_tuple(std::move(problem), std::get<1>(data),  std::get<2>(data));
     }
+
+    ProblemPtr importInterpolator(const std::string& configFileName) {
+        auto data = importManipulatorProblem(configFileName, AdvanceApproach::Tunneled);
+        return std::move( std::get<0>(data) );
+    }
 }
