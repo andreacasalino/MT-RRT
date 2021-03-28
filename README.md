@@ -1,28 +1,34 @@
-<h1> Multi Threading RRT : MT_RRT </h1> 
-C++ library containing multi threaded version of the RRT algorithm.
+**Multi Thread Rapidly Random exploring Trees**, aka **MT-RRT**, is a C++ library that can be used for path or trajectory planning.
+**Rapidly Random exploring Trees**, aka **RRT**, are a popular cathegory of robotic algorithms used for computing paths or trajectories in a constrained environment.
+This library implements multi-threaded strategies that are able to speed up
+normal **RRT**, **bidirectional  RRT** or **RRT***.
 
-<h2> SOURCES</h2>
+You can find detailed information in the [documentation](https://github.com/andreacasalino/MT-RRT/blob/master/doc/MT-RRT.pdf), which also provides a little background on **RRT**.
+This library was conceived to solve any kind of problem. The only thing you need to do when solving a new kind of problem, is to derive a couple of objects that contain all the
+problem-specific information. To clarify this process, 3 main classes of samples are reported, representative of 3 main classes of planning problems. Follow the same approach
+used for the examples for your own custom problem.
 
-The sources of the library ar all contained in MT_RRT/Header and  MT_RRT/Source.
-Samples stores some examples showing how to use this library.
+**MT-RRT** is completely **cross platform**: let [CMake](https://cmake.org) do all the work for you.
 
-<h2> HOW TO COMPILE </h2> 
-<li> Windows: you can launch in Visual Studio Solution.sln or launch gpp_make.bat if you have installed g++ as compiler </li>
-<li> Linux: use the Makefile </li> 
+**Dependencies**
 
-<h2> RUN THE EXAMPLES </h2>
-After compiling, a folder called bin is created storing a static library and all the examples, together with the materials required to run them.
-<li> bin/Sample_01_Points/ : after running Sample_01_Points, several .html files will be created in Results/, which can be showed using your favourite browser </li>
-<li> bin/Sample_02_Planar_Robots/01_Single_arm/:  after running 01_Single_arm, several .html files are created in Results/, which can be showed using your favourite browser </li>
-<li> bin/Sample_02_Planar_Robots/02_Multiple_arms/:  after running 02_Multiple_arms, several .html files are created in Results/, which can be showed using your favourite browser </li>
-<li> bin/Sample_02_Planar_Robots/00_GUI/:  run launcher.bat(.sh) in Windows(Linux) to have fun with a nice GUI (*), connected in back-end with this library . 
-Warning: in Windows the processes in back end listening to the GUI request don't close automatically when you close the interface: remember to manually close it by yourself. </li> 
-<li> bin/03_Navigation/01_Navigation/:  after running 01_Navigation, several .html files are created in Results/, which can be showed using your favourite browser </li>
-<li> bin/03_Navigation/01_Navigation_cluttered/:  after running 01_Navigation_cluttered, several .html files are created in Results/, which can be showed using your favourite browser </li>
-<li> bin/03_Navigation/00_GUI/:  run launcher.bat(.sh) in Windows(Linux) to have fun with a nice GUI (*), connected in back-end with this library. </li> 
+**MT-RRT** internally makes use of [omp](https://en.wikipedia.org/wiki/OpenMP), which should be natively supported by any kind of modern compiler. 
+The **omp** package is automatically searched by **CMake** when configuring the project. Just beware to use a compiler supporting it.
+It can be sometimes usefull to check the progress of the solver, printing on the console the iterations done so far. This is not the default behaviour of **MT-RRT** but can be enabled
+turning ON the CMake option called SHOW_PROGRESS_OPT.
 
-(*) python is used to run a cross-platform webserver listening for the GUI requests. You need to have installed a minimal version of python together with the tkinter package .
+**Contents**
 
-<h2> DOCUMENTATION </h2>
+ * the documentation in ./doc explains both how to use **MT-RRT** as well give some theoretical background 
+ * the core library is contained in ./MT-RRT
+ * samples are contained in ./Samples. They extensively shows how to use **MT-RRT**. They should be intended as templates when deriving new custom problem.
+	* after running any of the sample, a .json file storing ther results will be created. You can later use a python script copied in the same folder to visualize such results. In particular, you will see the trajectory/path computed as solution in a form of animation and some of the states pertaining to the obtained exploring trees (blue for the first one, green for the second in case a **bidirectional  RRT** was used)
 
-doc/documentation.pdf briefly gives you a minimal background about RRT and also documents the library sources. In particular, it explains also how to customize your own planning problem for using MT_RRT to solve it.
+**Compile**
+
+ * Configure and generate the project using [CMake](https://cmake.org)
+   * check this [tutorial](https://www.youtube.com/watch?v=LxHV-KNEG3k) (it is valid for any kind of IDE and not only VS) if you are not familiar
+      
+ * Compile the library and the samples
+   * Some compiler (for example the **VisualStudio** one) might throw some warnings due to the fact that some classes inside **MT-RRT** are defined using the virtual inheritance. You can simply ingnore them.
+  
