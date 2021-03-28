@@ -23,7 +23,7 @@ namespace mt::sample {
         std::vector<PointShared> points;
         points.reserve(this->links.size() + 1);
         points.emplace_back(std::make_shared<geometry::Point>(this->base));
-        float cumulAngle = 0.f;
+        float cumulAngle = this->base.z();
         for (std::size_t k = 0; k < this->links.size(); ++k) {
             cumulAngle += pose[k];
             points.emplace_back(std::make_shared<geometry::Point>(points.back()->x() + cosf(cumulAngle) * this->links[k].length.get(), 
@@ -47,12 +47,12 @@ namespace mt::sample {
     }
 
     Manipulator::Manipulator(const std::vector<float>& data) {
-        if(data.size() < 4) throw Error("invalid manipulator data");
-        if(data.size() % 2 != 0) throw Error("invalid manipulator data");
-        std::size_t dof =  (data.size() - 2)/ 2;
-        this->base = geometry::Point(data[0] , data[1]);
+        if(data.size() < 5) throw Error("invalid manipulator data");
+        if(data.size() % 2 == 0) throw Error("invalid manipulator data");
+        std::size_t dof =  (data.size() - 3)/ 2;
+        this->base = geometry::Point(data[0] , data[1], data[2]);
         this->links.reserve(dof);
-        for(std::size_t k=2; k<data.size(); k += 2) {
+        for(std::size_t k=3; k<data.size(); k += 2) {
             this->links.emplace_back();
             this->links.back().length = data[k];
             this->links.back().ray.set(data[k+1]);

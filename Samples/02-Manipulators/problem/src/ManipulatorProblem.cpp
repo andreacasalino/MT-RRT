@@ -82,12 +82,12 @@ namespace mt::sample {
 
         ProblemPtr problem;
         if (advanceAppr == AdvanceApproach::Tunneled) {
-            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
+            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -2.f * C_PI / 3.f), make_limit(dofTot, 2.f * C_PI / 3.f)),
                 std::make_unique<traj::TunneledFactory>(std::get<0>(data)),
                 dofTot, 10.f);
         }
         else {
-            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -4.712389f), make_limit(dofTot, 4.712389f)),
+            problem = std::make_unique<Problem>(std::make_unique<sampling::HyperBox>(make_limit(dofTot, -2.f * C_PI / 3.f), make_limit(dofTot, 2.f * C_PI / 3.f)),
                 std::make_unique<traj::BubbleFactory>(std::get<0>(data)),
                 dofTot, 10.f);
         }

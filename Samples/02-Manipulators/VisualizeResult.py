@@ -5,21 +5,21 @@ class Capsules:
     def __init__(self, ax, data, color, alpha=1):
         self.rawData = data
         self.ax = ax
-        self.base = [data[0], data[1]]
+        self.base = [data[0], data[1], data[2]]
         self.lengths = []
         self.rays = []
         self.patches = []
-        dof = int((len(data) - 2) / 2)
+        dof = int((len(data) - 3) / 2)
         for k in range(0, dof, 1):
-            self.lengths.append(data[2+k])
-            self.rays.append(data[2+dof+k])
+            self.lengths.append(data[3+k])
+            self.rays.append(data[3+dof+k])
             self.patches.append(makeCapsule(ax, self.lengths[k], self.rays[k], color, alpha))
         
     def getDof(self):
         return len(self.patches)
 
     def setPose(self, pose):
-        angleCum = 0.0
+        angleCum = self.base[2]
         posCum = [self.base[0], self.base[1]]
         for p in range(0, self.getDof(), 1):
             angleCum = angleCum + pose[p]
@@ -78,14 +78,14 @@ class Scene:
         if(len(solution) > 0):
             self.animation = FuncAnimation(fig, func=self.setIndex, frames=range(0,len(solution),1), interval=50, repeat=True)
         #set axis limit
-        ax.set_xlim(-1000, 1000)
-        ax.set_ylim(-1000, 1000)
+        ax.set_xlim(-100, 100)
+        ax.set_ylim(-100, 100)
 
     def showTree(self, ax, tree, color):
-        if(len(tree) < 50):
+        if(len(tree) < 20):
             treePos = range(0,len(tree),1)
         else:
-            treePos = np.linspace(0, len(tree) - 1, 50).astype(int)
+            treePos = np.linspace(0, len(tree) - 1, 20).astype(int)
         for t in treePos:
             pos = 0
             for r in self.robots:

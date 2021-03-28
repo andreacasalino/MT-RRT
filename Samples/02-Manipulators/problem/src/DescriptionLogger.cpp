@@ -24,6 +24,7 @@ namespace mt::sample {
                 sample::arrayJSON temp;
                 temp.addElement(sample::Number<float>(it->getBase().x()));
                 temp.addElement(sample::Number<float>(it->getBase().y()));
+                temp.addElement(sample::Number<float>(it->getBase().z()));
                 for (auto l = it->getLinks().begin(); l != it->getLinks().end(); ++l) {
                     temp.addElement(sample::Number<float>(l->length.get()));
                 }

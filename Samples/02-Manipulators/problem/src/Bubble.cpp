@@ -34,9 +34,9 @@ namespace mt::traj {
         float dist1 = euclideanDistance(cap.pointA->data(), origin.data(), 2) + cap.ray;
         float dist2 = euclideanDistance(cap.pointB->data(), origin.data(), 2) + cap.ray;
         if (dist2 < dist1) {
-            return dist2;
+            return dist1;
         }
-        return dist1;
+        return dist2;
     }
 
     std::vector<float> Bubble::computeRays(const std::vector<sample::Capsule>& links) {
@@ -77,16 +77,16 @@ namespace mt::traj {
     float Bubble::computeMinDist(const std::vector<sample::Capsule>& linksA, const std::vector<sample::Capsule>& linksB) {
         const std::vector<sample::Capsule>* ptA = &linksA;
         const std::vector<sample::Capsule>* ptB = &linksB;
-        if (ptA->size() >  ptB->size()) {
+        if (ptB->size() <  ptA->size()) {
             std::swap(ptA, ptB);
         }
         float minDist = MAX_DISTANCE, temp;
         std::size_t l2;
-        for (std::size_t l1 = 0; l1 < ptB->size(); ++l1) {
-            for (l2 = l1; l2 < ptA->size(); ++l2) {
-                this->checkerSegment->check(sample::geometry::Segment(*(*ptA)[l2].pointA, *(*ptA)[l2].pointB), 
-                              sample::geometry::Segment(*(*ptB)[l1].pointA, *(*ptB)[l1].pointB));
-                temp = this->checkerSegment->getDistance() - (*ptA)[l2].ray - (*ptB)[l1].ray;
+        for (std::size_t l1 = 0; l1 < ptA->size(); ++l1) {
+            for (l2 = l1; l2 < ptB->size(); ++l2) {
+                this->checkerSegment->check(sample::geometry::Segment(*(*ptA)[l1].pointA, *(*ptA)[l1].pointB),
+                    sample::geometry::Segment(*(*ptB)[l2].pointA, *(*ptB)[l2].pointB));
+                temp = this->checkerSegment->getDistance() - (*ptA)[l1].ray - (*ptB)[l2].ray;
                 if (temp <= 0.f) {
                     return 0.f;
                 }
@@ -116,8 +116,8 @@ namespace mt::traj {
         float c = 1.f, cTemp;
 
         std::vector<std::vector<sample::Capsule>> shapes;
-        shapes.reserve(this->data->robots.size());
         std::vector<float> raysXDeltaQ;
+        shapes.reserve(this->data->robots.size());
         raysXDeltaQ.reserve(this->data->robots.size());
 
         // links vs obstacles

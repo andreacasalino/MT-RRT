@@ -24,18 +24,25 @@ namespace mt::traj {
         inline std::unique_ptr<TrajectoryFactory> copy() const override { return std::make_unique<TunneledFactory>(this->description); };
 
     private:
-        mutable sample::geometry::SegmentPointChecker checker;
+        mutable sample::geometry::SegmentPointChecker checkerPoint;
+        mutable sample::geometry::SegmentSegmentChecker checkerSegment;
     };
 
     class Tunneled : public traj::Line {
     public:
-        Tunneled(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data, sample::geometry::SegmentPointChecker* checker);
+        Tunneled(const NodeState& start, const NodeState& target, const float& steerDegree, const sample::Description* data,
+            sample::geometry::SegmentPointChecker* checkerPoint, sample::geometry::SegmentSegmentChecker* checkerSegment);
 
     private:
         AdvanceInfo advanceInternal() override;
 
+        /** @return true when at least a collision between the links is detected
+         */
+        bool checkCollision(const std::vector<sample::Capsule>& linksA, const std::vector<sample::Capsule>& linksB);
+
         const sample::Description* data;
-        sample::geometry::SegmentPointChecker* checker;
+        sample::geometry::SegmentPointChecker* checkerPoint;
+        sample::geometry::SegmentSegmentChecker* checkerSegment;
     };
 }
 

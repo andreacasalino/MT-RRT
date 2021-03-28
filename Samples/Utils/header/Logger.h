@@ -26,7 +26,7 @@ namespace mt::sample {
 
     /** @brief Builds, configure and set for the solver a solving strategy
       */
-    void setStrategy(solver::Solver& solver,  const StrategyType& type, const StrategyParameter& parameters);
+    void setStrategy(solver::Solver& solver, const StrategyType& type, const StrategyParameter& parameters);
 
     void addValues(arrayJSON& array, const float* data, const std::size_t& dataSize);
 
@@ -41,7 +41,7 @@ namespace mt::sample {
         Results() = default;
 
         /** @brief Solve the problem with all the possible rrt algorithms and strategies, storing
-         * internally the matrix results. 
+         * internally the matrix results.
          */
         Results(solver::Solver& solver, const NodeState& start, const NodeState& end, const StrategyParameter& parameters);
 
@@ -56,11 +56,11 @@ namespace mt::sample {
     };
 
     template<typename LoggableTrajManager>
-    void logResults(const std::string& fileName, solver::Solver& solver, const Results& results) {
+    void logResults(const std::string& fileName, solver::Solver& solver, const Results& results, mt::ProblemPtr problem = nullptr) {
         mt::sample::structJSON log;
-        solver.useProblem([&log](const mt::Problem& problem){
+        solver.useProblem([&log](const mt::Problem& problem) {
             log.addElement("problem", dynamic_cast<const LoggableTrajManager*>(problem.getTrajManager())->logDescription());
-        });
+            });
         log.addEndl();
         log.addElement("results", results.getJSON());
         printData(log, fileName);

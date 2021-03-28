@@ -40,7 +40,7 @@ namespace mt::sample {
     void Importer::parseData(const std::string& fileName) {
         std::ifstream f(fileName);
         if(!f.is_open()) {
-            throw Error("invaldid file to import");
+            throw Error("invalid file to import");
         }
 
         std::string line;
