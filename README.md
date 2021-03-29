@@ -32,3 +32,6 @@ turning ON the CMake option called SHOW_PROGRESS_OPT.
  * Compile the library and the samples
    * Some compiler (for example the **VisualStudio** one) might throw some warnings due to the fact that some classes inside **MT-RRT** are defined using the virtual inheritance. You can simply ingnore them.
   
+ **Star**
+
+If you have found this library useful, please find the time to star it :)
