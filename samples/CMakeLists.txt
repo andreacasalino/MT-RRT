@@ -1,0 +1,4 @@
+add_subdirectory(configurations)
+
+add_subdirectory(Trivial2DProblems)
+add_subdirectory(PlanarRobotsProblems)
