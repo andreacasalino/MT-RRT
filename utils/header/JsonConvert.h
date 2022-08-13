@@ -9,31 +9,38 @@
 
 #include "../../src/core/src/Extender.h"
 #include <MT-RRT-core/Planner.h>
-#include <PointProblem.h>
 
 #include <nlohmann/json.hpp>
 
 namespace mt_rrt::utils {
-void to_json(nlohmann::json &j, const Box &subject);
-
-void to_json(nlohmann::json &j, const PointConnector &subject);
+void from_file(nlohmann::json &j, const std::string &fileName);
 
 void to_json(nlohmann::json &j, const Tree &subject);
 
 void to_json(nlohmann::json &j, const std::vector<Tree> &subject);
 
-using ConnectorLogger =
-    std::function<void(nlohmann::json &, const Connector &)>;
+class ConnectorLogger {
+public:
+  ConnectorLogger() = default;
+  virtual ~ConnectorLogger() = default;
 
-static const ConnectorLogger POINT_CONNECTOR_LOGGER =
-    [](nlohmann::json &recipient, const Connector &point_problem) {
-      const auto *as_point_connnector =
-          dynamic_cast<const PointConnector *>(&point_problem);
-      if (nullptr == as_point_connnector) {
-        throw Error{"Not a point problem"};
-      }
-      recipient = *as_point_connnector;
-    };
+  virtual void operator()(nlohmann::json &, const Connector &) const = 0;
+};
+
+template <typename ConnectorT>
+class ConnectorLoggerTyped : public ConnectorLogger {
+public:
+  void operator()(nlohmann::json &j, const Connector &c) const final {
+    const auto *as_ConnectorT = dynamic_cast<const ConnectorT *>(&c);
+    if (nullptr == as_ConnectorT) {
+      throw Error{"Invalid connector logger"};
+    }
+    log(j, *as_ConnectorT);
+  }
+
+protected:
+  virtual void log(nlohmann::json &j, const ConnectorT &c) const = 0;
+};
 
 using SolutionLogger =
     std::function<void(nlohmann::json &, const std::vector<State> &)>;

@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <PointProblem.h>
+#include <TrivialProblem.h>
 
 #include <array>
 #include <optional>
 
-namespace mt_rrt::sample {
+namespace mt_rrt::samples {
 static constexpr float PI = 3.1415926535f;
 
 float to_rad(float angle);
@@ -26,18 +26,18 @@ struct Box2D {
 
 using Boxes2D = std::vector<Box2D>;
 
-Point2D &traslate(Point2D &subject, const Point2D &traslation);
-Box2D &traslate(Box2D &subject, const Point2D &traslation);
-Boxes2D &traslate(Boxes2D &subject, const Point2D &traslation);
+void traslate(Point2D &subject, const Point2D &traslation);
+void traslate(Box2D &subject, const Point2D &traslation);
+void traslate(Boxes2D &subject, const Point2D &traslation);
 
 class Rotator {
 public:
   Rotator(float angle);
-  Rotator(float angle, const Point2D rotation_center);
+  Rotator(float angle, const Point2D &rotation_center);
 
-  Point2D &rotate(Point2D &subject) const;
-  Box2D &rotate(Box2D &subject) const;
-  Boxes2D &rotate(Boxes2D &subject) const;
+  void rotate(Point2D &subject) const;
+  void rotate(Box2D &subject) const;
+  void rotate(Boxes2D &subject) const;
 
 private:
   const float cos_angle;
@@ -50,11 +50,11 @@ private:
   std::optional<RotationCenterInfo> rotation_center;
 };
 
-class TrivialProblem : public utils::PointConnector {
+class TrivialProblem2DConnector : public TrivialProblemConnector {
 public:
-  TrivialProblem(const Boxes2D &obstacles);
+  TrivialProblem2DConnector(const Boxes2D &obstacles);
 };
 
 std::shared_ptr<ProblemDescription>
-make_trivial_problem(const Boxes2D &obstacles);
-} // namespace mt_rrt::sample
+make_trivial_problem_2D_description(const Boxes2D &obstacles);
+} // namespace mt_rrt::samples

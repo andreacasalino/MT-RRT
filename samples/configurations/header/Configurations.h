@@ -12,7 +12,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace mt_rrt::sample {
+namespace mt_rrt::samples {
 // TODO comment how argc and argv expected format
 //
 // TODO document the expect format for the config json
@@ -29,4 +29,4 @@ void from_json(const nlohmann::json &j, Parameters &recipient);
 // planners inside this repo.
 std::unique_ptr<Planner> from_json(const nlohmann::json &j,
                                    ProblemDescription &&problem);
-} // namespace mt_rrt::sample
+} // namespace mt_rrt::samples

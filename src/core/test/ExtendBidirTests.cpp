@@ -2,7 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <Logger.h>
-#include <PointProblemScenarios.h>
+#include <TrivialProblemTestScenarios.h>
 
 TEST_CASE("Bidir extender in an empty space",
           mt_rrt::merge(TEST_TAG, "[extend][bidir][empty]")) {
@@ -25,17 +25,18 @@ TEST_CASE("Bidir extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "bidir-empty_only_deterministic",
-                 POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "bidir-empty_only_deterministic",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     // REQUIRE(solutions.size() == 1); // not true for the current
     // implementation, but maybe it's want we want
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
   }
 
   SECTION("check that at least a solution is found") {
@@ -64,16 +65,17 @@ TEST_CASE("Bidir extender in an empty space",
     }
 
 #ifdef TEST_LOGGING
-    log_scenario(*extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "bidir-empty_many_solutions",
-                 POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(*extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "bidir-empty_many_solutions",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender->getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
   }
 }
 
@@ -97,8 +99,9 @@ TEST_CASE("Bidir extender with blocking obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "bidir-no_solution", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "bidir-no_solution",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     REQUIRE(extender.getSolutions().empty());
@@ -123,15 +126,17 @@ TEST_CASE("Bidir extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "bidir-one_obstacle", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "bidir-one_obstacle",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
   }
 }
 
@@ -153,14 +158,16 @@ TEST_CASE("Bidir extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "bidir-cluttered", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "bidir-cluttered",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
   }
 }

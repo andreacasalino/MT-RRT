@@ -8,11 +8,11 @@
 #include <MT-RRT-multi-threaded/SharedTreePlanner.h>
 
 #include <Configurations.h>
+#include <JsonConvert.h>
 
-#include <fstream>
 #include <iostream>
 
-namespace mt_rrt::sample {
+namespace mt_rrt::samples {
 namespace {
 std::string help() {
   std::ostringstream stream;
@@ -45,11 +45,7 @@ void to_json(nlohmann::json &configurations, int argc, const char **argv) {
 
   if (argv_1 == "-f") {
     std::cout << "reading configurations from " << argv_2 << std::endl;
-    std::ifstream stream(argv_2);
-    if (!stream.is_open()) {
-      throw Error{"Invalid file"};
-    }
-    configurations = nlohmann::json::parse(stream);
+    utils::from_file(configurations, argv_2);
   } else if (argv_1 == "-j") {
     configurations = nlohmann::json::parse(argv_2);
   } else if ((argv_1 == "-h") || (argv_1 == "-help")) {
@@ -163,4 +159,4 @@ std::unique_ptr<Planner> from_json(const nlohmann::json &j,
   return std::make_unique<StandardPlanner>(
       std::forward<ProblemDescription>(problem));
 }
-} // namespace mt_rrt::sample
+} // namespace mt_rrt::samples

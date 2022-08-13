@@ -63,8 +63,8 @@ public:
 
 protected:
   T value;
-  const T lowerBound;
-  const T upperBound;
+  T lowerBound;
+  T upperBound;
 };
 
 /** @brief A @Limited quantity, having +infinite as upper bound

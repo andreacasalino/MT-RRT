@@ -34,7 +34,4 @@ if(BUILD_MT_RRT_TESTS OR BUILD_MT_RRT_SAMPLES)
 endif()
 
 add_subdirectory(src)
-
-if(BUILD_MT_RRT_SAMPLES)
-   add_subdirectory(samples)
-endif()
+add_subdirectory(samples)

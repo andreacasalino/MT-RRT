@@ -1,7 +1,7 @@
 #include <MT-RRT-carpet/Error.h>
 
 #include <Extender.h>
-#include <PointProblemScenarios.h>
+#include <TrivialProblemTestScenarios.h>
 
 #include <algorithm>
 
@@ -23,7 +23,7 @@ float expected_cost(const std::vector<mt_rrt::State> &sequence) {
 }
 } // namespace
 
-bool is_a_collision_present(const PointConnector &scenario,
+bool is_a_collision_present(const samples::TrivialProblemConnector &scenario,
                             const std::vector<State> &sequence) {
   for (std::size_t k = 1; k < sequence.size(); ++k) {
     for (const auto &box : scenario.getBoxes()) {
@@ -35,7 +35,7 @@ bool is_a_collision_present(const PointConnector &scenario,
   return false;
 }
 
-bool check_solutions(const PointConnector &scenario,
+bool check_solutions(const samples::TrivialProblemConnector &scenario,
                      const mt_rrt::Solutions &solutions, const State &start,
                      const State &end) {
   return solutions.end() ==
@@ -140,7 +140,7 @@ State all_equals(const std::size_t size, const float value) {
 
 ExtendProblem make_empty_scenario(const std::size_t size,
                                   const ExpansionStrategy expansion_strategy) {
-  return ExtendProblem{make_point_problem(1, size),
+  return ExtendProblem{samples::make_trivial_problem_description(1, size),
                        Parameters{expansion_strategy, SteerIterations{3},
                                   Iterations{1500}, Determinism{0.15f}, false},
                        all_equals(size, -1.f), all_equals(size, 1.f)};
@@ -153,8 +153,9 @@ make_no_solution_scenario(const std::size_t size,
   obstacle_min_corner[0] = -1.f / 3.f;
   auto obstacle_max_corner = all_equals(size, 1.5f);
   obstacle_max_corner[0] = 1.f / 3.f;
-  return ExtendProblem{make_point_problem(1, Boxes{Box{obstacle_min_corner,
-                                                       obstacle_max_corner}}),
+  return ExtendProblem{samples::make_trivial_problem_description(
+                           1, samples::Boxes{samples::Box{
+                                  obstacle_min_corner, obstacle_max_corner}}),
                        Parameters{expansion_strategy, SteerIterations{3},
                                   Iterations{1500}, Determinism{0.15f}, false},
                        all_equals(size, -1.f), all_equals(size, 1.f)};
@@ -162,8 +163,9 @@ make_no_solution_scenario(const std::size_t size,
 
 ExtendProblem
 make_small_obstacle_scenario(const ExpansionStrategy expansion_strategy) {
-  return ExtendProblem{make_point_problem(1, Boxes{Box{all_equals(2, -0.8f),
-                                                       all_equals(2, 0.8f)}}),
+  return ExtendProblem{samples::make_trivial_problem_description(
+                           1, samples::Boxes{samples::Box{
+                                  all_equals(2, -0.8f), all_equals(2, 0.8f)}}),
                        Parameters{expansion_strategy, SteerIterations{3},
                                   Iterations{1500}, Determinism{0.15f}, false},
                        all_equals(2, -1.f), all_equals(2, 1.f)};
@@ -171,16 +173,18 @@ make_small_obstacle_scenario(const ExpansionStrategy expansion_strategy) {
 
 ExtendProblem
 make_cluttered_scenario(const ExpansionStrategy expansion_strategy) {
-  Boxes obstacles;
-  obstacles.emplace_back(Box{{-1.f, -0.5f}, {-0.5f, 0.5f}});
-  obstacles.emplace_back(Box{{0, -1.f}, {1.f, -0.5f}});
-  obstacles.emplace_back(Box{{0, 0}, {1.f / 3.f, 1.f}});
-  obstacles.emplace_back(Box{{1.f / 3.f, 2.f / 3.f}, {2.f / 3.f, 1.f}});
-  obstacles.emplace_back(Box{{2.f / 3.f, 0}, {1.f, 1.f / 3.f}});
+  samples::Boxes obstacles;
+  obstacles.emplace_back(samples::Box{{-1.f, -0.5f}, {-0.5f, 0.5f}});
+  obstacles.emplace_back(samples::Box{{0, -1.f}, {1.f, -0.5f}});
+  obstacles.emplace_back(samples::Box{{0, 0}, {1.f / 3.f, 1.f}});
+  obstacles.emplace_back(
+      samples::Box{{1.f / 3.f, 2.f / 3.f}, {2.f / 3.f, 1.f}});
+  obstacles.emplace_back(samples::Box{{2.f / 3.f, 0}, {1.f, 1.f / 3.f}});
 
-  return ExtendProblem{make_point_problem(1, std::move(obstacles)),
-                       Parameters{expansion_strategy, SteerIterations{3},
-                                  Iterations{2000}, Determinism{0.15f}, true},
-                       all_equals(2, -1.f), all_equals(2, 1.f)};
+  return ExtendProblem{
+      samples::make_trivial_problem_description(1, std::move(obstacles)),
+      Parameters{expansion_strategy, SteerIterations{3}, Iterations{2000},
+                 Determinism{0.15f}, true},
+      all_equals(2, -1.f), all_equals(2, 1.f)};
 }
 } // namespace mt_rrt::utils

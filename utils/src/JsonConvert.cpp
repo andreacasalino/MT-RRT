@@ -7,22 +7,27 @@
 
 #include <JsonConvert.h>
 
+#include <fstream>
+
 namespace mt_rrt::utils {
+void from_file(nlohmann::json &j, const std::string &fileName) {
+  std::stringstream buffer;
+  {
+    std::ifstream stream(fileName);
+    if (!stream.is_open()) {
+      throw Error{fileName, " is not a valid.json file"};
+    }
+    buffer << stream.rdbuf();
+  }
+  j = nlohmann::json::parse(buffer.str());
+}
+
 namespace {
 void convert(nlohmann::json &j, const State &start, const State &end) {
   j["start"] = start;
   j["end"] = end;
 }
 } // namespace
-
-void to_json(nlohmann::json &j, const Box &subject) {
-  convert(j, subject.min_corner, subject.max_corner);
-}
-
-void to_json(nlohmann::json &j, const PointConnector &subject) {
-  convert(j["limits"], {-1.f, -1.f}, {1.f, 1.f});
-  j["boxes"] = subject.getBoxes();
-}
 
 void to_json(nlohmann::json &j, const Tree &subject) {
   j = nlohmann::json::array();

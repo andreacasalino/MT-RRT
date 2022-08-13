@@ -15,11 +15,35 @@
 #include <iostream>
 
 namespace mt_rrt::utils {
+PythonSources::PythonSources(const std::string &fileName) {
+  sources.push_back(fileName);
+}
+
+PythonSources::PythonSources(const std::vector<std::string> &filesNames)
+    : sources(filesNames) {}
+
+void PythonSources::printAssembled(const std::string &destination) const {
+  std::ofstream out_stream(destination);
+  for (const auto &path : sources) {
+    std::ifstream in_stream(path);
+    if (!in_stream.is_open()) {
+      throw Error{path, " is an invalid source"};
+    }
+    out_stream << std::endl << in_stream.rdbuf();
+  }
+}
+
+PythonSources make_python_show_sources(const std::string &problem_script) {
+  return PythonSources{std::vector<std::string>{PYTHON_SHOW_PRE, problem_script,
+                                                PYTHON_SHOW_POST}};
+}
+
 std::unordered_map<std::string, std::size_t> Logger::counters =
     std::unordered_map<std::string, std::size_t>{};
 
-void Logger::log(const std::string &tag, const nlohmann::json &content,
-                 const std::optional<std::string> &python_script) {
+void Logger::log(
+    const std::string &tag, const nlohmann::json &content,
+    const std::optional<PythonSources> &python_visualization_sources) {
   const auto folder_name = merge("log-", tag);
   auto counter_it = counters.find(folder_name);
   if (counter_it == counters.end()) {
@@ -33,17 +57,11 @@ void Logger::log(const std::string &tag, const nlohmann::json &content,
 
   std::ofstream{log_name} << content.dump();
 
-  if (python_script) {
-    std::filesystem::path python_script_location = python_script.value();
-
-    const auto script_name = python_script_location.filename();
+  if (python_visualization_sources) {
     std::filesystem::path python_script_destination =
-        merge(folder_name, '/', script_name.c_str());
+        merge(folder_name, "/Show.py");
 
-    if (!std::filesystem::exists(python_script_destination)) {
-      std::filesystem::copy_file(python_script_location,
-                                 python_script_destination);
-    }
+    python_visualization_sources->printAssembled(python_script_destination);
 
     std::cout << "run `python3 " << python_script_destination.c_str() << ' '
               << log_name << '`' << std::endl;
@@ -54,20 +72,20 @@ void log_scenario(
     const ProblemDescription &problem, const PlannerSolution &solution,
     const ConnectorLogger &connector_logger,
     const SolutionLogger &solution_logger, const std::string &case_name,
-    const std::optional<std::string> &python_visualization_script) {
+    const std::optional<PythonSources> &python_visualization_sources) {
   nlohmann::json json_log;
   to_json(json_log, problem, solution, connector_logger, solution_logger);
   Logger::log(merge("extender-", case_name), json_log,
-              python_visualization_script);
+              python_visualization_sources);
 }
 
 void log_scenario(
     const mt_rrt::Extender &subject, const ConnectorLogger &connector_logger,
     const SolutionLogger &solution_logger, const std::string &case_name,
-    const std::optional<std::string> &python_visualization_script) {
+    const std::optional<PythonSources> &python_visualization_sources) {
   nlohmann::json json_log;
   to_json(json_log, subject, connector_logger, solution_logger);
   Logger::log(merge("extender-", case_name), json_log,
-              python_visualization_script);
+              python_visualization_sources);
 }
 } // namespace mt_rrt::utils

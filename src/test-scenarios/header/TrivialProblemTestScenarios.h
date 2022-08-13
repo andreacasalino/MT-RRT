@@ -1,22 +1,18 @@
 #pragma once
 
-////////////////////////////////////////////////////////
-// These functionalities are mostly consumed by tests //
-////////////////////////////////////////////////////////
-
 #include "../../src/core/src/Extender.h"
-#include <MT-RRT-carpet/Strings.h>
-#include <PointProblem.h>
+// #include <MT-RRT-carpet/Strings.h>
+#include <TrivialProblem.h>
 
 namespace mt_rrt::utils {
 TreeHandlerPtr make_tree_handler(const State &root_state,
                                  const ProblemDescriptionPtr &problem,
                                  const Parameters &parameters);
 
-bool is_a_collision_present(const PointConnector &scenario,
+bool is_a_collision_present(const samples::TrivialProblemConnector &scenario,
                             const std::vector<State> &sequence);
 
-bool check_solutions(const PointConnector &scenario,
+bool check_solutions(const samples::TrivialProblemConnector &scenario,
                      const mt_rrt::Solutions &solutions, const State &start,
                      const State &end);
 

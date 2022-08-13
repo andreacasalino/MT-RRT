@@ -15,5 +15,8 @@ target_link_libraries(${LIB_NAME}
 )
 
 if(BUILD_MT_RRT_TESTS)
-    target_link_libraries(${LIB_NAME}-tests PUBLIC MT-RRT-utils)
+    target_link_libraries(${LIB_NAME}-tests PUBLIC 
+    MT-RRT-utils
+    MT-RRT-test-scenarios
+)
 endif()

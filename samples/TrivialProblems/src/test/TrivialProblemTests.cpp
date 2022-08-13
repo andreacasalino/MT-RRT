@@ -3,10 +3,9 @@
 
 #include <MT-RRT-carpet/Strings.h>
 
-#include <PointProblem.h>
+#include <TrivialProblem.h>
 
 #ifdef TEST_LOGGING
-#include <JsonConvert.h>
 #include <Logger.h>
 #endif
 
@@ -17,8 +16,10 @@ struct Segment {
 };
 
 #ifdef TEST_LOGGING
-nlohmann::json log_case(const mt_rrt::utils::Box &box, const Segment &segment) {
+nlohmann::json log_case(const mt_rrt::samples::Box &box,
+                        const Segment &segment) {
   using namespace mt_rrt::utils;
+  using namespace mt_rrt::samples;
 
   nlohmann::json result;
   result["box"] = box;
@@ -30,7 +31,7 @@ nlohmann::json log_case(const mt_rrt::utils::Box &box, const Segment &segment) {
 }
 
 static const std::string PYTHON_SCRIPT =
-    mt_rrt::merge(TEST_FOLDER, "PointProblemTests.py");
+    mt_rrt::merge(TEST_FOLDER, "TrivialProblemTests.py");
 #endif
 } // namespace
 
@@ -38,6 +39,7 @@ TEST_CASE("check collision check segment-box 2D",
           mt_rrt::merge(TEST_TAG, "[point_problem]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::utils;
+  using namespace mt_rrt::samples;
 
   Box box = Box{{-1.f, -1.f}, {1.f, 1.f}};
 
@@ -46,8 +48,8 @@ TEST_CASE("check collision check segment-box 2D",
         Segment{{0, 0}, {2.f, 0}}, Segment{{0, 0}, {2.f, 2.f}},
         Segment{{0, 0}, {-2.f, -2.f}}, Segment{{0, 0}, {0, -2.f}},
         Segment{{-2.f, -2.f}, {2.f, 2.f}}, Segment{{-2.f, 0}, {2.f, 0}},
-        Segment{{-1.f - PointConnector::STEER_DEGREE * 0.1f,
-                 -1.f - PointConnector::STEER_DEGREE * 0.1f},
+        Segment{{-1.f - TrivialProblemConnector::STEER_DEGREE * 0.1f,
+                 -1.f - TrivialProblemConnector::STEER_DEGREE * 0.1f},
                 {-0.9696f, -0.9696f}});
 
 #ifdef TEST_LOGGING
@@ -89,6 +91,7 @@ TEST_CASE("check collision check segment-box nD",
           mt_rrt::merge(TEST_TAG, "[point_problem]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::utils;
+  using namespace mt_rrt::samples;
 
   auto size = GENERATE(3, 5, 10);
 
@@ -120,12 +123,13 @@ TEST_CASE("check collision check segment-box nD",
 TEST_CASE("steer point in 2D", mt_rrt::merge(TEST_TAG, "[point_problem]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::utils;
+  using namespace mt_rrt::samples;
 
-  PointConnector connector({Box{{-1.f, -1.f}, {1.f, 1.f}}});
+  TrivialProblemConnector connector({Box{{-1.f, -1.f}, {1.f, 1.f}}});
 
   SECTION("blocked: no steer at all") {
-    Node start(State{-1.f - PointConnector::STEER_DEGREE * 0.1f,
-                     -1.f - PointConnector::STEER_DEGREE * 0.1f});
+    Node start(State{-1.f - TrivialProblemConnector::STEER_DEGREE * 0.1f,
+                     -1.f - TrivialProblemConnector::STEER_DEGREE * 0.1f});
     SteerIterations trials{10000};
     auto steered = connector.steer(start, State{2.f, 2.f}, trials);
 

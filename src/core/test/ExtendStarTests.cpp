@@ -2,7 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <Logger.h>
-#include <PointProblemScenarios.h>
+#include <TrivialProblemTestScenarios.h>
 
 TEST_CASE("Star extender in an empty space",
           mt_rrt::merge(TEST_TAG, "[extend][star][empty]")) {
@@ -22,15 +22,17 @@ TEST_CASE("Star extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "star-empty", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "star-empty",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
     CHECK(similarity(solutions.begin()->second->getSequence(), {start, end}) <=
           0.2f);
@@ -53,15 +55,17 @@ TEST_CASE("Star extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "star-one_obstacle", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "star-one_obstacle",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
     bool is_optimal = (similarity(solutions.begin()->second->getSequence(),
                                   {start, {-0.8f, 0.8f}, end}) <= 0.2f) ||
@@ -87,15 +91,17 @@ TEST_CASE("Star extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, POINT_CONNECTOR_LOGGER, DEFAULT_SOLUTION_LOGGER,
-                 "star-cluttered", POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
+                 DEFAULT_SOLUTION_LOGGER, "star-cluttered",
+                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
     const auto &solutions = extender.getSolutions();
     REQUIRE_FALSE(solutions.empty());
-    REQUIRE(check_solutions(*dynamic_cast<const PointConnector *>(
-                                scenario.point_problem->connector.get()),
-                            solutions, start, end));
+    REQUIRE(
+        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
+                            scenario.point_problem->connector.get()),
+                        solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
     CHECK(similarity(solutions.begin()->second->getSequence(),
                      {start, {1.f / 3.f, 0}, end}) <= 0.2f);

@@ -5,21 +5,22 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "PointProblem.h"
+#include <TrivialProblem.h>
 
 #include <MT-RRT-carpet/Error.h>
 
 #include <algorithm>
 #include <math.h>
 
-namespace mt_rrt::utils {
+namespace mt_rrt::samples {
 namespace {
 static const float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
 }
 
-const float PointConnector::STEER_DEGREE = STATE_BOX_DIAGONAL_LENGTH / 15.f;
+const float TrivialProblemConnector::STEER_DEGREE =
+    STATE_BOX_DIAGONAL_LENGTH / 15.f;
 
-PointConnector::PointConnector(const std::size_t size)
+TrivialProblemConnector::TrivialProblemConnector(const std::size_t size)
     : TunneledConnector(size) {
   if (size < 2) {
     throw Error{"Too small space size"};
@@ -46,7 +47,7 @@ std::size_t validate_and_deduce_size(const Boxes &obstacles) {
 }
 } // namespace
 
-PointConnector::PointConnector(const Boxes &obstacles)
+TrivialProblemConnector::TrivialProblemConnector(const Boxes &obstacles)
     : TunneledConnector(validate_and_deduce_size(obstacles)) {
   std::shared_ptr<Boxes> boxes;
   boxes.reset(new Boxes{obstacles});
@@ -63,7 +64,8 @@ PointConnector::PointConnector(const Boxes &obstacles)
   setSteerDegree(STEER_DEGREE);
 }
 
-PointConnector::PointConnector(const PointConnector &o)
+TrivialProblemConnector::TrivialProblemConnector(
+    const TrivialProblemConnector &o)
     : TunneledConnector(o.getStateSpaceSize()) {
   this->obstacles = std::make_shared<Boxes>(*o.obstacles);
   setSteerDegree(STEER_DEGREE);
@@ -137,8 +139,38 @@ bool collides(const State &segment_start, const State &segment_end,
 }
 } // namespace
 
-bool PointConnector::checkAdvancement(const State &previous_state,
-                                      const State &advanced_state) const {
+bool TrivialProblemConnector::checkAdvancement(
+    const State &previous_state, const State &advanced_state) const {
   return collides(previous_state, advanced_state, *obstacles);
 }
-} // namespace mt_rrt::utils
+
+SamplerPtr make_trivial_problem_sampler(std::size_t space_size,
+                                        const std::optional<Seed> &seed) {
+  State min_corner, max_corner;
+  for (std::size_t k = 0; k < space_size; ++k) {
+    min_corner.push_back(-1.f);
+    max_corner.push_back(1.f);
+  }
+  return std::make_unique<HyperBox>(min_corner, max_corner, seed);
+}
+
+namespace {
+void convert(nlohmann::json &j, const State &start, const State &end) {
+  j["start"] = start;
+  j["end"] = end;
+}
+} // namespace
+
+void to_json(nlohmann::json &j, const Box &subject) {
+  convert(j, subject.min_corner, subject.max_corner);
+}
+
+void TrivialProblemConnectorLogger::log(
+    nlohmann::json &j, const TrivialProblemConnector &c) const {
+  convert(j["limits"], {-1.f, -1.f}, {1.f, 1.f});
+  j["boxes"] = c.getBoxes();
+}
+
+const TrivialProblemConnectorLogger TrivialProblemConnectorLogger::LOGGER =
+    TrivialProblemConnectorLogger{};
+} // namespace mt_rrt::samples

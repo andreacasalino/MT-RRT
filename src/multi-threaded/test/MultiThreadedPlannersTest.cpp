@@ -4,7 +4,7 @@
 #include <MT-RRT-multi-threaded/MultiThreadedPlanner.h>
 
 #include <Logger.h>
-#include <PointProblemScenarios.h>
+#include <TrivialProblemTestScenarios.h>
 
 #include <algorithm>
 
@@ -75,9 +75,9 @@ void check_planner_with_setter(const std::string &log_tag,
   auto solution = planner.solve(start, end, params);
 
 #ifdef TEST_LOGGING
-  log_scenario(planner.problem(), solution, POINT_CONNECTOR_LOGGER,
-               DEFAULT_SOLUTION_LOGGER, log_tag,
-               POINT_PROBLEM_SHOW_PYTHON_SCRIPT);
+  log_scenario(planner.problem(), solution,
+               samples::TrivialProblemConnectorLogger::LOGGER,
+               DEFAULT_SOLUTION_LOGGER, log_tag, TRIVIAL_PROBLEM_PYTHON_SCRIPT);
 #endif
 
   REQUIRE(solution.solution);
@@ -86,7 +86,8 @@ void check_planner_with_setter(const std::string &log_tag,
   CHECK(sequence.front() == start);
   CHECK(sequence.back() == end);
   CHECK_FALSE(is_a_collision_present(
-      static_cast<const PointConnector &>(*planner.problem().connector),
+      static_cast<const samples::TrivialProblemConnector &>(
+          *planner.problem().connector),
       sequence));
   if (helper.strategy == ExpansionStrategy::Star) {
     // the solution found is close to one of the optimal?
