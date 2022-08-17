@@ -30,14 +30,20 @@ int main(int argc, const char **argv) {
   nlohmann::json user_configs;
   mt_rrt::samples::to_json(user_configs, argc, argv);
 
+  nlohmann::json scenario_json;
+  mt_rrt::utils::from_file(scenario_json, SAMPLE_JSON);
+
   mt_rrt::State start, end;
-  auto static_data_problem = mt_rrt::samples::make_problem_description(
-      0, std::string{SAMPLE_JSON}, start, end);
+  auto static_data_problem =
+      mt_rrt::samples::make_problem_description(0, scenario_json, start, end);
 
   // define some default parameters
   auto parameters = mt_rrt::Parameters{
-      mt_rrt::ExpansionStrategy::Bidir, mt_rrt::SteerIterations{10},
+      mt_rrt::ExpansionStrategy::Star, mt_rrt::SteerIterations{10},
       mt_rrt::Iterations{3000}, mt_rrt::Determinism{0.1f}, true};
+  // override the parameters according to the scenario default
+  // specifications
+  mt_rrt::samples::from_json(scenario_json, parameters);
   // override the parameters according to the user specs
   mt_rrt::samples::from_json(user_configs, parameters);
 
@@ -81,29 +87,45 @@ std::ostream &operator<<(std::ostream &s, const mt_rrt::State &subject) {
   return s;
 }
 
+// return a + c(b-a)
+mt_rrt::State linear_combination(const mt_rrt::State &a, const mt_rrt::State &b,
+                                 float c) {
+  mt_rrt::State result = a;
+  for (std::size_t k = 0; k < a.size(); ++k) {
+    result[k] += c * (b[k] - a[k]);
+  }
+  return result;
+}
+
+static const float MAX_JOINT_DISTANCE = mt_rrt::samples::to_rad(15);
+
+std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
+                                       const mt_rrt::State &end) {
+  std::size_t intervals = static_cast<std::size_t>(
+      std::ceil(mt_rrt::samples::euclidean_distance(start.data(), end.data(),
+                                                    start.size()) /
+                MAX_JOINT_DISTANCE));
+  intervals = std::max<std::size_t>(1, intervals);
+  const float delta_c = 1.f / static_cast<float>(intervals);
+  float c = delta_c;
+  std::vector<mt_rrt::State> result;
+  for (std::size_t i = 1; i < intervals; ++i) {
+    result.emplace_back(linear_combination(start, end, c));
+    c += delta_c;
+  }
+  result.push_back(end);
+  return result;
+}
+
 // interpolate the solution, mostly to generate a cool plot visualizing results
 void interpolate(nlohmann::json &recipient,
                  const std::vector<mt_rrt::State> &sol) {
   std::vector<mt_rrt::State> interpolated;
   interpolated.push_back(sol.front());
-  const std::size_t state_size = interpolated.back().size();
-  for (std::size_t k = 1; k < state_size; ++k) {
-    std::size_t intervals = static_cast<std::size_t>(
-        std::ceil(mt_rrt::samples::euclidean_distance(
-                      sol[k - 1].data(), sol[k].data(), state_size) /
-                  static_cast<float>(0.1f)));
-    intervals = std::max<std::size_t>(1, intervals);
-    const float delta_advancement = 1.f / static_cast<float>(intervals);
-    const float delta_complement = 1.f - delta_advancement;
-    for (std::size_t i = 1; i < intervals; ++i) {
-      mt_rrt::State state;
-      for (std::size_t pos = 0; pos < state_size; ++pos) {
-        state.push_back(interpolated.back()[pos] * delta_complement +
-                        sol[k][pos] * delta_advancement);
-      }
-      interpolated.emplace_back(std::move(state));
-    }
-    interpolated.push_back(sol[k]);
+  for (std::size_t k = 1; k < sol.size(); ++k) {
+    auto interpolated_segment = interpolate(sol[k - 1], sol[k]);
+    interpolated.insert(interpolated.end(), interpolated_segment.begin(),
+                        interpolated_segment.end());
   }
   recipient = interpolated;
 }

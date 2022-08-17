@@ -14,16 +14,7 @@
 
 namespace mt_rrt::samples {
 namespace {
-std::string help() {
-  std::ostringstream stream;
-  stream << "Invalid sintax of configuration parameters" << std::endl;
-  stream << "Accepted sintaxes are:" << std::endl;
-  stream << "   -f FILE_NAME_STORING_JSON_CONFIG" << std::endl;
-  stream << "   -j STRING_REPRESENTING_JSON_CONFIG" << std::endl;
-  return stream.str();
-}
-
-void throw_bad_syntax() { throw Error{"Invalid arguments\n", help()}; }
+void throw_bad_syntax() { throw Error{"Invalid arguments\n", HELP}; }
 } // namespace
 
 void to_json(nlohmann::json &configurations, int argc, const char **argv) {
@@ -35,7 +26,7 @@ void to_json(nlohmann::json &configurations, int argc, const char **argv) {
 
   const std::string argv_1 = argv[1];
   if ((argv_1 == "-h") || (argv_1 == "--help")) {
-    throw Error{help()};
+    throw Error{HELP};
   }
 
   if (argc != 3) {
@@ -62,33 +53,33 @@ void from_json(const nlohmann::json &j, Parameters &recipient) {
   if (!j.contains("params")) {
     return;
   }
-  auto &j_params = j.at("params");
+  auto &j_par = j["params"];
 
-  if (j_params.contains("strategy")) {
-    std::string strategy = j_params.at("strategy");
+  if (j_par.contains("strategy")) {
+    std::string strategy = j_par.at("strategy");
     if (strategy == "Single") {
       recipient.expansion_strategy = ExpansionStrategy::Single;
     } else if (strategy == "Bidir") {
       recipient.expansion_strategy = ExpansionStrategy::Bidir;
-    } else {
+    } else if (strategy == "Star") {
       recipient.expansion_strategy = ExpansionStrategy::Star;
     }
   }
 
-  if (j_params.contains("steer_trials")) {
-    recipient.steer_trials.set(j_params.at("steer_trials"));
+  if (j_par.contains("steer_trials")) {
+    recipient.steer_trials.set(j_par.at("steer_trials"));
   }
 
-  if (j_params.contains("iterations")) {
-    recipient.iterations.set(j_params.at("iterations"));
+  if (j_par.contains("iterations")) {
+    recipient.iterations.set(j_par.at("iterations"));
   }
 
-  if (j_params.contains("determinism")) {
-    recipient.determinism.set(j_params.at("determinism"));
+  if (j_par.contains("determinism")) {
+    recipient.determinism.set(j_par.at("determinism"));
   }
 
-  if (j_params.contains("best_effort")) {
-    recipient.best_effort = j_params.at("best_effort");
+  if (j_par.contains("best_effort")) {
+    recipient.best_effort = j_par.at("best_effort");
   }
 }
 

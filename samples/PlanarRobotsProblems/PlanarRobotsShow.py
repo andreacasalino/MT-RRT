@@ -152,7 +152,7 @@ class Printer:
         for robot in self.scene["robots"]:
             ee_traj.append([])
         for pose in solution:
-            ee = print_pose(ax, self.scene["robots"], pose, 'b', 1.0)
+            ee = print_pose(ax, self.scene["robots"], pose, 'b', 0.5)
             for index in range(0,len(ee)):
                 ee_traj[index].append(ee[index])
         for ee in ee_traj:

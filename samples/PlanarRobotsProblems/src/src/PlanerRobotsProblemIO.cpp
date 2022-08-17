@@ -20,10 +20,7 @@ void to_rad_state(State &subject) {
 
 std::shared_ptr<ProblemDescription>
 make_problem_description(const std::optional<Seed> &seed,
-                         const std::string &scene_json_filename, State &start,
-                         State &end) {
-  nlohmann::json j;
-  utils::from_file(j, scene_json_filename);
+                         const nlohmann::json &j, State &start, State &end) {
   Scene scene;
   from_json(j["scene"], scene);
   nlohmann::from_json(j["start"], start);

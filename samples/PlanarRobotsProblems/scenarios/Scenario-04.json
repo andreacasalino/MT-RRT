@@ -1,0 +1,67 @@
+{
+    "scene": {
+        "obstacles": [
+            {
+                "ray": 0.35,
+                "center": [
+                    0,
+                    1.6
+                ]
+            }
+        ],
+        "robots": [
+            {
+                "links": [
+                    {
+                        "ray": 0.07,
+                        "length": 1
+                    },
+                    {
+                        "ray": 0.07,
+                        "length": 0.8
+                    },
+                    {
+                        "ray": 0.06,
+                        "length": 0.6
+                    },
+                    {
+                        "ray": 0.05,
+                        "length": 0.4
+                    },
+                    {
+                        "ray": 0.02,
+                        "length": 0.2
+                    },
+                    {
+                        "ray": 0.01,
+                        "length": 0.2
+                    }
+                ],
+                "base": {
+                    "position": [
+                        0,
+                        0
+                    ],
+                    "angle": 0
+                }
+            }
+        ]
+    },
+    "start": [
+        160,
+        -40,
+        -40,
+        -40,
+        -40,
+        -40
+    ],
+    "end": [
+        20,
+        40,
+        40,
+        40,
+        40,
+        40
+    ],
+    "params":{"strategy":"Bidir"}
+}

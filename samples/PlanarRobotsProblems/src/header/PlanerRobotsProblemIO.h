@@ -32,6 +32,6 @@ protected:
 
 std::shared_ptr<ProblemDescription>
 make_problem_description(const std::optional<Seed> &seed,
-                         const std::string &scene_json_filename, State &start,
+                         const nlohmann::json &scenario_json, State &start,
                          State &end);
 } // namespace mt_rrt::samples
