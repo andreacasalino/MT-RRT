@@ -22,9 +22,16 @@ nlohmann::json log_case(const mt_rrt::samples::Box &box,
   using namespace mt_rrt::samples;
 
   nlohmann::json result;
-  result["box"] = box;
+
+  if (box.trsf) {
+    throw mt_rrt::Error{"Can't log box different than AABB"};
+  }
+  result["box"]["start"] = box.min_corner;
+  result["box"]["end"] = box.max_corner;
+
   result["segment"]["start"] = segment.start;
   result["segment"]["end"] = segment.end;
+
   result["collides"] = collides(segment.start, segment.end, box);
 
   return result;
@@ -35,7 +42,7 @@ static const std::string PYTHON_SCRIPT =
 #endif
 } // namespace
 
-TEST_CASE("check collision check segment-box 2D",
+TEST_CASE("check collision check segment-box",
           mt_rrt::merge(TEST_TAG, "[point_problem]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::utils;
@@ -77,50 +84,10 @@ TEST_CASE("check collision check segment-box 2D",
 }
 
 namespace {
-mt_rrt::State make_state(const float val, const std::size_t size) {
-  mt_rrt::State result;
-  result.reserve(size);
-  for (std::size_t k = 0; k < size; ++k) {
-    result.push_back(val);
-  }
-  return result;
-}
+mt_rrt::State make_state(const float val) { return mt_rrt::State{val, val}; }
 } // namespace
 
-TEST_CASE("check collision check segment-box nD",
-          mt_rrt::merge(TEST_TAG, "[point_problem]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-  using namespace mt_rrt::samples;
-
-  auto size = GENERATE(3, 5, 10);
-
-  Box box = Box{make_state(-1.f, size), make_state(1.f, size)};
-
-  SECTION("collision expected") {
-    auto segment = Segment{make_state(0, size), make_state(2.f, size)};
-
-#ifdef TEST_LOGGING
-    Logger::log("box_segment_collisions", log_case(box, segment),
-                PYTHON_SCRIPT);
-#endif
-    CHECK(collides(segment.start, segment.end, box));
-    CHECK(collides(segment.end, segment.start, box));
-  }
-
-  SECTION("no collision expected") {
-    auto segment = Segment{make_state(1.5f, size), make_state(2.f, size)};
-
-#ifdef TEST_LOGGING
-    Logger::log("box_segment_collisions", log_case(box, segment),
-                PYTHON_SCRIPT);
-#endif
-    CHECK_FALSE(collides(segment.start, segment.end, box));
-    CHECK_FALSE(collides(segment.end, segment.start, box));
-  }
-}
-
-TEST_CASE("steer point in 2D", mt_rrt::merge(TEST_TAG, "[point_problem]")) {
+TEST_CASE("steer point in plane", mt_rrt::merge(TEST_TAG, "[point_problem]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::utils;
   using namespace mt_rrt::samples;

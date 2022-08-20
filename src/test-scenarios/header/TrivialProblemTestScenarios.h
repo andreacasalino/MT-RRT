@@ -28,8 +28,7 @@ struct ExtendProblem {
   State end;
 };
 
-ExtendProblem make_empty_scenario(const std::size_t size,
-                                  const ExpansionStrategy expansion_strategy);
+ExtendProblem make_empty_scenario(const ExpansionStrategy expansion_strategy);
 
 ExtendProblem
 make_no_solution_scenario(const std::size_t size,

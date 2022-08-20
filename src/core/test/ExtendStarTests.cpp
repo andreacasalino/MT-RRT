@@ -3,6 +3,9 @@
 
 #include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
+#ifdef TEST_LOGGING
+#include <TrivialProblemJson.h>
+#endif
 
 TEST_CASE("Star extender in an empty space",
           mt_rrt::merge(TEST_TAG, "[extend][star][empty]")) {
@@ -11,7 +14,7 @@ TEST_CASE("Star extender in an empty space",
 
   auto size = GENERATE(2, 4);
 
-  auto scenario = make_empty_scenario(size, ExpansionStrategy::Star);
+  auto scenario = make_empty_scenario(ExpansionStrategy::Star);
   const auto &start = scenario.start;
   const auto &end = scenario.end;
 
@@ -22,9 +25,8 @@ TEST_CASE("Star extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "star-empty",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "star-empty", PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -55,9 +57,9 @@ TEST_CASE("Star extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "star-one_obstacle",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "star-one_obstacle",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -91,9 +93,9 @@ TEST_CASE("Star extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "star-cluttered",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "star-cluttered",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();

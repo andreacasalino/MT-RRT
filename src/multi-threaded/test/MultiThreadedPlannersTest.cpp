@@ -5,6 +5,9 @@
 
 #include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
+#ifdef TEST_LOGGING
+#include <TrivialProblemJson.h>
+#endif
 
 #include <algorithm>
 
@@ -76,8 +79,8 @@ void check_planner_with_setter(const std::string &log_tag,
 
 #ifdef TEST_LOGGING
   log_scenario(planner.problem(), solution,
-               samples::TrivialProblemConnectorLogger::LOGGER,
-               DEFAULT_SOLUTION_LOGGER, log_tag, TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+               samples::TrivialProblemConverter::CONVERTER, log_tag,
+               PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
   REQUIRE(solution.solution);

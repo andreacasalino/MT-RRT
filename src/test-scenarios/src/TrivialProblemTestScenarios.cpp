@@ -138,12 +138,11 @@ State all_equals(const std::size_t size, const float value) {
 }
 } // namespace
 
-ExtendProblem make_empty_scenario(const std::size_t size,
-                                  const ExpansionStrategy expansion_strategy) {
-  return ExtendProblem{samples::make_trivial_problem_description(1, size),
+ExtendProblem make_empty_scenario(const ExpansionStrategy expansion_strategy) {
+  return ExtendProblem{samples::make_trivial_problem_description(1, {}),
                        Parameters{expansion_strategy, SteerIterations{3},
                                   Iterations{1500}, Determinism{0.15f}, false},
-                       all_equals(size, -1.f), all_equals(size, 1.f)};
+                       all_equals(2, -1.f), all_equals(2, 1.f)};
 }
 
 ExtendProblem

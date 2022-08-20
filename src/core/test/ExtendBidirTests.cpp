@@ -3,6 +3,9 @@
 
 #include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
+#ifdef TEST_LOGGING
+#include <TrivialProblemJson.h>
+#endif
 
 TEST_CASE("Bidir extender in an empty space",
           mt_rrt::merge(TEST_TAG, "[extend][bidir][empty]")) {
@@ -11,7 +14,7 @@ TEST_CASE("Bidir extender in an empty space",
 
   auto size = GENERATE(2, 5);
 
-  auto scenario = make_empty_scenario(size, ExpansionStrategy::Bidir);
+  auto scenario = make_empty_scenario(ExpansionStrategy::Bidir);
   const auto &start = scenario.start;
   const auto &end = scenario.end;
 
@@ -25,9 +28,9 @@ TEST_CASE("Bidir extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "bidir-empty_only_deterministic",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "bidir-empty_only_deterministic",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -65,9 +68,9 @@ TEST_CASE("Bidir extender in an empty space",
     }
 
 #ifdef TEST_LOGGING
-    log_scenario(*extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "bidir-empty_many_solutions",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(*extender, samples::TrivialProblemConverter::CONVERTER,
+                 "bidir-empty_many_solutions",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender->getSolutions();
@@ -99,9 +102,9 @@ TEST_CASE("Bidir extender with blocking obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "bidir-no_solution",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "bidir-no_solution",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     REQUIRE(extender.getSolutions().empty());
@@ -126,9 +129,9 @@ TEST_CASE("Bidir extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "bidir-one_obstacle",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "bidir-one_obstacle",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -158,9 +161,9 @@ TEST_CASE("Bidir extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConnectorLogger::LOGGER,
-                 DEFAULT_SOLUTION_LOGGER, "bidir-cluttered",
-                 TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
+                 "bidir-cluttered",
+                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
 #endif
 
     const auto &solutions = extender.getSolutions();

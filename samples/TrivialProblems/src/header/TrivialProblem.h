@@ -10,24 +10,65 @@
 #include <MT-RRT-core/PlanningProblem.h>
 #include <MT-RRT-core/TunneledConnector.h>
 
-#include <JsonConvert.h>
+#include <array>
+#include <optional>
 
 namespace mt_rrt::samples {
+static constexpr float PI = 3.1415926535f;
+
+float to_rad(float angle);
+
+float to_grad(float angle);
+
+class Transform {
+public:
+  using Traslation = std::array<float, 2>;
+
+  Transform(const std::optional<float> &rotation_angle,
+            const std::optional<Traslation> &traslation);
+
+  float getAngle() const {
+    return atan2f(rotation.sin_angle, rotation.cos_angle);
+  }
+  const Traslation &getTraslation() const { return traslation; };
+
+  static Transform combine(const Transform &pre, const Transform &post);
+
+  static Transform rotationAroundCenter(float rotation_angle,
+                                        const Traslation &center);
+
+  State seenFromRelativeFrame(const State &subject) const;
+
+  void dotRotationMatrix(float *recipient, const float *point) const;
+  void dotRotationMatrixTrasp(float *recipient, const float *point) const;
+
+private:
+  struct RotationInfo {
+    float cos_angle;
+    float sin_angle;
+  };
+  RotationInfo rotation;
+  Traslation traslation;
+};
+
 struct Box {
-  State min_corner;
-  State max_corner;
+  Box(const State &min, const State &max,
+      const std::optional<Transform> &trsf = std::nullopt);
+
+  State min_corner; // seen from local frame!!!
+  State max_corner; // seen from local frame!!!
+
+  std::optional<Transform> trsf;
 };
 using Boxes = std::vector<Box>;
 
 bool collides(const State &segment_start, const State &segment_end,
               const Box &box);
 
-// Unvierse is a (-1 , ... , -1) x (1 , ... , 1) hyperbox, with steer radius
+// Universe is a (-1 , -1) x (1 , 1) box, with steer radius
 // equal to 0.05
 class TrivialProblemConnector : public TunneledConnector {
 public:
-  TrivialProblemConnector(const std::size_t size);
-
   TrivialProblemConnector(const Boxes &obstacles);
 
   TrivialProblemConnector(const TrivialProblemConnector &o);
@@ -49,31 +90,7 @@ protected:
   BoxesPtr obstacles;
 };
 
-SamplerPtr make_trivial_problem_sampler(std::size_t space_size,
-                                        const std::optional<Seed> &seed);
-
-template <typename... ConnectorArgs>
 std::shared_ptr<ProblemDescription>
 make_trivial_problem_description(const std::optional<Seed> &seed,
-                                 ConnectorArgs... args) {
-  auto connector = std::make_unique<TrivialProblemConnector>(
-      std::forward<ConnectorArgs>(args)...);
-
-  std::shared_ptr<ProblemDescription> result;
-  result.reset(new ProblemDescription{
-      make_trivial_problem_sampler(connector->getStateSpaceSize(), seed),
-      std::move(connector), true, Positive<float>{10.f}});
-  return result;
-}
-
-void to_json(nlohmann::json &j, const Box &subject);
-
-class TrivialProblemConnectorLogger
-    : public utils::ConnectorLoggerTyped<TrivialProblemConnector> {
-public:
-  static const TrivialProblemConnectorLogger LOGGER;
-
-protected:
-  void log(nlohmann::json &j, const TrivialProblemConnector &c) const final;
-};
+                                 const Boxes &obstacles);
 } // namespace mt_rrt::samples

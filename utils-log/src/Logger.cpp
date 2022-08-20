@@ -15,14 +15,10 @@
 #include <iostream>
 
 namespace mt_rrt::utils {
-PythonSources::PythonSources(const std::string &fileName) {
-  sources.push_back(fileName);
-}
-
 PythonSources::PythonSources(const std::vector<std::string> &filesNames)
     : sources(filesNames) {}
 
-void PythonSources::printAssembled(const std::string &destination) const {
+void PythonSources::reprint(const std::string &destination) const {
   std::ofstream out_stream(destination);
   for (const auto &path : sources) {
     std::ifstream in_stream(path);
@@ -61,7 +57,7 @@ void Logger::log(
     std::filesystem::path python_script_destination =
         merge(folder_name, "/Show.py");
 
-    python_visualization_sources->printAssembled(python_script_destination);
+    python_visualization_sources->reprint(python_script_destination);
 
     std::cout << "run `python3 " << python_script_destination.c_str() << ' '
               << log_name << '`' << std::endl;
@@ -70,21 +66,20 @@ void Logger::log(
 
 void log_scenario(
     const ProblemDescription &problem, const PlannerSolution &solution,
-    const ConnectorLogger &connector_logger,
-    const SolutionLogger &solution_logger, const std::string &case_name,
+    const Converter &converter, const std::string &case_name,
     const std::optional<PythonSources> &python_visualization_sources) {
   nlohmann::json json_log;
-  to_json(json_log, problem, solution, connector_logger, solution_logger);
+  to_json(json_log, problem, solution, converter);
   Logger::log(merge("extender-", case_name), json_log,
               python_visualization_sources);
 }
 
 void log_scenario(
-    const mt_rrt::Extender &subject, const ConnectorLogger &connector_logger,
-    const SolutionLogger &solution_logger, const std::string &case_name,
+    const mt_rrt::Extender &subject, const Converter &converter,
+    const std::string &case_name,
     const std::optional<PythonSources> &python_visualization_sources) {
   nlohmann::json json_log;
-  to_json(json_log, subject, connector_logger, solution_logger);
+  to_json(json_log, subject, converter);
   Logger::log(merge("extender-", case_name), json_log,
               python_visualization_sources);
 }

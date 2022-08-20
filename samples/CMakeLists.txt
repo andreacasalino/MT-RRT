@@ -1,3 +1,4 @@
-add_subdirectory(configurations)
+add_subdirectory(framework)
+
 add_subdirectory(TrivialProblems)
-add_subdirectory(PlanarRobotsProblems)
+# add_subdirectory(PlanarRobotsProblems)

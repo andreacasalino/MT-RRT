@@ -23,14 +23,14 @@ if(BUILD_MT_RRT_TESTS)
     )
     FetchContent_MakeAvailable(catch2)
 
-    option(ENABLE_MT_RRT_TESTS_LOGGING "Enable log generations when running tests" OFF)
+    option(ENABLE_MT_RRT_TESTS_LOGGING "Enable log generations when running tests" ON)
 endif()
 
 option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
 
 if(BUILD_MT_RRT_TESTS OR BUILD_MT_RRT_SAMPLES)
     FECTH_JSON_LIB()
-    add_subdirectory(utils)
+    add_subdirectory(utils-log)
 endif()
 
 add_subdirectory(src)

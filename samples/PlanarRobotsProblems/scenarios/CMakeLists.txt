@@ -5,7 +5,7 @@ function(ADD_PLANAROBOTS_PROBLEM_SAMPLE SCENARIO)
     target_link_libraries(${NAME} PUBLIC 
        MT-RRT-multi-threaded # this already links to MT-RRT-core
        PlanarRobotsProblem-lib # all the knowledge needed to model and handle trivial problems
-       MT-RRT-configurations # utilities to parse a config file (json) in order to build the correct planner
+       MT-RRT-framework # utilities to parse a config file (json) in order to build the correct planner
     )
 
     target_compile_definitions(${NAME} PUBLIC

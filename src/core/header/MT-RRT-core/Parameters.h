@@ -28,7 +28,7 @@ public:
 enum class ExpansionStrategy { Single, Bidir, Star };
 
 struct Parameters {
-  ExpansionStrategy expansion_strategy;
+  ExpansionStrategy expansion_strategy = ExpansionStrategy::Star;
   SteerIterations steer_trials;
   Iterations iterations;
   Determinism determinism = Determinism{0.35f};

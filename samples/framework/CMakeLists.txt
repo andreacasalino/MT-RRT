@@ -1,5 +1,5 @@
 if(BUILD_MT_RRT_SAMPLES)
-    set(CONFIG_LIB_NAME MT-RRT-configurations)
+    set(CONFIG_LIB_NAME MT-RRT-framework)
 
     MakeLibrary(${CONFIG_LIB_NAME})
 

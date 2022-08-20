@@ -47,13 +47,11 @@ void to_json(nlohmann::json &j, const std::vector<Tree> &subject) {
 }
 
 void to_json(nlohmann::json &j, const ProblemDescription &problem,
-             const PlannerSolution &solution,
-             const ConnectorLogger &connector_logger,
-             const SolutionLogger &solution_logger) {
+             const PlannerSolution &solution, const Converter &converter) {
   j["time_ms"] = solution.time.count();
   j["iterations"] = solution.iterations;
 
-  connector_logger(j["scene"], *problem.connector);
+  converter.toJson(j["scene"], *problem.connector);
 
   to_json(j["trees"], solution.trees);
 
@@ -62,14 +60,13 @@ void to_json(nlohmann::json &j, const ProblemDescription &problem,
   if (solution.solution) {
     auto &sol = solutions.emplace_back();
     sol["cost"] = 1.f;
-    solution_logger(sol["sequence"], solution.solution.value());
+    converter.toJson(sol["sequence"], solution.solution.value());
   }
 }
 
 void to_json(nlohmann::json &j, const Extender &subject,
-             const ConnectorLogger &connector_logger,
-             const SolutionLogger &solution_logger) {
-  connector_logger(j["scene"], *subject.problem().connector);
+             const Converter &converter) {
+  converter.toJson(j["scene"], *subject.problem().connector);
 
   to_json(j["trees"], subject.dumpTrees());
 
@@ -78,7 +75,7 @@ void to_json(nlohmann::json &j, const Extender &subject,
   for (const auto &[cost, solution] : subject.getSolutions()) {
     auto &sol = solutions.emplace_back();
     sol["cost"] = cost;
-    solution_logger(sol["sequence"], solution->getSequence());
+    converter.toJson(sol["sequence"], solution->getSequence());
   }
 }
 } // namespace mt_rrt::utils
