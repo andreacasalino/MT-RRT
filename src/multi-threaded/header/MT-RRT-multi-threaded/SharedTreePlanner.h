@@ -12,8 +12,7 @@
 namespace mt_rrt {
 class SharedTreePlanner : public MultiThreadedPlanner {
 public:
-  SharedTreePlanner(ProblemDescription &&problem)
-      : MultiThreadedPlanner(std::forward<ProblemDescription>(problem)){};
+  using MultiThreadedPlanner::MultiThreadedPlanner;
 
 protected:
   void solve_(const State &start, const State &end,

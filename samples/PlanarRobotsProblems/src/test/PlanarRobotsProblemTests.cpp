@@ -108,8 +108,9 @@ TEST_CASE("check closest pair segment VS segment",
 }
 
 namespace {
-mt_rrt::samples::Robot make_robot(const std::size_t dof, float ray = 0.1f,
-                                  const mt_rrt::samples::Point &base = {0, 0}) {
+mt_rrt::samples::Robot make_robot(
+    const std::size_t dof, float ray = 0.1f,
+    const mt_rrt::samples::Robot::Base &base = mt_rrt::samples::Robot::Base{}) {
   std::vector<mt_rrt::samples::Robot::Link> links;
   for (std::size_t k = 0; k < dof; ++k) {
     auto &link = links.emplace_back();

@@ -42,8 +42,10 @@ public:
 
 class MultiThreadedPlanner : public Planner, public ProblemDescriptionCloner {
 public:
-  MultiThreadedPlanner(ProblemDescription &&problem)
-      : Planner(std::move(problem)), ProblemDescriptionCloner(problemPtr()) {}
+  template <typename... Args>
+  MultiThreadedPlanner(Args... args)
+      : Planner(std::forward<Args>(args)...),
+        ProblemDescriptionCloner(problemPtr()) {}
 
   void setThreads(const Threads &threads_to_use);
   // max number of available threads is used

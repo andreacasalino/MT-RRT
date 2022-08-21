@@ -53,6 +53,9 @@ class Planner : public ProblemAware {
 public:
   Planner(ProblemDescription &&problem);
 
+  // steal the connector and the sampler contained in the passed problem !!
+  Planner(std::shared_ptr<ProblemDescription> problem);
+
   PlannerSolution solve(const State &start, const State &end,
                         const Parameters &parameters);
 

@@ -1,4 +1,10 @@
 {
+    "params":{
+        "strategy":"Star",
+        "steer_trials":10,
+        "iterations":3000,
+        "determinism":0.15
+    },
     "scene": {
         "obstacles": [
             {
@@ -57,16 +63,20 @@
             }
         ]
     },
-    "start": [
-        60,
-        -60,
-        60,
-        -60
-    ],
-    "end": [
-        -60,
-        60,
-        -60,
-        60
+    "cases": [
+        {
+            "start": [
+                60,
+                -60,
+                60,
+                -60
+            ],
+            "end": [
+                -60,
+                60,
+                -60,
+                60
+            ]
+        }
     ]
 }

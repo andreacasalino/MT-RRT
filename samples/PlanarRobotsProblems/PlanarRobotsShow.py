@@ -117,21 +117,9 @@ class Printer:
     def __init__(self, log):
         self.scene = log["scene"]
 
-        self.start=None
-        if "start" in log:
-            self.start = to_rad_pose(log["start"])
-
-        self.end=None
-        if "end" in log:
-            self.end = to_rad_pose(log["end"])
-
     def printScene(self, ax):
         for sphere in self.scene["obstacles"]:
             print_sphere(ax, sphere)
-        if self.start != None:
-            print_pose(ax, self.scene["robots"], self.start, 'b', 1.0)
-        if self.end != None:
-            print_pose(ax, self.scene["robots"], self.end, 'g', 1.0)
             
     def printTree(self, ax, tree, color):
         print_pose(ax, self.scene["robots"], tree[0]["end"], color, 0.7)

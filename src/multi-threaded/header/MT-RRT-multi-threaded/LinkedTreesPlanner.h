@@ -15,8 +15,7 @@ namespace mt_rrt {
 class LinkedTreesPlanner : public MultiThreadedPlanner,
                            public SynchronizationAware {
 public:
-  LinkedTreesPlanner(ProblemDescription &&problem)
-      : MultiThreadedPlanner(std::forward<ProblemDescription>(problem)){};
+  using MultiThreadedPlanner::MultiThreadedPlanner;
 
 protected:
   void solve_(const State &start, const State &end,

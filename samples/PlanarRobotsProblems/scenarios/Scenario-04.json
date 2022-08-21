@@ -1,4 +1,10 @@
 {
+    "params": {
+        "strategy": "Bidir",
+        "steer_trials": 10,
+        "iterations": 3000,
+        "determinism": 0.15
+    },
     "scene": {
         "obstacles": [
             {
@@ -47,21 +53,24 @@
             }
         ]
     },
-    "start": [
-        160,
-        -40,
-        -40,
-        -40,
-        -40,
-        -40
-    ],
-    "end": [
-        20,
-        40,
-        40,
-        40,
-        40,
-        40
-    ],
-    "params":{"strategy":"Bidir"}
+    "cases": [
+        {
+            "start": [
+                160,
+                -40,
+                -40,
+                -40,
+                -40,
+                -40
+            ],
+            "end": [
+                20,
+                40,
+                40,
+                40,
+                40,
+                40
+            ]
+        }
+    ]
 }

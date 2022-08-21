@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include "PlanerRobotsProblemIO.h"
+#include <PlanerRobotsProblemJson.h>
 
 #include <fstream>
 
@@ -17,18 +17,6 @@ void to_rad_state(State &subject) {
   }
 }
 } // namespace
-
-std::shared_ptr<ProblemDescription>
-make_problem_description(const std::optional<Seed> &seed,
-                         const nlohmann::json &j, State &start, State &end) {
-  Scene scene;
-  from_json(j["scene"], scene);
-  nlohmann::from_json(j["start"], start);
-  to_rad_state(start);
-  nlohmann::from_json(j["end"], end);
-  to_rad_state(end);
-  return make_problem_description(seed, scene);
-}
 
 void to_json(nlohmann::json &j, const Sphere &subject) {
   j["ray"] = subject.ray.get();
@@ -114,6 +102,63 @@ void from_json(const nlohmann::json &j, Scene &subject) {
   }
 }
 
-const PosesConnectorLogger PosesConnectorLogger::LOGGER =
-    PosesConnectorLogger{};
+const PlanarRobotsProblemConverter PlanarRobotsProblemConverter::CONVERTER =
+    PlanarRobotsProblemConverter{};
+
+std::shared_ptr<mt_rrt::ProblemDescription>
+PlanarRobotsProblemConverter::fromJson(const std::optional<Seed> &seed,
+                                       const nlohmann::json &content) const {
+  Scene scene;
+  from_json(content, scene);
+  return make_problem_description(seed, scene);
+}
+
+void PlanarRobotsProblemConverter::toJson_(
+    nlohmann::json &recipient, const PosesConnector &connector) const {
+  to_json(recipient, *connector.scene);
+}
+
+namespace {
+// return a + c(b-a)
+mt_rrt::State linear_combination(const mt_rrt::State &a, const mt_rrt::State &b,
+                                 float c) {
+  mt_rrt::State result = a;
+  for (std::size_t k = 0; k < a.size(); ++k) {
+    result[k] += c * (b[k] - a[k]);
+  }
+  return result;
+}
+
+static const float MAX_JOINT_DISTANCE = mt_rrt::samples::to_rad(15);
+
+std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
+                                       const mt_rrt::State &end) {
+  std::size_t intervals = static_cast<std::size_t>(
+      std::ceil(mt_rrt::samples::euclidean_distance(start.data(), end.data(),
+                                                    start.size()) /
+                MAX_JOINT_DISTANCE));
+  intervals = std::max<std::size_t>(1, intervals);
+  const float delta_c = 1.f / static_cast<float>(intervals);
+  float c = delta_c;
+  std::vector<mt_rrt::State> result;
+  for (std::size_t i = 1; i < intervals; ++i) {
+    result.emplace_back(linear_combination(start, end, c));
+    c += delta_c;
+  }
+  result.push_back(end);
+  return result;
+}
+} // namespace
+
+void PlanarRobotsProblemConverter::toJson(nlohmann::json &recipient,
+                                          const std::vector<State> &sol) const {
+  std::vector<mt_rrt::State> interpolated;
+  interpolated.push_back(sol.front());
+  for (std::size_t k = 1; k < sol.size(); ++k) {
+    auto interpolated_segment = interpolate(sol[k - 1], sol[k]);
+    interpolated.insert(interpolated.end(), interpolated_segment.begin(),
+                        interpolated_segment.end());
+  }
+  recipient = interpolated;
+}
 } // namespace mt_rrt::samples

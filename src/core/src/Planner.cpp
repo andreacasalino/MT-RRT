@@ -52,6 +52,9 @@ Planner::Planner(ProblemDescription &&problem)
   state_space_size = this->problem().sampler->sampleState().size();
 }
 
+Planner::Planner(std::shared_ptr<ProblemDescription> problem)
+    : Planner(std::move(*problem)) {}
+
 PlannerSolution Planner::solve(const State &start, const State &end,
                                const Parameters &parameters) {
   if (start.size() != state_space_size) {

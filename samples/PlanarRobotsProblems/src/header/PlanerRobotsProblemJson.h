@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include <JsonConvert.h>
 #include <PlanarRobotsProblem.h>
+
+#include <JsonConvert.h>
 
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Sphere &subject);
@@ -19,19 +20,19 @@ void from_json(const nlohmann::json &j, Sphere &subject);
 void from_json(const nlohmann::json &j, Robot &subject);
 void from_json(const nlohmann::json &j, Scene &subject);
 
-class PosesConnectorLogger
-    : public utils::ConnectorLoggerTyped<PosesConnector> {
+class PlanarRobotsProblemConverter : public utils::ConverterT<PosesConnector> {
 public:
-  static const PosesConnectorLogger LOGGER;
+  static const PlanarRobotsProblemConverter CONVERTER;
+
+  std::shared_ptr<mt_rrt::ProblemDescription>
+  fromJson(const std::optional<Seed> &seed,
+           const nlohmann::json &content) const final;
+
+  void toJson(nlohmann::json &recipient,
+              const std::vector<State> &sol) const final;
 
 protected:
-  void log(nlohmann::json &j, const PosesConnector &c) const final {
-    j = *c.scene;
-  };
+  void toJson_(nlohmann::json &recipient,
+               const PosesConnector &connector) const final;
 };
-
-std::shared_ptr<ProblemDescription>
-make_problem_description(const std::optional<Seed> &seed,
-                         const nlohmann::json &scenario_json, State &start,
-                         State &end);
 } // namespace mt_rrt::samples

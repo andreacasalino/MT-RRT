@@ -108,12 +108,12 @@ void from_json(const nlohmann::json &j, Boxes &boxes) {
 const TrivialProblemConverter TrivialProblemConverter::CONVERTER =
     TrivialProblemConverter{};
 
-ProblemDescription
+std::shared_ptr<ProblemDescription>
 TrivialProblemConverter::fromJson(const std::optional<Seed> &seed,
                                   const nlohmann::json &content) const {
   Boxes boxes;
   from_json(content, boxes);
-  return std::move(*make_trivial_problem_description(seed, boxes));
+  return make_trivial_problem_description(seed, boxes);
 }
 
 void TrivialProblemConverter::toJson_(

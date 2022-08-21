@@ -11,7 +11,7 @@ public:
   using mt_rrt::samples::SampleFramework::SampleFramework;
 
 protected:
-  mt_rrt::ProblemDescription
+  std::shared_ptr<mt_rrt::ProblemDescription>
   getProblemDescription_(const nlohmann::json &scene_json) final {
     return mt_rrt::samples::TrivialProblemConverter::CONVERTER.fromJson(
         getSeed(), scene_json);

@@ -13,8 +13,7 @@ namespace mt_rrt {
 
 class EmbarassinglyParallelPlanner : public MultiThreadedPlanner {
 public:
-  EmbarassinglyParallelPlanner(ProblemDescription &&problem)
-      : MultiThreadedPlanner(std::forward<ProblemDescription>(problem)){};
+  using MultiThreadedPlanner::MultiThreadedPlanner;
 
 protected:
   void solve_(const State &start, const State &end,

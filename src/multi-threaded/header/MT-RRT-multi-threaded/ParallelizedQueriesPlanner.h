@@ -12,8 +12,7 @@
 namespace mt_rrt {
 class ParallelizedQueriesPlanner : public MultiThreadedPlanner {
 public:
-  ParallelizedQueriesPlanner(ProblemDescription &&problem)
-      : MultiThreadedPlanner(std::forward<ProblemDescription>(problem)){};
+  using MultiThreadedPlanner::MultiThreadedPlanner;
 
 protected:
   void solve_(const State &start, const State &end,

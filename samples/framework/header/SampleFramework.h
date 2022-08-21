@@ -24,18 +24,19 @@ public:
   SampleFramework(const std::string &default_config_json, int argc,
                   const char **argv);
 
-  ProblemDescription getProblemDescription() {
+  std::shared_ptr<ProblemDescription> getProblemDescription() {
     return getProblemDescription_(configurations["scene"]);
   }
 
   Parameters getParameters();
 
-  std::unique_ptr<Planner> getPlanner(ProblemDescription &&description);
+  std::unique_ptr<Planner>
+  getPlanner(std::shared_ptr<ProblemDescription> description);
 
   std::vector<std::pair<State, State>> getCases();
 
 protected:
-  virtual ProblemDescription
+  virtual std::shared_ptr<ProblemDescription>
   getProblemDescription_(const nlohmann::json &scene_json) = 0;
 
   std::optional<Seed> getSeed() {
@@ -43,6 +44,8 @@ protected:
     result.emplace() = configurations["seed"];
     return result;
   }
+
+  virtual void setCase(std::pair<State, State> &start_end) { return; };
 
 private:
   // The configuration json is expected to contain.

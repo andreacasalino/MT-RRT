@@ -37,8 +37,9 @@ class TrivialProblemConverter
 public:
   static const TrivialProblemConverter CONVERTER;
 
-  ProblemDescription fromJson(const std::optional<Seed> &seed,
-                              const nlohmann::json &content) const final;
+  std::shared_ptr<ProblemDescription>
+  fromJson(const std::optional<Seed> &seed,
+           const nlohmann::json &content) const final;
 
 protected:
   void toJson_(nlohmann::json &recipient,

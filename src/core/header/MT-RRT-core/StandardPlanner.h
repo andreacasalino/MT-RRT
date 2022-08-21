@@ -12,8 +12,7 @@
 namespace mt_rrt {
 class StandardPlanner : public Planner {
 public:
-  template <typename... Args>
-  StandardPlanner(Args... args) : Planner(std::forward<Args>(args)...) {}
+  using Planner::Planner;
 
 protected:
   void solve_(const State &start, const State &end,

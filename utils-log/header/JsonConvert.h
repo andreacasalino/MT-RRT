@@ -35,8 +35,9 @@ public:
 
 template <typename ConnectorT> class ConverterT : public Converter {
 public:
-  virtual ProblemDescription fromJson(const std::optional<Seed> &seed,
-                                      const nlohmann::json &content) const = 0;
+  virtual std::shared_ptr<ProblemDescription>
+  fromJson(const std::optional<Seed> &seed,
+           const nlohmann::json &content) const = 0;
 
   void toJson(nlohmann::json &recipient,
               const Connector &connector) const final {

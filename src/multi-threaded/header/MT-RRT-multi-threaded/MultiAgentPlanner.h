@@ -17,8 +17,7 @@ class MultiAgentPlanner : public MultiThreadedPlanner,
 public:
   enum class StarExpansionStrategyApproach { ExploitAllThreads, MonoThread };
 
-  MultiAgentPlanner(ProblemDescription &&problem)
-      : MultiThreadedPlanner(std::forward<ProblemDescription>(problem)){};
+  using MultiThreadedPlanner::MultiThreadedPlanner;
 
   void setStarApproach(StarExpansionStrategyApproach approach) {
     star_approach = approach;

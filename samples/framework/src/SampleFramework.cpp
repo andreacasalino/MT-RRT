@@ -140,7 +140,7 @@ void set_synchronization(SynchronizationAware &planner,
 } // namespace
 
 std::unique_ptr<Planner>
-SampleFramework::getPlanner(ProblemDescription &&description) {
+SampleFramework::getPlanner(std::shared_ptr<ProblemDescription> description) {
   if (configurations.contains("planner")) {
     const auto &j_planner = configurations["planner"];
 
@@ -150,41 +150,36 @@ SampleFramework::getPlanner(ProblemDescription &&description) {
     }
 
     if (planner_type == "embarassingly") {
-      auto planner = std::make_unique<EmbarassinglyParallelPlanner>(
-          std::forward<ProblemDescription>(description));
+      auto planner =
+          std::make_unique<EmbarassinglyParallelPlanner>(description);
       set_threads(*planner, j_planner);
       return planner;
     }
     if (planner_type == "parall_query") {
-      auto planner = std::make_unique<ParallelizedQueriesPlanner>(
-          std::forward<ProblemDescription>(description));
+      auto planner = std::make_unique<ParallelizedQueriesPlanner>(description);
       set_threads(*planner, j_planner);
       return planner;
     }
     if (planner_type == "shared") {
-      auto planner = std::make_unique<SharedTreePlanner>(
-          std::forward<ProblemDescription>(description));
+      auto planner = std::make_unique<SharedTreePlanner>(description);
       set_threads(*planner, j_planner);
       return planner;
     }
     if (planner_type == "linked") {
-      auto planner = std::make_unique<LinkedTreesPlanner>(
-          std::forward<ProblemDescription>(description));
+      auto planner = std::make_unique<LinkedTreesPlanner>(description);
       set_threads(*planner, j_planner);
       set_synchronization(*planner, j_planner);
       return planner;
     }
     if (planner_type == "agents") {
-      auto planner = std::make_unique<MultiAgentPlanner>(
-          std::forward<ProblemDescription>(description));
+      auto planner = std::make_unique<MultiAgentPlanner>(description);
       set_threads(*planner, j_planner);
       set_synchronization(*planner, j_planner);
       return planner;
     }
   }
 
-  return std::make_unique<StandardPlanner>(
-      std::forward<ProblemDescription>(description));
+  return std::make_unique<StandardPlanner>(description);
 }
 
 std::vector<std::pair<State, State>> SampleFramework::getCases() {
@@ -195,7 +190,8 @@ std::vector<std::pair<State, State>> SampleFramework::getCases() {
     for (const auto &j_case : j_cases) {
       State start = j_case["start"];
       State end = j_case["end"];
-      result.emplace_back(std::make_pair(start, end));
+      auto &added = result.emplace_back(std::make_pair(start, end));
+      setCase(added);
     }
   }
 
