@@ -33,6 +33,8 @@ void interpolate(nlohmann::json &recipient,
 int main(int argc, const char **argv) {
   PlanarRobotsProblemFramework framework(SAMPLE_JSON, argc, argv);
 
+  std::cout << framework << std::endl;
+
   auto description = framework.getProblemDescription();
 
   auto parameters = framework.getParameters();

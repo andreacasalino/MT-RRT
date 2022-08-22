@@ -78,9 +78,10 @@ void check_planner_with_setter(const std::string &log_tag,
   auto solution = planner.solve(start, end, params);
 
 #ifdef TEST_LOGGING
-  log_scenario(planner.problem(), solution,
-               samples::TrivialProblemConverter::CONVERTER, log_tag,
-               PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
+  log_scenario(
+      planner.problem(), solution, samples::TrivialProblemConverter::CONVERTER,
+      log_tag,
+      mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
 #endif
 
   REQUIRE(solution.solution);
