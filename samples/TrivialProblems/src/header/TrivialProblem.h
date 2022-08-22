@@ -14,12 +14,6 @@
 #include <optional>
 
 namespace mt_rrt::samples {
-static constexpr float PI = 3.1415926535f;
-
-float to_rad(float angle);
-
-float to_grad(float angle);
-
 class Transform {
 public:
   using Traslation = std::array<float, 2>;

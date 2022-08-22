@@ -15,16 +15,6 @@
 namespace {
 bool almost_equal(float a, float b) { return std::abs(a - b) < 0.001f; }
 
-mt_rrt::samples::Segment make_segment(const mt_rrt::samples::Point &a,
-                                      const mt_rrt::samples::Point &b) {
-  mt_rrt::samples::Segment segment;
-  segment.front() = std::make_shared<mt_rrt::samples::Point>(a);
-  segment.back() = std::make_shared<mt_rrt::samples::Point>(b);
-  return segment;
-}
-
-static const mt_rrt::samples::Point ORIGIN = mt_rrt::samples::Point{0, 0};
-
 std::ostream &operator<<(std::ostream &s, const mt_rrt::samples::Point &p) {
   s << '<' << p.at(0) << " , " << p.at(1) << '>';
   return s;
@@ -38,75 +28,6 @@ std::ostream &operator<<(std::ostream &s, const mt_rrt::samples::Robot &r) {
   return s;
 }
 } // namespace
-
-TEST_CASE("check closest point segment VS point",
-          mt_rrt::merge(TEST_TAG, "[segment-point-closest]")) {
-  using namespace mt_rrt::samples;
-
-  struct TestCase {
-    Segment line;
-    float s_min_expected;
-  };
-
-  auto test_case =
-      GENERATE(TestCase{make_segment({-1.f, 1.f}, {1.f, 1.f}), 0.5f},
-               TestCase{make_segment({0.f, 1.f}, {1.f, 1.f}), 0.f},
-               TestCase{make_segment({-1.f, 1.f}, {0.f, 1.f}), 1.f},
-               TestCase{make_segment({0.f, 1.f}, {1.f, 0.f}), 0.5f},
-               TestCase{make_segment({1.f, 0.f}, {0.f, 1.f}), 0.5f});
-
-  const auto s_min = closest_point(test_case.line, ORIGIN);
-  CHECK(almost_equal(s_min, test_case.s_min_expected));
-}
-
-namespace {
-mt_rrt::samples::Point track_on_segment(const mt_rrt::samples::Segment &seg,
-                                        const float s) {
-  mt_rrt::samples::Point result = *seg.front();
-  result.at(0) += s * (seg.back()->at(0) - seg.front()->at(0));
-  result.at(1) += s * (seg.back()->at(1) - seg.front()->at(1));
-  return result;
-}
-} // namespace
-
-TEST_CASE("check closest pair segment VS segment",
-          mt_rrt::merge(TEST_TAG, "[segment-segment-closest]")) {
-  using namespace mt_rrt::samples;
-
-  struct TestCase {
-    Segment seg_a;
-    Segment seg_b;
-  };
-
-  SECTION("non parallel segments") {
-    auto test_case = GENERATE(TestCase{make_segment({-1.f, -1.f}, {1.f, 1.f}),
-                                       make_segment({-1.f, 1.f}, {1.f, -1.f})},
-                              TestCase{make_segment({-1.f, -1.f}, {0.f, 0.f}),
-                                       make_segment({1.f, 1.f}, {1.f, 0.f})});
-
-    const auto maybe_pair = closest_pair(test_case.seg_a, test_case.seg_b);
-    REQUIRE(maybe_pair);
-    const auto s_min = maybe_pair->front();
-    const auto t_min = maybe_pair->back();
-
-    const auto point_along_a = track_on_segment(test_case.seg_a, s_min);
-    const auto point_along_b = track_on_segment(test_case.seg_b, t_min);
-
-    CHECK(almost_equal(point_along_a.at(0), point_along_b.at(0)));
-    CHECK(almost_equal(point_along_a.at(1), point_along_b.at(1)));
-  }
-
-  SECTION("parallel segments") {
-    auto test_case =
-        GENERATE(TestCase{make_segment({0.f, 0.f}, {1.f, 0.f}),
-                          make_segment({0.f, 1.f}, {1.f, 1.f})},
-                 TestCase{make_segment({-1.f, -1.f}, {1.f, 1.f}),
-                          make_segment({-1.f, -1.5f}, {1.f, 0.5f})});
-
-    CHECK_FALSE(closest_pair(test_case.seg_a, test_case.seg_b));
-  }
-}
-
 namespace {
 mt_rrt::samples::Robot make_robot(
     const std::size_t dof, float ray = 0.1f,
@@ -131,6 +52,7 @@ mt_rrt::State make_end_pose(const mt_rrt::State &start) {
 
 TEST_CASE("check Robot::setPose", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
   using namespace mt_rrt::samples;
+  using namespace mt_rrt::utils;
 
   auto robot = make_robot(3, 0);
 
@@ -163,6 +85,7 @@ TEST_CASE("check Robot::setPose", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
 
 TEST_CASE("check Robot::delta", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
   using namespace mt_rrt::samples;
+  using namespace mt_rrt::utils;
 
   auto robot = make_robot(3, 0);
 
@@ -189,6 +112,7 @@ TEST_CASE("check Robot::delta", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
 
 TEST_CASE("check Robot::distance", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
   using namespace mt_rrt::samples;
+  using namespace mt_rrt::utils;
 
   const float ray = 0.1f;
 
@@ -226,6 +150,7 @@ TEST_CASE("check Robot::distance", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
 TEST_CASE("check bubble advance", mt_rrt::merge(TEST_TAG, "[planer-robot]")) {
   using namespace mt_rrt;
   using namespace mt_rrt::samples;
+  using namespace mt_rrt::utils;
 
   const float sphere_ray = 1.f;
   const float robot_capsules_ray = 0.1f;

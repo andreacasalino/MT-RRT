@@ -1,6 +1,7 @@
 #include <MT-RRT-carpet/Error.h>
 
 #include <Extender.h>
+#include <Geometry.h>
 #include <TrivialProblemTestScenarios.h>
 
 #include <algorithm>
@@ -12,16 +13,6 @@ TreeHandlerPtr make_tree_handler(const State &root_state,
   return std::make_unique<TreeHandler>(make_root(root_state), problem,
                                        parameters);
 }
-
-namespace {
-float expected_cost(const std::vector<mt_rrt::State> &sequence) {
-  float result = 0;
-  for (std::size_t k = 1; k < sequence.size(); ++k) {
-    result += euclidean_distance(sequence[k - 1], sequence[k]);
-  }
-  return result;
-}
-} // namespace
 
 bool is_a_collision_present(const samples::TrivialProblemConnector &scenario,
                             const std::vector<State> &sequence) {
@@ -49,70 +40,13 @@ bool check_solutions(const samples::TrivialProblemConnector &scenario,
                           return true;
                         }
 
-                        const auto expected = expected_cost(sequence);
+                        const auto expected = curve_length(sequence);
                         if (fabs(expected - subject.first) > 0.01f) {
                           return true;
                         }
 
                         return is_a_collision_present(scenario, sequence);
                       });
-}
-
-namespace {
-class Interpolator {
-public:
-  Interpolator(const std::vector<mt_rrt::State> &subject)
-      : total_length(expected_cost(subject)) {
-    for (std::size_t k = 1; k < subject.size(); ++k) {
-      const auto &start = subject[k - 1];
-      const auto &end = subject[k];
-      segments.emplace_back(
-          Segment{start, end, euclidean_distance(start, end)});
-    }
-  }
-
-  State evaluate(const float s) const {
-    float length = s * total_length;
-    float cumulated_length = 0;
-    for (const auto &segment : segments) {
-      if (length <= (cumulated_length + segment.length)) {
-        const float b_coeff = (length - cumulated_length) / segment.length;
-        const float a_coeff = 1.f - b_coeff;
-        State result;
-        for (std::size_t k = 0; k < segment.end.size(); ++k) {
-          result.push_back(a_coeff * segment.start[k] +
-                           b_coeff * segment.end[k]);
-        }
-        return result;
-      }
-      cumulated_length += segment.length;
-    }
-    return segments.back().end;
-  }
-
-private:
-  const float total_length;
-
-  struct Segment {
-    State start;
-    State end;
-    float length;
-  };
-  std::vector<Segment> segments;
-};
-} // namespace
-
-float similarity(const std::vector<mt_rrt::State> &a,
-                 const std::vector<mt_rrt::State> &b) {
-  float result = 0;
-  const float delta = 1.f / static_cast<float>(100);
-  Interpolator interp_a(a);
-  Interpolator interp_b(b);
-  std::size_t counter = 0;
-  for (float s = delta; s <= 1.f; s += delta, ++counter) {
-    result += euclidean_distance(interp_a.evaluate(s), interp_b.evaluate(s));
-  }
-  return result / static_cast<float>(counter);
 }
 
 bool check_loopy_connections(const Tree &tree) {

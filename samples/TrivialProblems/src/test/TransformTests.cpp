@@ -3,6 +3,7 @@
 
 #include <MT-RRT-carpet/Strings.h>
 
+#include <Geometry.h>
 #include <TrivialProblem.h>
 
 namespace {
@@ -45,7 +46,7 @@ TEST_CASE("check seen from relative", mt_rrt::merge(TEST_TAG, "[transform]")) {
   }
 
   SECTION("only rotation") {
-    Transform t(to_rad(45.f), std::nullopt);
+    Transform t(utils::to_rad(45.f), std::nullopt);
 
     State point = State{1.f, 1.f};
 
@@ -54,7 +55,7 @@ TEST_CASE("check seen from relative", mt_rrt::merge(TEST_TAG, "[transform]")) {
   }
 
   SECTION("traslation and rotation") {
-    Transform t(to_rad(45.f), Transform::Traslation{0, 1.5f});
+    Transform t(utils::to_rad(45.f), Transform::Traslation{0, 1.5f});
 
     State point = State{1.f, 2.5f};
 
@@ -68,7 +69,7 @@ TEST_CASE("check combine transform", mt_rrt::merge(TEST_TAG, "[transform]")) {
   using namespace mt_rrt::samples;
 
   SECTION("combine with only rotations") {
-    const float angle = to_rad(10.f);
+    const float angle = utils::to_rad(10.f);
     Transform t(angle, std::nullopt);
     Transform t2 = Transform::combine(t, t);
 
@@ -80,8 +81,8 @@ TEST_CASE("check combine transform", mt_rrt::merge(TEST_TAG, "[transform]")) {
 
   SECTION("combine general") {
     auto t = Transform::combine(
-        Transform{to_rad(90.f / 4.f), Transform::Traslation{0, 1.5f}},
-        Transform{to_rad(90.f / 4.f), std::nullopt});
+        Transform{utils::to_rad(90.f / 4.f), Transform::Traslation{0, 1.5f}},
+        Transform{utils::to_rad(90.f / 4.f), std::nullopt});
 
     State point = State{1.f, 2.5f};
 

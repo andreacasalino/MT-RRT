@@ -197,11 +197,52 @@ std::vector<std::pair<State, State>> SampleFramework::getCases() {
 
   return result;
 }
+
+namespace {
+static const std::string FORMAT_SPACE_DELTA = "  ";
+
+void printConfigurations(std::ostream &recipient, std::string format_space,
+                         const nlohmann::json &content) {
+  if (content.is_structured()) {
+    recipient << '{' << std::endl;
+    for (const auto &[key, val] : content.items()) {
+      recipient << format_space << '\"' << key << "\":";
+      printConfigurations(recipient, format_space + FORMAT_SPACE_DELTA, val);
+    }
+    recipient << format_space << '}' << std::endl;
+    return;
+  }
+  if (content.is_array()) {
+    recipient << format_space << '[' << std::endl;
+    for (const auto &element : content) {
+      recipient << format_space;
+      printConfigurations(recipient, format_space + FORMAT_SPACE_DELTA,
+                          element);
+    }
+    recipient << format_space << ']' << std::endl;
+    return;
+  }
+  recipient << content.dump() << std::endl;
+}
+} // namespace
+
+void SampleFramework::showConfigurations(std::ostream &recipient) const {
+  printConfigurations(recipient, "", configurations);
+  recipient << "===================================================="
+            << std::endl
+            << std::endl;
+}
 } // namespace mt_rrt::samples
 
 std::ostream &operator<<(std::ostream &s, const mt_rrt::State &subject) {
   for (const auto val : subject) {
     s << ' ' << val;
   }
+  return s;
+}
+
+std::ostream &operator<<(std::ostream &s,
+                         const mt_rrt::samples::SampleFramework &subject) {
+  subject.showConfigurations(s);
   return s;
 }

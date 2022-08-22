@@ -13,10 +13,6 @@
 #include <math.h>
 
 namespace mt_rrt::samples {
-float to_rad(float angle) { return angle * PI / 180.f; }
-
-float to_grad(float angle) { return angle * 180.f / PI; }
-
 Transform::Transform(const std::optional<float> &rotation_angle,
                      const std::optional<Traslation> &trsl)
     : traslation({0, 0}) {

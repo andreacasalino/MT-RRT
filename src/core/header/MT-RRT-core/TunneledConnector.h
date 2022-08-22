@@ -28,12 +28,13 @@ public:
     steer_degree.set(degree.get());
   }
 
+  virtual bool checkAdvancement(const State& previous_state,
+      const State& advanced_state) const = 0;
+
 protected:
   TunneledConnector(const TunneledConnector &o);
 
   class Line;
-  virtual bool checkAdvancement(const State &previous_state,
-                                const State &advanced_state) const = 0;
 
 private:
   const std::size_t space_size;

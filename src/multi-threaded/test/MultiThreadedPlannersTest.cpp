@@ -3,6 +3,7 @@
 
 #include <MT-RRT-multi-threaded/MultiThreadedPlanner.h>
 
+#include <Geometry.h>
 #include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
 #ifdef TEST_LOGGING
@@ -48,7 +49,8 @@ bool check_optimality(
   return std::any_of(
       possible_optimal_solutions.begin(), possible_optimal_solutions.end(),
       [&found_solution](const std::vector<mt_rrt::State> &candidate) {
-        return mt_rrt::utils::similarity(found_solution, candidate) <= 0.2f;
+        return mt_rrt::utils::curve_similarity(found_solution, candidate) <=
+               0.2f;
       });
 }
 
@@ -78,9 +80,10 @@ void check_planner_with_setter(const std::string &log_tag,
   auto solution = planner.solve(start, end, params);
 
 #ifdef TEST_LOGGING
-  log_scenario(planner.problem(), solution,
-               samples::TrivialProblemConverter::CONVERTER, log_tag,
-               PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
+  log_scenario(
+      planner.problem(), solution, samples::TrivialProblemConverter::CONVERTER,
+      log_tag,
+      mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
 #endif
 
   REQUIRE(solution.solution);

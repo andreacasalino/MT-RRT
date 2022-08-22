@@ -28,10 +28,5 @@ endif()
 
 option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
 
-if(BUILD_MT_RRT_TESTS OR BUILD_MT_RRT_SAMPLES)
-    FECTH_JSON_LIB()
-    add_subdirectory(utils-log)
-endif()
-
 add_subdirectory(src)
 add_subdirectory(samples)

@@ -61,7 +61,9 @@ AdvanceInfo TunneledConnector::Line::advance() {
   auto const result = caller.checkAdvancement(attual, next_state)
                           ? AdvanceInfo::blocked
                           : AdvanceInfo::advanced;
-  attual = std::move(next_state);
+  if (result == AdvanceInfo::advanced) {
+      attual = std::move(next_state);
+  }
   return result;
 }
 

@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <Geometry.h>
 #include <PlanerRobotsProblemJson.h>
 
 #include <fstream>
@@ -13,7 +14,7 @@ namespace mt_rrt::samples {
 namespace {
 void to_rad_state(State &subject) {
   for (auto &val : subject) {
-    val = to_rad(val);
+    val = utils::to_rad(val);
   }
 }
 } // namespace
@@ -32,7 +33,7 @@ void from_json(const nlohmann::json &j, Sphere &subject) {
 void to_json(nlohmann::json &j, const Robot &subject) {
   const auto subject_base = subject.getBase();
   j["base"]["position"] = subject_base.position;
-  j["base"]["angle"] = subject_base.angle * 180.f / PI;
+  j["base"]["angle"] = subject_base.angle * 180.f / utils::PI;
   auto &j_links = j["links"];
   j_links = nlohmann::json::array();
   for (const auto &link : subject.getLinks()) {
@@ -48,7 +49,7 @@ void from_json(const nlohmann::json &j, Robot &subject) {
   if (j.contains("base")) {
     nlohmann::from_json(j.at("base").at("position"), base.position);
     nlohmann::from_json(j.at("base").at("angle"), base.angle);
-    base.angle = to_rad(base.angle);
+    base.angle = utils::to_rad(base.angle);
   }
 
   std::vector<Robot::Link> links;
@@ -79,7 +80,11 @@ void from_json(const nlohmann::json &j, Robot &subject) {
 }
 
 void to_json(nlohmann::json &j, const Scene &subject) {
-  j["obstacles"] = subject.obstacles;
+  auto &obstacles_json = j["obstacles"];
+  obstacles_json = nlohmann::json::array();
+  for (const auto &sphere : subject.obstacles) {
+    to_json(obstacles_json.emplace_back(), sphere);
+  };
   j["robots"] = subject.robots;
 }
 void from_json(const nlohmann::json &j, Scene &subject) {
@@ -129,14 +134,12 @@ mt_rrt::State linear_combination(const mt_rrt::State &a, const mt_rrt::State &b,
   return result;
 }
 
-static const float MAX_JOINT_DISTANCE = mt_rrt::samples::to_rad(15);
+static const float MAX_JOINT_DISTANCE = mt_rrt::utils::to_rad(15);
 
 std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
                                        const mt_rrt::State &end) {
   std::size_t intervals = static_cast<std::size_t>(
-      std::ceil(mt_rrt::samples::euclidean_distance(start.data(), end.data(),
-                                                    start.size()) /
-                MAX_JOINT_DISTANCE));
+      std::ceil(utils::distance(start, end) / MAX_JOINT_DISTANCE));
   intervals = std::max<std::size_t>(1, intervals);
   const float delta_c = 1.f / static_cast<float>(intervals);
   float c = delta_c;
