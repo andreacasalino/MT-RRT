@@ -35,6 +35,8 @@ public:
 
   std::vector<std::pair<State, State>> getCases();
 
+  void showConfigurations(std::ostream &recipient) const;
+
 protected:
   virtual std::shared_ptr<ProblemDescription>
   getProblemDescription_(const nlohmann::json &scene_json) = 0;
@@ -88,3 +90,6 @@ private:
 } // namespace mt_rrt::samples
 
 std::ostream &operator<<(std::ostream &s, const mt_rrt::State &subject);
+
+std::ostream &operator<<(std::ostream &s,
+                         const mt_rrt::samples::SampleFramework &subject);

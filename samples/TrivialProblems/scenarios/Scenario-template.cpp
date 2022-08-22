@@ -21,6 +21,8 @@ protected:
 int main(int argc, const char **argv) {
   TrivialProblemFramework framework(SAMPLE_JSON, argc, argv);
 
+  std::cout << framework << std::endl;
+
   auto description = framework.getProblemDescription();
 
   auto parameters = framework.getParameters();
