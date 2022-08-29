@@ -119,7 +119,8 @@ class PoseSequencePrinter:
     def clearLines(self):
         try:
             for line in self.eeTrajectoriesLines:
-                line.remove()
+                line2 = line.pop(0)
+                line2.remove()
         except:
             pass
         self.eeTrajectoriesLines = []
