@@ -26,11 +26,27 @@ struct Sphere {
   Point center;
 };
 
-// Cart State assumes [x, y, angle]
+// frame attached to cart has an origin in the cart baricenter:
+//
+//  <--------> width
+//  ----------   ^
+//  |        |   |
+//  |    y   |   |
+//  |    ^   |   |
+//  |    |   |   |  length
+//  |    -> x|   |
+//  |        |   |
+//  |        |   |
+//  |        |   |
+//  |        |   |
+//  ----------   ^
+//
 class Cart {
 public:
   Cart(float width, float length);
 
+  // cart_state assumed formatted in this way:
+  // [x_baricenter, y_baricenter, orientation]
   bool isCollisionPresent(const Cart &cart, const Sphere &obstacle,
                           const State &cart_state) const;
 
