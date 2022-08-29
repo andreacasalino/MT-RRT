@@ -180,7 +180,7 @@ class Printer:
         sequence = solutions[0]["sequence"]
         self.sequencePrinter = PoseSequencePrinter(ax, self.scene["robots"], sequence)
         self.sequenceAnimation = animation.FuncAnimation(fig, self.sequencePrinter.draw, frames=len(sequence),
-                              interval=10, blit=True, init_func=self.sequencePrinter.reset)
+                              interval=250, blit=True, init_func=self.sequencePrinter.reset)
 
     def finalize(self, ax, fig):
         limits.printCorners(ax)
