@@ -105,7 +105,6 @@ class PoseSequencePrinter:
         self.ax = ax
         self.robotsJson = robots_json
         self.sequence = sequence
-        self.sequenceCounter = 0
         self.reset()
 
     def clearCapsules(self):
@@ -126,11 +125,11 @@ class PoseSequencePrinter:
         for robot in self.robotsJson:
             self.eeTrajectories.append({'x':[], 'y':[]})
 
-    def draw(self):
+    def draw(self, index):
         self.clearCapsules()
         self.clearLines()
 
-        ee_and_links = print_pose(self.ax, self.robotsJson, self.sequence[self.sequenceCounter], 'b', 0.5)
+        ee_and_links = print_pose(self.ax, self.robotsJson, self.sequence[index], 'b', 0.5)
         self.linksPatches = ee_and_links['patches']
         ee = ee_and_links['ee']
         for index in range(0,len(ee)):
@@ -139,10 +138,6 @@ class PoseSequencePrinter:
             recipient['y'].append(ee[index][1])
             ee_line = self.ax.plot(recipient['x'], recipient['y'], '--', color='b')
             self.eeTrajectoriesLines.append(ee_line)
-
-        self.sequenceCounter += 1
-        if self.sequenceCounter == len(self.sequence):
-            self.sequenceCounter = 0
 
 def to_rad_pose(angles):
     result = []
@@ -175,8 +170,8 @@ class Printer:
             return
         sequence = solutions[0]["sequence"]
         self.sequencePrinter = PoseSequencePrinter(ax, self.scene["robots"], sequence)
-        for pose in sequence:
-            self.sequencePrinter.draw()
+        for index in range(0, len(sequence)):
+            self.sequencePrinter.draw(index)
 
     def finalize(self, ax):
         limits.printCorners(ax)
