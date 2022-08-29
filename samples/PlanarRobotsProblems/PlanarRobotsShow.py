@@ -38,10 +38,10 @@ def print_patch(ax, samples, facecolor, alpha=1.0, edgecolor=None):
     if edgecolor == None:
         edgecolor = facecolor
     path = mpath.Path(samples)
-    patch = mpatches.PathPatch(path, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
-    ax.add_patch(patch)
     for sample in samples:
         limits.extend(sample)
+    patch = mpatches.PathPatch(path, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
+    return ax.add_patch(patch)
 
 def print_sphere(ax, sphere):
     samples = []
@@ -49,7 +49,7 @@ def print_sphere(ax, sphere):
         x = sphere["center"][0] + sphere["ray"] * np.cos(angle)
         y = sphere["center"][1] + sphere["ray"] * np.sin(angle)
         samples.append([x, y])
-    print_patch(ax, samples, 'r')
+    return print_patch(ax, samples, 'r')
 
 class Transform:
     def __init__(self, traslation, rotation):
@@ -77,11 +77,12 @@ def print_capsule(ax, link_json, trasform, color, alpha):
         samples.append([x, y])
     samples.append([link_json["length"], -link_json["ray"]])
     samples = trasform.apply(samples)
-    print_patch(ax, samples, color, alpha, 'k')
+    return print_patch(ax, samples, color, alpha, 'k')
 
 def print_pose(ax, robots_json, pose, color, alpha):
     index = 0
     ee = []
+    patches = []
     for robot in robots_json:
         angle_abs = 0
         position = [0,0]
@@ -91,21 +92,57 @@ def print_pose(ax, robots_json, pose, color, alpha):
             position = [robot["base"]["position"][0], robot["base"]["position"][1]]
         for link in robot["links"]:
             angle_abs += pose[index]
-            print_capsule(ax, link, Transform(position, angle_abs), color, alpha)
+            patch = print_capsule(ax, link, Transform(position, angle_abs), color, alpha)
+            patches.append(patch)
             position[0] += np.cos(angle_abs) * link["length"]
             position[1] += np.sin(angle_abs) * link["length"]
             index += 1
         ee.append(position)
-    return ee
+    return {'ee':ee,'patches':patches}
+   
+class PoseSequencePrinter:
+    def __init__(self, ax, robots_json, sequence):
+        self.ax = ax
+        self.robotsJson = robots_json
+        self.sequence = sequence
+        self.sequenceCounter = 0
+        self.reset()
 
-def print_traj(ax, traj, color):
-    x = []
-    y = []
-    for point in traj:
-        x.append(point[0])
-        y.append(point[1])
-    ax.plot(x, y, '--', color=color)
-    
+    def clearCapsules(self):
+        # TODO remove patches from figure
+        self.linksPatches = []
+        return
+
+    def clearLines(self):
+        # TODO remove lines from figure
+        self.eeTrajectoriesLines = []
+        return
+
+    def reset(self):
+        self.clearCapsules()
+        self.clearLines()
+
+        self.eeTrajectories = []
+        for robot in self.robotsJson:
+            self.eeTrajectories.append({'x':[], 'y':[]})
+
+    def draw(self):
+        self.clearCapsules()
+        self.clearLines()
+
+        ee_and_links = print_pose(self.ax, self.robotsJson, self.sequence[self.sequenceCounter], 'b', 0.5)
+        self.linksPatches = ee_and_links['patches']
+        ee = ee_and_links['ee']
+        for index in range(0,len(ee)):
+            recipient = self.eeTrajectories[index]
+            recipient['x'].append(ee[index][0])
+            recipient['y'].append(ee[index][1])
+            ee_line = self.ax.plot(recipient['x'], recipient['y'], '--', color='b')
+            self.eeTrajectoriesLines.append(ee_line)
+
+        self.sequenceCounter += 1
+        if self.sequenceCounter == len(self.sequence):
+            self.sequenceCounter = 0
 
 def to_rad_pose(angles):
     result = []
@@ -116,6 +153,7 @@ def to_rad_pose(angles):
 class Printer:
     def __init__(self, log):
         self.scene = log["scene"]
+        self.sequencePrinter = None
 
     def printScene(self, ax):
         for sphere in self.scene["obstacles"]:
@@ -135,16 +173,10 @@ class Printer:
     def printSolutions(self, ax, solutions):
         if(len(solutions) == 0):
             return
-        solution = solutions[0]["sequence"]
-        ee_traj = []
-        for robot in self.scene["robots"]:
-            ee_traj.append([])
-        for pose in solution:
-            ee = print_pose(ax, self.scene["robots"], pose, 'b', 0.5)
-            for index in range(0,len(ee)):
-                ee_traj[index].append(ee[index])
-        for ee in ee_traj:
-            print_traj(ax, ee, 'b')
+        sequence = solutions[0]["sequence"]
+        self.sequencePrinter = PoseSequencePrinter(ax, self.scene["robots"], sequence)
+        for pose in sequence:
+            self.sequencePrinter.draw()
 
     def finalize(self, ax):
         limits.printCorners(ax)
