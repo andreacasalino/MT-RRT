@@ -53,7 +53,7 @@ Point diff(const Point &a, const Point &b) {
   return {a[0] - b[0], a[1] - b[1]};
 }
 
-float dot(const Point &a, const Point &b) { return a[0] * b[0] + a[1] * b[1]; }
+float dot(const float *a, const float *b) { return a[0] * b[0] + a[1] * b[1]; }
 
 float distance_point_segment(const Point &point, const Point &segment_a,
                              const Point &segment_b) {
@@ -111,6 +111,25 @@ bool Cart::isCollisionPresent(const Cart &cart, const Sphere &obstacle,
 }
 
 namespace {
+std::optional<std::array<float, 2>>
+compute_intersection_coefficients(const State &start, const State &end) {
+  const Point V0 = minus(*line_a[0], *line_b[0]);
+  const Point V1 = minus(*line_a[1], *line_a[0]);
+  const Point V2 = minus(*line_b[1], *line_b[0]);
+  const float m00 = dot(V1, V1);
+  const float m11 = dot(V2, V2);
+  const float m01 = -dot(V1, V2);
+  const float c0 = -dot(V0, V1);
+  const float c1 = dot(V0, V2);
+  const float determinant = m00 * m11 - m01 * m01;
+  if (std::abs(determinant) < 0.0001f) {
+    return std::nullopt;
+  }
+  const float s_min = (c0 * m11 - m01 * c1) / determinant;
+  const float t_min = (c1 - m01 * s_min) / m11;
+  return std::array<float, 2>{s_min, t_min};
+}
+
 struct LinePiece {
   State start;
   State end;
@@ -126,8 +145,30 @@ struct TrajectoryPieces {
   std::optional<ArcPiece> arc;
   std::optional<LinePiece> line_end;
 };
-std::optional<TrajectoryPieces> compute_pieces(const State &start,
-                                               const State &end);
+std::optional<TrajectoryPieces>
+compute_pieces(const State &start, const State &end, float steer_radius) {
+  TrajectoryPieces result;
+
+  auto pair = compute_intersection_coefficients(start, end);
+
+  if (pair == std::nullopt) {
+    if (dot(start.data(), end.data()) < 0) {
+      return result;
+    }
+    // check the 2 states lies on exactly the same line
+    if (distance_point_segment() < 1e-4f) {
+      auto &line = result.line_start.emplace();
+      line.start = start;
+      line.end = end;
+      return result;
+    }
+  }
+
+  const auto &[s, t] = pair.value();
+  if ((s < 0) || (t > 0)) {
+    return result;
+  }
+}
 
 class TrajectoryComposite : public Trajectory {
 public:

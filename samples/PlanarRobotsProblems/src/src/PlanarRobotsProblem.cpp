@@ -55,7 +55,6 @@ float closest_point(const Segment &line, const Point &point) {
 
 std::optional<std::array<float, 2>> closest_pair(const Segment &line_a,
                                                  const Segment &line_b) {
-  // TODO what happens if segments are parallel?
   const Point V0 = minus(*line_a[0], *line_b[0]);
   const Point V1 = minus(*line_a[1], *line_a[0]);
   const Point V2 = minus(*line_b[1], *line_b[0]);
