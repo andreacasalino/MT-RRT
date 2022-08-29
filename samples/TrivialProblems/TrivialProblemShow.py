@@ -89,7 +89,7 @@ class Printer:
     def __init__(self, log):
         self.scene = log["scene"]
 
-    def printScene(self, ax):
+    def printScene(self, ax, fig):
         print_limits(ax)
         labeled={}
         for box_json in self.scene:
@@ -98,12 +98,12 @@ class Printer:
             if "label" in box_json:
                 labeled[box_json["label"]] = box
 
-    def printTree(self, ax, tree, color):
+    def printTree(self, ax, fig, tree, color):
         ax.plot(tree[0]["start"][0], tree[0]["start"][1], c=color)
         for edge in tree:
             print_edge(ax, edge, color)
 
-    def printSolutions(self, ax, solutions):
+    def printSolutions(self, ax, fig, solutions):
         if(len(solutions) == 0):
             return
         w = 3.0
@@ -118,5 +118,5 @@ class Printer:
             ax.plot(sequence_x, sequence_y, c='r', linewidth=w)
             w -= w_decrement
 
-    def finalize(self, ax):
+    def finalize(self, ax, fig):
         return

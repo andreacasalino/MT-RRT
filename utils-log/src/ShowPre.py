@@ -33,25 +33,29 @@ def make_trees_colors(trees_numb):
         result.append([random.random(), random.random(), random.random()])
     return result
 
+printers = []
+
 def print_case(log):
     fig, ax = plt.subplots()
     printer = Printer(log)
 
-    printer.printScene(ax)
+    printer.printScene(ax, fig)
     
     if "trees" in log:
         trees_colors = make_trees_colors(len(log["trees"]))
         tree_counter = 0
         for tree in log["trees"]:
-            printer.printTree(ax, tree, trees_colors[tree_counter])
+            printer.printTree(ax, fig, tree, trees_colors[tree_counter])
             tree_counter += 1
 
     if "solutions" in log:
-        printer.printSolutions(ax, log["solutions"])
+        printer.printSolutions(ax, fig, log["solutions"])
 
-    printer.finalize(ax)
+    printer.finalize(ax, fig)
 
     ax.set_aspect('equal', adjustable='box')
+    
+    printers.append(printer)
 
 #####################################################################
 ##                    problem specific code                        ##
@@ -59,10 +63,10 @@ def print_case(log):
 #     def __init__(self, scene):
 #         # bla bla
 #
-#     def printScene(self, ax):
+#     def printScene(self, ax, fig):
 #
-#     def printTree(self, ax, tree, color):
+#     def printTree(self, ax, fig, tree, color):
 #
-#     def printSolutions(self, ax, solutions):
+#     def printSolutions(self, ax, fig, solutions):
 #
-#     def finalize(self, ax):
+#     def finalize(self, ax, fig):

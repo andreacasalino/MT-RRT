@@ -1,4 +1,5 @@
 import math
+import matplotlib.animation as animation
 
 class AxisBox:
     def __init__(self):
@@ -108,14 +109,20 @@ class PoseSequencePrinter:
         self.reset()
 
     def clearCapsules(self):
-        # TODO remove patches from figure
+        try:
+            for capsule in self.linksPatches:
+                capsule.remove()
+        except:
+            pass
         self.linksPatches = []
-        return
 
     def clearLines(self):
-        # TODO remove lines from figure
+        try:
+            for line in self.eeTrajectoriesLines:
+                line.remove()
+        except:
+            pass
         self.eeTrajectoriesLines = []
-        return
 
     def reset(self):
         self.clearCapsules()
@@ -149,12 +156,13 @@ class Printer:
     def __init__(self, log):
         self.scene = log["scene"]
         self.sequencePrinter = None
+        self.sequenceAnimation = None
 
-    def printScene(self, ax):
+    def printScene(self, ax, fig):
         for sphere in self.scene["obstacles"]:
             print_sphere(ax, sphere)
             
-    def printTree(self, ax, tree, color):
+    def printTree(self, ax, fig, tree, color):
         print_pose(ax, self.scene["robots"], tree[0]["end"], color, 0.7)
         tree_size = len(tree)
         if tree_size < 30:
@@ -165,13 +173,13 @@ class Printer:
             for index in range(0, len(tree), step):
                 print_pose(ax, self.scene["robots"], tree[index]["end"], color, 0.1)
         
-    def printSolutions(self, ax, solutions):
+    def printSolutions(self, ax, fig, solutions):
         if(len(solutions) == 0):
             return
         sequence = solutions[0]["sequence"]
         self.sequencePrinter = PoseSequencePrinter(ax, self.scene["robots"], sequence)
-        for index in range(0, len(sequence)):
-            self.sequencePrinter.draw(index)
+        self.sequenceAnimation = animation.FuncAnimation(fig, self.sequencePrinter.draw, frames=len(sequence),
+                              interval=10, blit=True, init_func=self.sequencePrinter.reset)
 
-    def finalize(self, ax):
+    def finalize(self, ax, fig):
         limits.printCorners(ax)
