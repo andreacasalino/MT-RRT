@@ -132,6 +132,7 @@ class PoseSequencePrinter:
         self.eeTrajectories = []
         for robot in self.robotsJson:
             self.eeTrajectories.append({'x':[], 'y':[]})
+        return []
 
     def draw(self, index):
         self.clearCapsules()
@@ -146,6 +147,7 @@ class PoseSequencePrinter:
             recipient['y'].append(ee[index][1])
             ee_line = self.ax.plot(recipient['x'], recipient['y'], '--', color='b')
             self.eeTrajectoriesLines.append(ee_line)
+        return []
 
 def to_rad_pose(angles):
     result = []
