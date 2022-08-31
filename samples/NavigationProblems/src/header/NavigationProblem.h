@@ -26,6 +26,18 @@ struct Sphere {
   Point center;
 };
 
+class CartSteerLimits {
+public:
+  CartSteerLimits(float min_readius, float max_readius);
+
+  float minRadius() const { return min_steer_radius.get(); }
+  float maxRadius() const { return max_steer_radius.get(); }
+
+private:
+  Positive<float> min_steer_radius;
+  Positive<float> max_steer_radius;
+};
+
 // frame attached to cart has an origin in the cart baricenter:
 //
 //  <--------> width
@@ -43,16 +55,19 @@ struct Sphere {
 //
 class Cart {
 public:
-  Cart(float width, float length);
+  Cart(float width, float length, const CartSteerLimits &steer_limits);
 
   // cart_state assumed formatted in this way:
   // [x_baricenter, y_baricenter, orientation]
   bool isCollisionPresent(const Cart &cart, const Sphere &obstacle,
                           const State &cart_state) const;
 
+  const CartSteerLimits &steerLimits() const { return steer_limits; }
+
 private:
   Positive<float> width;
   Positive<float> length;
+  CartSteerLimits steer_limits;
 
   std::array<Point, 4> cart_perimeter;
 };
