@@ -15,9 +15,16 @@ float to_rad(float angle) { return angle * PI / 180.f; }
 
 float to_grad(float angle) { return angle * 180.f / PI; }
 
+CartSteerLimits::CartSteerLimits(float min_radius, float max_radius)
+ : min_steer_radius(min_radius), max_steer_radius(max_radius) {
+    if (max_radius >= min_radius) {
+        throw Error{"Invalid cart steer limits"};
+    }
+}
+
 Cart::Cart(float width, float length, const CartSteerLimits &steer_limits)
     : steer_limits(steer_limits) {
-  , const CartSteerLimits &steer_limits this->width.set(width);
+  this->width.set(width);
   this->length.set(length);
   cart_perimeter[0] = {0.5f * width, 0.5f * length};
   cart_perimeter[1] = {-0.5f * width, 0.5f * length};
@@ -26,6 +33,20 @@ Cart::Cart(float width, float length, const CartSteerLimits &steer_limits)
 }
 
 namespace {
+// a - b
+Point diff(const Point& a, const Point& b) {
+    return { a[0] - b[0], a[1] - b[1] };
+}
+
+float dot(const float* a, const float* b) { return a[0] * b[0] + a[1] * b[1]; }
+
+Point to_point(const State& state) { return Point{ state[0], state[1] }; }
+
+void add(float* subject, float delta_x, float delta_y) {
+    subject[0] += delta_x;
+    subject[1] += delta_y;
+}
+
 struct Pos_ {
   float x;
   float y;
@@ -49,13 +70,6 @@ float distance(const float *a, const float *b) {
   return sqrtf(result);
 }
 
-// a - b
-Point diff(const Point &a, const Point &b) {
-  return {a[0] - b[0], a[1] - b[1]};
-}
-
-float dot(const float *a, const float *b) { return a[0] * b[0] + a[1] * b[1]; }
-
 float distance_point_segment(const Point &point, const Point &segment_a,
                              const Point &segment_b) {
   Point b_a = diff(segment_b, segment_a);
@@ -78,7 +92,7 @@ float distance_point_segment(const Point &point, const Point &segment_a,
 }
 } // namespace
 
-bool Cart::isCollisionPresent(const Cart &cart, const Sphere &obstacle,
+bool Cart::isCollisionPresent(const Sphere &obstacle,
                               const State &cart_state) const {
   auto &&[rel_pos_x, rel_pos_y] = relative_position(obstacle, cart_state);
   if (contains(cart_perimeter[1][0], cart_perimeter[0][0], rel_pos_x) &&
@@ -112,164 +126,152 @@ bool Cart::isCollisionPresent(const Cart &cart, const Sphere &obstacle,
 }
 
 namespace {
-class Versor {
-public:
-  Versor(float angle) {
-    cos_sin[0] = cosf(angle);
-    cos_sin[1] = sinf(angle);
-  }
+    class Versor {
+    public:
+        Versor(float angle) {
+            cos_sin[0] = cosf(angle);
+            cos_sin[1] = sinf(angle);
+        }
 
-  const Point &asPoint() const { return cos_sin; };
+        const Point& asPoint() const { return cos_sin; };
 
-  float cos() const { return cos_sin[0]; }
-  float sin() const { return cos_sin[1]; }
+        float cos() const { return cos_sin[0]; }
+        float sin() const { return cos_sin[1]; }
 
-private:
-  Point cos_sin;
-};
+    private:
+        Point cos_sin;
+    };
 
-std::optional<std::array<float, 2>>
-compute_intersection_coefficients(const State &start, const State &end,
-                                  const Versor &start_dir,
-                                  const Versor &end_dir) {
-  const Point &V1 = start_dir.asPoint();
-  const Point &V2 = end_dir.asPoint();
-  const Point V0 = {start[0] - end[0], start[1] - end[1]};
-  const float m00 = dot(V1.data(), V1.data());
-  const float m11 = dot(V2.data(), V2.data());
-  const float m01 = -dot(V1.data(), V2.data());
-  const float c0 = -dot(V0.data(), V1.data());
-  const float c1 = dot(V0.data(), V2.data());
-  const float determinant = m00 * m11 - m01 * m01;
-  if (std::abs(determinant) < 0.0001f) {
-    return std::nullopt;
-  }
-  const float s_min = (c0 * m11 - m01 * c1) / determinant;
-  const float t_min = (c1 - m01 * s_min) / m11;
-  return std::array<float, 2>{s_min, t_min};
+    std::optional<std::array<float, 2>>
+        compute_intersection_coefficients(const State& start, const State& end,
+            const Versor& start_dir,
+            const Versor& end_dir) {
+        const Point& V1 = start_dir.asPoint();
+        const Point& V2 = end_dir.asPoint();
+        const Point V0 = { start[0] - end[0], start[1] - end[1] };
+        const float m00 = dot(V1.data(), V1.data());
+        const float m11 = dot(V2.data(), V2.data());
+        const float m01 = -dot(V1.data(), V2.data());
+        const float c0 = -dot(V0.data(), V1.data());
+        const float c1 = dot(V0.data(), V2.data());
+        const float determinant = m00 * m11 - m01 * m01;
+        if (std::abs(determinant) < 0.0001f) {
+            return std::nullopt;
+        }
+        const float s_min = (c0 * m11 - m01 * c1) / determinant;
+        const float t_min = (c1 - m01 * s_min) / m11;
+        return std::array<float, 2>{s_min, t_min};
+    }
+
+    struct RayAndDistanceToIntersection {
+        float distance;
+        float ray;
+    };
+    RayAndDistanceToIntersection from_distance(float theta, float dist) {
+        RayAndDistanceToIntersection result;
+        result.distance = dist;
+        result.ray = tanf(theta) * dist;
+        return result;
+    }
+    RayAndDistanceToIntersection from_ray(float theta, float ray) {
+        RayAndDistanceToIntersection result;
+        result.ray = ray;
+        result.distance = ray / tanf(theta);
+        return result;
+    }
+
 }
 
-Point to_point(const State &state) { return Point{state[0], state[1]}; }
-
-struct LengthRay {
-  struct LengthTag {};
-  LengthRay(float theta, float l, const LengthTag &) {
-    length = l;
-    ray = tanf(theta) * l;
-  }
-
-  struct RayTag {};
-  LengthRay(float theta, float r, const RayTag &) {
-    ray = r;
-    length = r / tanf(theta);
-  }
-
-  float length;
-  float ray;
-};
-
-struct LinePiece {
-  State start;
-  State end;
-};
-struct ArcPiece {
-  Point center;
-  float ray;
-  float angle_start;
-  float angle_end;
-};
-struct TrajectoryPieces {
-  std::optional<LinePiece> line_start;
-  std::optional<ArcPiece> arc;
-  std::optional<LinePiece> line_end;
-};
-std::optional<TrajectoryPieces>
-compute_pieces(const State &start, const State &end,
-               const CartSteerLimits &steer_limits) {
+std::optional<TrajectoryInfo>
+compute_cart_trajectory_info(const State& start, const State& end,
+    const CartSteerLimits& steer_limits) {
   Versor start_dir(start[2]), end_dir(end[2]);
-  auto pair = compute_intersection_coefficients(start, end, start_dir, end_dir);
+  auto intersection_coefficients = compute_intersection_coefficients(start, end, start_dir, end_dir);
 
-  TrajectoryPieces result;
-  if (pair == std::nullopt) {
+  if (intersection_coefficients == std::nullopt) {
     // start and end are aligned
     if (dot(start.data(), end.data()) < 0) {
       return std::nullopt;
     }
     // check the 2 states lies on exactly the same line
     Point end2 = end_dir.asPoint();
-    end2[0] += end[0];
-    end2[1] += end[1];
+    add(end2.data(), end.data()[0], end.data()[1]);
     if (distance_point_segment(to_point(start), to_point(end), end2) < 1e-4f) {
-      auto &line = result.line_start.emplace();
-      line.start = start;
-      line.end = end;
-      return result;
+        return TrivialLine{};
     }
   }
 
-  const auto &[s, t] = pair.value();
+  const auto &[s, t] = intersection_coefficients.value();
   if ((s < 0) || (t > 0)) {
     return std::nullopt;
   }
 
-  // angle of the bisec line, passing for the center of rotation
+  // angle of the bisec line, passing for the intersection and the center of the blending arc
   float gamma =
       atan2f(end_dir.cos() - start_dir.cos(), end_dir.sin() - start_dir.sin());
 
+  // angular aplitude between bisec line and one of the line where start or end lies
   float theta = end[2] - gamma;
-  LengthRay ray_info =
-      LengthRay{theta, std::min(s, -t), LengthRay::LengthTag{}};
+  auto ray_info = from_distance(theta, std::min(s, -t));
   if (ray_info.ray < steer_limits.minRadius()) {
     return std::nullopt;
   }
   if (ray_info.ray > steer_limits.maxRadius()) {
-    ray_info = LengthRay{theta, steer_limits.maxRadius(), LengthRay::RayTag{}};
+    ray_info = from_ray(theta, steer_limits.maxRadius());
   }
 
   Point intersection_corner = {start[0], start[1]};
-  intersection_corner[0] += start_dir.cos() * s;
-  intersection_corner[1] += start_dir.sin() * s;
+  add(intersection_corner.data(), start_dir.cos() * s, start_dir.sin() * s);
 
-  // compute center
   Point center;
   {
     float intersection_center_distance =
-        sqrtf(ray_info.length * ray_info.length + ray_info.ray * ray_info.ray);
+        sqrtf(ray_info.distance * ray_info.distance + ray_info.ray * ray_info.ray);
 
     center = intersection_corner;
-    center[0] += intersection_center_distance * cosf(gamma);
-    center[1] += intersection_center_distance * sinf(gamma);
+    add(center.data(), intersection_center_distance * cosf(gamma), intersection_center_distance * sinf(gamma));
   }
-
-  auto &arc = result.arc.emplace();
-  arc.ray = ray_info.ray;
-  arc.center = std::move(center);
-  arc.angle_start = PI_HALF + start[2];
-  arc.angle_end = PI_HALF + end[2];
-
-  {
-    auto &line = result.line_start.emplace();
-    line.start = start;
-    auto &start_arc = line.end;
-    start_arc = {intersection_corner[0], intersection_corner[1], start[2]};
-    start_arc[0] -= ray_info.length * start_dir.cos();
-    start_arc[1] -= ray_info.length * start_dir.sin();
-  }
-
-  {
-    auto &line = result.line_start.emplace();
-    line.end = end;
-    auto &end_arc = line.start;
-    end_arc = {intersection_corner[0], intersection_corner[1], end[2]};
-    end_arc[0] += ray_info.length * end_dir.cos();
-    end_arc[1] += ray_info.length * end_dir.sin();
-  }
+  Point arc_begin = intersection_corner;
+  arc_begin[0] -= ray_info.distance * start_dir.cos();
+  arc_begin[1] -= ray_info.distance * start_dir.sin();
+  Point arc_end = intersection_corner;
+  arc_end[0] += ray_info.distance * end_dir.cos();
+  arc_end[1] += ray_info.distance * end_dir.sin();
+  return BlendingArc{ray_info.ray, std::move(center), std::move(arc_begin), std::move(arc_end) };
 }
+
+namespace {
+// absolute angle of the segment going from a to b
+float compute_angle(const Point& a, const Point& b) {
+    return atan2f(b[1] - a[1], b[0] - a[0]);
+}
+
+std::array<float, 2> arc_angles(const BlendingArc& arc) {
+    return { compute_angle(arc.center, arc.arc_begin),
+        compute_angle(arc.center, arc.arc_end) };
+}
+
+bool isCollisionPresent(const Cart& cart, const std::vector<Sphere>& obstacles,
+    const State& cart_state) {
+    return std::any_of(obstacles.begin(), obstacles.end(), [&cart, &cart_state](const Sphere& obstacle) {
+        return cart.isCollisionPresent(obstacle, cart_state);
+    });
+}
+
+class TrajectoryPieceBase {
+public:
+    virtual ~TrajectoryPieceBase() = default;
+
+protected:
+    TrajectoryPieceBase(std::shared_ptr<const Scene> scene) : scene(scene) {}
+
+    std::shared_ptr<const Scene> scene;
+};
 
 class TrajectoryComposite : public Trajectory {
 public:
   TrajectoryComposite(const std::shared_ptr<const Scene> &scene,
-                      const TrajectoryPieces &pieces) {
+                      const TrajectoryInfo&pieces) {
     // TODO convert pieces into trajectories
   }
 
@@ -304,7 +306,7 @@ private:
 
 TrajectoryPtr CartPosesConnector::getTrajectory(const State &start,
                                                 const State &end) const {
-  const auto pieces = compute_pieces(start, end, scene->cart.steerLimits());
+  const auto pieces = compute_cart_trajectory_info(start, end, scene->cart.steerLimits());
   if (pieces) {
     return std::make_unique<TrajectoryComposite>(scene, pieces.value());
   }
@@ -313,22 +315,26 @@ TrajectoryPtr CartPosesConnector::getTrajectory(const State &start,
 
 float CartPosesConnector::minCost2Go(const State &start,
                                      const State &end) const {
-  const auto pieces = compute_pieces(start, end, scene->cart.steerLimits());
+  const auto pieces = compute_cart_trajectory_info(start, end, scene->cart.steerLimits());
   if (pieces) {
-    float result = 0;
-    if (pieces->line_start) {
-      result += distance(pieces->line_start->start.data(),
-                         pieces->line_start->end.data());
-    }
-    if (pieces->arc) {
-      result += pieces->arc->ray *
-                std::abs(pieces->arc->angle_end - pieces->arc->angle_start);
-    }
-    if (pieces->line_end) {
-      result += distance(pieces->line_end->start.data(),
-                         pieces->line_end->end.data());
-    }
-    return result;
+      struct Visitor {
+          const State& start;
+          const State& end;
+          mutable float result = 0;
+
+          void operator()(const BlendingArc& arc) const {
+              auto&& [arc_begin_angle, arc_end_angle] = arc_angles(arc);
+              result += arc.ray * std::abs(arc_end_angle - arc_begin_angle);
+              result += distance(start.data(), arc.arc_begin.data());
+              result += distance(end.data(), arc.arc_end.data());
+          }
+
+          void operator()(const TrivialLine& arc) const {
+              result = distance(start.data(), end.data());
+          }
+      } visitor{start, end};
+      std::visit(visitor, pieces.value());
+    return visitor.result;
   }
   return COST_MAX;
 }
