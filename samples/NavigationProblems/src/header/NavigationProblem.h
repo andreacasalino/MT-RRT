@@ -15,6 +15,7 @@
 
 namespace mt_rrt::samples {
 static constexpr float PI = 3.1415926535f;
+static constexpr float PI_HALF = 0.5f * PI;
 
 float to_rad(float angle);
 
@@ -79,23 +80,26 @@ struct Scene {
 };
 
 struct TrivialLine {
+    const State& start;
+    const State& end;
 };
-struct BlendingArc {
+struct Blended {
+    const State& start;
+    const State& end;
     float ray;
     Point center;
     Point arc_begin;
     Point arc_end;
 };
-using TrajectoryInfo = std::variant<BlendingArc, TrivialLine>;
+using TrajectoryInfo = std::variant<Blended, TrivialLine>;
 std::optional<TrajectoryInfo>
 compute_cart_trajectory_info(const State& start, const State& end,
     const CartSteerLimits& steer_limits);
 
 class CartPosesConnector : public TunneledConnector {
 public:
-  CartPosesConnector() = default;
-  CartPosesConnector(const CartPosesConnector &o) {
-    scene = std::make_shared<Scene>(*o.scene);
+  CartPosesConnector(const Scene& scene);
+  CartPosesConnector(const CartPosesConnector &o) : CartPosesConnector(*o.scene) {
   }
 
   std::shared_ptr<const Scene> scene = std::make_shared<Scene>();
@@ -110,6 +114,8 @@ public:
   static const float STEER_DEGREE;
 
 protected:
+    class TrajectoryComposite;
+
     bool checkAdvancement(const State& previous_state,
         const State& advanced_state) const final;
 };

@@ -42,6 +42,8 @@ float dot(const float* a, const float* b) { return a[0] * b[0] + a[1] * b[1]; }
 
 Point to_point(const State& state) { return Point{ state[0], state[1] }; }
 
+State to_state(const Point& point, float angle) { return State{ point[0], point[1], angle}; }
+
 void add(float* subject, float delta_x, float delta_y) {
     subject[0] += delta_x;
     subject[1] += delta_y;
@@ -197,7 +199,7 @@ compute_cart_trajectory_info(const State& start, const State& end,
     Point end2 = end_dir.asPoint();
     add(end2.data(), end.data()[0], end.data()[1]);
     if (distance_point_segment(to_point(start), to_point(end), end2) < 1e-4f) {
-        return TrivialLine{};
+        return TrivialLine{start, end};
     }
   }
 
@@ -237,7 +239,7 @@ compute_cart_trajectory_info(const State& start, const State& end,
   Point arc_end = intersection_corner;
   arc_end[0] += ray_info.distance * end_dir.cos();
   arc_end[1] += ray_info.distance * end_dir.sin();
-  return BlendingArc{ray_info.ray, std::move(center), std::move(arc_begin), std::move(arc_end) };
+  return Blended{start, end, ray_info.ray, std::move(center), std::move(arc_begin), std::move(arc_end) };
 }
 
 namespace {
@@ -246,71 +248,129 @@ float compute_angle(const Point& a, const Point& b) {
     return atan2f(b[1] - a[1], b[0] - a[0]);
 }
 
-std::array<float, 2> arc_angles(const BlendingArc& arc) {
+std::array<float, 2> arc_angles(const Blended& arc) {
     return { compute_angle(arc.center, arc.arc_begin),
         compute_angle(arc.center, arc.arc_end) };
 }
 
-class BlendingTrajectory : public Trajectory {
+class Arc : public Trajectory {
 public:
-    BlendingTrajectory(const BlendingArc& info);
-};
-
-class TrajectoryComposite : public Trajectory {
-public:
-  TrajectoryComposite(const TunneledConnector& caller,
-                      const TrajectoryInfo&pieces) {
-      struct Visitor {
-          const TunneledConnector& caller;
-          const TrajectoryInfo& pieces;
-          mutable std::vector<TrajectoryPtr> trajectories;
-
-          void operator()(const BlendingArc& arc) const {
-              // TODO put in trajectories
-              // Line start -> arc_begin
-              // BlendingTrajectory for arc
-              // Line arc_end -> end
-          }
-
-          void operator()(const TrivialLine& arc) const {
-              // TODO put in trajectories
-              // Line start -> end
-          }
-      } visitor{ caller, pieces };
-      std::visit(visitor, pieces);
-      trajectories = std::move(visitor.trajectories);
-  }
-
-  AdvanceInfo advance() override {
-    auto info = trajectories[trajectories_it]->advance();
-    if (info == AdvanceInfo::targetReached) {
-      ++trajectories_it;
-      if (trajectories_it == trajectories.size()) {
-        return AdvanceInfo::targetReached;
-      } else {
-        return AdvanceInfo::advanced;
-      }
+    Arc(const Blended& info, const TunneledConnector& caller):
+    caller(caller),
+    info(info) {
+        angle_start = compute_angle(info.center, info.arc_begin);
+        angle_end = compute_angle(info.center, info.arc_end);
+        angle_current = angle_start;
+        angle_delta_advancement = caller.getSteerDegree() / info.ray;
+        if (angle_start > angle_end) {
+            angle_delta_advancement *= -1.f;
+        }
+        state_current = stateOnArc(angle_start);
     }
-    return info;
-  }
-  State getState() const override {
-    return trajectories[trajectories_it]->getState();
-  }
-  float getCumulatedCost() const override {
-    float result = 0;
-    for (std::size_t index = 0; index <= trajectories_it; ++index) {
-      result += trajectories[trajectories_it]->getCumulatedCost();
+
+    AdvanceInfo advance() final {
+        if (std::abs(angle_current- angle_end) < std::abs(angle_delta_advancement)) {
+            State advanced = {info.arc_end[0] , info.arc_end[1], angle_end };
+            if (caller.checkAdvancement(advanced, advanced)) {
+                return AdvanceInfo::blocked;
+            }
+            state_current = std::move(advanced);
+            angle_current = angle_end;
+            return AdvanceInfo::targetReached;
+        }
+        State advanced = stateOnArc(angle_current + angle_delta_advancement);
+        auto const result = caller.checkAdvancement(advanced, advanced)
+            ? AdvanceInfo::blocked
+            : AdvanceInfo::advanced;
+        if (result == AdvanceInfo::advanced) {
+            state_current = std::move(advanced);
+            angle_current += angle_delta_advancement;
+        }
+        return result;
     }
-    return result;
-  }
+    State getState() const final { return state_current; }
+    float getCumulatedCost() const final {
+        return std::abs(angle_start - angle_current) * info.ray;
+    }
 
 private:
-  std::vector<TrajectoryPtr> trajectories;
-  std::size_t trajectories_it;
+    State stateOnArc(float angle) const {
+        return State {info.ray * cosf(angle) + info.center[0] , 
+                      info.ray* sinf(angle) + info.center[0], 
+                        angle - PI_HALF};
+    }
+
+    const TunneledConnector& caller;
+    const Blended info;
+
+    float angle_start;
+    float angle_end;
+    float angle_current;
+
+    float angle_delta_advancement;
+    State state_current;
 };
 } // namespace
 
-bool CartPosesConnector::checkAdvancement(const State& previous_state,
+class CartPosesConnector::TrajectoryComposite : public Trajectory {
+public:
+    TrajectoryComposite(const TunneledConnector& caller,
+        const TrajectoryInfo& pieces) {
+        struct Visitor {
+            const TunneledConnector& caller;
+            const TrajectoryInfo& pieces;
+            mutable std::vector<TrajectoryPtr> trajectories;
+
+            void operator()(const Blended& arc) const {
+                trajectories.emplace_back(std::make_unique<Line>(arc.start, to_state(arc.arc_begin, arc.start[2]), caller));
+                trajectories.emplace_back(std::make_unique<Arc>(arc, caller));
+                trajectories.emplace_back(std::make_unique<Line>(to_state(arc.arc_end, arc.end[2]), arc.end, caller));
+            }
+
+            void operator()(const TrivialLine& line) const {
+                trajectories.emplace_back(std::make_unique<Line>(line.start, line.end, caller));
+            }
+        } visitor{ caller, pieces };
+        std::visit(visitor, pieces);
+        trajectories = std::move(visitor.trajectories);
+    }
+
+    AdvanceInfo advance() override {
+        auto info = trajectories[trajectories_it]->advance();
+        if (info == AdvanceInfo::targetReached) {
+            ++trajectories_it;
+            if (trajectories_it == trajectories.size()) {
+                return AdvanceInfo::targetReached;
+            }
+            else {
+                return AdvanceInfo::advanced;
+            }
+        }
+        return info;
+    }
+    State getState() const override {
+        return trajectories[trajectories_it]->getState();
+    }
+    float getCumulatedCost() const override {
+        float result = 0;
+        for (std::size_t index = 0; index <= trajectories_it; ++index) {
+            result += trajectories[trajectories_it]->getCumulatedCost();
+        }
+        return result;
+    }
+
+private:
+    std::vector<TrajectoryPtr> trajectories;
+    std::size_t trajectories_it;
+};
+
+CartPosesConnector::CartPosesConnector(const Scene& scene)
+    : TunneledConnector(3) {
+    this->scene = std::make_shared<Scene>(scene);
+    setSteerDegree(STEER_DEGREE);
+}
+
+bool CartPosesConnector::checkAdvancement(const State& ,
     const State& advanced_state) const {
     return std::any_of(scene->obstacles.begin(), scene->obstacles.end(), [cart = &scene->cart, &advanced_state](const Sphere& obstacle) {
         return cart->isCollisionPresent(obstacle, advanced_state);
@@ -335,7 +395,7 @@ float CartPosesConnector::minCost2Go(const State &start,
           const State& end;
           mutable float result = 0;
 
-          void operator()(const BlendingArc& arc) const {
+          void operator()(const Blended& arc) const {
               auto&& [arc_begin_angle, arc_end_angle] = arc_angles(arc);
               result += arc.ray * std::abs(arc_end_angle - arc_begin_angle);
               result += distance(start.data(), arc.arc_begin.data());
@@ -351,4 +411,6 @@ float CartPosesConnector::minCost2Go(const State &start,
   }
   return COST_MAX;
 }
+
+const float CartPosesConnector::STEER_DEGREE = ; // TODO
 } // namespace mt_rrt::samples
