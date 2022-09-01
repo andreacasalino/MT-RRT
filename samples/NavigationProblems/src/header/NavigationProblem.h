@@ -14,6 +14,7 @@
 
 namespace mt_rrt::samples {
 static constexpr float PI = 3.1415926535f;
+static constexpr float PI_HALF = 0.5f * PI;
 
 float to_rad(float angle);
 
@@ -92,6 +93,8 @@ public:
   float minCost2Go(const State &start, const State &end) const override;
   TrajectoryPtr getTrajectory(const State &start,
                               const State &end) const override;
+
+  static const float STEER_DEGREE;
 };
 
 std::shared_ptr<ProblemDescription>

@@ -15,8 +15,9 @@ float to_rad(float angle) { return angle * PI / 180.f; }
 
 float to_grad(float angle) { return angle * 180.f / PI; }
 
-Cart::Cart(float width, float length) {
-  this->width.set(width);
+Cart::Cart(float width, float length, const CartSteerLimits &steer_limits)
+    : steer_limits(steer_limits) {
+  , const CartSteerLimits &steer_limits this->width.set(width);
   this->length.set(length);
   cart_perimeter[0] = {0.5f * width, 0.5f * length};
   cart_perimeter[1] = {-0.5f * width, 0.5f * length};
@@ -172,7 +173,7 @@ struct LinePiece {
   State end;
 };
 struct ArcPiece {
-  State center;
+  Point center;
   float ray;
   float angle_start;
   float angle_end;
@@ -225,22 +226,44 @@ compute_pieces(const State &start, const State &end,
     ray_info = LengthRay{theta, steer_limits.maxRadius(), LengthRay::RayTag{}};
   }
 
+  Point intersection_corner = {start[0], start[1]};
+  intersection_corner[0] += start_dir.cos() * s;
+  intersection_corner[1] += start_dir.sin() * s;
+
   // compute center
   Point center;
   {
-    Point intersection_corner = {start[0], start[1]};
-    intersection_corner[0] += start_dir.cos() * s;
-    intersection_corner[1] += start_dir.sin() * s;
-
     float intersection_center_distance =
         sqrtf(ray_info.length * ray_info.length + ray_info.ray * ray_info.ray);
 
-    center = std::move(intersection_corner);
+    center = intersection_corner;
     center[0] += intersection_center_distance * cosf(gamma);
     center[1] += intersection_center_distance * sinf(gamma);
   }
 
-  // TODO
+  auto &arc = result.arc.emplace();
+  arc.ray = ray_info.ray;
+  arc.center = std::move(center);
+  arc.angle_start = PI_HALF + start[2];
+  arc.angle_end = PI_HALF + end[2];
+
+  {
+    auto &line = result.line_start.emplace();
+    line.start = start;
+    auto &start_arc = line.end;
+    start_arc = {intersection_corner[0], intersection_corner[1], start[2]};
+    start_arc[0] -= ray_info.length * start_dir.cos();
+    start_arc[1] -= ray_info.length * start_dir.sin();
+  }
+
+  {
+    auto &line = result.line_start.emplace();
+    line.end = end;
+    auto &end_arc = line.start;
+    end_arc = {intersection_corner[0], intersection_corner[1], end[2]};
+    end_arc[0] += ray_info.length * end_dir.cos();
+    end_arc[1] += ray_info.length * end_dir.sin();
+  }
 }
 
 class TrajectoryComposite : public Trajectory {
