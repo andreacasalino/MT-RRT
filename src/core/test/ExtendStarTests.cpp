@@ -25,8 +25,9 @@ TEST_CASE("Star extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
-                 "star-empty", PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
+    log_scenario(
+        extender, samples::TrivialProblemConverter::CONVERTER, "star-empty",
+        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -57,9 +58,10 @@ TEST_CASE("Star extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
-                 "star-one_obstacle",
-                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
+    log_scenario(
+        extender, samples::TrivialProblemConverter::CONVERTER,
+        "star-one_obstacle",
+        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -93,9 +95,9 @@ TEST_CASE("Star extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(extender, samples::TrivialProblemConverter::CONVERTER,
-                 "star-cluttered",
-                 PythonSources{TRIVIAL_PROBLEM_PYTHON_SCRIPT});
+    log_scenario(
+        extender, samples::TrivialProblemConverter::CONVERTER, "star-cluttered",
+        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
 #endif
 
     const auto &solutions = extender.getSolutions();

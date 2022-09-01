@@ -15,6 +15,8 @@
 namespace mt_rrt::samples {
 static constexpr float PI = 3.1415926535f;
 
+static constexpr float PI_HALF = 0.5f * PI;
+
 float to_rad(float angle);
 
 float to_grad(float angle);
@@ -24,6 +26,18 @@ using Point = std::array<float, 2>;
 struct Sphere {
   Positive<float> ray;
   Point center;
+};
+
+class CartSteerLimits {
+public:
+  CartSteerLimits(float min_readius, float max_readius);
+
+  float minRadius() const { return min_steer_radius.get(); }
+  float maxRadius() const { return max_steer_radius.get(); }
+
+private:
+  Positive<float> min_steer_radius;
+  Positive<float> max_steer_radius;
 };
 
 // frame attached to cart has an origin in the cart baricenter:
@@ -43,16 +57,19 @@ struct Sphere {
 //
 class Cart {
 public:
-  Cart(float width, float length);
+  Cart(float width, float length, const CartSteerLimits &steer_limits);
 
   // cart_state assumed formatted in this way:
   // [x_baricenter, y_baricenter, orientation]
   bool isCollisionPresent(const Cart &cart, const Sphere &obstacle,
                           const State &cart_state) const;
 
+  const CartSteerLimits &steerLimits() const { return steer_limits; }
+
 private:
   Positive<float> width;
   Positive<float> length;
+  CartSteerLimits steer_limits;
 
   std::array<Point, 4> cart_perimeter;
 };
@@ -77,6 +94,8 @@ public:
   float minCost2Go(const State &start, const State &end) const override;
   TrajectoryPtr getTrajectory(const State &start,
                               const State &end) const override;
+
+  static const float STEER_DEGREE;
 };
 
 std::shared_ptr<ProblemDescription>

@@ -15,8 +15,9 @@ float to_rad(float angle) { return angle * PI / 180.f; }
 
 float to_grad(float angle) { return angle * 180.f / PI; }
 
-Cart::Cart(float width, float length) {
-  this->width.set(width);
+Cart::Cart(float width, float length, const CartSteerLimits &steer_limits)
+    : steer_limits(steer_limits) {
+  , const CartSteerLimits &steer_limits this->width.set(width);
   this->length.set(length);
   cart_perimeter[0] = {0.5f * width, 0.5f * length};
   cart_perimeter[1] = {-0.5f * width, 0.5f * length};
@@ -66,7 +67,7 @@ float distance_point_segment(const Point &point, const Point &segment_a,
     return distance(point.data(), point_on_segment.data());
   };
 
-  float s = dot(c_a, b_a) / dot(b_a, b_a);
+  float s = dot(c_a.data(), b_a.data()) / dot(b_a.data(), b_a.data());
   if (s < 0) {
     return distance_eval(0);
   }
@@ -111,16 +112,34 @@ bool Cart::isCollisionPresent(const Cart &cart, const Sphere &obstacle,
 }
 
 namespace {
+class Versor {
+public:
+  Versor(float angle) {
+    cos_sin[0] = cosf(angle);
+    cos_sin[1] = sinf(angle);
+  }
+
+  const Point &asPoint() const { return cos_sin; };
+
+  float cos() const { return cos_sin[0]; }
+  float sin() const { return cos_sin[1]; }
+
+private:
+  Point cos_sin;
+};
+
 std::optional<std::array<float, 2>>
-compute_intersection_coefficients(const State &start, const State &end) {
-  const Point V0 = minus(*line_a[0], *line_b[0]);
-  const Point V1 = minus(*line_a[1], *line_a[0]);
-  const Point V2 = minus(*line_b[1], *line_b[0]);
-  const float m00 = dot(V1, V1);
-  const float m11 = dot(V2, V2);
-  const float m01 = -dot(V1, V2);
-  const float c0 = -dot(V0, V1);
-  const float c1 = dot(V0, V2);
+compute_intersection_coefficients(const State &start, const State &end,
+                                  const Versor &start_dir,
+                                  const Versor &end_dir) {
+  const Point &V1 = start_dir.asPoint();
+  const Point &V2 = end_dir.asPoint();
+  const Point V0 = {start[0] - end[0], start[1] - end[1]};
+  const float m00 = dot(V1.data(), V1.data());
+  const float m11 = dot(V2.data(), V2.data());
+  const float m01 = -dot(V1.data(), V2.data());
+  const float c0 = -dot(V0.data(), V1.data());
+  const float c1 = dot(V0.data(), V2.data());
   const float determinant = m00 * m11 - m01 * m01;
   if (std::abs(determinant) < 0.0001f) {
     return std::nullopt;
@@ -130,12 +149,31 @@ compute_intersection_coefficients(const State &start, const State &end) {
   return std::array<float, 2>{s_min, t_min};
 }
 
+Point to_point(const State &state) { return Point{state[0], state[1]}; }
+
+struct LengthRay {
+  struct LengthTag {};
+  LengthRay(float theta, float l, const LengthTag &) {
+    length = l;
+    ray = tanf(theta) * l;
+  }
+
+  struct RayTag {};
+  LengthRay(float theta, float r, const RayTag &) {
+    ray = r;
+    length = r / tanf(theta);
+  }
+
+  float length;
+  float ray;
+};
+
 struct LinePiece {
   State start;
   State end;
 };
 struct ArcPiece {
-  State center;
+  Point center;
   float ray;
   float angle_start;
   float angle_end;
@@ -146,17 +184,22 @@ struct TrajectoryPieces {
   std::optional<LinePiece> line_end;
 };
 std::optional<TrajectoryPieces>
-compute_pieces(const State &start, const State &end, float steer_radius) {
+compute_pieces(const State &start, const State &end,
+               const CartSteerLimits &steer_limits) {
+  Versor start_dir(start[2]), end_dir(end[2]);
+  auto pair = compute_intersection_coefficients(start, end, start_dir, end_dir);
+
   TrajectoryPieces result;
-
-  auto pair = compute_intersection_coefficients(start, end);
-
   if (pair == std::nullopt) {
+    // start and end are aligned
     if (dot(start.data(), end.data()) < 0) {
-      return result;
+      return std::nullopt;
     }
     // check the 2 states lies on exactly the same line
-    if (distance_point_segment() < 1e-4f) {
+    Point end2 = end_dir.asPoint();
+    end2[0] += end[0];
+    end2[1] += end[1];
+    if (distance_point_segment(to_point(start), to_point(end), end2) < 1e-4f) {
       auto &line = result.line_start.emplace();
       line.start = start;
       line.end = end;
@@ -166,7 +209,60 @@ compute_pieces(const State &start, const State &end, float steer_radius) {
 
   const auto &[s, t] = pair.value();
   if ((s < 0) || (t > 0)) {
-    return result;
+    return std::nullopt;
+  }
+
+  // angle of the bisec line, passing for the center of rotation
+  float gamma =
+      atan2f(end_dir.cos() - start_dir.cos(), end_dir.sin() - start_dir.sin());
+
+  float theta = end[2] - gamma;
+  LengthRay ray_info =
+      LengthRay{theta, std::min(s, -t), LengthRay::LengthTag{}};
+  if (ray_info.ray < steer_limits.minRadius()) {
+    return std::nullopt;
+  }
+  if (ray_info.ray > steer_limits.maxRadius()) {
+    ray_info = LengthRay{theta, steer_limits.maxRadius(), LengthRay::RayTag{}};
+  }
+
+  Point intersection_corner = {start[0], start[1]};
+  intersection_corner[0] += start_dir.cos() * s;
+  intersection_corner[1] += start_dir.sin() * s;
+
+  // compute center
+  Point center;
+  {
+    float intersection_center_distance =
+        sqrtf(ray_info.length * ray_info.length + ray_info.ray * ray_info.ray);
+
+    center = intersection_corner;
+    center[0] += intersection_center_distance * cosf(gamma);
+    center[1] += intersection_center_distance * sinf(gamma);
+  }
+
+  auto &arc = result.arc.emplace();
+  arc.ray = ray_info.ray;
+  arc.center = std::move(center);
+  arc.angle_start = PI_HALF + start[2];
+  arc.angle_end = PI_HALF + end[2];
+
+  {
+    auto &line = result.line_start.emplace();
+    line.start = start;
+    auto &start_arc = line.end;
+    start_arc = {intersection_corner[0], intersection_corner[1], start[2]};
+    start_arc[0] -= ray_info.length * start_dir.cos();
+    start_arc[1] -= ray_info.length * start_dir.sin();
+  }
+
+  {
+    auto &line = result.line_start.emplace();
+    line.end = end;
+    auto &end_arc = line.start;
+    end_arc = {intersection_corner[0], intersection_corner[1], end[2]};
+    end_arc[0] += ray_info.length * end_dir.cos();
+    end_arc[1] += ray_info.length * end_dir.sin();
   }
 }
 
@@ -208,7 +304,7 @@ private:
 
 TrajectoryPtr CartPosesConnector::getTrajectory(const State &start,
                                                 const State &end) const {
-  const auto pieces = compute_pieces(start, end);
+  const auto pieces = compute_pieces(start, end, scene->cart.steerLimits());
   if (pieces) {
     return std::make_unique<TrajectoryComposite>(scene, pieces.value());
   }
@@ -217,7 +313,7 @@ TrajectoryPtr CartPosesConnector::getTrajectory(const State &start,
 
 float CartPosesConnector::minCost2Go(const State &start,
                                      const State &end) const {
-  const auto pieces = compute_pieces(start, end);
+  const auto pieces = compute_pieces(start, end, scene->cart.steerLimits());
   if (pieces) {
     float result = 0;
     if (pieces->line_start) {
