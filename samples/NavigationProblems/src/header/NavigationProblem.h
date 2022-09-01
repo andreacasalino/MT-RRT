@@ -91,7 +91,7 @@ std::optional<TrajectoryInfo>
 compute_cart_trajectory_info(const State& start, const State& end,
     const CartSteerLimits& steer_limits);
 
-class CartPosesConnector : public Connector {
+class CartPosesConnector : public TunneledConnector {
 public:
   CartPosesConnector() = default;
   CartPosesConnector(const CartPosesConnector &o) {
@@ -108,6 +108,10 @@ public:
                               const State &end) const override;
 
   static const float STEER_DEGREE;
+
+protected:
+    bool checkAdvancement(const State& previous_state,
+        const State& advanced_state) const final;
 };
 
 std::shared_ptr<ProblemDescription>

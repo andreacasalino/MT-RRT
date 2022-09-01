@@ -251,28 +251,34 @@ std::array<float, 2> arc_angles(const BlendingArc& arc) {
         compute_angle(arc.center, arc.arc_end) };
 }
 
-bool isCollisionPresent(const Cart& cart, const std::vector<Sphere>& obstacles,
-    const State& cart_state) {
-    return std::any_of(obstacles.begin(), obstacles.end(), [&cart, &cart_state](const Sphere& obstacle) {
-        return cart.isCollisionPresent(obstacle, cart_state);
-    });
-}
-
-class TrajectoryPieceBase {
+class BlendingTrajectory : public Trajectory {
 public:
-    virtual ~TrajectoryPieceBase() = default;
-
-protected:
-    TrajectoryPieceBase(std::shared_ptr<const Scene> scene) : scene(scene) {}
-
-    std::shared_ptr<const Scene> scene;
+    BlendingTrajectory(const BlendingArc& info);
 };
 
 class TrajectoryComposite : public Trajectory {
 public:
-  TrajectoryComposite(const std::shared_ptr<const Scene> &scene,
+  TrajectoryComposite(const TunneledConnector& caller,
                       const TrajectoryInfo&pieces) {
-    // TODO convert pieces into trajectories
+      struct Visitor {
+          const TunneledConnector& caller;
+          const TrajectoryInfo& pieces;
+          mutable std::vector<TrajectoryPtr> trajectories;
+
+          void operator()(const BlendingArc& arc) const {
+              // TODO put in trajectories
+              // Line start -> arc_begin
+              // BlendingTrajectory for arc
+              // Line arc_end -> end
+          }
+
+          void operator()(const TrivialLine& arc) const {
+              // TODO put in trajectories
+              // Line start -> end
+          }
+      } visitor{ caller, pieces };
+      std::visit(visitor, pieces);
+      trajectories = std::move(visitor.trajectories);
   }
 
   AdvanceInfo advance() override {
@@ -304,11 +310,18 @@ private:
 };
 } // namespace
 
+bool CartPosesConnector::checkAdvancement(const State& previous_state,
+    const State& advanced_state) const {
+    return std::any_of(scene->obstacles.begin(), scene->obstacles.end(), [cart = &scene->cart, &advanced_state](const Sphere& obstacle) {
+        return cart->isCollisionPresent(obstacle, advanced_state);
+        });
+}
+
 TrajectoryPtr CartPosesConnector::getTrajectory(const State &start,
                                                 const State &end) const {
   const auto pieces = compute_cart_trajectory_info(start, end, scene->cart.steerLimits());
   if (pieces) {
-    return std::make_unique<TrajectoryComposite>(scene, pieces.value());
+    return std::make_unique<TrajectoryComposite>(static_cast<const TunneledConnector&>(*this), pieces.value());
   }
   return nullptr;
 }
