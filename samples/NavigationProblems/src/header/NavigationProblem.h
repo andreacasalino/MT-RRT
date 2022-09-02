@@ -91,8 +91,8 @@ struct Blended {
     Point arc_begin;
     Point arc_end;
 };
-using TrajectoryInfo = std::variant<Blended, TrivialLine>;
-std::optional<TrajectoryInfo>
+using CartTrajectoryInfo = std::variant<Blended, TrivialLine>;
+std::optional<CartTrajectoryInfo>
 compute_cart_trajectory_info(const State& start, const State& end,
     const CartSteerLimits& steer_limits);
 
@@ -102,7 +102,7 @@ public:
   CartPosesConnector(const CartPosesConnector &o) : CartPosesConnector(*o.scene) {
   }
 
-  std::shared_ptr<const Scene> scene = std::make_shared<Scene>();
+  std::shared_ptr<const Scene> scene;
 
   ConnectorPtr copy() const override {
     return std::make_unique<CartPosesConnector>(*this);
@@ -114,7 +114,7 @@ public:
   static const float STEER_DEGREE;
 
 protected:
-    class TrajectoryComposite;
+    class CartTrajectory;
 
     bool checkAdvancement(const State& previous_state,
         const State& advanced_state) const final;
