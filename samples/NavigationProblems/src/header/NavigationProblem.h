@@ -66,6 +66,9 @@ public:
 
   const CartSteerLimits &steerLimits() const { return steer_limits; }
 
+  float getWidth() const { return width.get(); }
+  float getLength() const { return length.get(); }
+
 private:
   Positive<float> width;
   Positive<float> length;

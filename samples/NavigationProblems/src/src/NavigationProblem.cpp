@@ -425,9 +425,10 @@ namespace mt_rrt::samples {
 				mutable float result = 0;
 
 				void operator()(const Blended& arc) const {
-					auto&& [arc_begin_angle, arc_end_angle] = arc_angles(arc);
-					float angle_delta = angle_between(Versor{arc_begin_angle}, Versor{arc_end_angle});
-					result += arc.ray * angle_delta;
+					Versor center_begin(arc.center, arc.arc_begin);
+					Versor center_end(arc.center, arc.arc_end);
+					float amplitude = angle_between(center_begin, center_end);
+					result += arc.ray * amplitude;
 					result += distance(start.data(), arc.arc_begin.data());
 					result += distance(end.data(), arc.arc_end.data());
 				}
@@ -442,5 +443,5 @@ namespace mt_rrt::samples {
 		return COST_MAX;
 	}
 
-	const float CartPosesConnector::STEER_DEGREE = ; // TODO
+	const float CartPosesConnector::STEER_DEGREE = 0; // TODO
 } // namespace mt_rrt::samples
