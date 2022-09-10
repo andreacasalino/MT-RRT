@@ -10,26 +10,15 @@
 #include <MT-RRT-core/PlanningProblem.h>
 #include <MT-RRT-core/TunneledConnector.h>
 
+#include <Geometry.h>
+
 #include <array>
 #include <variant>
 
 namespace mt_rrt::samples {
-static constexpr float PI = 3.1415926535f;
-static constexpr float PI_HALF = 0.5f * PI;
-
-float to_rad(float angle);
-
-float to_grad(float angle);
-
-using Point = std::array<float, 2>;
-
-struct Sphere {
-  Positive<float> ray;
-  Point center;
-};
-
 class CartSteerLimits {
 public:
+  CartSteerLimits();
   CartSteerLimits(float min_radius, float max_radius);
 
   float minRadius() const { return min_steer_radius.get(); }
@@ -40,15 +29,18 @@ private:
   Positive<float> max_steer_radius;
 };
 
+using Point = utils::Point;
+using Sphere = utils::Sphere;
+
 // frame attached to cart has an origin in the cart baricenter:
 //
 //  <--------> width
 //  ----------   ^
 //  |        |   |
-//  |    y   |   |
+//  |    x   |   |
 //  |    ^   |   |
 //  |    |   |   |  length
-//  |    -> x|   |
+//  | y <-   |   |
 //  |        |   |
 //  |        |   |
 //  |        |   |
@@ -83,27 +75,27 @@ struct Scene {
 };
 
 struct TrivialLine {
-    const State& start;
-    const State& end;
+  const State &start;
+  const State &end;
 };
 struct Blended {
-    const State& start;
-    const State& end;
-    float ray;
-    Point center;
-    Point arc_begin;
-    Point arc_end;
+  const State &start;
+  const State &end;
+  float ray;
+  Point center;
+  Point arc_begin;
+  Point arc_end;
 };
 using CartTrajectoryInfo = std::variant<Blended, TrivialLine>;
 std::optional<CartTrajectoryInfo>
-compute_cart_trajectory_info(const State& start, const State& end,
-    const CartSteerLimits& steer_limits);
+compute_cart_trajectory_info(const State &start, const State &end,
+                             const CartSteerLimits &steer_limits);
 
 class CartPosesConnector : public TunneledConnector {
 public:
-  CartPosesConnector(const Scene& scene);
-  CartPosesConnector(const CartPosesConnector &o) : CartPosesConnector(*o.scene) {
-  }
+  CartPosesConnector(const Scene &scene);
+  CartPosesConnector(const CartPosesConnector &o)
+      : CartPosesConnector(*o.scene) {}
 
   std::shared_ptr<const Scene> scene;
 
@@ -117,10 +109,10 @@ public:
   static const float STEER_DEGREE;
 
 protected:
-    class CartTrajectory;
+  class CartTrajectory;
 
-    bool checkAdvancement(const State& previous_state,
-        const State& advanced_state) const final;
+  bool checkAdvancement(const State &previous_state,
+                        const State &advanced_state) const final;
 };
 
 std::shared_ptr<ProblemDescription>

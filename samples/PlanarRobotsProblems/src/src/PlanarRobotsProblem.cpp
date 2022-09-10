@@ -10,16 +10,6 @@
 #include <cmath>
 
 namespace mt_rrt::samples {
-float to_rad(float angle) { return PI * angle / 180.f; }
-
-float euclidean_distance(const float *a, const float *b, std::size_t size) {
-  float result = 0;
-  for (std::size_t pos = 0; pos < size; ++pos) {
-    result += powf(a[pos] - b[pos], 2.f);
-  }
-  return sqrtf(result);
-}
-
 namespace {
 constexpr float MAX_DISTANCE = std::numeric_limits<float>::max();
 
@@ -31,60 +21,30 @@ float min_distance(const std::vector<float> &distances) {
   return result;
 }
 
-// returns a - b
-Point minus(const Point &a, const Point &b) {
-  return {a.at(0) - b.at(0), a.at(1) - b.at(1)};
-}
-
-float dot(const Point &a, const Point &b) { return a[0] * b[0] + a[1] * b[1]; }
-
 void advance_(float *subject, const float *target, std::size_t size,
               float advancement) {
   for (std::size_t k = 0; k < size; ++k) {
     subject[k] += advancement * (target[k] - subject[k]);
   }
 }
+
+utils::Segment to_utils_seg(const Segment &subject) {
+  return utils::Segment{*subject[0], *subject[1]};
+}
 } // namespace
 
-float closest_point(const Segment &line, const Point &point) {
-  const Point BA = minus(*line.back(), *line.front());
-  const Point CA = minus(point, *line.front());
-  // closest point to sphere center along line defined by A-B
-  return dot(CA, BA) / dot(BA, BA);
-}
-
-std::optional<std::array<float, 2>> closest_pair(const Segment &line_a,
-                                                 const Segment &line_b) {
-  const Point V0 = minus(*line_a[0], *line_b[0]);
-  const Point V1 = minus(*line_a[1], *line_a[0]);
-  const Point V2 = minus(*line_b[1], *line_b[0]);
-  const float m00 = dot(V1, V1);
-  const float m11 = dot(V2, V2);
-  const float m01 = -dot(V1, V2);
-  const float c0 = -dot(V0, V1);
-  const float c1 = dot(V0, V2);
-  const float determinant = m00 * m11 - m01 * m01;
-  if (std::abs(determinant) < 0.0001f) {
-    return std::nullopt;
-  }
-  const float s_min = (c0 * m11 - m01 * c1) / determinant;
-  const float t_min = (c1 - m01 * s_min) / m11;
-  return std::array<float, 2>{s_min, t_min};
-}
-
 float distance_capsule_sphere(const Capsule &cap, const Sphere &sphere) {
-  float s_min = closest_point(cap.segment, sphere.center);
+  float s_min =
+      utils::closest_on_line(sphere.center, to_utils_seg(cap.segment));
   float result;
   if (s_min < 0) {
-    result = euclidean_distance(sphere.center.data(),
-                                cap.segment.front()->data(), 2);
+    result = utils::distance(sphere.center, *cap.segment.front());
   } else if (s_min > 1.f) {
-    result =
-        euclidean_distance(sphere.center.data(), cap.segment.back()->data(), 2);
+    result = utils::distance(sphere.center, *cap.segment.back());
   } else {
     Point closest = *cap.segment[0];
     advance_(closest.data(), cap.segment[1]->data(), 2, s_min);
-    result = euclidean_distance(closest.data(), sphere.center.data(), 2);
+    result = utils::distance(closest, sphere.center);
   }
   result -= cap.ray.get() + sphere.ray.get();
   result = std::max(result, 0.f);
@@ -92,7 +52,8 @@ float distance_capsule_sphere(const Capsule &cap, const Sphere &sphere) {
 }
 
 float distance_capsules(const Capsule &cap_a, const Capsule &cap_b) {
-  const auto pair = closest_pair(cap_a.segment, cap_b.segment);
+  const auto pair = utils::closest_on_lines(to_utils_seg(cap_a.segment),
+                                            to_utils_seg(cap_b.segment));
   if (pair) {
     const float s_min = pair->front();
     const float t_min = pair->back();
@@ -101,8 +62,7 @@ float distance_capsules(const Capsule &cap_a, const Capsule &cap_b) {
       advance_(closest_in_cap_a.data(), cap_a.segment[1]->data(), 2, s_min);
       Point closest_in_cap_b = *cap_a.segment[0];
       advance_(closest_in_cap_b.data(), cap_b.segment[1]->data(), 2, t_min);
-      float result = euclidean_distance(closest_in_cap_a.data(),
-                                        closest_in_cap_b.data(), 2);
+      float result = utils::distance(closest_in_cap_a, closest_in_cap_b);
       result -= cap_a.ray.get() + cap_b.ray.get();
       result = std::max(result, 0.f);
       return result;
@@ -166,8 +126,8 @@ std::vector<Robot::Link> Robot::getLinks() const {
 
     auto &link = body[pos];
     element.ray.set(link.ray.get());
-    element.length.set(euclidean_distance(link.segment.front()->data(),
-                                          link.segment.back()->data(), 2));
+    element.length.set(
+        utils::distance(*link.segment.front(), *link.segment.back()));
     element.joint_limits = limits[pos];
   }
   return result;
@@ -227,8 +187,7 @@ float Robot::delta(const State &start, const State &target) {
     const auto &joint_center = *body[link].segment[0];
     for (std::size_t l = link; l < body.size(); ++l) {
       const auto &link_body = body[l];
-      const auto dist = euclidean_distance(link_body.segment[1]->data(),
-                                           joint_center.data(), 2) +
+      const auto dist = utils::distance(*link_body.segment[1], joint_center) +
                         link_body.ray.get();
       if (result < dist) {
         result = dist;
@@ -282,8 +241,9 @@ public:
     std::size_t pos = 0;
     for (std::size_t r = 0; r < current_state.size(); ++r) {
       result +=
-          euclidean_distance(current_state[r].data(), start_state_.data() + pos,
-                             current_state[r].size());
+          utils::distance(current_state[r], State{start_state_.begin() + pos,
+                                                  start_state_.begin() + pos +
+                                                      current_state[r].size()});
       pos += current_state[r].size();
     }
     return result;
@@ -352,7 +312,7 @@ AdvanceInfo SceneTrajectory::advance() {
 } // namespace
 
 float PosesConnector::minCost2Go(const State &start, const State &end) const {
-  return euclidean_distance(start.data(), end.data(), start.size());
+  return utils::distance(start, end);
 }
 
 TrajectoryPtr PosesConnector::getTrajectory(const State &start,

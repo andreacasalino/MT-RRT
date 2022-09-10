@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../src/core/src/Extender.h"
-// #include <MT-RRT-carpet/Strings.h>
+#include <MT-RRT-core/../../src/Extender.h>
 #include <TrivialProblem.h>
 
 namespace mt_rrt::utils {
@@ -15,9 +14,6 @@ bool is_a_collision_present(const samples::TrivialProblemConnector &scenario,
 bool check_solutions(const samples::TrivialProblemConnector &scenario,
                      const mt_rrt::Solutions &solutions, const State &start,
                      const State &end);
-
-float similarity(const std::vector<mt_rrt::State> &a,
-                 const std::vector<mt_rrt::State> &b);
 
 bool check_loopy_connections(const Tree &tree);
 

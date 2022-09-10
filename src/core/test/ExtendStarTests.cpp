@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <Geometry.h>
 #include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
 #ifdef TEST_LOGGING
@@ -37,8 +38,8 @@ TEST_CASE("Star extender in an empty space",
                             scenario.point_problem->connector.get()),
                         solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    CHECK(similarity(solutions.begin()->second->getSequence(), {start, end}) <=
-          0.2f);
+    CHECK(curve_similarity(solutions.begin()->second->getSequence(),
+                           {start, end}) <= 0.2f);
   }
 }
 
@@ -71,10 +72,11 @@ TEST_CASE("Star extender with single obstacle",
                             scenario.point_problem->connector.get()),
                         solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    bool is_optimal = (similarity(solutions.begin()->second->getSequence(),
-                                  {start, {-0.8f, 0.8f}, end}) <= 0.2f) ||
-                      (similarity(solutions.begin()->second->getSequence(),
-                                  {start, {0.8f, -0.8f}, end}) <= 0.2f);
+    bool is_optimal =
+        (curve_similarity(solutions.begin()->second->getSequence(),
+                          {start, {-0.8f, 0.8f}, end}) <= 0.2f) ||
+        (curve_similarity(solutions.begin()->second->getSequence(),
+                          {start, {0.8f, -0.8f}, end}) <= 0.2f);
     CHECK(is_optimal);
   }
 }
@@ -107,7 +109,7 @@ TEST_CASE("Star extender in cluttered scenario",
                             scenario.point_problem->connector.get()),
                         solutions, start, end));
     CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    CHECK(similarity(solutions.begin()->second->getSequence(),
-                     {start, {1.f / 3.f, 0}, end}) <= 0.2f);
+    CHECK(curve_similarity(solutions.begin()->second->getSequence(),
+                           {start, {1.f / 3.f, 0}, end}) <= 0.2f);
   }
 }

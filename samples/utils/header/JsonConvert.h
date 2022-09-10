@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../../src/core/src/Extender.h"
+#include <MT-RRT-core/../../src/Extender.h>
 #include <MT-RRT-core/Planner.h>
 
 #include <nlohmann/json.hpp>

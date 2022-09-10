@@ -5,13 +5,14 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <Geometry.h>
 #include <TrivialProblemJson.h>
 
 #include <optional>
 
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Transform &subject) {
-  j["angle"] = to_grad(subject.getAngle());
+  j["angle"] = utils::to_grad(subject.getAngle());
   j["traslation"] = subject.getTraslation();
 }
 
@@ -29,7 +30,7 @@ Transform import_transform(const nlohmann::json &j) {
   std::optional<Transform::Traslation> center;
   if (j.contains("angle")) {
     rot = j["angle"];
-    rot = to_rad(rot);
+    rot = utils::to_rad(rot);
     if (j.contains("center")) {
       center.emplace() = j["center"];
     }

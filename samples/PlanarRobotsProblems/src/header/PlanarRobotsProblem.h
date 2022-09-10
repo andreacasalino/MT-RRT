@@ -9,25 +9,15 @@
 
 #include <MT-RRT-core/PlanningProblem.h>
 
+#include <Geometry.h>
+
 #include <array>
 
 namespace mt_rrt::samples {
-static constexpr float PI = 3.1415926535f;
-static constexpr float PI_2 = 2.f * PI;
-static constexpr float foo = PI * 0.5f;
-
-float to_rad(float angle);
-
-float euclidean_distance(const float *a, const float *b, std::size_t size);
-
-using Point = std::array<float, 2>;
+using Point = utils::Point;
 using PointPtr = std::shared_ptr<Point>;
 
-struct Sphere {
-  Positive<float> ray;
-  Point center;
-};
-
+using Sphere = utils::Sphere;
 using Spheres = std::vector<Sphere>;
 
 using Segment = std::array<PointPtr, 2>;
@@ -36,19 +26,13 @@ struct Capsule {
   Segment segment;
 };
 
-float closest_point(const Segment &line, const Point &point);
-
-// return nullopt in case the line are almost aligned
-std::optional<std::array<float, 2>> closest_pair(const Segment &line_a,
-                                                 const Segment &line_b);
-
 float distance_capsule_sphere(const Capsule &cap, const Sphere &sphere);
 
 float distance_capsules(const Capsule &cap_a, const Capsule &cap_b);
 
 class JointLimits {
 public:
-  JointLimits() : JointLimits{-PI, PI} {};
+  JointLimits() : JointLimits{-utils::PI, utils::PI} {};
   JointLimits(float min, float max);
 
   float min() const { return min_; }

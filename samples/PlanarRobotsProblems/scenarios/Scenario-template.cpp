@@ -19,10 +19,10 @@ protected:
 
   void setCase(std::pair<mt_rrt::State, mt_rrt::State> &start_end) {
     for (auto &val : start_end.first) {
-      val = mt_rrt::samples::to_rad(val);
+      val = mt_rrt::utils::to_rad(val);
     }
     for (auto &val : start_end.second) {
-      val = mt_rrt::samples::to_rad(val);
+      val = mt_rrt::utils::to_rad(val);
     }
   }
 };
