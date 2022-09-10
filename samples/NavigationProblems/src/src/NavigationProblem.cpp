@@ -11,7 +11,7 @@
 #include <optional>
 
 namespace mt_rrt::samples {
-CartSteerLimits::CartSteerLimits() : CartSteerLimits(0, 1.f) {}
+CartSteerLimits::CartSteerLimits() : CartSteerLimits(0.1f, 1.f) {}
 
 CartSteerLimits::CartSteerLimits(float min_radius, float max_radius)
     : min_steer_radius(min_radius), max_steer_radius(max_radius) {
@@ -30,16 +30,11 @@ Cart::Cart(float width, float length, const CartSteerLimits &steer_limits)
   cart_perimeter[3] = {0.5f * length, -0.5f * width};
 }
 
-namespace {
 Point to_point(const State &state) { return Point{state[0], state[1]}; }
 
+namespace {
 State to_state(const Point &point, float angle) {
   return State{point[0], point[1], angle};
-}
-
-void add(float *subject, float delta_x, float delta_y) {
-  subject[0] += delta_x;
-  subject[1] += delta_y;
 }
 
 Point relative_position(const Sphere &obstacle, const State &cart_state) {
@@ -86,6 +81,7 @@ bool Cart::isCollisionPresent(const Sphere &obstacle,
   }
   // get distance from sphere center and cart perimeter
   std::pair<const Point *, const Point *> segment_horizontal, segment_vertical;
+
   if (rel_pos_y > 0) {
     segment_horizontal = std::make_pair<const Point *, const Point *>(
         &cart_perimeter[0], &cart_perimeter[1]);
@@ -93,6 +89,7 @@ bool Cart::isCollisionPresent(const Sphere &obstacle,
     segment_horizontal = std::make_pair<const Point *, const Point *>(
         &cart_perimeter[2], &cart_perimeter[3]);
   }
+
   if (rel_pos_x > 0) {
     segment_vertical = std::make_pair<const Point *, const Point *>(
         &cart_perimeter[0], &cart_perimeter[3]);
@@ -111,11 +108,6 @@ bool Cart::isCollisionPresent(const Sphere &obstacle,
 }
 
 namespace {
-float angle_between(const utils::Versor &a, const utils::Versor &b) {
-  float cos_val = utils::dot(a.asPoint(), b.asPoint());
-  return acosf(cos_val);
-}
-
 struct RayAndDistanceToIntersection {
   float distance;
   float ray;
@@ -142,11 +134,11 @@ compute_cart_trajectory_info(const State &start, const State &end,
       utils::closest_on_lines(utils::Segment{to_point(start), start_dir},
                               utils::Segment{to_point(end), end_dir});
 
-  if (intersection_coefficients == std::nullopt) {
+  if (!intersection_coefficients.has_value()) {
     // start and end are aligned
     utils::Versor start_to_end(to_point(start), to_point(end));
-    float dot_val = utils::dot(start_dir.asPoint(), start_to_end.asPoint());
-    if (std::abs(dot_val - 1.f) < 1e-3) {
+    float dot_val = utils::dot(end_dir.asPoint(), start_to_end.asPoint());
+    if (std::abs(dot_val - 1.f) < 1e-2f) {
       return TrivialLine{start, end};
     }
     return std::nullopt;
@@ -164,7 +156,7 @@ compute_cart_trajectory_info(const State &start, const State &end,
 
   // angular aplitude between bisec line and one of the line where start or end
   // lies
-  float theta = angle_between(gamma, end_dir);
+  float theta = gamma.angleBetween(end_dir);
   auto ray_info = from_distance(theta, std::min(s, -t));
   if (ray_info.ray < steer_limits.minRadius()) {
     return std::nullopt;
@@ -174,7 +166,7 @@ compute_cart_trajectory_info(const State &start, const State &end,
   }
 
   Point intersection_corner = {start[0], start[1]};
-  add(intersection_corner.data(), start_dir.cos() * s, start_dir.sin() * s);
+  utils::add(intersection_corner, start_dir.asPoint(), s);
 
   Point center;
   {
@@ -182,15 +174,12 @@ compute_cart_trajectory_info(const State &start, const State &end,
         ray_info.distance * ray_info.distance + ray_info.ray * ray_info.ray);
 
     center = intersection_corner;
-    add(center.data(), intersection_center_distance * gamma.cos(),
-        intersection_center_distance * gamma.sin());
+    utils::add(center, gamma.asPoint(), intersection_center_distance);
   }
   Point arc_begin = intersection_corner;
-  arc_begin[0] -= ray_info.distance * start_dir.cos();
-  arc_begin[1] -= ray_info.distance * start_dir.sin();
+  utils::remove(arc_begin, start_dir.asPoint(), ray_info.distance);
   Point arc_end = intersection_corner;
-  arc_end[0] += ray_info.distance * end_dir.cos();
-  arc_end[1] += ray_info.distance * end_dir.sin();
+  utils::add(arc_end, end_dir.asPoint(), ray_info.distance);
   return Blended{start,
                  end,
                  ray_info.ray,
@@ -200,102 +189,68 @@ compute_cart_trajectory_info(const State &start, const State &end,
 }
 
 namespace {
-class ArcAngularRange {
-public:
-  ArcAngularRange(const Blended &info, float steer_degree) {
-    utils::Versor center_begin(info.center, info.arc_begin);
-    utils::Versor center_end(info.center, info.arc_end);
-    float amplitude = angle_between(center_begin, center_end);
-    arc_angle_current = center_begin.angle();
-    float steer_degree_angular = steer_degree / info.ray;
-    advancements_required =
-        static_cast<std::size_t>(std::ceil(amplitude / steer_degree_angular));
-    arc_angle_delta = amplitude / static_cast<float>(advancements_required);
-    rotation_direction = center_begin.cross(center_end) > 0;
-  }
-
-  struct Angles {
-    float arc_angle;
-    float cart_orientation;
-    bool is_last;
-  };
-  Angles next() const {
-    Angles result;
-    result.arc_angle = arc_angle_current;
-    result.arc_angle += (rotation_direction ? 1.f : -1.f) * arc_angle_delta;
-    result.cart_orientation = result.arc_angle;
-    result.cart_orientation +=
-        (rotation_direction ? 1.f : -1.f) * utils::PI_HALF;
-    result.is_last = (advanced + 1) == advancements_required;
-    return result;
-  }
-
-  void advance() {
-    arc_angle_current += (rotation_direction ? 1.f : -1.f) * arc_angle_delta;
-    ++advanced;
-  }
-
-  float amplitudeSoFar() const { return arc_angle_delta * advanced; }
-
-private:
-  bool rotation_direction; // true = positive, false = negative
-
-  std::size_t advancements_required;
-  std::size_t advanced = 0;
-
-  float arc_angle_current;
-  float arc_angle_delta;
-};
-
 class Arc : public Trajectory {
 public:
   Arc(const Blended &info, const TunneledConnector &caller)
-      : caller(caller), info(info),
-        angular_range(info, caller.getSteerDegree()) {
-    state_current = info.start;
+      : caller(caller), center(info.center), ray(info.ray) {
+    utils::Versor center_begin_arc(info.center, info.arc_begin);
+    utils::Versor center_end_arc(info.center, info.arc_end);
+    const float amplitude = center_begin_arc.angleBetween(center_end_arc);
+    advancement_max = static_cast<std::size_t>(
+        std::ceil(ray * amplitude / caller.getSteerDegree()));
+    angle_current = center_begin_arc.angle();
+    positive_negative_dir = 0.f < center_begin_arc.cross(center_end_arc);
+    angle_delta = amplitude / static_cast<float>(advancement_max);
+    if (!positive_negative_dir) {
+      angle_delta = -angle_delta;
+    }
   }
 
   AdvanceInfo advance() final {
-    const auto info_next = angular_range.next();
-    State advanced = stateOnArc(info_next);
-    if (info_next.is_last) {
-      if (caller.checkAdvancement(advanced, advanced)) {
+    ++advancement_done;
+    angle_current += angle_delta;
+    const auto advanced_state = stateOnArc(angle_current);
+    if (advancement_done == advancement_max) {
+      if (caller.checkAdvancement(advanced_state, advanced_state)) {
         return AdvanceInfo::blocked;
       }
-      state_current = std::move(advanced);
-      angular_range.advance();
       return AdvanceInfo::targetReached;
     }
-    auto const result = caller.checkAdvancement(advanced, advanced)
+    auto const result = caller.checkAdvancement(advanced_state, advanced_state)
                             ? AdvanceInfo::blocked
                             : AdvanceInfo::advanced;
-    if (result == AdvanceInfo::advanced) {
-      state_current = std::move(advanced);
-      angular_range.advance();
-    }
     return result;
   }
-  State getState() const final { return state_current; }
+  State getState() const final { return stateOnArc(angle_current); }
   float getCumulatedCost() const final {
-    return info.ray * angular_range.amplitudeSoFar();
+    return ray * std::abs(angle_delta) * advancement_done;
   }
 
 private:
-  State stateOnArc(const ArcAngularRange::Angles &info_angles) const {
+  State stateOnArc(const float angle) const {
     float position_x, position_y;
-    position_x = info.center[0] + cosf(info_angles.arc_angle) * info.ray;
-    position_y = info.center[1] + sinf(info_angles.arc_angle) * info.ray;
-    return State{position_x, position_y, info_angles.cart_orientation};
+    position_x = center[0] + cosf(angle) * ray;
+    position_y = center[1] + sinf(angle) * ray;
+    return State{position_x, position_y,
+                 positive_negative_dir ? angle + utils::PI_HALF
+                                       : angle - utils::PI_HALF};
   }
 
   const TunneledConnector &caller;
-  const Blended info;
+  const Point center;
+  const float ray;
+  bool positive_negative_dir;
 
-  ArcAngularRange angular_range;
-  State state_current;
+  // !!!!! here angle refers to angle used to extapolate the cart baricenter
+  // position it is NOT the cart orientation
+  float angle_delta;
+  float angle_current;
+  std::size_t advancement_done = 0;
+  std::size_t advancement_max;
 };
 } // namespace
 
+// composite of sub-trajectories
 class CartPosesConnector::CartTrajectory : public Trajectory {
 public:
   CartTrajectory(const TunneledConnector &caller,
@@ -388,7 +343,7 @@ float CartPosesConnector::minCost2Go(const State &start,
       void operator()(const Blended &arc) const {
         utils::Versor center_begin(arc.center, arc.arc_begin);
         utils::Versor center_end(arc.center, arc.arc_end);
-        float amplitude = angle_between(center_begin, center_end);
+        float amplitude = center_begin.angleBetween(center_end);
         result += arc.ray * amplitude;
         result += utils::distance(to_point(start), arc.arc_begin);
         result += utils::distance(to_point(end), arc.arc_end);
@@ -404,5 +359,5 @@ float CartPosesConnector::minCost2Go(const State &start,
   return COST_MAX;
 }
 
-const float CartPosesConnector::STEER_DEGREE = 0; // TODO
+const float CartPosesConnector::STEER_DEGREE = 0.2f;
 } // namespace mt_rrt::samples

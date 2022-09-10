@@ -32,6 +32,8 @@ private:
 using Point = utils::Point;
 using Sphere = utils::Sphere;
 
+Point to_point(const State &state);
+
 // frame attached to cart has an origin in the cart baricenter:
 //
 //  <--------> width
@@ -111,8 +113,7 @@ public:
 protected:
   class CartTrajectory;
 
-  bool checkAdvancement(const State &previous_state,
-                        const State &advanced_state) const final;
+  bool checkAdvancement(const State &, const State &advanced_state) const final;
 };
 
 std::shared_ptr<ProblemDescription>

@@ -33,6 +33,11 @@ float dot(const Point &a, const Point &b);
 // returns a - b
 Point diff(const Point &a, const Point &b);
 
+void add(Point &subject, const Point &to_add,
+         const std::optional<float> &to_add_scale = std::nullopt);
+void remove(Point &subject, const Point &to_remove,
+            const std::optional<float> &to_remove_scale = std::nullopt);
+
 class Versor {
 public:
   Versor(float angle);
@@ -48,6 +53,11 @@ public:
 
   float cross(const Versor &o) const {
     return this->cos_sin[0] * o.cos_sin[1] - this->cos_sin[1] * o.cos_sin[0];
+  }
+
+  float angleBetween(const Versor &o) const {
+    float cos_val = utils::dot(this->asPoint(), o.asPoint());
+    return acosf(cos_val);
   }
 
 private:
@@ -85,6 +95,4 @@ std::optional<std::array<float, 2>> closest_on_lines(const Segment &segment_a,
                                                      const Segment &segment_b);
 
 Point point_on_segment(float coeff, const Segment &segment);
-
-// TODO transform, roto traslation
 } // namespace mt_rrt::utils

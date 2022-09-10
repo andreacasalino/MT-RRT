@@ -55,6 +55,16 @@ Point diff(const Point &a, const Point &b) {
   return {a[0] - b[0], a[1] - b[1]};
 }
 
+void add(Point& subject, const Point& to_add, const std::optional<float>& to_add_scale) {
+    subject[0] += to_add_scale ? to_add[0] * to_add_scale.value() : to_add[0];
+    subject[1] += to_add_scale ? to_add[1] * to_add_scale.value() : to_add[1];
+}
+
+void remove(Point& subject, const Point& to_remove, const std::optional<float>& to_remove_scale) {
+    subject[0] -= to_remove_scale ? to_remove[0] * to_remove_scale.value() : to_remove[0];
+    subject[1] -= to_remove_scale ? to_remove[1] * to_remove_scale.value() : to_remove[1];
+}
+
 Versor::Versor(float angle) {
   cos_sin[0] = cosf(angle);
   cos_sin[1] = sinf(angle);
