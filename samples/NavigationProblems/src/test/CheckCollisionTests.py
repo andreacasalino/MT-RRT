@@ -63,20 +63,6 @@ def print_sphere(ax, sphere):
         samples.append([x, y])
     return print_patch(ax, samples, 'r')
 
-class Transform:
-    def __init__(self, traslation, rotation):
-        self.delta = traslation
-        self.cos_angle = np.cos(rotation)
-        self.sin_angle = np.sin(rotation)
-
-    def apply(self, points):
-        result = []
-        for point in points:
-            x = self.delta[0] + self.cos_angle * point[0] - self.sin_angle * point[1]
-            y = self.delta[1] + self.sin_angle * point[0] + self.cos_angle * point[1]
-            result.append([x,y])
-        return result
-
 def print_cart(ax, cart, state):
     w = 0.5 * cart["width"]
     l = 0.5 * cart["length"]
