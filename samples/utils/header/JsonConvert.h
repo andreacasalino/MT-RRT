@@ -27,8 +27,8 @@ public:
   virtual void toJson(nlohmann::json &recipient,
                       const Connector &connector) const = 0;
 
-  virtual void toJson(nlohmann::json &recipient,
-                      const std::vector<State> &sol) const {
+  virtual void toJson(nlohmann::json &recipient, const std::vector<State> &sol,
+                      const Connector &connector) const {
     recipient = sol;
   }
 };

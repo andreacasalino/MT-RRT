@@ -154,7 +154,8 @@ std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
 } // namespace
 
 void PlanarRobotsProblemConverter::toJson(nlohmann::json &recipient,
-                                          const std::vector<State> &sol) const {
+                                          const std::vector<State> &sol,
+                                          const Connector &) const {
   std::vector<mt_rrt::State> interpolated;
   interpolated.push_back(sol.front());
   for (std::size_t k = 1; k < sol.size(); ++k) {

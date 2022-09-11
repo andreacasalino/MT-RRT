@@ -14,21 +14,26 @@
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Cart &subject);
 
-void to_json(nlohmann::json& j, const Sphere& subject);
+void to_json(nlohmann::json &j, const Sphere &subject);
 
-void from_json(const nlohmann::json &j, std::vector<Sphere> &obstacles);
+void to_json(nlohmann::json &j, const Scene &scene);
 
-//class TrivialProblemConverter
-//    : public utils::ConverterT<TrivialProblemConnector> {
-//public:
-//  static const TrivialProblemConverter CONVERTER;
-//
-//  std::shared_ptr<ProblemDescription>
-//  fromJson(const std::optional<Seed> &seed,
-//           const nlohmann::json &content) const final;
-//
-//protected:
-//  void toJson_(nlohmann::json &recipient,
-//               const TrivialProblemConnector &connector) const final;
-//};
+void from_json(const nlohmann::json &j, std::unique_ptr<Scene> &scene);
+
+class NavigationProblemConverter
+    : public utils::ConverterT<CartPosesConnector> {
+public:
+  static const NavigationProblemConverter CONVERTER;
+
+  std::shared_ptr<ProblemDescription>
+  fromJson(const std::optional<Seed> &seed,
+           const nlohmann::json &content) const final;
+
+  void toJson(nlohmann::json &recipient, const std::vector<State> &sol,
+              const Connector &connector) const final;
+
+protected:
+  void toJson_(nlohmann::json &recipient,
+               const CartPosesConnector &connector) const final;
+};
 } // namespace mt_rrt::samples

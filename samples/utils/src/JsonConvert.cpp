@@ -60,7 +60,8 @@ void to_json(nlohmann::json &j, const ProblemDescription &problem,
   if (solution.solution) {
     auto &sol = solutions.emplace_back();
     sol["cost"] = 1.f;
-    converter.toJson(sol["sequence"], solution.solution.value());
+    converter.toJson(sol["sequence"], solution.solution.value(),
+                     *problem.connector);
   }
 }
 
@@ -75,7 +76,8 @@ void to_json(nlohmann::json &j, const Extender &subject,
   for (const auto &[cost, solution] : subject.getSolutions()) {
     auto &sol = solutions.emplace_back();
     sol["cost"] = cost;
-    converter.toJson(sol["sequence"], solution->getSequence());
+    converter.toJson(sol["sequence"], solution->getSequence(),
+                     *subject.problem().connector);
   }
 }
 } // namespace mt_rrt::utils

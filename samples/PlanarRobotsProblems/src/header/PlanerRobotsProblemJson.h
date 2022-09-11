@@ -28,8 +28,8 @@ public:
   fromJson(const std::optional<Seed> &seed,
            const nlohmann::json &content) const final;
 
-  void toJson(nlohmann::json &recipient,
-              const std::vector<State> &sol) const final;
+  void toJson(nlohmann::json &recipient, const std::vector<State> &sol,
+              const Connector &) const final;
 
 protected:
   void toJson_(nlohmann::json &recipient,
