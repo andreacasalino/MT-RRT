@@ -280,12 +280,11 @@ public:
   AdvanceInfo advance() override {
     auto info = trajectories[trajectories_it]->advance();
     if (info == AdvanceInfo::targetReached) {
-      ++trajectories_it;
-      if (trajectories_it == trajectories.size()) {
-        return AdvanceInfo::targetReached;
-      } else {
-        return AdvanceInfo::advanced;
+      if (trajectories_it == (trajectories.size() - 1)) {
+        return info;
       }
+      ++trajectories_it;
+      return AdvanceInfo::advanced;
     }
     return info;
   }

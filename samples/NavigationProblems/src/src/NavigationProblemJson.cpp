@@ -24,7 +24,7 @@ void to_json(nlohmann::json &j, const Sphere &subject) {
 
 void to_json(nlohmann::json &j, const Scene &scene) {
   j["cart"] = scene.cart;
-  auto obstacles_json = j["obstacles"];
+  auto &obstacles_json = j["obstacles"];
   obstacles_json = nlohmann::json::array();
   for (const auto &sphere : scene.obstacles) {
     to_json(obstacles_json.emplace_back(), sphere);
