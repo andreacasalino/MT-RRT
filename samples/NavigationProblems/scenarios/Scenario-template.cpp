@@ -1,28 +1,25 @@
 #include <MT-RRT-core/StandardPlanner.h>
 
-#include <PlanarRobotsProblem.h>
-#include <PlanerRobotsProblemJson.h>
+#include <NavigationProblem.h>
+#include <NavigationProblemJson.h>
 
 #include <Logger.h>
 #include <SampleFramework.h>
 
-class PlanarRobotsProblemFramework : public mt_rrt::samples::SampleFramework {
+class NavigationProblemFramework : public mt_rrt::samples::SampleFramework {
 public:
   using mt_rrt::samples::SampleFramework::SampleFramework;
 
 protected:
   std::shared_ptr<mt_rrt::ProblemDescription>
   getProblemDescription_(const nlohmann::json &scene_json) final {
-    return mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER.fromJson(
+    return mt_rrt::samples::NavigationProblemConverter::CONVERTER.fromJson(
         getSeed(), scene_json);
   }
 };
 
-void interpolate(nlohmann::json &recipient,
-                 const std::vector<mt_rrt::State> &sol);
-
 int main(int argc, const char **argv) {
-  PlanarRobotsProblemFramework framework(SAMPLE_JSON, argc, argv);
+  NavigationProblemFramework framework(SAMPLE_JSON, argc, argv);
 
   std::cout << framework << std::endl;
 
@@ -51,9 +48,9 @@ int main(int argc, const char **argv) {
     // log results
     mt_rrt::utils::log_scenario(
         planner->problem(), solution,
-        mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER, SAMPLE_NAME,
+        mt_rrt::samples::NavigationProblemConverter::CONVERTER, SAMPLE_NAME,
         mt_rrt::utils::make_python_show_sources(
-            PLANAR_ROBOTS_PROBLEM_PYTHON_SCRIPT));
+            NAVIGATION_PROBLEM_PYTHON_SCRIPT));
 
     std::cout << std::endl << std::endl;
   }
