@@ -47,6 +47,8 @@ jobs:
       run: ./artifacts/bin/MT-RRT-multi-threaded-tests
     - name: planar robot tests
       run: ./artifacts/bin/PlanarRobotsProblem-lib-tests
+    - name: navigation problem tests
+      run: ./artifacts/bin/NavigationProblem-lib-tests
     - uses: actions/upload-artifact@v2
       with:
         path: artifacts
