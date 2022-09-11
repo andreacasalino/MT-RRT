@@ -360,4 +360,23 @@ float CartPosesConnector::minCost2Go(const State &start,
 }
 
 const float CartPosesConnector::STEER_DEGREE = 0.2f;
+
+namespace {
+static constexpr float GAMMA = 5.f;
+}
+
+std::shared_ptr<ProblemDescription>
+make_problem_description(const std::optional<Seed> &seed, const Scene &scene) {
+  std::unique_ptr<CartPosesConnector> connector =
+      std::make_unique<CartPosesConnector>(scene);
+
+  State min_corner = {-5.f, -5.f, -utils::PI};
+  State max_corner = {5.f, 5.f, utils::PI};
+
+  std::shared_ptr<ProblemDescription> result;
+  result.reset(new ProblemDescription{
+      std::make_unique<HyperBox>(min_corner, max_corner, seed),
+      std::move(connector), true, Positive<float>{GAMMA}});
+  return result;
+}
 } // namespace mt_rrt::samples

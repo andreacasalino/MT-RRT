@@ -116,6 +116,7 @@ protected:
   bool checkAdvancement(const State &, const State &advanced_state) const final;
 };
 
+// workspace is assumed equal to bonding box from [-5,-5] to [5,5]
 std::shared_ptr<ProblemDescription>
 make_problem_description(const std::optional<Seed> &seed, const Scene &scene);
 } // namespace mt_rrt::samples
