@@ -32,7 +32,7 @@ jobs:
     - name: Checkout submodules
       run:  git submodule update --init --recursive
     - name: CMake configure
-      run:  cmake -B./build -DCMAKE_INSTALL_PREFIX:STRING=./artifacts/ -DBUILD_MT_RRT_SAMPLES=OFF -DBUILD_MT_RRT_TESTS=ON -DENABLE_MT_RRT_TESTS_LOGGING=ON -DCMAKE_CONFIGURATION_TYPES="Release" -DCMAKE_BUILD_TYPE:STRING=Release ${{ matrix.compiler_opt }}     
+      run:  cmake -B./build -DCMAKE_INSTALL_PREFIX:STRING=./artifacts/ -DBUILD_MT_RRT_SAMPLES=ON -DBUILD_MT_RRT_TESTS=ON -DENABLE_MT_RRT_TESTS_LOGGING=ON -DCMAKE_CONFIGURATION_TYPES="Release" -DCMAKE_BUILD_TYPE:STRING=Release ${{ matrix.compiler_opt }}     
     - name: Build
       run:  cmake --build ./build --config Release
     - name: Install
