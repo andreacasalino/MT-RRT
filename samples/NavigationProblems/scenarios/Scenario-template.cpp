@@ -18,6 +18,12 @@ protected:
   }
 };
 
+mt_rrt::State convert_state(const mt_rrt::State &subject) {
+  auto result = subject;
+  result[2] = mt_rrt::utils::to_rad(result[2]);
+  return result;
+}
+
 int main(int argc, const char **argv) {
   NavigationProblemFramework framework(SAMPLE_JSON, argc, argv);
 
@@ -34,7 +40,8 @@ int main(int argc, const char **argv) {
               << "} : with end point: "
               << "{" << end << "}" << std::endl;
 
-    auto solution = planner->solve(start, end, parameters);
+    auto solution =
+        planner->solve(convert_state(start), convert_state(end), parameters);
 
     std::cout << "A solution was ";
     if (solution.solution)
