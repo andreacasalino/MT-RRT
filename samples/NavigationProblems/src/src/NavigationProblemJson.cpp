@@ -90,10 +90,10 @@ void NavigationProblemConverter::toJson(nlohmann::json &recipient,
       if (status == AdvanceInfo::targetReached) {
         break;
       }
-      recipient.push_back(traj->getState());
+      interpolated.push_back(traj->getState());
     }
   }
-  recipient.push_back(sol.back());
+  interpolated.push_back(sol.back());
   recipient = interpolated;
 }
 } // namespace mt_rrt::samples

@@ -1,8 +1,8 @@
 {
     "params": {
-        "strategy": "Single",
+        "strategy": "Star",
         "steer_trials": 10,
-        "iterations": 3000,
+        "iterations": 2000,
         "determinism": 0.1
     },
     "scene": {

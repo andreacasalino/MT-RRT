@@ -1,8 +1,8 @@
 {
     "params": {
-        "strategy": "Single",
+        "strategy": "Star",
         "steer_trials": 10,
-        "iterations": 3000,
+        "iterations": 2000,
         "determinism": 0.1
     },
     "scene": {
@@ -11,7 +11,7 @@
             "length": 0.8,
             "steer": {
                 "min": 0.15,
-                "max": 1.0
+                "max": 2.0
             }
         },
         "obstacles": [
@@ -32,29 +32,22 @@
             {
                 "ray": 2.0,
                 "center": [
+                    -3.0,
+                    -3.0
+                ]
+            },
+            {
+                "ray": 2.0,
+                "center": [
                     5.0,
                     5.0
                 ]
             },
             {
-                "ray": 0.5,
+                "ray": 2.0,
                 "center": [
-                    -2.0,
-                    2.0
-                ]
-            },
-            {
-                "ray": 0.5,
-                "center": [
-                    -2.0,
-                    1.7
-                ]
-            },
-            {
-                "ray": 0.5,
-                "center": [
-                    -1.7,
-                    2.0
+                    3.0,
+                    3.0
                 ]
             }
         ]
@@ -62,8 +55,8 @@
     "cases": [
         {
             "start": [
-               -3.0,
-                2.0,
+               -5.0,
+                5.0,
                -45
             ],
             "end": [
