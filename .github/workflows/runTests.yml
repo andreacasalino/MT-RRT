@@ -41,6 +41,8 @@ jobs:
       run: ./artifacts/bin/MT-RRT-carpet-tests
     - name: trivial problem tests
       run: ./artifacts/bin/TrivialProblem-lib-tests
+    - name: core tests
+      run: ./artifacts/bin/MT-RRT-core-tests
     - name: planar robots problem tests
       run: ./artifacts/bin/PlanarRobotsProblem-lib-tests
     - name: navigation problem tests
