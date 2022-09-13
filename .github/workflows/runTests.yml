@@ -39,16 +39,8 @@ jobs:
       run:  cmake --install ./build --config Release
     - name: carpet tests
       run: ./artifacts/bin/MT-RRT-carpet-tests
-    - name: trivial proble tests
+    - name: trivial problem tests
       run: ./artifacts/bin/TrivialProblem-lib-tests
-    - name: core tests
-      run: ./artifacts/bin/MT-RRT-core-tests
-    - name: multi threaded planners tests
-      run: ./artifacts/bin/MT-RRT-multi-threaded-tests
-    - name: planar robot tests
-      run: ./artifacts/bin/PlanarRobotsProblem-lib-tests
-    - name: navigation problem tests
-      run: ./artifacts/bin/NavigationProblem-lib-tests
     - uses: actions/upload-artifact@v2
       with:
         path: artifacts
