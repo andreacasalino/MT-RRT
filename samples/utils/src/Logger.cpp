@@ -54,10 +54,10 @@ void Logger::log(
   std::ofstream{log_name} << content.dump();
 
   if (python_visualization_sources) {
-    std::filesystem::path python_script_destination =
+    std::string python_script_destination =
         merge(folder_name, "/Show.py");
 
-    python_visualization_sources->reprint(python_script_destination.string());
+    python_visualization_sources->reprint(python_script_destination);
 
     std::cout << "run `python3 " << python_script_destination.c_str() << ' '
               << log_name << '`' << std::endl;
