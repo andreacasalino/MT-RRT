@@ -1,5 +1,5 @@
 function(ADD_NAVIGATION_PROBLEM_SAMPLE SCENARIO)
-    set(NAME NavigationProblem-${SCENARIO})
+    set(NAME MT-RRT-sample-NavigationProblem-${SCENARIO})
 
     add_executable(${NAME} Scenario-template.cpp)
     target_link_libraries(${NAME} PUBLIC 

@@ -1,4 +1,4 @@
-set(LIB_NAME PlanarRobotsProblem-lib)
+set(LIB_NAME MT-RRT-sample-PlanarRobotsProblem-lib)
 
 MakeTestableLibrary(${LIB_NAME})
 if(ENABLE_MT_RRT_TESTS_LOGGING)

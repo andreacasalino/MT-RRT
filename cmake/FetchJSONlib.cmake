@@ -1,6 +1,6 @@
 function(FECTH_JSON_LIB)
     if (NOT TARGET nlohmann_json::nlohmann_json)
-        message("Fetching nlohmann")
+        message("fetching nlohmann")
         include(FetchContent)
         FetchContent_Declare(
         json_lib

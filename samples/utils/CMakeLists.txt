@@ -1,4 +1,4 @@
-set(LIB_NAME MT-RRT-utils)
+set(LIB_NAME MT-RRT-sample-utils)
 
 MakeTestableLibrary(${LIB_NAME})
 target_link_libraries(${LIB_NAME} PUBLIC 

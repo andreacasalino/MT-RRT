@@ -1,5 +1,5 @@
 function(ADD_TRIVIALPROBLEM_SAMPLE SCENARIO)
-    set(NAME TrivalProblem-${SCENARIO})
+    set(NAME MT-RRT-sample-TrivalProblem-${SCENARIO})
 
     add_executable(${NAME} Scenario-template.cpp)
     target_link_libraries(${NAME} PUBLIC 

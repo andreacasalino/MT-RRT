@@ -1,5 +1,5 @@
 function(ADD_PLANAROBOTS_PROBLEM_SAMPLE SCENARIO)
-    set(NAME PlanarRobots-${SCENARIO})
+    set(NAME MT-RRT-sample-PlanarRobots-${SCENARIO})
 
     add_executable(${NAME} Scenario-template.cpp)
     target_link_libraries(${NAME} PUBLIC 

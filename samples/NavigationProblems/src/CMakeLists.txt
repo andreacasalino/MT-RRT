@@ -1,4 +1,4 @@
-set(LIB_NAME NavigationProblem-lib)
+set(LIB_NAME MT-RRT-sample-NavigationProblem-lib)
 
 MakeTestableLibrary(${LIB_NAME})
 if(ENABLE_MT_RRT_TESTS_LOGGING)
