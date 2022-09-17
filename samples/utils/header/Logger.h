@@ -23,7 +23,7 @@ public:
 
   PythonSources(const std::vector<std::string> &sources);
 
-  // assembles all sources together in a single python script
+  // assembles and write all sources together in a single python file
   void reprint(const std::string &destination) const;
 
 private:

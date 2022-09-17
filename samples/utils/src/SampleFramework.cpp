@@ -13,7 +13,7 @@
 //#include <filesystem>
 //#include <iostream>
 //
-//namespace mt_rrt::samples {
+//namespace mt_rrt::utils {
 //namespace {
 //void merge_overriding(nlohmann::json &recipient,
 //                      const nlohmann::json &to_merge) {

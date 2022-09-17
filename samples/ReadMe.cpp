@@ -5,7 +5,12 @@
 void main() {
 	// First of all, you need to explain how the particular class of problem(s) you want to solve is defined.
 	// This is done by deriving an object from mt_rrt::Connector. This object contains the knowledge of the problem and is
-	// foundamental to let MT-RRT extend the search tree(s). Let's say you have derived a concrete connector named MyConnector
+	// foundamental to let MT-RRT extend the search tree(s). 
+	// Check the implementations contained in:
+	//		- TrivialProblems
+	//		- PlanarRobotsProblems
+	//		- NavigationProblems
+	// Let's say you have derived a concrete connector named MyConnector
 	mt_rrt::ConnectorPtr my_connector = std::make_unique<MyConnector>(...);
 
 	// secondly, you need to define the object handling the sampling of states, deriving something from the interface mt_rrt::Sampler.
