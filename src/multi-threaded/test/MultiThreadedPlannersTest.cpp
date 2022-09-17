@@ -137,16 +137,13 @@ TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[solver][shared-tree]"
                               mt_rrt::ExpansionStrategy::Star));
 }
 
-#include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
-TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[solver][linked-trees]")) {
-  //check_planner<mt_rrt::LinkedTreesPlanner>(
-  //    "linked-trees", GENERATE(mt_rrt::ExpansionStrategy::Single,
-  //                             mt_rrt::ExpansionStrategy::Bidir,
-  //                             mt_rrt::ExpansionStrategy::Star));
-  check_planner<mt_rrt::LinkedTreesPlanner>(
-      "linked-trees", GENERATE(mt_rrt::ExpansionStrategy::Single,
-          mt_rrt::ExpansionStrategy::Bidir));
-}
+//#include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
+//TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[solver][linked-trees]")) {
+//  check_planner<mt_rrt::LinkedTreesPlanner>(
+//      "linked-trees", GENERATE(mt_rrt::ExpansionStrategy::Single,
+//                               mt_rrt::ExpansionStrategy::Bidir,
+//                               mt_rrt::ExpansionStrategy::Star));
+//}
 
 #include <MT-RRT-multi-threaded/MultiAgentPlanner.h>
 TEST_CASE("Multi agent planner", mt_rrt::merge(TEST_TAG, "[solver][multi-agent]")) {
