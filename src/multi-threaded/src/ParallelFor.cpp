@@ -17,11 +17,8 @@ void process__(const Jobs &jobs, const std::size_t thread_id,
 }
 
 void wait_is_true(const std::atomic_bool &condition) {
-  while (true) {
-    if (condition) {
-      break;
+    while (!condition.load()) {
     }
-  }
 }
 } // namespace
 
@@ -45,9 +42,9 @@ ParallelFor::ParallelFor(const Threads &pool_size) {
             }
             process__(*context.info.jobs, context.thread_id,
                       context.threads_num);
-            context.info.has_jobs = false;
+            context.info.has_jobs.store(false);
             context.info.jobs = nullptr;
-            context.info.jobs_processed = true;
+            context.info.jobs_processed.store(true);
           }
         });
     wait_is_true(started);
@@ -57,21 +54,21 @@ ParallelFor::ParallelFor(const Threads &pool_size) {
 void ParallelFor::process(const Jobs &jobs) {
   for (auto &worker : workers) {
     worker->info.jobs = &jobs;
-    worker->info.has_jobs = true;
+    worker->info.has_jobs.store(true);
   }
 
   process__(jobs, 0, workers.size() + 1);
 
   for (auto &worker : workers) {
     wait_is_true(worker->info.jobs_processed);
-    worker->info.jobs_processed = false;
+    worker->info.jobs_processed.store(false);
   }
 }
 
 ParallelFor::~ParallelFor() {
   for (auto &worker : workers) {
     worker->info.jobs = nullptr;
-    worker->info.has_jobs = true;
+    worker->info.has_jobs.store(true);
     worker->loop->join();
   }
 }

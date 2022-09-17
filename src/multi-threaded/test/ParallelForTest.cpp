@@ -78,6 +78,9 @@ TEST_CASE("Parallel for test profile computation times",
   };
 
   ParallelFor parallel_for{2};
-  const auto time = measure_time([&]() { parallel_for.process(jobs); });
+  auto tic = std::chrono::high_resolution_clock::now();
+  parallel_for.process(jobs);
+  const auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::high_resolution_clock::now() - tic);
   CHECK(time.count() < 400);
 }

@@ -31,7 +31,7 @@ public:
     std::vector<Result> results;
     results.reserve(workers.size() + 1);
     for (std::size_t k = 0; k < (workers.size() + 1); ++k) {
-      results.emplace_back(Result{});
+      results.emplace_back();
     }
     Jobs jobs;
     std::for_each(begin, end,
