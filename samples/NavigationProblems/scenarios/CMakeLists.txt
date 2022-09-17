@@ -3,9 +3,7 @@ function(ADD_NAVIGATION_PROBLEM_SAMPLE SCENARIO)
 
     add_executable(${NAME} Scenario-template.cpp)
     target_link_libraries(${NAME} PUBLIC 
-       MT-RRT-multi-threaded # this already links to MT-RRT-core
-       NavigationProblem-lib # all the knowledge needed to model and handle trivial problems
-       MT-RRT-framework # utilities to parse a config file (json) in order to build the correct planner
+       MT-RRT-samples-NavigationProblem-lib # all the knowledge needed to model and handle trivial problems
     )
 
     target_compile_definitions(${NAME} PUBLIC

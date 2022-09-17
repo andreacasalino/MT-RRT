@@ -6,7 +6,7 @@ if(ENABLE_MT_RRT_TESTS_LOGGING)
 endif()
 
 target_link_libraries(${LIB_NAME} PUBLIC 
-    MT-RRT-utils
+    MT-RRT-sample-utils
 )
 
 target_compile_definitions(${LIB_NAME} PUBLIC

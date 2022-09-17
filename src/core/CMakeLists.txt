@@ -12,8 +12,7 @@ endif()
 target_link_libraries(${LIB_NAME} PUBLIC MT-RRT-carpet)
 
 if(BUILD_MT_RRT_TESTS)
-    target_link_libraries(${LIB_NAME}-tests PUBLIC 
-        MT-RRT-utils
+    target_link_libraries(${LIB_NAME}-tests PUBLIC
         MT-RRT-test-scenarios
     )
 endif()
