@@ -43,8 +43,8 @@ jobs:
       run: ./artifacts/bin/TrivialProblem-lib-tests
     - name: core tests
       run: ./artifacts/bin/MT-RRT-core-tests
-    # - name: multi threaded planners tests
-      # run: ./artifacts/bin/MT-RRT-multi-threaded-tests
+    - name: multi threaded planners tests
+      run: ./artifacts/bin/MT-RRT-multi-threaded-tests
     - name: planar robots problem tests
       run: ./artifacts/bin/PlanarRobotsProblem-lib-tests
     - name: navigation problem tests
