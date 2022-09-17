@@ -120,7 +120,6 @@ TEST_CASE("Embarassingly parallel planner",
                                          mt_rrt::ExpansionStrategy::Star));
 }
 
-/*
 #include <MT-RRT-multi-threaded/ParallelizedQueriesPlanner.h>
 TEST_CASE("Parallelized queries planner",
           mt_rrt::merge(TEST_TAG, "[parallel-queries]")) {
@@ -130,6 +129,7 @@ TEST_CASE("Parallelized queries planner",
                                    mt_rrt::ExpansionStrategy::Star));
 }
 
+/*
 #include <MT-RRT-multi-threaded/SharedTreePlanner.h>
 TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[shared-tree]")) {
   check_planner<mt_rrt::SharedTreePlanner>(
