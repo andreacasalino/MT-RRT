@@ -41,7 +41,7 @@ bool check_solutions(const samples::TrivialProblemConnector &scenario,
                         }
 
                         const auto expected = curve_length(sequence);
-                        if (fabs(expected - subject.first) > 0.01f) {
+                        if (fabs(expected - subject.first) > 0.3f) {
                           return true;
                         }
 

@@ -87,9 +87,12 @@ class Interpolator {
 public:
   Interpolator(const std::vector<mt_rrt::State> &subject)
       : total_length(curve_length(subject)) {
+    if (subject.size() < 2) {
+        throw Error{"Invalid curve to interpolate"};
+    }
     for (std::size_t k = 1; k < subject.size(); ++k) {
-      const auto &start = subject[k - 1];
-      const auto &end = subject[k];
+      const auto & start = subject[k-1];
+      const auto & end = subject[k];
       segments.emplace_back(Segment{start, end, distance(start, end)});
     }
   }
@@ -127,12 +130,12 @@ private:
 
 float curve_similarity(const std::vector<mt_rrt::State> &a,
                        const std::vector<mt_rrt::State> &b) {
-  float result = 0;
-  const float delta = 1.f / static_cast<float>(100);
+  const float delta = 1.f / 100.f;
   Interpolator interp_a(a);
   Interpolator interp_b(b);
   std::size_t counter = 0;
-  for (float s = delta; s <= 1.f; s += delta, ++counter) {
+  float result = 0;
+  for (float s = 0.f; s < 1.f; s += delta, ++counter) {
     result += distance(interp_a.evaluate(s), interp_b.evaluate(s));
   }
   return result / static_cast<float>(counter);
