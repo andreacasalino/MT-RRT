@@ -113,7 +113,7 @@ void check_planner(const std::string &log_tag, ExpandStrategies strategy) {
 
 #include <MT-RRT-multi-threaded/EmbarassinglyParallel.h>
 TEST_CASE("Embarassingly parallel planner",
-          mt_rrt::merge(TEST_TAG, "[embarassingly-parallel]")) {
+          mt_rrt::merge(TEST_TAG, "[solver][embarassingly-parallel]")) {
   check_planner<mt_rrt::EmbarassinglyParallelPlanner>(
       "embarassingly-parallel", GENERATE(mt_rrt::ExpansionStrategy::Single,
                                          mt_rrt::ExpansionStrategy::Bidir,
@@ -122,7 +122,7 @@ TEST_CASE("Embarassingly parallel planner",
 
 #include <MT-RRT-multi-threaded/ParallelizedQueriesPlanner.h>
 TEST_CASE("Parallelized queries planner",
-          mt_rrt::merge(TEST_TAG, "[parallel-queries]")) {
+          mt_rrt::merge(TEST_TAG, "[solver][parallel-queries]")) {
   check_planner<mt_rrt::ParallelizedQueriesPlanner>(
       "parallel-queries", GENERATE(mt_rrt::ExpansionStrategy::Single,
                                    mt_rrt::ExpansionStrategy::Bidir,
@@ -131,7 +131,7 @@ TEST_CASE("Parallelized queries planner",
 
 /*
 #include <MT-RRT-multi-threaded/SharedTreePlanner.h>
-TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[shared-tree]")) {
+TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[solver][shared-tree]")) {
   check_planner<mt_rrt::SharedTreePlanner>(
       "shared-tree", GENERATE(mt_rrt::ExpansionStrategy::Single,
                               mt_rrt::ExpansionStrategy::Bidir,
@@ -139,15 +139,16 @@ TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[shared-tree]")) {
 }
 
 #include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
-TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[linked-trees]")) {
+TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[solver][linked-trees]")) {
   check_planner<mt_rrt::LinkedTreesPlanner>(
       "linked-trees", GENERATE(mt_rrt::ExpansionStrategy::Single,
                                mt_rrt::ExpansionStrategy::Bidir,
                                mt_rrt::ExpansionStrategy::Star));
 }
+*/
 
 #include <MT-RRT-multi-threaded/MultiAgentPlanner.h>
-TEST_CASE("Multi agent planner", mt_rrt::merge(TEST_TAG, "[multi-agent]")) {
+TEST_CASE("Multi agent planner", mt_rrt::merge(TEST_TAG, "[solver][multi-agent]")) {
   check_planner_with_setter<mt_rrt::MultiAgentPlanner>(
       "multi-agent",
       GENERATE(mt_rrt::ExpansionStrategy::Single,
@@ -159,7 +160,7 @@ TEST_CASE("Multi agent planner", mt_rrt::merge(TEST_TAG, "[multi-agent]")) {
 }
 
 TEST_CASE("Single threaded star approach multi agent planner",
-          mt_rrt::merge(TEST_TAG, "[multi-agent]")) {
+          mt_rrt::merge(TEST_TAG, "[solver][multi-agent]")) {
   check_planner_with_setter<mt_rrt::MultiAgentPlanner>(
       "multi-agent", GENERATE(mt_rrt::ExpansionStrategy::Star),
       [](mt_rrt::MultiAgentPlanner &planner, mt_rrt::Parameters &params) {
@@ -169,4 +170,3 @@ TEST_CASE("Single threaded star approach multi agent planner",
                                     StarExpansionStrategyApproach::MonoThread);
       });
 }
-*/
