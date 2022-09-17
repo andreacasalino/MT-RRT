@@ -129,7 +129,6 @@ TEST_CASE("Parallelized queries planner",
                                    mt_rrt::ExpansionStrategy::Star));
 }
 
-/*
 #include <MT-RRT-multi-threaded/SharedTreePlanner.h>
 TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[solver][shared-tree]")) {
   check_planner<mt_rrt::SharedTreePlanner>(
@@ -138,6 +137,7 @@ TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[solver][shared-tree]"
                               mt_rrt::ExpansionStrategy::Star));
 }
 
+/*
 #include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
 TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[solver][linked-trees]")) {
   check_planner<mt_rrt::LinkedTreesPlanner>(
