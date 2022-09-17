@@ -79,5 +79,5 @@ TEST_CASE("Parallel for test profile computation times",
 
   ParallelFor parallel_for{2};
   const auto time = measure_time([&]() { parallel_for.process(jobs); });
-  CHECK(time.count() < 300);
+  CHECK(time.count() < 400);
 }
