@@ -5,6 +5,7 @@
         "iterations":3000,
         "determinism":0.15
     },
+	"ProblemDescription":{
     "scene": {
         "obstacles": [
             {
@@ -63,7 +64,9 @@
             }
         ]
     },
-    "cases": [
+    "seed":2
+	},
+	"Problems": [
         {
             "start": [
                 60,

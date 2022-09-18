@@ -3,7 +3,7 @@ function(ADD_NAVIGATION_PROBLEM_SAMPLE SCENARIO)
 
     add_executable(${NAME} Scenario-template.cpp)
     target_link_libraries(${NAME} PUBLIC 
-       MT-RRT-samples-NavigationProblem-lib # all the knowledge needed to model and handle trivial problems
+       MT-RRT-sample-NavigationProblem-lib # all the knowledge needed to model and handle trivial problems
     )
 
     target_compile_definitions(${NAME} PUBLIC

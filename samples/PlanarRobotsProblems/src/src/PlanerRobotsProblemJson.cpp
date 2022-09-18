@@ -65,9 +65,7 @@ void from_json(const nlohmann::json &j, Robot &subject) {
 
     std::optional<JointLimits> limits;
     if (link_json.contains("limits")) {
-      float min;
       nlohmann::from_json(link_json.at("limits").at("min"), length);
-      float max;
       nlohmann::from_json(link_json.at("limits").at("max"), length);
     }
 
@@ -110,17 +108,26 @@ void from_json(const nlohmann::json &j, Scene &subject) {
 const PlanarRobotsProblemConverter PlanarRobotsProblemConverter::CONVERTER =
     PlanarRobotsProblemConverter{};
 
-std::shared_ptr<mt_rrt::ProblemDescription>
-PlanarRobotsProblemConverter::fromJson(const std::optional<Seed> &seed,
-                                       const nlohmann::json &content) const {
+void
+PlanarRobotsProblemConverter::fromJson(const nlohmann::json& json,
+    ProblemDescription& description) const {
   Scene scene;
-  from_json(content, scene);
-  return make_problem_description(seed, scene);
+  from_json(json["Scene"], scene);
+  std::optional<mt_rrt::Seed> seed;
+  if (json.contains("seed")) {
+      mt_rrt::Seed seed_value = json["seed"];
+      seed.emplace(seed_value);
+  }
+  auto desc = make_problem_description(seed, scene);
+  description.connector = std::move(desc->connector);
+  description.sampler = std::move(desc->sampler);
+  description.simmetry = true;
+  description.gamma = desc->gamma;
 }
 
-void PlanarRobotsProblemConverter::toJson_(
-    nlohmann::json &recipient, const PosesConnector &connector) const {
-  to_json(recipient, *connector.scene);
+void PlanarRobotsProblemConverter::toJson(nlohmann::json& json,
+    const ProblemDescription& description) const {
+  to_json(json["Scene"], *static_cast<const PosesConnector&>(*description.connector).scene);
 }
 
 namespace {
@@ -136,7 +143,7 @@ mt_rrt::State linear_combination(const mt_rrt::State &a, const mt_rrt::State &b,
 
 static const float MAX_JOINT_DISTANCE = mt_rrt::utils::to_rad(15);
 
-std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
+std::vector<mt_rrt::State> interpolate_(const mt_rrt::State &start,
                                        const mt_rrt::State &end) {
   std::size_t intervals = static_cast<std::size_t>(
       std::ceil(utils::distance(start, end) / MAX_JOINT_DISTANCE));
@@ -153,16 +160,16 @@ std::vector<mt_rrt::State> interpolate(const mt_rrt::State &start,
 }
 } // namespace
 
-void PlanarRobotsProblemConverter::toJson(nlohmann::json &recipient,
-                                          const std::vector<State> &sol,
-                                          const Connector &) const {
-  std::vector<mt_rrt::State> interpolated;
-  interpolated.push_back(sol.front());
-  for (std::size_t k = 1; k < sol.size(); ++k) {
-    auto interpolated_segment = interpolate(sol[k - 1], sol[k]);
-    interpolated.insert(interpolated.end(), interpolated_segment.begin(),
-                        interpolated_segment.end());
-  }
-  recipient = interpolated;
+std::vector<State>
+PlanarRobotsProblemConverter::interpolate(const ProblemDescription& description,
+    const std::vector<State>& solution) const {
+    std::vector<mt_rrt::State> interpolated;
+    interpolated.push_back(solution.front());
+    for (std::size_t k = 1; k < solution.size(); ++k) {
+        auto interpolated_segment = interpolate_(solution[k - 1], solution[k]);
+        interpolated.insert(interpolated.end(), interpolated_segment.begin(),
+            interpolated_segment.end());
+    }
+    return interpolated;
 }
 } // namespace mt_rrt::samples

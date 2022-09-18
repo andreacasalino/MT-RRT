@@ -1,61 +1,56 @@
-#include <MT-RRT-core/StandardPlanner.h>
-
 #include <PlanarRobotsProblem.h>
 #include <PlanerRobotsProblemJson.h>
 
-#include <Logger.h>
 #include <SampleFramework.h>
 
-class PlanarRobotsProblemFramework : public mt_rrt::samples::SampleFramework {
+#include <iostream>
+
+class PlanarRobotsProblemFramework : public mt_rrt::utils::SampleFramework {
 public:
-  using mt_rrt::samples::SampleFramework::SampleFramework;
+    PlanarRobotsProblemFramework(int argc, const char** argv) :
+        mt_rrt::utils::SampleFramework(argc, argv, mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER) {}
 
 protected:
-  std::shared_ptr<mt_rrt::ProblemDescription>
-  getProblemDescription_(const nlohmann::json &scene_json) final {
-    return mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER.fromJson(
-        getSeed(), scene_json);
-  }
+    std::string defaultJsonConfig() const final {
+        return SAMPLE_JSON;
+    }
 };
 
-void interpolate(nlohmann::json &recipient,
-                 const std::vector<mt_rrt::State> &sol);
-
 int main(int argc, const char **argv) {
-  PlanarRobotsProblemFramework framework(SAMPLE_JSON, argc, argv);
+    PlanarRobotsProblemFramework framework(argc, argv);
+    framework.init();
 
   std::cout << framework << std::endl;
 
-  auto description = framework.getProblemDescription();
+  // ProblemDescription is automatically parsed from config json and the planner is built inside TrivialProblemFramework
+  // here we simply access the internally genreated planner
+  auto& planner = framework.planner();
 
-  auto parameters = framework.getParameters();
+  // problems to solve as well as the Parameters to use were parsed from json config
+  for (const auto& [start, end] : framework.problems()) {
+      std::cout << "Trying to connect start point: {" << start
+          << "} : with end point: "
+          << "{" << end << "}" << std::endl;
 
-  auto planner = framework.getPlanner(std::move(description));
+      auto solution = planner.solve(start, end, framework.parameters());
 
-  for (const auto &[start, end] : framework.getCases()) {
-    std::cout << "Trying to connect start point: {" << start
-              << "} : with end point: "
-              << "{" << end << "}" << std::endl;
+      std::cout << "A solution was ";
+      if (solution.solution)
+          std::cout << "found";
+      else
+          std::cout << "not found";
+      std::cout << std::endl;
 
-    auto solution = planner->solve(start, end, parameters);
+      std::cout << "To see the results ";
 
-    std::cout << "A solution was ";
-    if (solution.solution)
-      std::cout << "found";
-    else
-      std::cout << "not found";
-    std::cout << std::endl;
+      // log results
+      mt_rrt::utils::Logger::Log log;
+      log.tag = SAMPLE_NAME;
+      mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER.toJson2(log.content, framework.problemDescription(), solution);
+      log.python_visualizer = mt_rrt::utils::default_python_sources(PLANAR_ROBOTS_PROBLEM_PYTHON_SCRIPT);
+      mt_rrt::utils::Logger::log(log);
 
-    std::cout << "To see the result ";
-
-    // log results
-    mt_rrt::utils::log_scenario(
-        planner->problem(), solution,
-        mt_rrt::samples::PlanarRobotsProblemConverter::CONVERTER, SAMPLE_NAME,
-        mt_rrt::utils::make_python_show_sources(
-            PLANAR_ROBOTS_PROBLEM_PYTHON_SCRIPT));
-
-    std::cout << std::endl << std::endl;
+      std::cout << std::endl << std::endl;
   }
 
   return EXIT_SUCCESS;

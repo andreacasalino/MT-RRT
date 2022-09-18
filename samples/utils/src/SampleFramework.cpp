@@ -180,7 +180,10 @@ void SampleFramework::init() {
 
   from_json(config_["Parameters"], parameters_);
 
-  nlohmann::from_json(config_["Problems"], problems_);
+  for (const auto& problem : config_["Problems"]) {
+      auto& start_end = problems_.emplace_back();
+      from_json(problem, start_end);
+  }
 
   ProblemDescription description;
   converter_.fromJson(config_["ProblemDescription"], description);

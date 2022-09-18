@@ -157,7 +157,7 @@ def to_rad_pose(angles):
 
 class Printer:
     def __init__(self, log):
-        self.scene = log["scene"]
+        self.scene = log["scene"]["Scene"]
         self.sequencePrinter = None
         self.sequenceAnimation = None
 

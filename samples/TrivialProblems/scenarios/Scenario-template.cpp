@@ -1,5 +1,3 @@
-#include <MT-RRT-core/StandardPlanner.h>
-
 #include <TrivialProblem.h>
 #include <TrivialProblemJson.h>
 

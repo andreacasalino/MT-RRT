@@ -5,7 +5,8 @@
         "iterations":3000,
         "determinism":0.15
     },
-    "scene": {
+	"ProblemDescription":{
+    "Scene": {
         "obstacles": [
             {
                 "ray": 0.5,
@@ -55,7 +56,9 @@
             }
         ]
     },
-    "cases": [
+    "seed":2
+	},
+	"Problems": [
         {
             "start": [
                 70,

@@ -5,7 +5,8 @@
         "iterations": 3000,
         "determinism": 0.15
     },
-    "scene": [
+    "ProblemDescription": {
+    "Boxes": [
         {
             "box": {
                 "min": [
@@ -201,7 +202,9 @@
             "label": "l_group_3_3"
         }
     ],
-    "cases": [
+	"seed":0
+	},
+    "Problems": [
         {
             "start": [
                 -1,
@@ -222,6 +225,5 @@
                 0.7
             ]
         }
-    ],
-    "seed": 0
+    ]
 }

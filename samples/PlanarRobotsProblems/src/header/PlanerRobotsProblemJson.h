@@ -9,7 +9,7 @@
 
 #include <PlanarRobotsProblem.h>
 
-#include <JsonConvert.h>
+#include <IO.h>
 
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Sphere &subject);
@@ -20,19 +20,18 @@ void from_json(const nlohmann::json &j, Sphere &subject);
 void from_json(const nlohmann::json &j, Robot &subject);
 void from_json(const nlohmann::json &j, Scene &subject);
 
-class PlanarRobotsProblemConverter : public utils::ConverterT<PosesConnector> {
+class PlanarRobotsProblemConverter : public utils::Converter {
 public:
   static const PlanarRobotsProblemConverter CONVERTER;
 
-  std::shared_ptr<mt_rrt::ProblemDescription>
-  fromJson(const std::optional<Seed> &seed,
-           const nlohmann::json &content) const final;
+  void fromJson(const nlohmann::json& json,
+      ProblemDescription& description) const final;
 
-  void toJson(nlohmann::json &recipient, const std::vector<State> &sol,
-              const Connector &) const final;
+  void toJson(nlohmann::json& json,
+      const ProblemDescription& description) const final;
 
-protected:
-  void toJson_(nlohmann::json &recipient,
-               const PosesConnector &connector) const final;
+  std::vector<State>
+      interpolate(const ProblemDescription& description,
+          const std::vector<State>& solution) const final;
 };
 } // namespace mt_rrt::samples

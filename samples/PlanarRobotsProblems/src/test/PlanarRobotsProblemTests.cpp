@@ -5,10 +5,6 @@
 
 #include <PlanarRobotsProblem.h>
 
-#ifdef TEST_LOGGING
-#include <Logger.h>
-#endif
-
 #include <iostream>
 #include <limits.h>
 
