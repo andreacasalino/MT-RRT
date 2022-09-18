@@ -7,8 +7,6 @@
 
 #include <NavigationProblemJson.h>
 
-#include <JsonConvert.h>
-
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Cart &subject) {
   j["width"] = subject.getWidth();
@@ -49,51 +47,57 @@ void from_json(const nlohmann::json &j, std::unique_ptr<Scene> &scene) {
 const NavigationProblemConverter NavigationProblemConverter::CONVERTER =
     NavigationProblemConverter{};
 
-std::shared_ptr<mt_rrt::ProblemDescription>
-NavigationProblemConverter::fromJson(const std::optional<Seed> &seed,
-                                     const nlohmann::json &content) const {
+void NavigationProblemConverter::fromJson(const nlohmann::json& json,
+    ProblemDescription& description) const {
   std::unique_ptr<Scene> scene;
-  from_json(content, scene);
-  return make_problem_description(seed, *scene);
+  from_json(json["Scene"], scene);
+  std::optional<mt_rrt::Seed> seed;
+  if (json.contains("seed")) {
+      mt_rrt::Seed seed_value = json["seed"];
+      seed.emplace(seed_value);
+  }
+  auto desc = make_problem_description(seed, *scene);
+  description.connector = std::move(desc->connector);
+  description.sampler = std::move(desc->sampler);
+  description.simmetry = true;
+  description.gamma = desc->gamma;
 }
 
-void NavigationProblemConverter::toJson_(
-    nlohmann::json &recipient, const CartPosesConnector &connector) const {
-  to_json(recipient, *connector.scene);
+void NavigationProblemConverter::toJson(nlohmann::json& json,
+    const ProblemDescription& description) const {
+    json["Scene"] = *static_cast<const CartPosesConnector&>(*description.connector).scene;
 }
 
-void NavigationProblemConverter::toJson(nlohmann::json &recipient,
-                                        const std::vector<State> &sol,
-                                        const Connector &connector) const {
-  if (dynamic_cast<const CartPosesConnector *>(&connector) == nullptr) {
-    throw Error{"not a valid connector"};
-  }
+std::vector<State>
+NavigationProblemConverter::interpolate(const ProblemDescription& description,
+    const std::vector<State>& solution) const {
+    const CartPosesConnector* connector = dynamic_cast<const CartPosesConnector*>(description.connector.get());
 
-  auto throw_exc = []() {
-    throw Error{"something went wrong logging solution found"};
-  };
+    auto throw_exc = []() {
+        throw Error{ "something went wrong logging solution found" };
+    };
 
-  auto prev = sol.begin();
-  auto current = sol.begin() + 1;
-  std::vector<mt_rrt::State> interpolated;
-  for (; current != sol.end(); ++current, ++prev) {
-    interpolated.push_back(*prev);
-    auto traj = connector.getTrajectory(*prev, *current);
-    if (nullptr == traj) {
-      throw_exc();
+    auto prev = solution.begin();
+    auto current = solution.begin() + 1;
+    std::vector<mt_rrt::State> interpolated;
+    for (; current != solution.end(); ++current, ++prev) {
+        interpolated.push_back(*prev);
+        auto traj = connector->getTrajectory(*prev, *current);
+        if (nullptr == traj) {
+            throw_exc();
+        }
+        while (true) {
+            auto status = traj->advance();
+            if (status == AdvanceInfo::blocked) {
+                throw_exc();
+            }
+            if (status == AdvanceInfo::targetReached) {
+                break;
+            }
+            interpolated.push_back(traj->getState());
+        }
     }
-    while (true) {
-      auto status = traj->advance();
-      if (status == AdvanceInfo::blocked) {
-        throw_exc();
-      }
-      if (status == AdvanceInfo::targetReached) {
-        break;
-      }
-      interpolated.push_back(traj->getState());
-    }
-  }
-  interpolated.push_back(sol.back());
-  recipient = interpolated;
+    interpolated.push_back(solution.back());
+    return interpolated;
 }
 } // namespace mt_rrt::samples

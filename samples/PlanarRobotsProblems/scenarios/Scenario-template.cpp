@@ -16,6 +16,7 @@ protected:
     }
 };
 
+// see samples/ReadMe.cpp
 int main(int argc, const char **argv) {
     PlanarRobotsProblemFramework framework(argc, argv);
     framework.init();

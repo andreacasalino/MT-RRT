@@ -1,11 +1,12 @@
 {
-    "params": {
+    "Parameters": {
         "strategy": "Single",
         "steer_trials": 10,
         "iterations": 3000,
         "determinism": 0.1
     },
-    "scene": {
+	"ProblemDescription":{
+	"Scene": {
         "cart": {
             "width": 0.5,
             "length": 0.8,
@@ -80,7 +81,9 @@
             }
         ]
     },
-    "cases": [
+	"seed":2
+	},
+    "Problems": [
         {
             "start": [
                 -3.0,

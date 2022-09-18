@@ -1,21 +1,19 @@
-#include <MT-RRT-core/StandardPlanner.h>
-
 #include <NavigationProblem.h>
 #include <NavigationProblemJson.h>
 
-#include <Logger.h>
 #include <SampleFramework.h>
 
-class NavigationProblemFramework : public mt_rrt::samples::SampleFramework {
+#include <iostream>
+
+class NavigationProblemFramework : public mt_rrt::utils::SampleFramework {
 public:
-  using mt_rrt::samples::SampleFramework::SampleFramework;
+    NavigationProblemFramework(int argc, const char** argv) :
+        mt_rrt::utils::SampleFramework(argc, argv, mt_rrt::samples::NavigationProblemConverter::CONVERTER) {}
 
 protected:
-  std::shared_ptr<mt_rrt::ProblemDescription>
-  getProblemDescription_(const nlohmann::json &scene_json) final {
-    return mt_rrt::samples::NavigationProblemConverter::CONVERTER.fromJson(
-        getSeed(), scene_json);
-  }
+    std::string defaultJsonConfig() const final {
+        return SAMPLE_JSON;
+    }
 };
 
 mt_rrt::State convert_state(const mt_rrt::State &subject) {
@@ -24,24 +22,24 @@ mt_rrt::State convert_state(const mt_rrt::State &subject) {
   return result;
 }
 
+// see samples/ReadMe.cpp
 int main(int argc, const char **argv) {
-  NavigationProblemFramework framework(SAMPLE_JSON, argc, argv);
+  NavigationProblemFramework framework(argc, argv);
+  framework.init();
 
   std::cout << framework << std::endl;
 
-  auto description = framework.getProblemDescription();
+  // ProblemDescription is automatically parsed from config json and the planner is built inside TrivialProblemFramework
+  // here we simply access the internally genreated planner
+  auto& planner = framework.planner();
 
-  auto parameters = framework.getParameters();
-
-  auto planner = framework.getPlanner(std::move(description));
-
-  for (const auto &[start, end] : framework.getCases()) {
+  for (const auto& [start, end] : framework.problems()) {
     std::cout << "Trying to connect start point: {" << start
               << "} : with end point: "
               << "{" << end << "}" << std::endl;
 
     auto solution =
-        planner->solve(convert_state(start), convert_state(end), parameters);
+        planner.solve(convert_state(start), convert_state(end), framework.parameters());
 
     std::cout << "A solution was ";
     if (solution.solution)
@@ -53,11 +51,11 @@ int main(int argc, const char **argv) {
     std::cout << "To see the result ";
 
     // log results
-    mt_rrt::utils::log_scenario(
-        planner->problem(), solution,
-        mt_rrt::samples::NavigationProblemConverter::CONVERTER, SAMPLE_NAME,
-        mt_rrt::utils::make_python_show_sources(
-            NAVIGATION_PROBLEM_PYTHON_SCRIPT));
+    mt_rrt::utils::Logger::Log log;
+    log.tag = SAMPLE_NAME;
+    mt_rrt::samples::NavigationProblemConverter::CONVERTER.toJson2(log.content, framework.problemDescription(), solution);
+    log.python_visualizer = mt_rrt::utils::default_python_sources(NAVIGATION_PROBLEM_PYTHON_SCRIPT);
+    mt_rrt::utils::Logger::log(log);
 
     std::cout << std::endl << std::endl;
   }

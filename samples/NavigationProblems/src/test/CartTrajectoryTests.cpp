@@ -7,14 +7,21 @@
 #include <NavigationProblemJson.h>
 
 #ifdef TEST_LOGGING
-#include <Logger.h>
+#include <IO.h>
 #endif
 
 namespace {
+    static const std::string PYTHON_SCRIPT =
+        mt_rrt::merge(TEST_FOLDER, "CartTrajectoryTests.py");
+
 #ifdef TEST_LOGGING
-nlohmann::json log_case(const mt_rrt::State &start, const mt_rrt::State &end,
-                        const mt_rrt::samples::CartTrajectoryInfo &trj) {
-  nlohmann::json result;
+void log_case(const mt_rrt::State &start, const mt_rrt::State &end,
+                        const mt_rrt::samples::CartTrajectoryInfo &trj, const std::string& tag) {
+  mt_rrt::utils::Logger::Log to_log;
+  to_log.tag = tag;
+  to_log.python_visualizer = PYTHON_SCRIPT;
+
+  auto& result = to_log.content;
   result["start"] = start;
   result["end"] = end;
   struct Visitor {
@@ -35,12 +42,9 @@ nlohmann::json log_case(const mt_rrt::State &start, const mt_rrt::State &end,
     }
   } visitor{result["info"]};
   std::visit(visitor, trj);
-  return result;
+
+  mt_rrt::utils::Logger::log(to_log);
 }
-
-static const std::string PYTHON_SCRIPT =
-    mt_rrt::merge(TEST_FOLDER, "CartTrajectoryTests.py");
-
 #endif
 
 static constexpr float TOLL = 1e-3f;
@@ -110,8 +114,7 @@ TEST_CASE("Trivial line", mt_rrt::merge(TEST_TAG, "[cart_trajectory]")) {
     auto &as_line = std::get<TrivialLine>(traj.value());
 
 #ifdef TEST_LOGGING
-    nlohmann::json log_json = log_case(start, end, traj.value());
-    Logger::log("trivial_line", log_json, PYTHON_SCRIPT);
+    log_case(start, end, traj.value(), "trivial_line");
 #endif
 
     CHECK(almost_equal(as_line.start, start));
@@ -230,8 +233,7 @@ TEST_CASE("Blended arc logics", mt_rrt::merge(TEST_TAG, "[cart_trajectory]")) {
 #ifdef TEST_LOGGING
       std::stringstream log_name;
       log_name << "blended_" << to_grad(angle);
-      nlohmann::json log_json = log_case(start, end, traj.value());
-      Logger::log(log_name.str(), log_json, PYTHON_SCRIPT);
+      log_case(start, end, traj.value(), log_name.str());
 #endif
 
       CHECK(test_case.check(as_arc));
@@ -289,10 +291,15 @@ TEST_CASE("Blended arc advance interpolation",
   auto traj_curve = extract_curve(std::move(traj));
 
 #ifdef TEST_LOGGING
-  std::stringstream log_name;
-  log_name << "interpolated_" << to_grad(angle);
-  nlohmann::json log_json = log_case(start, end, traj_curve);
-  Logger::log(log_name.str(), log_json, PYTHON_SCRIPT);
+  {
+      mt_rrt::utils::Logger::Log to_log;
+      std::stringstream log_name;
+      log_name << "interpolated_" << to_grad(angle);
+      to_log.tag = log_name.str();
+      to_log.content = log_case(start, end, traj_curve);
+      to_log.python_visualizer = PYTHON_SCRIPT;
+      mt_rrt::utils::Logger::log(to_log);
+  }
 #endif
 
   // check the generated curve

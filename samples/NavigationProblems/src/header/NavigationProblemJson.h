@@ -9,7 +9,7 @@
 
 #include <NavigationProblem.h>
 
-#include <JsonConvert.h>
+#include <IO.h>
 
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Cart &subject);
@@ -21,19 +21,18 @@ void to_json(nlohmann::json &j, const Scene &scene);
 void from_json(const nlohmann::json &j, std::unique_ptr<Scene> &scene);
 
 class NavigationProblemConverter
-    : public utils::ConverterT<CartPosesConnector> {
+    : public utils::Converter {
 public:
   static const NavigationProblemConverter CONVERTER;
 
-  std::shared_ptr<ProblemDescription>
-  fromJson(const std::optional<Seed> &seed,
-           const nlohmann::json &content) const final;
+  void fromJson(const nlohmann::json& json,
+      ProblemDescription& description) const final;
 
-  void toJson(nlohmann::json &recipient, const std::vector<State> &sol,
-              const Connector &connector) const final;
+  void toJson(nlohmann::json& json,
+      const ProblemDescription& description) const final;
 
-protected:
-  void toJson_(nlohmann::json &recipient,
-               const CartPosesConnector &connector) const final;
+  std::vector<State>
+      interpolate(const ProblemDescription& description,
+          const std::vector<State>& solution) const final;
 };
 } // namespace mt_rrt::samples

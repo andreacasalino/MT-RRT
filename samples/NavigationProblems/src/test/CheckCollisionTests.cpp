@@ -7,7 +7,7 @@
 #include <NavigationProblemJson.h>
 
 #ifdef TEST_LOGGING
-#include <Logger.h>
+#include <IO.h>
 #endif
 
 namespace {
@@ -93,9 +93,12 @@ TEST_CASE("check collision check cart-sphere",
     CHECK(collisionFlag);
 
 #ifdef TEST_LOGGING
-    nlohmann::json log_json = log_case(cart, state, obstacle);
-    log_json["collides"] = collisionFlag;
-    Logger::log("box_segment_collisions", log_json, PYTHON_SCRIPT);
+    mt_rrt::utils::Logger::Log to_log;
+    to_log.tag = "box_segment_collisions";
+    to_log.python_visualizer = PYTHON_SCRIPT;
+    to_log.content = log_case(cart, state, obstacle);
+    to_log.content["collides"] = collisionFlag;
+    mt_rrt::utils::Logger::log(to_log);
 #endif
   }
 
@@ -112,9 +115,12 @@ TEST_CASE("check collision check cart-sphere",
     CHECK_FALSE(collisionFlag);
 
 #ifdef TEST_LOGGING
-    nlohmann::json log_json = log_case(cart, state, obstacle);
-    log_json["collides"] = collisionFlag;
-    Logger::log("box_segment_collisions", log_json, PYTHON_SCRIPT);
+    mt_rrt::utils::Logger::Log to_log;
+    to_log.tag = "box_segment_collisions";
+    to_log.python_visualizer = PYTHON_SCRIPT;
+    to_log.content = log_case(cart, state, obstacle);
+    to_log.content["collides"] = collisionFlag;
+    mt_rrt::utils::Logger::log(to_log);
 #endif
   }
 }
