@@ -1,0 +1,85 @@
+{
+    "params":{
+        "strategy":"Star",
+        "steer_trials":10,
+        "iterations":3000,
+        "determinism":0.15
+    },
+	"ProblemDescription":{
+    "scene": {
+        "obstacles": [
+            {
+                "ray": 0.5,
+                "center": [
+                    -2,
+                    0
+                ]
+            },
+            {
+                "ray": 0.5,
+                "center": [
+                    2,
+                    0
+                ]
+            }
+        ],
+        "robots": [
+            {
+                "links": [
+                    {
+                        "ray": 0.1,
+                        "length": 1
+                    },
+                    {
+                        "ray": 0.1,
+                        "length": 1
+                    }
+                ],
+                "base": {
+                    "position": [
+                        -0.8,
+                        0
+                    ],
+                    "angle": 0
+                }
+            },
+            {
+                "links": [
+                    {
+                        "ray": 0.1,
+                        "length": 1
+                    },
+                    {
+                        "ray": 0.1,
+                        "length": 1
+                    }
+                ],
+                "base": {
+                    "position": [
+                        0.8,
+                        0
+                    ],
+                    "angle": 180
+                }
+            }
+        ]
+    },
+    "seed":2
+	},
+	"Problems": [
+        {
+            "start": [
+                60,
+                -60,
+                60,
+                -60
+            ],
+            "end": [
+                -60,
+                60,
+                -60,
+                60
+            ]
+        }
+    ]
+}
