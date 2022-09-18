@@ -7,18 +7,20 @@
 #include <MT-RRT-multi-threaded/ParallelizedQueriesPlanner.h>
 #include <MT-RRT-multi-threaded/SharedTreePlanner.h>
 
-#include <JsonConvert.h>
 #include <SampleFramework.h>
 
 #include <filesystem>
 #include <iostream>
 
 namespace mt_rrt::utils {
-SampleFramework::SampleFramework(int argc, const char **argv) {
+SampleFramework::SampleFramework(int argc, const char **argv, const Converter& converter)
+    : converter_(converter) {
   if (argc > 2) {
     throw Error{"Invalid arguments"};
   }
-  argument_.emplace(argv[1]);
+  if (argc == 2) {
+      argument_.emplace(argv[1]);
+  }
 }
 
 namespace {
@@ -55,8 +57,8 @@ void from_json(const nlohmann::json &json, Parameters &recipient) {
   recipient.determinism.set(0.15f);
   recipient.best_effort = true;
 
-  if (json.contains("params")) {
-    auto &j_par = json["params"];
+  if (json.contains("Parameters")) {
+    auto &j_par = json["Parameters"];
 
     if (j_par.contains("strategy")) {
       std::string strategy = j_par.at("strategy");
@@ -113,8 +115,8 @@ void set_synchronization(SynchronizationAware &planner,
 
 std::unique_ptr<Planner> planner_from_json(const nlohmann::json &json,
                                            ProblemDescription &&description) {
-  if (json.contains("planner")) {
-    const auto &j_planner = json["planner"];
+  if (json.contains("Planner")) {
+    const auto &j_planner = json["Planner"];
 
     std::string planner_type;
     if (j_planner.contains("type")) {
@@ -181,7 +183,7 @@ void SampleFramework::init() {
   nlohmann::from_json(config_["Problems"], problems_);
 
   ProblemDescription description;
-  fromJson(config_["ProblemDescription"], description);
+  converter_.fromJson(config_["ProblemDescription"], description);
   planner_ = planner_from_json(config_["Planner"], std::move(description));
 }
 

@@ -10,19 +10,17 @@
 #include <MT-RRT-core/Parameters.h>
 #include <MT-RRT-core/Planner.h>
 
-#include <JsonConvert.h>
-
-#include <iostream>
+#include <IO.h>
 
 namespace mt_rrt::utils {
 using Problems = std::vector<std::pair<State, State>>;
 
-class SampleFramework : public ProblemDescriptionConverter {
+class SampleFramework {
 public:
   // expects 1 single argument which can be (auto deduced internally):
   //  - the file path of the json with the additional configurations
   //  - a string representing the json with the additional configurations
-  SampleFramework(int argc, const char **argv);
+  SampleFramework(int argc, const char **argv, const Converter& converter);
 
   void init();
 
@@ -38,6 +36,8 @@ public:
 
 protected:
   virtual std::string defaultJsonConfig() const = 0;
+
+  const Converter& converter_;
 
   std::optional<std::string> argument_;
   nlohmann::json config_;

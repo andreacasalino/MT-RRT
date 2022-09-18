@@ -6,7 +6,7 @@
 #include <TrivialProblem.h>
 
 #ifdef TEST_LOGGING
-#include <Logger.h>
+#include <IO.h>
 #endif
 
 namespace {
@@ -60,8 +60,7 @@ TEST_CASE("check collision check segment-box",
                 {-0.9696f, -0.9696f}});
 
 #ifdef TEST_LOGGING
-    Logger::log("box_segment_collisions", log_case(box, segment),
-                PYTHON_SCRIPT);
+    Logger::log(Logger::Log{ "box_segment_collisions", log_case(box, segment), PYTHON_SCRIPT });
 #endif
     CHECK(collides(segment.start, segment.end, box));
     CHECK(collides(segment.end, segment.start, box));
@@ -75,8 +74,7 @@ TEST_CASE("check collision check segment-box",
         Segment{{2.f + 0.1f, 0 - 0.1f}, {0 + 0.1f, -2.f - 0.1f}});
 
 #ifdef TEST_LOGGING
-    Logger::log("box_segment_collisions", log_case(box, segment),
-                PYTHON_SCRIPT);
+    Logger::log(Logger::Log{ "box_segment_collisions", log_case(box, segment), PYTHON_SCRIPT });
 #endif
     CHECK_FALSE(collides(segment.start, segment.end, box));
     CHECK_FALSE(collides(segment.end, segment.start, box));

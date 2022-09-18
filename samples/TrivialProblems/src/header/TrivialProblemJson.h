@@ -9,7 +9,7 @@
 
 #include <TrivialProblem.h>
 
-#include <JsonConvert.h>
+#include <IO.h>
 
 namespace mt_rrt::samples {
 void to_json(nlohmann::json &j, const Transform &subject);
@@ -33,16 +33,14 @@ void to_json(nlohmann::json &j, const Box &subject);
 void from_json(const nlohmann::json &j, Boxes &boxes);
 
 class TrivialProblemConverter
-    : public utils::ConverterT<TrivialProblemConnector> {
+    : public utils::Converter {
 public:
   static const TrivialProblemConverter CONVERTER;
 
-  std::shared_ptr<ProblemDescription>
-  fromJson(const std::optional<Seed> &seed,
-           const nlohmann::json &content) const final;
+  void fromJson(const nlohmann::json& json,
+      ProblemDescription& description) const final;
 
-protected:
-  void toJson_(nlohmann::json &recipient,
-               const TrivialProblemConnector &connector) const final;
+  void toJson(nlohmann::json& json,
+      const ProblemDescription& description) const final;
 };
 } // namespace mt_rrt::samples

@@ -23,13 +23,18 @@ public:
   virtual ~Converter() = default;
 
   virtual void fromJson(const nlohmann::json &json,
-                        ProblemDescription &description) = 0;
+                        ProblemDescription &description) const = 0;
   virtual void toJson(nlohmann::json &json,
-                      const ProblemDescription &description) = 0;
+                      const ProblemDescription &description) const = 0;
 
   virtual std::vector<State>
-  interpolate(const ProblemDescription &description,
-              const std::vector<State> &solution) = 0;
+      interpolate(const ProblemDescription& description,
+          const std::vector<State>& solution) const {
+      return solution;
+  };
+
+  void toJson2(nlohmann::json& recipient, const ProblemDescription& problem, const PlannerSolution& solution) const;
+  void toJson2(nlohmann::json& recipient, const mt_rrt::Extender& extender) const;
 };
 
 class PythonSources {
@@ -49,23 +54,14 @@ PythonSources default_python_sources(const std::string &problem_script);
 
 class Logger {
 public:
-  static void
-  log(const std::string &tag, const nlohmann::json &content,
-      const std::optional<PythonSources> &python_visualization_sources);
-
-  static void log_scenario(
-      const ProblemDescription &problem, const PlannerSolution &solution,
-      const Converter &converter, const std::string &case_name,
-      const std::optional<PythonSources> &python_visualization_sources =
-          std::nullopt);
-
-  static void log_scenario(const mt_rrt::Extender &subject,
-                           const Converter &converter,
-                           const std::string &case_name,
-                           const std::optional<PythonSources>
-                               &python_visualization_sources = std::nullopt);
+    struct Log {
+        std::string tag;
+        nlohmann::json content;
+        std::optional<PythonSources> python_visualizer;
+    };
+  static void log(const Log& to_log);
 
 private:
-  static std::unordered_map<std::string, std::size_t> counters;
+    static std::unordered_map<std::string, std::size_t> counters; // <Log::tag, entities_with_that_tag>
 };
 } // namespace mt_rrt::utils

@@ -2,10 +2,9 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <Geometry.h>
-#include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
 #ifdef TEST_LOGGING
-#include <TrivialProblemJson.h>
+#include "Log.h"
 #endif
 
 TEST_CASE("Star extender in an empty space",
@@ -26,9 +25,7 @@ TEST_CASE("Star extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER, "star-empty",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "star-empty");
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -59,10 +56,7 @@ TEST_CASE("Star extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER,
-        "star-one_obstacle",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "star-one_obstacle");
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -97,9 +91,7 @@ TEST_CASE("Star extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER, "star-cluttered",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "star-cluttered");
 #endif
 
     const auto &solutions = extender.getSolutions();

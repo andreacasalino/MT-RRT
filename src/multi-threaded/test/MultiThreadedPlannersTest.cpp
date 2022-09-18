@@ -4,9 +4,9 @@
 #include <MT-RRT-multi-threaded/MultiThreadedPlanner.h>
 
 #include <Geometry.h>
-#include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
 #ifdef TEST_LOGGING
+#include <IO.h>
 #include <TrivialProblemJson.h>
 #endif
 
@@ -80,10 +80,11 @@ void check_planner_with_setter(const std::string &log_tag,
   auto solution = planner.solve(start, end, params);
 
 #ifdef TEST_LOGGING
-  log_scenario(
-      planner.problem(), solution, samples::TrivialProblemConverter::CONVERTER,
-      log_tag,
-      mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+  mt_rrt::utils::Logger::Log test_case_log;
+  test_case_log.tag = log_tag;
+  mt_rrt::samples::TrivialProblemConverter::CONVERTER.toJson2(test_case_log.content, planner.problem(), solution);
+  test_case_log.python_visualizer = mt_rrt::utils::default_python_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT);
+  mt_rrt::utils::Logger::log(test_case_log);
 #endif
 
   REQUIRE(solution.solution);

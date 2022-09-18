@@ -1,10 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <Logger.h>
 #include <TrivialProblemTestScenarios.h>
 #ifdef TEST_LOGGING
-#include <TrivialProblemJson.h>
+#include "Log.h"
 #endif
 
 TEST_CASE("Single extender in an empty space",
@@ -26,10 +25,7 @@ TEST_CASE("Single extender in an empty space",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER,
-        "single-empty_only_deterministic",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "single-empty_only_deterministic");
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -65,10 +61,7 @@ TEST_CASE("Single extender in an empty space",
     }
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        *extender, samples::TrivialProblemConverter::CONVERTER,
-        "single-empty_many_solutions",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(*extender, "single-empty_many_solutions");
 #endif
 
     const auto &solutions = extender->getSolutions();
@@ -98,10 +91,7 @@ TEST_CASE("Single extender with blocking obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER,
-        "single-no_solution",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "single-no_solution");
 #endif
 
     REQUIRE(extender.getSolutions().empty());
@@ -124,10 +114,7 @@ TEST_CASE("Single extender with single obstacle",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER,
-        "single-one_obstacle",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "single-one_obstacle");
 #endif
 
     const auto &solutions = extender.getSolutions();
@@ -155,10 +142,7 @@ TEST_CASE("Single extender in cluttered scenario",
     extender.search();
 
 #ifdef TEST_LOGGING
-    log_scenario(
-        extender, samples::TrivialProblemConverter::CONVERTER,
-        "single-cluttered",
-        mt_rrt::utils::make_python_show_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT));
+    log_test_case(extender, "single-cluttered");
 #endif
 
     const auto &solutions = extender.getSolutions();

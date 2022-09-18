@@ -94,7 +94,7 @@ void from_json(const nlohmann::json &j, Boxes &boxes) {
     auto &added = boxes_list.emplace_back(
         std::make_unique<Box>(import_box(box_json, labeled)));
     if (box_json.contains("label")) {
-      const std::string label = box_json["label"];
+      std::string label = box_json["label"];
       if (labeled.find(label) != labeled.end()) {
         throw Error{"Found multiple boxes labeled as ", label};
       }
@@ -109,16 +109,24 @@ void from_json(const nlohmann::json &j, Boxes &boxes) {
 const TrivialProblemConverter TrivialProblemConverter::CONVERTER =
     TrivialProblemConverter{};
 
-std::shared_ptr<ProblemDescription>
-TrivialProblemConverter::fromJson(const std::optional<Seed> &seed,
-                                  const nlohmann::json &content) const {
-  Boxes boxes;
-  from_json(content, boxes);
-  return make_trivial_problem_description(seed, boxes);
+void TrivialProblemConverter::fromJson(const nlohmann::json& json,
+    ProblemDescription& description) const {
+    Boxes boxes;
+    from_json(json["Boxes"], boxes);
+    std::optional<mt_rrt::Seed> seed;
+    if (json.contains("seed")) {
+        mt_rrt::Seed seed_value = json["seed"];
+        seed.emplace(seed_value);
+    }
+    auto desc = make_trivial_problem_description(seed, boxes);
+    description.connector = std::move(desc->connector);
+    description.sampler = std::move(desc->sampler);
+    description.simmetry = true;
+    description.gamma = desc->gamma;
 }
 
-void TrivialProblemConverter::toJson_(
-    nlohmann::json &j, const TrivialProblemConnector &connector) const {
-  j = connector.getBoxes();
+void TrivialProblemConverter::toJson(nlohmann::json& json,
+    const ProblemDescription& description) const {
+    json["Boxes"] = static_cast<const TrivialProblemConnector&>(*description.connector).getBoxes();
 }
 } // namespace mt_rrt::samples

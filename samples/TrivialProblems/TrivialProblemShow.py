@@ -92,7 +92,7 @@ class Printer:
     def printScene(self, ax, fig):
         print_limits(ax)
         labeled={}
-        for box_json in self.scene:
+        for box_json in self.scene["Boxes"]:
             box = Box(box_json, labeled)
             box.print_box(ax)
             if "label" in box_json:

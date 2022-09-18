@@ -1,11 +1,12 @@
 {
-    "params":{
+    "Parameters":{
         "strategy":"Star",
         "steer_trials":10,
         "iterations":1500,
         "determinism":0.15
     },
-    "scene": [
+    "ProblemDescription": {
+		"Boxes":[
         {
             "box": {
                 "min": [
@@ -18,8 +19,10 @@
                 ]
             }
         }
-    ],
-    "cases": [
+		],
+		"seed":0
+	},
+    "Problems": [
         {
             "start": [
                 -1,
@@ -40,6 +43,5 @@
                 -1
             ]
         }
-    ],
-    "seed":0
+    ]
 }

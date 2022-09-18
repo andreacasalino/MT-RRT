@@ -41,6 +41,48 @@ void to_json(nlohmann::json &j, const Tree &subject) {
 }
 } // namespace
 
+void Converter::toJson2(nlohmann::json& j, const ProblemDescription& problem, const PlannerSolution& solution) const {
+    j["time_ms"] = solution.time.count();
+    j["iterations"] = solution.iterations;
+
+    toJson(j["scene"], problem);
+
+    auto& trees = j["trees"];
+    trees = nlohmann::json::array();
+    for (const auto& tree : solution.trees) {
+        auto& tree_json = trees.emplace_back();
+        to_json(tree_json, tree);
+    }
+
+    auto& solutions = j["solutions"];
+    solutions = nlohmann::json::array();
+    if (solution.solution) {
+        auto& sol = solutions.emplace_back();
+        sol["cost"] = 1.f;
+        sol["sequence"] = interpolate(problem, solution.solution.value());
+    }
+}
+
+void Converter::toJson2(nlohmann::json& j, const mt_rrt::Extender& extender) const {
+    const auto& problem = extender.problem();
+    toJson(j["scene"], problem);
+
+    auto& trees = j["trees"];
+    trees = nlohmann::json::array();
+    for (const auto& tree : extender.dumpTrees()) {
+        auto& tree_json = trees.emplace_back();
+        to_json(tree_json, tree);
+    }
+
+    auto& solutions = j["solutions"];
+    solutions = nlohmann::json::array();
+    for (const auto& [cost, solution] : extender.getSolutions()) {
+        auto& sol = solutions.emplace_back();
+        sol["cost"] = cost;
+        sol["sequence"] = interpolate(problem, solution->getSequence());
+    }
+}
+
 PythonSources::PythonSources(const std::vector<std::string> &filesNames)
     : sources(filesNames) {}
 
@@ -63,9 +105,9 @@ PythonSources default_python_sources(const std::string &problem_script) {
 std::unordered_map<std::string, std::size_t> Logger::counters =
     std::unordered_map<std::string, std::size_t>{};
 
-void Logger::log(
-    const std::string &tag, const nlohmann::json &content,
-    const std::optional<PythonSources> &python_visualization_sources) {
+void Logger::log(const Log& to_log) {
+  const auto& [tag, content, python] = to_log;
+
   const auto folder_name = merge("log-", tag);
   auto counter_it = counters.find(folder_name);
   if (counter_it == counters.end()) {
@@ -79,69 +121,13 @@ void Logger::log(
 
   std::ofstream{log_name} << content.dump();
 
-  if (python_visualization_sources) {
+  if (python) {
     std::string python_script_destination = merge(folder_name, "/Show.py");
 
-    python_visualization_sources->reprint(python_script_destination);
+    python->reprint(python_script_destination);
 
     std::cout << "run `python3 " << python_script_destination.c_str() << ' '
               << log_name << '`' << std::endl;
-  }
-}
-
-void log_scenario(
-    const ProblemDescription &problem, const PlannerSolution &solution,
-    const ProblemDescriptionConverter &converter, const std::string &case_name,
-    const std::optional<PythonSources> &python_visualization_sources) {
-  nlohmann::json json_log;
-  to_json(json_log, problem, solution, converter);
-  Logger::log(merge("extender-", case_name), json_log,
-              python_visualization_sources);
-}
-
-void log_scenario(
-    const mt_rrt::Extender &subject,
-    const ProblemDescriptionConverter &converter, const std::string &case_name,
-    const std::optional<PythonSources> &python_visualization_sources) {
-  nlohmann::json json_log;
-  to_json(json_log, subject, converter);
-  Logger::log(merge("extender-", case_name), json_log,
-              python_visualization_sources);
-}
-
-void Logger::to_json(nlohmann::json &j, const ProblemDescription &problem,
-                     const PlannerSolution &solution,
-                     const Converter &converter) {
-  j["time_ms"] = solution.time.count();
-  j["iterations"] = solution.iterations;
-
-  converter.toJson(j["scene"], problem);
-
-  to_json(j["trees"], solution.trees);
-
-  auto &solutions = j["solutions"];
-  solutions = nlohmann::json::array();
-  if (solution.solution) {
-    auto &sol = solutions.emplace_back();
-    sol["cost"] = 1.f;
-    converter.toJson(sol["sequence"], solution.solution.value(),
-                     *problem.connector);
-  }
-}
-
-void to_json(nlohmann::json &j, const Extender &subject,
-             const ProblemDescriptionConverter &converter) {
-  converter.toJson(j["scene"], subject.problem());
-
-  to_json(j["trees"], subject.dumpTrees());
-
-  auto &solutions = j["solutions"];
-  solutions = nlohmann::json::array();
-  for (const auto &[cost, solution] : subject.getSolutions()) {
-    auto &sol = solutions.emplace_back();
-    sol["cost"] = cost;
-    converter.toJson(sol["sequence"], solution->getSequence(),
-                     *subject.problem().connector);
   }
 }
 } // namespace mt_rrt::utils
