@@ -40,15 +40,15 @@ jobs:
     - name: carpet tests
       run: ./artifacts/bin/MT-RRT-carpet-tests
     - name: trivial problem tests
-      run: ./artifacts/bin/TrivialProblem-lib-tests
+      run: ./artifacts/bin/MT-RRT-sample-TrivialProblem-lib-tests
     - name: core tests
       run: ./artifacts/bin/MT-RRT-core-tests
     - name: multi threaded planners tests
       run: ./artifacts/bin/MT-RRT-multi-threaded-tests
     - name: planar robots problem tests
-      run: ./artifacts/bin/PlanarRobotsProblem-lib-tests
+      run: ./artifacts/bin/MT-RRT-sample-PlanarRobotsProblem-lib-tests
     - name: navigation problem tests
-      run: ./artifacts/bin/NavigationProblem-lib-tests
+      run: ./artifacts/bin/MT-RRT-sample-NavigationProblem-lib-tests
     - uses: actions/upload-artifact@v2
       with:
         path: artifacts
