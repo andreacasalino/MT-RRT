@@ -38,7 +38,7 @@
   \newcommand*\fsize{\dimexpr\f@size pt\relax}%
   \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{2152.37168199bp}%
+    \setlength{\unitlength}{1230.34461314bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -50,40 +50,34 @@
   \global\let\svgwidth\undefined%
   \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.24426816)%
+  \begin{picture}(1,0.92646495)%
     \lineheight{1}%
     \setlength\tabcolsep{0pt}%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{pipeline.pdf}}%
-    \put(0.02289929,0.19633072){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Define }\end{tabular}}}}%
-    \put(0.02341839,0.17022842){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{the Sampler}\end{tabular}}}}%
+    \put(0.36903526,0.83623864){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Define }\end{tabular}}}}%
+    \put(0.36994337,0.79057512){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{the \textbf{Sampler}}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{pipeline.pdf}}%
-    \put(0.22256164,0.15525465){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{B) Instantiate }\end{tabular}}}}%
-    \put(0.22308074,0.12915235){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{a Solver}\end{tabular}}}}%
+    \put(0.73697945,0.55465789){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Choose the }\end{tabular}}}}%
+    \put(0.73788756,0.50899437){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{\textbf{Parameters}}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{pipeline.pdf}}%
-    \put(0.4186908,0.15525465){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{C) Set }\end{tabular}}}}%
-    \put(0.4192099,0.12915235){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{the Strategy}\end{tabular}}}}%
+    \put(0.08389582,0.66836643){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{B) Instantiate a \textbf{Planner}}\end{tabular}}}}%
+    \put(0.41312493,0.55572744){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Starting configuration}\end{tabular}}}}%
+    \put(0.41419104,0.50536762){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Ending configuration}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=4]{pipeline.pdf}}%
-    \put(0.79127235,0.15525466){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{D) Access}\end{tabular}}}}%
-    \put(0.79179142,0.12915235){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{results}\end{tabular}}}}%
+    \put(0.07969191,0.24040037){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{D) Access the results}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=5]{pipeline.pdf}}%
-    \put(0.40393632,0.22863591){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Starting configuration}\end{tabular}}}}%
-    \put(0.40424655,0.20210293){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Ending configuration}\end{tabular}}}}%
+    \put(0.13465898,0.10714009){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Inspect the solution}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=6]{pipeline.pdf}}%
-    \put(0.33770187,0.02962551){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{multiple problems can be solved with the }\end{tabular}}}}%
+    \put(0.13679471,0.02580091){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Inspect exploring trees}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=7]{pipeline.pdf}}%
-    \put(0.82269278,0.07908008){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Get the solution}\end{tabular}}}}%
+    \put(0.07353038,0.83643554){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Define the}\end{tabular}}}}%
+    \put(0.07443849,0.79077203){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{\textbf{Connector}}\end{tabular}}}}%
+    \put(0.08116585,0.90782021){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{A) Define the problem class}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=8]{pipeline.pdf}}%
-    \put(0.82391361,0.03258475){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Get exploring trees}\end{tabular}}}}%
-    \put(0.60432276,0.15534728){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{call }\end{tabular}}}}%
-    \put(0.60484183,0.12924497){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Solver::call(...)}\end{tabular}}}}%
+    \put(0.41522498,0.63381915){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{The specific problem to solve}\end{tabular}}}}%
+    \put(0.43105591,0.31471314){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Multiple problems can be}\end{tabular}}}}%
+    \put(0.42974521,0.27300648){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{solved with the same \textbf{Planner}}\end{tabular}}}}%
+    \put(0.07852444,0.4086219){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{C) call \textbf{Planner}::call(...)}\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=9]{pipeline.pdf}}%
-    \put(0.02137645,0.11585177){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Define the}\end{tabular}}}}%
-    \put(0.02189555,0.08974947){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{TrajectoryFactory}\end{tabular}}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=10]{pipeline.pdf}}%
-    \put(0.01674933,0.23361041){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{A) Define the problem }\end{tabular}}}}%
-    \put(0.19879338,0.06931606){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{Problem }\end{tabular}}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=11]{pipeline.pdf}}%
-    \put(0.33833631,0.00287882){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\footnotesize{same solver, possibly changing the strategy}\end{tabular}}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=12]{pipeline.pdf}}%
   \end{picture}%
 \endgroup%

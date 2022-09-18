@@ -813,17 +813,9 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../MT-RRT/header \
-						 ../MT-RRT/header/sampler \
-						 ../MT-RRT/header/solver \
-						 ../MT-RRT/header/strategies \
-						 ../MT-RRT/header/trajectory \
-						 ../MT-RRT/src/extn/header \
-						 ../MT-RRT/src/tree/header \
-						 ../MT-RRT/src/strategies/sharedTree/header \
-						 ../MT-RRT/src/strategies/queryParall/header \
-						 ../MT-RRT/src/strategies/linkedTrees/header \
-						 ../MT-RRT/src/strategies/multiAgent/header
+INPUT                  = ../src/carpet/header/MT-RRT-carpet \
+						 ../src/carpet/header/MT-RRT-core \
+                         ../src/multi-threaded/header/MT-RRT-multi-threaded
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
