@@ -1,26 +1,32 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(MT-RRT-PRJ)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# set macro-directory and find scripts
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeTest.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeLibrary.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchJSONlib.cmake)
 
-# include cmake custom functions
-set(WITH_SOURCE_TREE ON)
-include(GroupSources)
-include(AutoCollect)
-include(CopyFile)
-include(CopyPythonVisualizer)
-include(MakeLib)
+project(MT-RRT)
 
 option(LIB_OPT "Compile shared libraries (ON) or static (OFF)" OFF)
-option(BUILD_SAMPLES "Build the samples showing how to use EFG" ON)
 
-add_subdirectory(MT-RRT)
-if(BUILD_SAMPLES)
-   add_subdirectory(Samples)
+option(BUILD_MT_RRT_TESTS "Build MT-RRT tests" OFF)
+if(BUILD_MT_RRT_TESTS)
+    message("fetching catch2") 
+    include(FetchContent)
+    FetchContent_Declare(
+        catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        4ff8b27bb6bed4b8b309e56cd269b4f1fbc24e89
+    )
+    FetchContent_MakeAvailable(catch2)
+
+    option(ENABLE_MT_RRT_TESTS_LOGGING "Enable log generations when running tests" ON)
 endif()
+
+option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
+
+add_subdirectory(src)
+add_subdirectory(samples)

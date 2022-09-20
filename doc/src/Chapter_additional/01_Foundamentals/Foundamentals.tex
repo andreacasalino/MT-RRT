@@ -256,52 +256,47 @@ There are no precise stopping criteria for the RRT*: the more iterations are per
 	 \centering
  \def\svgwidth{0.9 \columnwidth}
  \import{../src/Chapter_additional/01_Foundamentals/image/}{pipeline.pdf_tex} 
-	 \caption{Pipeline to follow for using MT-RRT.}
+	 \caption{Steps to follow for consuming the MT-RRT library.}
  \label{fig:pipeline}
  \end{figure}
 
 When solving a planning problem with MT-RRT, the pipeline of Figure \ref{fig:pipeline} should be followed.
 
-\subsubsection{A) Define the problem}
+\subsubsection{A) Define the problem class}
 \label{sec:define_problem}
 
-Whenever you need to solve a new class of planning problem, you should instantiate a Problem object.
-This class should contains all the information describing the particular problem to solve (how to compute the optimal trajectories $\tau$, the shape of the constraints admitted region $\underline{\mathcal{X}}$, etc..) and its made of 2 main components:
+Whenever you need to solve a new class of planning problem, you should define:
 \begin{itemize}
-\item sampler, i.e. a Sampler object drawing random states to allow the tree(s) growth.
-\item trajManager, i.e. the TrajectoryFactory able to evaluate optimal trajectories $\tau$ connecting pairs of states.
+\item a \textbf{Sampler}, whose responsability is to draw random states to allow the tree(s) growth.
+\item a \textbf{Connector}, whose responsability is generate optimal trajectories $\tau$ connecting pairs of states.
 \end{itemize}
-The 2 above objects should be built and passed to Problem constructor. 
-Chapter \ref{chap:custom} reports some examples of planning problems, describing how to derive the corresponding Sampler and TrajectoryFactory.
+Chapter \ref{chap:custom} reports some examples of planning problems, describing froma theoretical point of view how to derive the corresponding \textbf{Sampler} and \textbf{Connector}.
+The concrete implementations are instead contained under the samples folder.
 
-\subsubsection{B) Instantiate a Solver}
+\subsubsection{B) Instantiate a \textbf{Planner}}
 
-After having defined the problem, you need to build a Solver object, to be used to solve one or more problems of a certain kind.
-Every time a new problem is solved calling Solver::solve(...), the relevant information are stored inside this object and can be accessed before solving a new one.
-Clearly, only the results concerning the last found solution are saved, i.e. data are overwritten when calling multiple times Solver::call(...), but with different starting and ending configurations and possibly different trees obtained.
-
-\subsubsection{C) Set the strategy}
-
-Before solving any problem you should also specify to the Solver the strategy that you would like to use. In this case, the strategy pattern is adopted and a Strategy needs to be built. In this case you don't have to derive your own strategy, but you can use one of the objects already defined in the core package, namely:
+After having defined the problem, you need to build a \textbf{Planner}.
+This can be a classicla mon threaded StandardPlanner or a multi threaded one.
+The population of such planners offered by this library is (refer also to Sections \ref{sec:strtg_query}, \ref{sec:strtg_shared}, \ref{sec:strtg_copied} and \ref{sec:strtg_multi}):
 \begin{itemize}
-\item SerialStrategy
-\item QueryParallStrategy
-\item SharedTreeStrategy
-\item LinkedTreesStrategy
-\item MultiAgentStrategy
+\item EmbarassinglyParallel
+\item ParallelizedQueriesPlanner
+\item SharedTreePlanner
+\item LinkedTreesPlanner
+\item MultiAgentPlanner
 \end{itemize}
-Each Strategy support all the rrt algorithms described in Sections \ref{alg:RRT_single}, \ref{sec:RRT_bidir} and \ref{alg:RRT_star}, with the only exception that MultiAgentStrategy does not support the bidirectional algorithm.
-It is always possible to extract the strategy from a Solver, set up the parameters in a different way and then re-assign the strategy to the Solver.
-\\
-QueryParallStrategy, SharedTreeStrategy, LinkedTreesStrategy and MultiAgentStrategy are multi-threaded strategies and more details are provided Sections \ref{sec:strtg_query}, \ref{sec:strtg_shared}, \ref{sec:strtg_copied} and \ref{sec:strtg_multi}. On the opposite SerialStrategy implements the standard mono-thread versions of rrt, i.e. the ones detailed in the previous Sections.
+Each planner support all the rrt algorithms described in Sections \ref{alg:RRT_single}, \ref{sec:RRT_bidir} and \ref{alg:RRT_star}, with the only exception that the MultiAgentPlanner does not support the bidirectional algorithm.
 
+\subsubsection{C) Solve the problem calling \textbf{Planner}::solve}
 
-\subsubsection{D) Access the results after solving the problem}
+You can use the generated \textbf{Planner} to solve a specific problem, trying to connect a starting and an ending configuration.
+You need also to specify additional \textbf{Parameters} like for instance the kind of strategy (Sections \ref{alg:RRT_single}, \ref{sec:RRT_bidir} and \ref{alg:RRT_star}).
 
-There two main ways to access the results stored inside Solver:
+\subsubsection{D) Inspect the results after solving the problem}
+
+\textbf{Planner}::solve returns a \textbf{PlannerSolution} structure which contains all the information about the found solution, among which you can find:
 \begin{itemize}
-\item get the found solution, i.e. a series of states $x_{1,2,3,\hdots,M}$ that must be visited to get from the starting configuration to the ending one, by traversing the trajectories $\tau_{1 \rightarrow 2 } , \tau_{2 \rightarrow 3}, \hdots ,\tau_{M-1 \rightarrow M} \subset \underline{\mathcal{X}}$. Such series of waypoints can be obtained by calling Solver::copyLastSolution. In case a solution was not found, an empty collection is returned.
-\item get the tree(s) computed for finding the solution. This is done using Solver::extractLastTrees. Beware that by default the trees are not saved and stored after solving a new problem, bit this behaviour can be enabled calling Strategy::saveTreesAfterSolve.
-Moreover, calling this Solver::extractLastTrees, remove the trees from Solver, moving them to the outside.
+\item the found solution, i.e. a series of states $x_{1,2,3,\hdots,M}$ that must be visited to get from the starting configuration to the ending one, by traversing the trajectories $\tau_{1 \rightarrow 2 } , \tau_{2 \rightarrow 3}, \hdots ,\tau_{M-1 \rightarrow M} \subset \underline{\mathcal{X}}$. In case a solution was not found, an empty option is returned.
+\item the tree(s) computed for finding the solution.
 \end{itemize}
-Additional information (the iterations spent, the computation time) regarding the solution can be accessed using the others getters of Solver.
+Additional information (the iterations spent, the computation time) regarding the solution can be accessed too.
