@@ -18,7 +18,7 @@ This work is based on the results published in this **IROS** paper:
 Andrea Casalino et al. :"Mt-rrt: a general purpose multithreading library for path planning", In IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019), pages 1510–1517. IEEE, 2019
 
 This library was conceived to solve any kind of planning problem. The only thing you need to do when solving a new kind of problem, is to derive a couple of objects that contain all the
-problem-specific information, refer to the [documentation](#cmake-support) and the [samples](#samples). 
+problem-specific information, refer to the [documentation](./doc/MT-RRT.pdf) and the [samples](#samples). 
 
 **MT-RRT** is completely **cross platform**, let [CMake](#cmake-support) do all the work for you, and has no thirdy party dependency.
 
