@@ -7,7 +7,8 @@
 - [Samples](#samples)
 - [CMake support](#cmake-support)
 
-![MazeProblem](./img.png)
+![MazeProblem](./img_1.png)
+![Robots](./img_2.gif)
 
 ## INTRO
 
