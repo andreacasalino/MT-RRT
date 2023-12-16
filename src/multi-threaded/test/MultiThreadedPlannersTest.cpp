@@ -1,171 +1,218 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <gtest/gtest.h>
 
-#include <MT-RRT-multi-threaded/MultiThreadedPlanner.h>
+#include <LogResult.h>
+#include <TestScenarios.h>
+#include <TrivialProblemConversions.h>
 
-#include <Geometry.h>
-#include <TrivialProblemTestScenarios.h>
-#ifdef TEST_LOGGING
-#include <IO.h>
-#include <TrivialProblemJson.h>
-#endif
+#include <MT-RRT/EmbarassinglyParallel.h>
+#include <MT-RRT/LinkedTreesPlanner.h>
+#include <MT-RRT/MultiAgentPlanner.h>
+#include <MT-RRT/ParallelizedQueriesPlanner.h>
+#include <MT-RRT/SharedTreePlanner.h>
 
-#include <algorithm>
+#include <functional>
+
+using namespace mt_rrt;
 
 namespace {
-enum class ScenarioKind { SingleObstacle, Cluttered };
+struct OptimalSolutions {
+  static OptimalSolutions &get() {
+    static OptimalSolutions res = OptimalSolutions{};
+    return res;
+  }
 
-static constexpr std::size_t THREADS_TO_USE = 2; // 4;
+  using OptimalSolution = std::vector<std::vector<float>>;
 
-struct ScenarioHelper {
-  ScenarioKind kind;
-  mt_rrt::ExpansionStrategy strategy;
+  bool check_optimality(
+      mt_rrt::trivial::Kind kind,
+      const std::vector<std::vector<float>> &found_solution) const {
+    const auto &solutions = optimal_solutions.at(kind);
+    return std::any_of(
+        solutions.begin(), solutions.end(),
+        [&found_solution = found_solution](const auto &candidate) {
+          return mt_rrt::geom::curve_similarity(found_solution, candidate) <=
+                 0.2f;
+        });
+  }
 
-  mt_rrt::utils::ExtendProblem make_scenario() const {
-    switch (kind) {
-    case ScenarioKind::SingleObstacle:
-      return mt_rrt::utils::make_small_obstacle_scenario(strategy);
-    case ScenarioKind::Cluttered:
-    default:
-      return mt_rrt::utils::make_cluttered_scenario(strategy);
+private:
+  OptimalSolutions() {
+    {
+      auto &solutions = optimal_solutions[mt_rrt::trivial::Kind::SmallObstacle];
+      solutions.emplace_back(
+          OptimalSolution{{-1.f, -1.f}, {-0.8f, 0.8f}, {1.f, 1.f}});
+      solutions.emplace_back(
+          OptimalSolution{{-1.f, -1.f}, {0.8f, -0.8f}, {1.f, 1.f}});
     }
-  };
+    {
+      auto &solutions = optimal_solutions[mt_rrt::trivial::Kind::Cluttered];
+      solutions.emplace_back(
+          OptimalSolution{{-1.f, -1.f}, {1.f / 3.f, 0}, {1.f, 1.f}});
+    }
+  }
 
-  std::vector<std::vector<mt_rrt::State>> possible_optimal_solutions() const {
-    switch (kind) {
-    case ScenarioKind::SingleObstacle:
-      return {{{-1.f, -1.f}, {-0.8f, 0.8f}, {1.f, 1.f}},
-              {{-1.f, -1.f}, {0.8f, -0.8f}, {1.f, 1.f}}};
-    case ScenarioKind::Cluttered:
-    default:
-      return {{{-1.f, -1.f}, {1.f / 3.f, 0}, {1.f, 1.f}}};
+  std::unordered_map<mt_rrt::trivial::Kind, std::vector<OptimalSolution>>
+      optimal_solutions;
+};
+
+std::string to_string(mt_rrt::trivial::Kind kind) {
+  std::string result;
+  switch (kind) {
+  case mt_rrt::trivial::Kind::SmallObstacle:
+    result = "OneObstacle";
+    break;
+  case mt_rrt::trivial::Kind::Cluttered:
+    result = "Cluttered";
+    break;
+  default:
+    throw mt_rrt::Error{"Invalid kind"};
+    break;
+  }
+  return result;
+}
+
+std::string to_string(mt_rrt::ExpansionStrategy strtgy) {
+  std::string result;
+  switch (strtgy) {
+  case mt_rrt::ExpansionStrategy::Single:
+    result = "Single";
+    break;
+  case mt_rrt::ExpansionStrategy::Bidir:
+    result = "Bidir";
+    break;
+  case mt_rrt::ExpansionStrategy::Star:
+    result = "Star";
+    break;
+  }
+  return result;
+}
+
+template <typename PlannerT, ExpansionStrategy Strategy> struct Info {
+  using ThePlanner = PlannerT;
+  static constexpr ExpansionStrategy TheStrategy = Strategy;
+};
+
+template <typename PlannerT>
+using SetUpPred = std::function<void(PlannerT &, mt_rrt::Parameters &)>;
+
+template <typename PlannerT> struct PlannerTrait {};
+
+template <> struct PlannerTrait<EmbarassinglyParallelPlanner> {
+  static const inline std::string plannerName = "EmbarassinglyParallel";
+  static const inline SetUpPred<EmbarassinglyParallelPlanner> setUp =
+      SetUpPred<EmbarassinglyParallelPlanner>{};
+};
+
+template <> struct PlannerTrait<ParallelizedQueriesPlanner> {
+  static const inline std::string plannerName = "ParallelizedQueriesPlanner";
+  static const inline SetUpPred<ParallelizedQueriesPlanner> setUp =
+      SetUpPred<ParallelizedQueriesPlanner>{};
+};
+
+template <> struct PlannerTrait<SharedTreePlanner> {
+  static const inline std::string plannerName = "SharedTreePlanner";
+  static const inline SetUpPred<SharedTreePlanner> setUp =
+      SetUpPred<SharedTreePlanner>{};
+};
+
+template <> struct PlannerTrait<LinkedTreesPlanner> {
+  static const inline std::string plannerName = "LinkedTreesPlanner";
+  static const inline SetUpPred<LinkedTreesPlanner> setUp =
+      SetUpPred<LinkedTreesPlanner>{
+          [](LinkedTreesPlanner &planner, Parameters &) {
+            planner.synchronization().set(0.2f);
+          }};
+};
+
+template <> struct PlannerTrait<MultiAgentPlanner> {
+  static const inline std::string plannerName = "MultiAgentPlanner";
+  static const inline SetUpPred<MultiAgentPlanner> setUp =
+      SetUpPred<MultiAgentPlanner>{
+          [](MultiAgentPlanner &planner, Parameters &) {
+            planner.synchronization().set(0.2f);
+          }};
+};
+
+template <typename InfoT>
+class MultiThreadedPlannerTest : public ::testing::Test {
+protected:
+  const std::vector<float> START = std::vector<float>{-1.f, -1.f};
+  const std::vector<float> END = std::vector<float>{1.f, 1.f};
+
+  template <typename PlannerT, ExpansionStrategy TheStrategy>
+  void solve(trivial::Kind kind) {
+    auto problem = mt_rrt::trivial::make_scenario(kind, TheStrategy);
+    PlannerT planner{problem.point_problem};
+    planner.setThreads(2);
+    if (PlannerTrait<PlannerT>::setUp) {
+      PlannerTrait<PlannerT>::setUp(planner, problem.suggested_parameters);
+    }
+    auto solution =
+        planner.solve(this->START, this->END, problem.suggested_parameters);
+
+    const auto &connector =
+        static_cast<const mt_rrt::trivial::TrivialProblemConnector &>(
+            *planner.problem().connector);
+    const auto &sequence = solution.solution;
+
+    {
+      // log results
+      mt_rrt::LogResult res;
+      to_json(res, connector);
+      res.addSolution(sequence);
+      for (const auto &tree : solution.trees) {
+        res.addTree(*tree);
+      }
+      mt_rrt::Logger::get().add(PlannerTrait<PlannerT>::plannerName,
+                                to_string(kind) + "_" + to_string(TheStrategy),
+                                res.get());
+    }
+
+    ASSERT_TRUE(2 <= sequence.size());
+    EXPECT_EQ(sequence.front(), this->START);
+    EXPECT_EQ(sequence.back(), this->END);
+    EXPECT_FALSE(is_a_collision_present(connector, sequence));
+    if constexpr (TheStrategy == mt_rrt::ExpansionStrategy::Star) {
+      EXPECT_TRUE(OptimalSolutions::get().check_optimality(kind, sequence));
     }
   }
 };
-
-bool check_optimality(
-    const std::vector<mt_rrt::State> &found_solution,
-    const std::vector<std::vector<mt_rrt::State>> &possible_optimal_solutions) {
-  return std::any_of(
-      possible_optimal_solutions.begin(), possible_optimal_solutions.end(),
-      [&found_solution](const std::vector<mt_rrt::State> &candidate) {
-        return mt_rrt::utils::curve_similarity(found_solution, candidate) <=
-               0.2f;
-      });
-}
-
-template <typename PlannerT, typename ExpandStrategies, typename PlannerTSetter>
-void check_planner_with_setter(const std::string &log_tag,
-                               ExpandStrategies strategy,
-                               const PlannerTSetter &setter) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-
-  auto scenario_kind =
-      GENERATE(ScenarioKind::SingleObstacle, ScenarioKind::Cluttered);
-
-  ScenarioHelper helper{scenario_kind, strategy};
-
-  auto scenario = helper.make_scenario();
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-  PlannerT planner(
-      ProblemDescription{std::move(scenario.point_problem->sampler),
-                         std::move(scenario.point_problem->connector),
-                         scenario.point_problem->simmetry,
-                         Positive<float>{scenario.point_problem->gamma.get()}});
-  planner.setThreads(Threads{THREADS_TO_USE});
-  auto params = scenario.suggested_parameters;
-  setter(planner, params);
-  auto solution = planner.solve(start, end, params);
-
-#ifdef TEST_LOGGING
-  mt_rrt::utils::Logger::Log test_case_log;
-  test_case_log.tag = log_tag;
-  mt_rrt::samples::TrivialProblemConverter::CONVERTER.toJson2(test_case_log.content, planner.problem(), solution);
-  test_case_log.python_visualizer = mt_rrt::utils::default_python_sources(TRIVIAL_PROBLEM_PYTHON_SCRIPT);
-  mt_rrt::utils::Logger::log(test_case_log);
-#endif
-
-  REQUIRE(solution.solution);
-  const auto &sequence = solution.solution.value();
-  REQUIRE(2 <= sequence.size());
-  CHECK(sequence.front() == start);
-  CHECK(sequence.back() == end);
-  CHECK_FALSE(is_a_collision_present(
-      static_cast<const samples::TrivialProblemConnector &>(
-          *planner.problem().connector),
-      sequence));
-  if (helper.strategy == ExpansionStrategy::Star) {
-    // the solution found is close to one of the optimal?
-    CHECK(check_optimality(sequence, helper.possible_optimal_solutions()));
-  }
-
-  // TODO check time is lower than serial version
-}
-
-template <typename PlannerT, typename ExpandStrategies>
-void check_planner(const std::string &log_tag, ExpandStrategies strategy) {
-  check_planner_with_setter<PlannerT, ExpandStrategies>(
-      log_tag, std::forward<ExpandStrategies>(strategy),
-      [](PlannerT &, mt_rrt::Parameters &) {});
-}
 } // namespace
 
-#include <MT-RRT-multi-threaded/EmbarassinglyParallel.h>
-TEST_CASE("Embarassingly parallel planner",
-          mt_rrt::merge(TEST_TAG, "[solver][embarassingly-parallel]")) {
-  check_planner<mt_rrt::EmbarassinglyParallelPlanner>(
-      "embarassingly-parallel", GENERATE(mt_rrt::ExpansionStrategy::Single,
-                                         mt_rrt::ExpansionStrategy::Bidir,
-                                         mt_rrt::ExpansionStrategy::Star));
+using MultiThreadedPlannerTestTypes = testing::Types<
+
+    Info<EmbarassinglyParallelPlanner, ExpansionStrategy::Single>,
+    Info<EmbarassinglyParallelPlanner, ExpansionStrategy::Bidir>,
+    Info<EmbarassinglyParallelPlanner, ExpansionStrategy::Star>,
+
+    Info<ParallelizedQueriesPlanner, ExpansionStrategy::Single>,
+    Info<ParallelizedQueriesPlanner, ExpansionStrategy::Bidir>,
+    Info<ParallelizedQueriesPlanner, ExpansionStrategy::Star>,
+
+    Info<SharedTreePlanner, ExpansionStrategy::Single>,
+    Info<SharedTreePlanner, ExpansionStrategy::Bidir>,
+    Info<SharedTreePlanner, ExpansionStrategy::Star>,
+
+    Info<LinkedTreesPlanner, ExpansionStrategy::Single>,
+    Info<LinkedTreesPlanner, ExpansionStrategy::Bidir>,
+    Info<LinkedTreesPlanner, ExpansionStrategy::Star>,
+
+    Info<MultiAgentPlanner, ExpansionStrategy::Single>,
+    Info<MultiAgentPlanner, ExpansionStrategy::Star>
+
+    >;
+TYPED_TEST_CASE(MultiThreadedPlannerTest, MultiThreadedPlannerTestTypes);
+
+TYPED_TEST(MultiThreadedPlannerTest, search_one_obstacle) {
+  using Info = TypeParam;
+
+  this->template solve<typename Info::ThePlanner, Info::TheStrategy>(
+      trivial::Kind::SmallObstacle);
 }
 
-#include <MT-RRT-multi-threaded/ParallelizedQueriesPlanner.h>
-TEST_CASE("Parallelized queries planner",
-          mt_rrt::merge(TEST_TAG, "[solver][parallel-queries]")) {
-  check_planner<mt_rrt::ParallelizedQueriesPlanner>(
-      "parallel-queries", GENERATE(mt_rrt::ExpansionStrategy::Single,
-                                   mt_rrt::ExpansionStrategy::Bidir,
-                                   mt_rrt::ExpansionStrategy::Star));
-}
+TYPED_TEST(MultiThreadedPlannerTest, search_cluttered) {
+  using Info = TypeParam;
 
-#include <MT-RRT-multi-threaded/SharedTreePlanner.h>
-TEST_CASE("Shared tree planner", mt_rrt::merge(TEST_TAG, "[solver][shared-tree]")) {
-  check_planner<mt_rrt::SharedTreePlanner>(
-      "shared-tree", GENERATE(mt_rrt::ExpansionStrategy::Single,
-                              mt_rrt::ExpansionStrategy::Bidir,
-                              mt_rrt::ExpansionStrategy::Star));
-}
-
-//#include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
-//TEST_CASE("Linked trees planner", mt_rrt::merge(TEST_TAG, "[solver][linked-trees]")) {
-//  check_planner<mt_rrt::LinkedTreesPlanner>(
-//      "linked-trees", GENERATE(mt_rrt::ExpansionStrategy::Single,
-//                               mt_rrt::ExpansionStrategy::Bidir,
-//                               mt_rrt::ExpansionStrategy::Star));
-//}
-
-#include <MT-RRT-multi-threaded/MultiAgentPlanner.h>
-TEST_CASE("Multi agent planner", mt_rrt::merge(TEST_TAG, "[solver][multi-agent]")) {
-  check_planner_with_setter<mt_rrt::MultiAgentPlanner>(
-      "multi-agent",
-      GENERATE(mt_rrt::ExpansionStrategy::Single,
-               mt_rrt::ExpansionStrategy::Star),
-      [](mt_rrt::MultiAgentPlanner &planner, mt_rrt::Parameters &params) {
-        planner.synchronization().set(0.25f);
-        params.iterations.set(params.iterations.get() * 4);
-      });
-}
-
-TEST_CASE("Single threaded star approach multi agent planner",
-          mt_rrt::merge(TEST_TAG, "[solver][multi-agent]")) {
-  check_planner_with_setter<mt_rrt::MultiAgentPlanner>(
-      "multi-agent", GENERATE(mt_rrt::ExpansionStrategy::Star),
-      [](mt_rrt::MultiAgentPlanner &planner, mt_rrt::Parameters &params) {
-        planner.synchronization().set(0.25f);
-        params.iterations.set(params.iterations.get() * 4);
-        planner.setStarApproach(mt_rrt::MultiAgentPlanner::
-                                    StarExpansionStrategyApproach::MonoThread);
-      });
+  this->template solve<typename Info::ThePlanner, Info::TheStrategy>(
+      trivial::Kind::Cluttered);
 }

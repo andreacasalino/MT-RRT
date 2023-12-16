@@ -4,29 +4,30 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeTest.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeLibrary.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FetchJSONlib.cmake)
-
 project(MT-RRT)
+
+set(MT_RRT_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/script)
+
+include(${MT_RRT_SCRIPTS}/Fetch.cmake)
+include(${MT_RRT_SCRIPTS}/Terraform.cmake)
+
+if(DEFINED PYTHON_EXECUTABLE)
+    # indeed, this env var is defined by the setup.py script
+    # if here the package is being built in order to generate a wheel
+    set(PYTHON_CMD ${PYTHON_EXECUTABLE})
+else()
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    find_package(PythonLibs 3 REQUIRED)
+    set(PYTHON_CMD "${Python3_EXECUTABLE}")
+endif()
+set(COMMON_KIT_PATH ${CMAKE_SOURCE_DIR}/script)
 
 option(LIB_OPT "Compile shared libraries (ON) or static (OFF)" OFF)
 
 option(BUILD_MT_RRT_TESTS "Build MT-RRT tests" OFF)
-if(BUILD_MT_RRT_TESTS)
-    message("fetching catch2") 
-    include(FetchContent)
-    FetchContent_Declare(
-        catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        4ff8b27bb6bed4b8b309e56cd269b4f1fbc24e89
-    )
-    FetchContent_MakeAvailable(catch2)
-
-    option(ENABLE_MT_RRT_TESTS_LOGGING "Enable log generations when running tests" ON)
-endif()
-
 option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
 
-add_subdirectory(src)
-add_subdirectory(samples)
+add_subdirectory(extern)
+
+Terraform(src)
+Terraform(problems)

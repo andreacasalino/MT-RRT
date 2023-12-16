@@ -5,96 +5,74 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-multi-threaded/ParallelizedQueriesPlanner.h>
+#include <MT-RRT/ExtenderBidir.h>
+#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/ParallelFor.h>
+#include <MT-RRT/ParallelizedQueriesPlanner.h>
 
-#include <Extender.h>
-#include <MultiThreadedUtils.h>
-#include <ParallelFor.h>
+#include "MultiThreadedUtils.h"
 
 #include <algorithm>
 
 namespace mt_rrt {
 namespace {
-using ParallelForPtr = std::shared_ptr<ParallelFor>;
-
-class ParallelQueriesTreeHandler : public TreeHandler {
+class ParallelQueriesTreeHandler : public TreeHandlerBasic {
 public:
   ParallelQueriesTreeHandler(
-      const State &root_state,
+      const View &rootState,
       const std::vector<ProblemDescriptionPtr> &descriptions,
-      const Parameters &parameters, const ParallelForPtr &parallel_executor)
-      : TreeHandler(
-            make_tree([&root_state]() { return make_root(root_state); }),
-            descriptions.front(), parameters),
-        descriptions(descriptions) {
-    parallel_for_executor = parallel_executor;
-  }
+      const Parameters &parameters, ParallelFor &parallelFor)
+      : TreeHandlerBasic(rootState, descriptions.front(), parameters),
+        parallelFor{&parallelFor}, descriptions(descriptions) {}
 
   // nullptr if nothing was found
-  Node *nearestNeighbour(const State &state) final {
-    struct Result {
-      Node *node = nullptr;
-      float distance = COST_MAX;
-
-      bool operator<(const Result &o) const { return distance < o.distance; }
-    };
-
-    auto to_reduce =
-        parallel_for_executor->process<Result, Tree::const_iterator>(
-            tree->begin(), tree->end(),
-            [&descriptions = this->descriptions, &state](
-                Result &res, const NodePtr &node, const std::size_t th_id) {
-              float cost = descriptions[th_id]->connector->minCost2Go(
-                  node->getState(), state);
-              if (cost < res.distance) {
-                res.node = node.get();
-                res.distance = cost;
-              }
-            });
-
-    std::sort(to_reduce.begin(), to_reduce.end());
-    return to_reduce.front().node;
+  const Node *nearestNeighbour(const View &state) const override {
+    std::vector<NearestQuery> results;
+    results.resize(parallelFor->size());
+    parallelFor->process(nodes, [&](const Node *node, std::size_t threadId) {
+      float dist =
+          descriptions[threadId]->connector->minCost2Go(node->state(), state);
+      results[threadId](*node, dist);
+    });
+    return std::min_element(results.begin(), results.end(),
+                            [](const NearestQuery &a, const NearestQuery &b) {
+                              return a.closestCost < b.closestCost;
+                            })
+        ->closest;
   }
 
-  NearSet nearSet(const Node &subject) final {
-    float ray = near_set_ray(tree->size(), tree->front()->getState().size(),
+  NearSet nearSet(const Node &subject) const override {
+    float ray = near_set_ray(nodes.size(), nodes.front()->state().size,
                              problem().gamma.get());
-
-    auto to_reduce =
-        parallel_for_executor->process<NearSet, Tree::const_iterator>(
-            tree->begin(), tree->end(),
-            [&descriptions = this->descriptions, &subject, &ray](
-                NearSet &result, const NodePtr &node, const std::size_t th_id) {
-              if (descriptions[th_id]->connector->minCost2Go(
-                      node->getState(), subject.getState()) <= ray) {
-                result.emplace(node.get(), node->cost2Root());
-              }
-            });
-
-    NearSet result;
-    for (const auto &to_reduce_element : to_reduce) {
-      for (const auto &[node, cost] : to_reduce_element) {
-        result.emplace(node, cost);
-      }
+    std::vector<NearSetQuery> results;
+    for (std::size_t k = 0; k < descriptions.size(); ++k) {
+      results.emplace_back(
+          NearSetQuery{ray, subject.state(), descriptions[k]->connector.get()});
     }
-    auto *subject_father = subject.getFatherInfo().father;
-    if (result.find(subject_father) == result.end()) {
-      result.emplace(subject_father, subject_father->cost2Root());
+    results.resize(parallelFor->size());
+    parallelFor->process(nodes, [&](Node *node, std::size_t threadId) {
+      results[threadId](*node);
+    });
+    NearSet res;
+    res.cost2RootSubject = subject.cost2Root();
+    for (const auto &r : results) {
+      res.set.insert(res.set.end(), r.set.begin(), r.set.end());
     }
-    return result;
+    return res;
   }
 
 private:
-  ParallelForPtr parallel_for_executor;
+  ParallelFor *parallelFor;
   std::vector<ProblemDescriptionPtr> descriptions;
 };
 } // namespace
 
-void ParallelizedQueriesPlanner::solve_(const State &start, const State &end,
+void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
+                                        const std::vector<float> &end,
                                         const Parameters &parameters,
                                         PlannerSolution &recipient) {
-  ParallelForPtr parallel_for_executor =
-      std::make_shared<ParallelFor>(getThreads());
+  ParallelFor parallel_for_executor{getThreads()};
   resizeDescriptions(getThreads());
   const auto &descriptions = getAllDescriptions();
 
@@ -117,7 +95,7 @@ void ParallelizedQueriesPlanner::solve_(const State &start, const State &end,
   }
 
   recipient.iterations = extender->search();
-  emplace_solution(recipient, extender->getSolutions());
+  recipient.solution = find_best_solution(extender->getSolutions());
   recipient.trees = extender->dumpTrees();
 }
 

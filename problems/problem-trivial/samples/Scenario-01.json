@@ -1,0 +1,50 @@
+{
+    "parameters": {
+        "strategy": "Star",
+        "steer_trials": 10,
+        "iterations": 1500,
+        "determinism": 0.15
+    },
+    "scene": {
+        "obstacles": [
+            {
+                "max": [
+                    0.5,
+                    0.5
+                ],
+                "min": [
+                    -0.5,
+                    -0.5
+                ]
+            }
+        ],
+        "seed": 0
+    },
+    "cases": [
+        {
+            "title": "case-A",
+            "start": [
+                -1,
+                -1
+            ],
+            "end": [
+                1,
+                1
+            ]
+        },
+        {
+            "title": "case-B",
+            "start": [
+                -1,
+                1
+            ],
+            "end": [
+                1,
+                -1
+            ]
+        }
+    ],
+    "planner": {
+        "type": "STANDARD"
+    }
+}

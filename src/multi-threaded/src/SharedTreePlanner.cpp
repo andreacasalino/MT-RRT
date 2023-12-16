@@ -5,115 +5,159 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-multi-threaded/SharedTreePlanner.h>
+#include <MT-RRT/ExtenderBidir.h>
+#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/SharedTreePlanner.h>
 
-#include <Extender.h>
-#include <MultiThreadedUtils.h>
+#include <MT-RRT/LockFreeForwardList.h>
 
-#include <algorithm>
-#include <atomic>
+#include "MultiThreadedUtils.h"
+
 #include <omp.h>
 
 namespace mt_rrt {
 namespace {
-class NodeThreadSafe : public Node {
+class SpinLock {
 public:
-  NodeThreadSafe(Node &&o) : Node(std::forward<Node>(o)) {}
+  SpinLock() = default;
 
-  NodeFatherInfo getFatherInfo() const override {
-    std::scoped_lock node_lock(node_mtx);
-    return this->Node::getFatherInfo();
-  };
-
-  void setFatherInfo(const NodeFatherInfo &info) override {
-    std::scoped_lock node_lock(node_mtx);
-    this->Node::setFatherInfo(info);
-  };
+  template <typename Pred> void criticalRegion(Pred &&pred) {
+    do {
+      bool expected = true;
+      if (lock.compare_exchange_strong(expected, false,
+                                       std::memory_order_acquire)) {
+        break;
+      }
+    } while (true);
+    pred();
+    lock.store(true, std::memory_order_release);
+  }
 
 private:
-  mutable std::mutex node_mtx;
+  std::atomic_bool lock = true;
 };
 
-NodePtr make_node_safe(Node &&o) {
-  return std::make_shared<NodeThreadSafe>(std::forward<Node>(o));
-}
-
-class ThreadSafeTreeHandler : public TreeHandler {
+class SharedTreeHandler : public TreeHandler {
 public:
-  ThreadSafeTreeHandler(const TreePtr &tree,
-                        const ProblemDescriptionPtr &problem,
-                        const Parameters &parameters)
-      : TreeHandler(tree, problem, parameters) {}
-
-  Node *nearestNeighbour(const State &state) final {
-    Tree::const_reverse_iterator tree_begin, tree_end;
-    {
-      std::scoped_lock lock(expansion_mutex);
-      tree_end = tree->rend();
-      tree_begin = tree->rbegin();
-    }
-    return nearest_neighbour(state, tree_begin, tree_end,
-                             DescriptionAndParameters{problem(), parameters});
-  }
-
-  NearSet nearSet(const Node &subject) final {
+  const Node *nearestNeighbour(const View &state) const override {
     const auto &connector = *problem().connector;
-    Tree::const_reverse_iterator tree_begin, tree_end;
-    std::size_t tree_size;
-    {
-      std::scoped_lock lock(expansion_mutex);
-      tree_end = tree->rend();
-      tree_begin = tree->rbegin();
-      tree_size = tree->size();
-    }
-    return near_set(subject, tree_begin, tree_end,
-                    DescriptionAndParameters{problem(), parameters});
+    NearestQuery result;
+    shared->nodes.forEach([&](Node *node) {
+      result(*node, connector.minCost2Go(node->state(), state));
+    });
+    return result.closest;
   }
 
-  Node *add(Node &&to_add) final {
-    std::scoped_lock lock(expansion_mutex);
-    tree->push_back(make_node_safe(std::forward<Node>(to_add)));
-    return tree->back().get();
+  NearSet nearSet(const Node &node) const override {
+    NearSet res;
+    shared->lock.criticalRegion([&] {
+      res.cost2RootSubject = node.cost2Root();
+      std::size_t problem_size = shared->root.state().size;
+      float ray = near_set_ray(shared->nodes.size(), problem_size,
+                               problem().gamma.get());
+      NearSetQuery query{ray, node.state(), problem().connector.get()};
+      shared->nodes.forEach([&](Node *node) { query(*node); });
+      res.set = std::move(query.set);
+    });
+    return res;
+  }
+
+  Node *internalize(const Node &subject) override {
+    auto *added = &shared->allocators[threadId]->emplace_back(subject.state());
+    added->setParent(*subject.getParent(), subject.cost2Go());
+    shared->nodes.emplace_back(added);
+    return added;
+  }
+
+  void applyRewires(const Node &new_father,
+                    const std::vector<Rewire> &rewires) override {
+    shared->lock.criticalRegion([&] {
+      for (const auto &rewire : rewires) {
+        rewire.involved_node->setParent(new_father,
+                                        rewire.new_cost_from_father);
+      }
+    });
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  static std::vector<std::unique_ptr<SharedTreeHandler>>
+  make_trees(const View &root,
+             const std::vector<ProblemDescriptionPtr> &problems,
+             const Parameters &parameters) {
+    std::vector<std::unique_ptr<SharedTreeHandler>> res;
+    auto shared = std::make_shared<SharedData>(root, problems.size());
+    for (std::size_t th_id = 0; th_id < problems.size(); ++th_id) {
+      res.emplace_back().reset(
+          new SharedTreeHandler(problems[th_id], parameters, shared, th_id));
+    }
+    return res;
+  }
+
+  void copyToVectorNodes() {
+    shared->nodes.forEach(
+        [&nodes = this->nodes](Node *n) { nodes.push_back(n); });
+    nodes.erase(nodes.begin());
   }
 
 private:
-  mutable std::mutex expansion_mutex;
+  struct SharedData {
+    SharedData(const View &root_view, std::size_t threads)
+        : root{root_view}, nodes{&root} {
+      for (std::size_t k = 0; k < threads; ++k) {
+        allocators.emplace_back(std::make_unique<NodesAllocator>());
+      }
+    };
+
+    NodeOwning root;
+    LockFreeForwardList<Node *> nodes;
+    std::vector<std::unique_ptr<NodesAllocator>> allocators;
+    SpinLock lock;
+  };
+
+  SharedTreeHandler(const ProblemDescriptionPtr &problem,
+                    const Parameters &parameters,
+                    std::shared_ptr<SharedData> shared, std::size_t threadId)
+      : TreeHandler(problem, parameters), threadId{threadId}, shared{shared} {
+    this->parameters.iterations.set(1);
+    nodes.push_back(&shared->root);
+  }
+
+  std::size_t threadId;
+  std::shared_ptr<SharedData> shared;
 };
 } // namespace
 
-void SharedTreePlanner::solve_(const State &start, const State &end,
+void SharedTreePlanner::solve_(const std::vector<float> &start,
+                               const std::vector<float> &end,
                                const Parameters &parameters,
                                PlannerSolution &recipient) {
-  auto one_iter_parameters = parameters;
-  one_iter_parameters.iterations.set(1);
-
-  auto extenders_maker = [&](const State &state) {
-    // tree is shared, while each thread uses its own dedicated problem copy
-    auto tree = make_tree([&state]() { return make_node_safe(Node{state}); });
-    std::vector<TreeHandlerPtr> result;
-    for (std::size_t k = 0; k < this->getThreads(); ++k) {
-      result.emplace_back(std::make_unique<ThreadSafeTreeHandler>(
-          tree, problemAt(k), one_iter_parameters));
-    }
-    return result;
-  };
-
+  resizeDescriptions(getThreads());
   Extenders extenders;
+  std::vector<SharedTreeHandler *> handlers;
+
   switch (parameters.expansion_strategy) {
-  case ExpansionStrategy::Star:
-  case ExpansionStrategy::Single: {
-    auto handlers = extenders_maker(start);
-    for (auto &handler : handlers) {
+  case ExpansionStrategy::Single:
+  case ExpansionStrategy::Star: {
+    auto trees =
+        SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters);
+    handlers.push_back(trees.front().get());
+    for (auto &tree : trees) {
       extenders.emplace_back(
-          std::make_unique<ExtenderSingle>(std::move(handler), end));
+          std::make_unique<ExtenderSingle>(std::move(tree), end));
     }
   } break;
   case ExpansionStrategy::Bidir: {
-    auto front_handlers = extenders_maker(start);
-    auto back_handlers = extenders_maker(end);
-    for (std::size_t k = 0; k < front_handlers.size(); ++k) {
+    auto front_trees =
+        SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters);
+    handlers.push_back(front_trees.front().get());
+    auto back_trees =
+        SharedTreeHandler::make_trees(end, getAllDescriptions(), parameters);
+    handlers.push_back(back_trees.front().get());
+    for (std::size_t k = 0; k < front_trees.size(); ++k) {
       extenders.emplace_back(std::make_unique<ExtenderBidirectional>(
-          std::move(front_handlers[k]), std::move(back_handlers[k])));
+          std::move(front_trees[k]), std::move(back_trees[k])));
     }
   } break;
   }
@@ -127,16 +171,20 @@ void SharedTreePlanner::solve_(const State &start, const State &end,
     const auto th_id = omp_get_thread_num();
     Extender &extender = *extenders[th_id];
     while (search_predicate(iter)) {
-      extender.search();
+      iter += extender.search();
       if (!extender.getSolutions().empty()) {
         search_predicate.one_solution_was_found = true;
       }
-      ++iter;
     }
   });
 
   recipient.iterations = iter;
-  emplace_solution(recipient, get_best_solution(extenders));
-  recipient.trees = extenders.front()->dumpTrees();
+  recipient.solution = get_best_solution(extenders);
+  for (auto *tree : handlers) {
+    tree->copyToVectorNodes();
+  }
+  for (auto &&tree : extenders.front()->dumpTrees()) {
+    recipient.trees.emplace_back(std::move(tree));
+  }
 }
 } // namespace mt_rrt

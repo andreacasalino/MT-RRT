@@ -1,0 +1,27 @@
+{
+    "show": [
+        {
+            "name": "cart_collision_checks",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-navigation/NavigationProblem.py",
+            "args": "'--gtest_filter=*CartCollisionTest*'",
+            "args_script": ["--simplified"]
+        },
+        {
+            "name": "cart_traj_computation",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-navigation/test/CartTrajectoryTests.py",
+            "args": "'--gtest_filter=*trivial_lines:*blended_arc_logic'",
+            "args_script": ["--kind", "info"]
+        },
+        {
+            "name": "cart_traj_interpolation",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-navigation/test/CartTrajectoryTests.py",
+            "args": "'--gtest_filter=*blended_arc_advance_interpolation'",
+            "args_script": ["--kind", "traj"]
+        },
+        {
+            "name": "real_problem",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-navigation/NavigationProblem.py",
+            "args": "'--gtest_filter=RealProblemTest*'"
+        }
+    ]
+}

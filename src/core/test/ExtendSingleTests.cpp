@@ -1,155 +1,57 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include "ExtendTest.h"
 
-#include <TrivialProblemTestScenarios.h>
-#ifdef TEST_LOGGING
-#include "Log.h"
-#endif
+using namespace mt_rrt;
+using namespace mt_rrt::trivial;
 
-TEST_CASE("Single extender in an empty space",
-          mt_rrt::merge(TEST_TAG, "[extend][single][empty]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+struct SingleStrategyTest : public ::testing::Test,
+                            public ExtendTest<ExpansionStrategy::Single> {
+  SingleStrategyTest() : ExtendTest<ExpansionStrategy::Single>{Kind::Empty} {}
+};
 
-  auto size = GENERATE(2, 5);
+TEST_F(SingleStrategyTest, nodes_deterministically_steered_only_once) {
+  problem.suggested_parameters.determinism.set(1.f);
+  auto extender = makeExtender();
+  extender.search();
 
-  auto scenario = make_empty_scenario(ExpansionStrategy::Single);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
+  const auto &solutions = extender.getSolutions();
+  ASSERT_EQ(solutions.size(), 1);
+  ASSERT_TRUE(check_solutions(static_cast<const TrivialProblemConnector &>(
+                                  *problem.point_problem->connector),
+                              solutions, start, end));
 
-  SECTION("check that nodes are deterministically steered only once") {
-    scenario.suggested_parameters.determinism.set(1.f);
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "single-empty_only_deterministic");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE(solutions.size() == 1);
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
-
-  SECTION("check that at least a solution is found") {
-    auto splitted_extend = GENERATE(true, false);
-
-    std::unique_ptr<ExtenderSingle> extender;
-
-    if (splitted_extend) {
-      const std::size_t cycles = 10;
-      scenario.suggested_parameters.iterations.set(
-          scenario.suggested_parameters.iterations.get() / cycles);
-      extender = std::make_unique<ExtenderSingle>(
-          make_tree_handler(start, scenario.point_problem,
-                            scenario.suggested_parameters),
-          end);
-      for (std::size_t k = 0; k < cycles; ++k) {
-        extender->search();
-      }
-    } else {
-      extender = std::make_unique<ExtenderSingle>(
-          make_tree_handler(start, scenario.point_problem,
-                            scenario.suggested_parameters),
-          end);
-      extender->search();
-    }
-
-#ifdef TEST_LOGGING
-    log_test_case(*extender, "single-empty_many_solutions");
-#endif
-
-    const auto &solutions = extender->getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
+  mt_rrt::log_test_case("single", "empty_only_deterministic", extender);
 }
 
-TEST_CASE("Single extender with blocking obstacle",
-          mt_rrt::merge(TEST_TAG, "[extend][single][blocking]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+using SingleStrategyFixture = ::testing::TestWithParam<Kind>;
 
-  auto size = GENERATE(2, 5);
+TEST_P(SingleStrategyFixture, search) {
+  auto test = ExtendTest<ExpansionStrategy::Single>{GetParam()};
+  auto extender = test.makeExtender();
+  extender.search();
 
-  auto scenario = make_no_solution_scenario(size, ExpansionStrategy::Single);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "single-no_solution");
-#endif
-
-    REQUIRE(extender.getSolutions().empty());
+  if (GetParam() == Kind::NoSolution) {
+    ASSERT_TRUE(extender.getSolutions().empty());
+  } else {
+    test.checkSolutions(extender);
   }
+
+  mt_rrt::log_test_case("single", make_log_tag(GetParam()), extender);
 }
 
-TEST_CASE("Single extender with single obstacle",
-          mt_rrt::merge(TEST_TAG, "[extend][single][obstacle]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+INSTANTIATE_TEST_CASE_P(SingleStrategySearchTest, SingleStrategyFixture,
+                        ::testing::Values(Kind::Empty, Kind::NoSolution,
+                                          Kind::SmallObstacle,
+                                          Kind::Cluttered));
 
-  auto scenario = make_small_obstacle_scenario(ExpansionStrategy::Single);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
+TEST_F(SingleStrategyTest, multiple_search_cycles) {
+  const std::size_t cycles = 10;
+  problem.suggested_parameters.iterations.set(
+      problem.suggested_parameters.iterations.get() / cycles);
+  auto extender = makeExtender();
+  for (std::size_t k = 0; k < cycles; ++k)
     extender.search();
 
-#ifdef TEST_LOGGING
-    log_test_case(extender, "single-one_obstacle");
-#endif
+  checkSolutions(extender);
 
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
-}
-
-TEST_CASE("Single extender in cluttered scenario",
-          mt_rrt::merge(TEST_TAG, "[extend][single][cluttered]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-
-  auto scenario = make_cluttered_scenario(ExpansionStrategy::Single);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "single-cluttered");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
+  mt_rrt::log_test_case("single", "multiple_cycles", extender);
 }

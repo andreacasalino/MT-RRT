@@ -5,28 +5,14 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-carpet/Error.h>
-#include <MT-RRT-core/Planner.h>
+#include <MT-RRT/Error.h>
+#include <MT-RRT/Planner.h>
 
 #ifdef SHOW_PLANNER_PROGRESS
-#include <iostream>
+#include "Progress.h"
 #endif
 
 namespace mt_rrt {
-#ifdef SHOW_PLANNER_PROGRESS
-void PlannerProgress::reset() {
-  std::scoped_lock lock(progress_show_mtx);
-  progress_count = 0;
-}
-
-PlannerProgress &PlannerProgress::operator++() {
-  std::scoped_lock lock(progress_show_mtx);
-  ++progress_count;
-  std::cout << "iteration: " << progress_count << std::endl;
-  return *this;
-}
-#endif
-
 namespace {
 ProblemDescriptionPtr make_description(ProblemDescription &&problem) {
   if (nullptr == problem.sampler) {
@@ -55,7 +41,8 @@ Planner::Planner(ProblemDescription &&problem)
 Planner::Planner(std::shared_ptr<ProblemDescription> problem)
     : Planner(std::move(*problem)) {}
 
-PlannerSolution Planner::solve(const State &start, const State &end,
+PlannerSolution Planner::solve(const std::vector<float> &start,
+                               const std::vector<float> &end,
                                const Parameters &parameters) {
   if (start.size() != state_space_size) {
     throw Error{"size of start is not ", std::to_string(state_space_size)};
@@ -65,7 +52,7 @@ PlannerSolution Planner::solve(const State &start, const State &end,
   }
   std::scoped_lock lock(compute_solution_mtx);
 #ifdef SHOW_PLANNER_PROGRESS
-  PLANNER_PROGRESS_SINGLETON.reset();
+  Progress::get().reset();
 #endif
   auto tic = std::chrono::high_resolution_clock::now();
   PlannerSolution result;

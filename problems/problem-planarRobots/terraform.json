@@ -1,0 +1,8 @@
+{
+    "condition":["BUILD_MT_RRT_SAMPLES"],
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}misc"
+        ]
+    }
+}

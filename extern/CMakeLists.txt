@@ -1,0 +1,10 @@
+if (WIN32)
+	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif (WIN32)
+if(BUILD_MT_RRT_TESTS)
+    Fetch(https://github.com/google/googletest.git release-1.11.0 gtest)
+endif()
+
+if(BUILD_MT_RRT_TESTS OR BUILD_MT_RRT_SAMPLES)
+    Fetch(https://github.com/nlohmann/json.git v3.10.5 json_lib)
+endif()

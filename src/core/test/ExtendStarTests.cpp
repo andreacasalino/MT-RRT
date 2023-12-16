@@ -1,107 +1,53 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include "ExtendTest.h"
 
-#include <Geometry.h>
-#include <TrivialProblemTestScenarios.h>
-#ifdef TEST_LOGGING
-#include "Log.h"
-#endif
+using namespace mt_rrt;
+using namespace mt_rrt::trivial;
 
-TEST_CASE("Star extender in an empty space",
-          mt_rrt::merge(TEST_TAG, "[extend][star][empty]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+using StarStrategyFixture = ::testing::TestWithParam<Kind>;
 
-  auto size = GENERATE(2, 4);
+TEST_P(StarStrategyFixture, search) {
+  auto test = ExtendTest<ExpansionStrategy::Star>{GetParam()};
+  auto extender = test.makeExtender();
+  extender.search();
 
-  auto scenario = make_empty_scenario(ExpansionStrategy::Star);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
+  test.checkSolutions(extender);
 
-  SECTION("check rrt star optimality") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
+  {
+    SCOPED_TRACE("check optimality");
 
-#ifdef TEST_LOGGING
-    log_test_case(extender, "star-empty");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-    CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    CHECK(curve_similarity(solutions.begin()->second->getSequence(),
-                           {start, end}) <= 0.2f);
+    sort_solutions(extender.getSolutions());
+    const auto &best_solution = extender.getSolutions().front();
+    using Sequence = std::vector<std::vector<float>>;
+    std::vector<Sequence> optimal_paths;
+    switch (GetParam()) {
+    case Kind::Empty: {
+      optimal_paths.emplace_back(
+          Sequence{test.start.asVec(), test.end.asVec()});
+    } break;
+    case Kind::SmallObstacle: {
+      optimal_paths.emplace_back(
+          Sequence{test.start.asVec(), {-0.8f, 0.8f}, test.end.asVec()});
+      optimal_paths.emplace_back(
+          Sequence{test.start.asVec(), {0.8f, -0.8f}, test.end.asVec()});
+    } break;
+    case Kind::Cluttered: {
+      optimal_paths.emplace_back(
+          Sequence{test.start.asVec(), {1.f / 3.f, 0}, test.end.asVec()});
+    } break;
+    default:
+      break;
+    }
+    bool is_optimal = std::any_of(
+        optimal_paths.begin(), optimal_paths.end(),
+        [seq = best_solution->getSequence()](const auto &candidate) {
+          return geom::curve_similarity(seq, candidate) <= 0.2f;
+        });
+    EXPECT_TRUE(is_optimal);
   }
+
+  mt_rrt::log_test_case("star", make_log_tag(GetParam()), extender);
 }
 
-TEST_CASE("Star extender with single obstacle",
-          mt_rrt::merge(TEST_TAG, "[extend][star][obstacle]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-
-  auto scenario = make_small_obstacle_scenario(ExpansionStrategy::Star);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check rrt star optimality") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "star-one_obstacle");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-    CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    bool is_optimal =
-        (curve_similarity(solutions.begin()->second->getSequence(),
-                          {start, {-0.8f, 0.8f}, end}) <= 0.2f) ||
-        (curve_similarity(solutions.begin()->second->getSequence(),
-                          {start, {0.8f, -0.8f}, end}) <= 0.2f);
-    CHECK(is_optimal);
-  }
-}
-
-TEST_CASE("Star extender in cluttered scenario",
-          mt_rrt::merge(TEST_TAG, "[extend][star][cluttered]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-
-  auto scenario = make_cluttered_scenario(ExpansionStrategy::Star);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderSingle extender(make_tree_handler(start, scenario.point_problem,
-                                              scenario.suggested_parameters),
-                            end);
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "star-cluttered");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-    CHECK(check_loopy_connections(extender.dumpTrees().front()));
-    CHECK(curve_similarity(solutions.begin()->second->getSequence(),
-                           {start, {1.f / 3.f, 0}, end}) <= 0.2f);
-  }
-}
+INSTANTIATE_TEST_CASE_P(StarStrategySearchTest, StarStrategyFixture,
+                        ::testing::Values(Kind::Empty, Kind::SmallObstacle,
+                                          Kind::Cluttered));

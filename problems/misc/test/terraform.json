@@ -1,0 +1,14 @@
+{
+    "show": [
+        {
+            "name": "LoggerTests",
+            "script": "${CMAKE_CURRENT_SOURCE_DIR}/LoggerTests.py",
+            "args": "'--gtest_filter=*LoggerTest*'"
+        },
+        {
+            "name": "BoxTests",
+            "script": "${CMAKE_SOURCE_DIR}/script/common/Figure.py",
+            "args": "'--gtest_filter=*BoxTest*'"
+        }
+    ]
+}
