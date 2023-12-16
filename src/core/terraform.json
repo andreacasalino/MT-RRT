@@ -1,0 +1,16 @@
+{
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}carpet"
+        ]
+    },
+    "flags": {
+        "PUBLIC": [
+            {
+                "name": "SHOW_PLANNER_PROGRESS",
+                "msg": "debug tool that, when enabled, print a planner progress in the console",
+                "default": false
+            }
+        ]
+    }
+}

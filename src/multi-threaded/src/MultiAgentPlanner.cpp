@@ -5,209 +5,149 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-multi-threaded/MultiAgentPlanner.h>
+#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/MultiAgentPlanner.h>
 
-#include <MultiThreadedUtils.h>
+#include "MultiThreadedUtils.h"
 
 #include <algorithm>
+#include <unordered_map>
 
 namespace mt_rrt {
 namespace {
-using RewiresMap = std::unordered_multimap<Node *, Rewires>;
-
-template <typename Container>
-typename Container::const_iterator at_second(const Container &subject) {
-  auto it = subject.begin();
-  ++it;
-  return it;
-}
-
-class MasterTreeHandler : public TreeHandler {
+class MasterTreeHandler : public TreeHandlerBasic {
 public:
-  MasterTreeHandler(
-      const State &root, const State &target,
-      const std::vector<ProblemDescriptionPtr> &problems,
-      const Parameters &parameters,
-      MultiAgentPlanner::StarExpansionStrategyApproach star_approach)
-      : TreeHandler(make_root(root), problems.front(), parameters),
-        target(target),
+  MasterTreeHandler(const View &root, const View &target,
+                    const std::vector<ProblemDescriptionPtr> &problems,
+                    const Parameters &parameters)
+      : TreeHandlerBasic(root, problems.front(), parameters),
+        target(target.convert()),
         root_sampler(0, 1.f, problems.front()->sampler->sampleSeed()),
-        star_approach(star_approach) {
-    for (const auto &problem : problems) {
-      auto &params = infos.emplace_back(ExtendInfo{problem, parameters}).params;
-      params.expansion_strategy = ExpansionStrategy::Single;
-    }
+        problems{problems} {
+    infos.resize(problems.size());
   }
 
-  Extender &getExtender() {
-    TreePtr extender_tree;
-    extender_tree = std::make_shared<Tree>();
-    {
-      NodePtr root;
-      {
-        std::scoped_lock lock(root_sampler_mtx);
-        auto pos = static_cast<std::size_t>(
-            std::floor(root_sampler.sample() * tree->size()));
-        auto it = tree->begin();
-        std::advance(it, pos);
-        root = *it;
-      }
-      extender_tree->push_back(root);
-    }
-
+  ExtenderSingle &regenerateExtender() {
     auto &info = infos[omp_get_thread_num()];
-    info.extender = std::make_unique<ExtenderSingle>(
-        std::make_unique<TreeHandler>(extender_tree, info.problem, info.params),
-        target);
-    info.nodes_to_collect.clear();
-    info.rewires_to_apply.clear();
-    return *info.extender;
+    auto &problem = problems[omp_get_thread_num()];
+    std::size_t sampled_root = static_cast<std::size_t>(
+        std::floor(root_sampler.sample() * nodes.size()));
+    Node *root = nodes[sampled_root];
+    TreeHandlerPtr hndlr =
+        std::make_unique<TreeHandlerBasic>(*root, problem, this->parameters);
+    hndlr->parameters.expansion_strategy = ExpansionStrategy::Single;
+    return info.emplace(std::move(hndlr), this->target).extender;
   }
 
   void gatherResults() {
+    int th_id = omp_get_thread_num();
+    TreeHandlerBasic &hndlr =
+        static_cast<TreeHandlerBasic &>(*infos[th_id]->extender.tree_handler);
+    hndlr.nodes.erase(hndlr.nodes.begin());
+
     switch (parameters.expansion_strategy) {
     case ExpansionStrategy::Single:
-      normalGather();
-      return;
-    case ExpansionStrategy::Star: {
-      switch (star_approach) {
-      case MultiAgentPlanner::StarExpansionStrategyApproach::ExploitAllThreads:
-        multiThreadedStarGather();
-        break;
-      case MultiAgentPlanner::StarExpansionStrategyApproach::MonoThread:
-        monoThreadStarGather();
-        break;
-      default:
-        throw Error{"Invalid gather"};
-        break;
-      }
-    }
-      return;
-    default:
       break;
+    case ExpansionStrategy::Star: {
+      computeRewires();
+    } break;
+    default:
+      throw Error{"Invalid gather"};
     }
-    throw Error{"Invalid gather"};
+    if (0 != th_id) {
+      return;
+    }
+
+    for (auto &info : infos) {
+      // internalize all explored nodes
+      TreeHandlerBasic &hndlr =
+          static_cast<TreeHandlerBasic &>(*info->extender.tree_handler);
+      for (Node *node : hndlr.nodes) {
+        auto *added = &this->allocator.emplace_back(node->state());
+        info->nodes_map.emplace(node, added);
+        added->setParent(
+            *info->locateInMasterTree(const_cast<Node *>(node->getParent())),
+            node->cost2Go());
+        nodes.push_back(added);
+      }
+      // execute pending rewires
+      for (auto &[parent, rewires] : info->pending_rewires) {
+        for (auto &rew : rewires) {
+          rew.involved_node = info->locateInMasterTree(rew.involved_node);
+        }
+        apply_rewires_if_better(
+            *info->locateInMasterTree(const_cast<Node *>(parent)), rewires);
+      }
+      // gather the found solutions
+      for (const auto &sol : info->extender.getSolutions()) {
+        auto sol_ptr = std::dynamic_pointer_cast<SimpleSolution>(sol);
+        solutions.emplace_back(std::make_shared<SimpleSolution>(
+            info->locateInMasterTree(const_cast<Node *>(sol_ptr->byPassNode)),
+            sol_ptr->cost2Target, target));
+      }
+      // reset
+      info.reset();
+    }
   }
 
   Solutions solutions;
 
 private:
-  const MultiAgentPlanner::StarExpansionStrategyApproach star_approach;
-  const State &target;
-
-  std::mutex root_sampler_mtx;
+  std::vector<float> target;
   UniformEngine root_sampler;
 
   struct ExtendInfo {
-    ProblemDescriptionPtr problem;
-    Parameters params;
-    std::unique_ptr<ExtenderSingle> extender;
-    Tree nodes_to_collect;
-    RewiresMap rewires_to_apply;
+    template <typename... Args>
+    ExtendInfo(Args &&...extender_args)
+        : extender{std::forward<Args>(extender_args)...} {}
+
+    Node *locateInMasterTree(Node *subject) const {
+      auto it = nodes_map.find(subject);
+      if (it == nodes_map.end()) {
+        // this is a node in master tree
+        return subject;
+      }
+      return it->second;
+    }
+
+    ExtenderSingle extender;
+    std::unordered_map<Node *, Node *>
+        nodes_map; // <node in this extender, counterpart in parent tree>
+    std::unordered_map<const Node *, std::vector<Rewire>> pending_rewires;
   };
-  std::vector<ExtendInfo> infos;
+  std::vector<ProblemDescriptionPtr> problems;
+  std::vector<std::optional<ExtendInfo>> infos;
 
-  void normalGather() {
-    if (0 != omp_get_thread_num()) {
-      return;
-    }
-    for (const auto &info : infos) {
-      auto &giver = *info.extender->tree_handler->tree;
-      std::for_each(
-          at_second(giver), giver.cend(),
-          [this](const NodePtr &node) { this->tree->push_back(node); });
-      for (const auto &[cost, solution] : info.extender->getSolutions()) {
-        this->solutions.emplace(cost, solution);
-      }
-    }
-  }
-
-  void multiThreadedStarGather() {
-    const auto th_id = omp_get_thread_num();
-    {
-      auto &info = infos[th_id];
-      auto *handler_tree = info.extender->tree_handler.get();
-      handler_tree->tree->pop_front();
-      info.nodes_to_collect = *handler_tree->tree;
-      *handler_tree->tree = *this->tree;
-      const auto &problem = *info.problem;
-      std::unordered_set<Node *> sorted_nodes_to_collect;
-      for (const auto &n : info.nodes_to_collect) {
-        sorted_nodes_to_collect.emplace(n.get());
-      }
-      for (const auto &found_node : info.nodes_to_collect) {
-        auto near_set = handler_tree->nearSet(*found_node);
-        auto &rewires_to_add =
-            info.rewires_to_apply.emplace(found_node.get(), Rewires{})->second;
-        for (const auto &rewire : compute_rewires(
-                 *found_node, near_set,
-                 DescriptionAndParameters{problem, this->parameters})) {
-          if (sorted_nodes_to_collect.find(&rewire.involved_node) ==
-              sorted_nodes_to_collect.end()) {
-            // this rewire involves a node in the common tree: do it later from
-            // main thread
-            rewires_to_add.push_back(rewire);
-          } else {
-            // this rewire involves a node in the found nodes list: it can be
-            // applied now
-            rewire.involved_node.setFatherInfo(
-                NodeFatherInfo{found_node.get(), rewire.new_cost_from_father});
-          }
-        }
-        handler_tree->tree->push_back(found_node);
+  void computeRewires() {
+    auto &info = infos[omp_get_thread_num()];
+    auto *handler_tree = info->extender.tree_handler.get();
+    DescriptionAndParameters descPars{*problems[omp_get_thread_num()],
+                                      this->parameters};
+    for (auto node_it = handler_tree->nodes.begin();
+         node_it != handler_tree->nodes.end(); ++node_it) {
+      NearSet nearSet;
+      nearSet.cost2RootSubject = (*node_it)->cost2Root();
+      nearSet.set = near_set(
+          (*node_it)->state(), handler_tree->nodes.begin(), node_it,
+          static_cast<std::size_t>(node_it - handler_tree->nodes.begin()),
+          descPars);
+      auto nearSet_from_master = near_set((*node_it)->state(), nodes.begin(),
+                                          nodes.end(), nodes.size(), descPars);
+      nearSet.set.insert(nearSet.set.end(), nearSet_from_master.begin(),
+                         nearSet_from_master.end());
+      for (const auto &rew :
+           compute_rewires(**node_it, std::move(nearSet), descPars)) {
+        info->pending_rewires[*node_it].push_back(rew);
       }
     }
 #pragma omp barrier
-    if (0 != th_id) {
-      return;
-    }
-    for (const auto &info : infos) {
-      this->tree->insert(this->tree->end(), info.nodes_to_collect.begin(),
-                         info.nodes_to_collect.end());
-      for (auto &found_rewire : info.rewires_to_apply) {
-        Node &new_father = *found_rewire.first;
-        this->applyRewires(new_father, found_rewire.second);
-      }
-    }
-    foundSolutionsGather();
-  }
-
-  void monoThreadStarGather() {
-    if (0 != omp_get_thread_num()) {
-      return;
-    }
-    for (auto &info : infos) {
-      auto &info_tree = *info.extender->tree_handler->tree;
-      std::for_each(
-          at_second(info_tree), info_tree.cend(), [this](const NodePtr &node) {
-            const auto near_set = this->nearSet(*node);
-            auto rewires = compute_rewires(
-                *node, near_set,
-                DescriptionAndParameters{this->problem(), this->parameters});
-            this->tree->push_back(node);
-            this->applyRewires(*node, rewires);
-          });
-    }
-    foundSolutionsGather();
-  }
-
-  void foundSolutionsGather() {
-    for (const auto &info : infos) {
-      for (const auto &[cost, solution] : info.extender->getSolutions()) {
-        const auto *casted_solution =
-            dynamic_cast<const SingleSolution *>(solution.get());
-        const auto solution_updated_cost =
-            casted_solution->by_pass_node.cost2Root() +
-            info.problem->connector->minCost2Go(
-                casted_solution->by_pass_node.getState(), target);
-        this->solutions.emplace(solution_updated_cost, solution);
-      }
-    }
-  }
+  };
 };
 } // namespace
 
-void MultiAgentPlanner::solve_(const State &start, const State &end,
+void MultiAgentPlanner::solve_(const std::vector<float> &start,
+                               const std::vector<float> &end,
                                const Parameters &parameters,
                                PlannerSolution &recipient) {
   if (ExpansionStrategy::Bidir == parameters.expansion_strategy) {
@@ -221,45 +161,48 @@ void MultiAgentPlanner::solve_(const State &start, const State &end,
   batch_iter_parameters.iterations.set(batched_iterations);
 
   resizeDescriptions(getThreads());
-  MasterTreeHandler master_handler(start, end, getAllDescriptions(),
-                                   batch_iter_parameters, star_approach);
+  std::unique_ptr<MasterTreeHandler> master_handler =
+      std::make_unique<MasterTreeHandler>(
+          View{start}, View{end}, getAllDescriptions(), batch_iter_parameters);
 
   std::atomic<std::size_t> iter = 0;
   KeepSearchPredicate search_predicate{parameters.best_effort,
                                        parameters.iterations.get(),
                                        parameters.expansion_strategy};
 
-  std::atomic_bool stop = false;
+  std::atomic_bool life = true;
   parallel_region(getThreads(), [&]() {
     if (0 == omp_get_thread_num()) {
+      // master
       while (search_predicate(iter)) {
 #pragma omp barrier
-        auto &extender = master_handler.getExtender();
+        auto &extender = master_handler->regenerateExtender();
         iter += extender.search();
 #pragma omp barrier
-        master_handler.gatherResults();
-        if (!master_handler.solutions.empty()) {
+        master_handler->gatherResults();
+        if (!master_handler->solutions.empty()) {
           search_predicate.one_solution_was_found = true;
         }
       }
-      stop = true;
+      life.store(false);
 #pragma omp barrier
     } else {
+      // slave
       while (true) {
 #pragma omp barrier
-        if (stop) {
+        if (!life.load()) {
           break;
         }
-        auto &extender = master_handler.getExtender();
+        auto &extender = master_handler->regenerateExtender();
         iter += extender.search();
 #pragma omp barrier
-        master_handler.gatherResults();
+        master_handler->gatherResults();
       }
     }
   });
 
   recipient.iterations = iter;
-  emplace_solution(recipient, master_handler.solutions);
-  recipient.trees = {*master_handler.tree};
+  recipient.solution = find_best_solution(master_handler->solutions);
+  recipient.trees.emplace_back(std::move(master_handler));
 }
 } // namespace mt_rrt

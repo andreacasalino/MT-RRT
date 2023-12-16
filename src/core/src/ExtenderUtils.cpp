@@ -5,140 +5,118 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <ExtenderUtils.h>
-#include <MT-RRT-carpet/Error.h>
-
-#include <algorithm>
-#include <map>
-#include <math.h>
+#include <MT-RRT/ExtenderUtils.h>
 
 namespace mt_rrt {
-bool KeepSearchPredicate::operator()(const std::size_t iter) const {
-  if ((strategy != ExpansionStrategy::Star) && best_effort &&
-      one_solution_was_found) {
-    return false;
-  }
-  return iter < max_iterations;
-}
-
-Node *nearest_neighbour(const State &state,
-                        const Tree::const_reverse_iterator &tree_begin,
-                        const Tree::const_reverse_iterator &tree_end,
-                        const DescriptionAndParameters &context) {
-  const auto &connector = *context.description.connector;
-  Node *result = nullptr;
-  float nearest_cost = COST_MAX;
-  std::for_each(tree_begin, tree_end, [&](const NodePtr &node) {
-    float cost = connector.minCost2Go(node->getState(), state);
-    if (cost < nearest_cost) {
-      result = node.get();
-      nearest_cost = cost;
-    }
-  });
-  return result;
-}
-
-float near_set_ray(const std::size_t tree_size, const std::size_t problem_size,
+float near_set_ray(std::size_t tree_size, std::size_t problem_size,
                    float gamma) {
   const float tree_size_float = static_cast<float>(tree_size);
   return gamma * powf(logf(tree_size_float) / tree_size_float,
                       1.f / static_cast<float>(problem_size));
 }
 
-NearSet near_set(const Node &subject,
-                 const Tree::const_reverse_iterator &tree_begin,
-                 const Tree::const_reverse_iterator &tree_end,
-                 const DescriptionAndParameters &context) {
-  const auto &connector = *context.description.connector;
-  float ray = near_set_ray(std::distance(tree_begin, tree_end),
-                           (*tree_begin)->getState().size(),
-                           context.description.gamma.get());
-  NearSet result;
-  const auto &state = subject.getState();
-  std::for_each(tree_begin, tree_end, [&](const NodePtr &node) {
-    if (connector.minCost2Go(node->getState(), state) <= ray) {
-      result.emplace(node.get(), node->cost2Root());
-    }
-  });
-  auto *subject_father = subject.getFatherInfo().father;
-  if (result.find(subject_father) == result.end()) {
-    result.emplace(subject_father, subject_father->cost2Root());
-  }
-  return result;
-}
-
-Rewires compute_rewires(Node &just_steered, const NearSet &near_set,
-                        const DescriptionAndParameters &context) {
-  const auto near_set_just_steered_father_it =
-      near_set.find(just_steered.getFatherInfo().father);
-  if (near_set_just_steered_father_it == near_set.end()) {
-    throw Error{"Info about the father of the just steered node were not part "
-                "of the near set"};
-  }
-  if (near_set.size() == 1) {
+std::vector<Rewire> compute_rewires(Node &subject, NearSet &&near_set_info,
+                                    const DescriptionAndParameters &context) {
+  auto &near_set = near_set_info.set;
+  if (near_set.empty()) {
     return {};
   }
 
   const auto &connector = *context.description.connector;
+  float cost2RootSubject = near_set_info.cost2RootSubject;
 
-  // sort elements in near set according to cost to root
-  std::multimap<float, NodeFatherInfo> just_steered_cost_to_root_map;
-  float just_steered_cost_to_root =
-      near_set_just_steered_father_it->second +
-      just_steered.getFatherInfo().cost_from_father;
-  {
-    for (const auto &[node, node_cost_to_root] : near_set) {
-      if (node == just_steered.getFatherInfo().father) {
-        // in order to avoid recomputation of cost to go constrained
-        continue;
-      }
-      const float cost_to_go_constrained = connector.minCost2GoConstrained(
-          node->getState(), just_steered.getState());
-      if (cost_to_go_constrained == COST_MAX) {
-        continue;
-      }
-      just_steered_cost_to_root_map.emplace(
-          cost_to_go_constrained + node_cost_to_root,
-          NodeFatherInfo{node, cost_to_go_constrained});
-    } // namespace mt_rrt
-    just_steered_cost_to_root_map.emplace(just_steered_cost_to_root,
-                                          just_steered.getFatherInfo());
+  // rewire just_steered to the best father
+  if (auto it = std::min_element(
+          near_set.begin(), near_set.end(),
+          [](const NearSetElement &a, const NearSetElement &b) {
+            return a.cost2go + a.cost2Root < b.cost2go + b.cost2Root;
+          });
+      it->cost2go + it->cost2Root < cost2RootSubject) {
+    subject.setParent(*it->element, it->cost2go);
+    cost2RootSubject = it->cost2go + it->cost2Root;
   }
-
-  // if best in near set is not current father, rewire just_steered
-  if (just_steered_cost_to_root_map.begin()->second.father !=
-      just_steered.getFatherInfo().father) {
-    const auto cost_map_begin = just_steered_cost_to_root_map.begin();
-    auto *new_father = cost_map_begin->second.father;
-    just_steered.setFatherInfo(
-        NodeFatherInfo{new_father, cost_map_begin->second.cost_from_father});
-    just_steered_cost_to_root = near_set.find(new_father)->second +
-                                cost_map_begin->second.cost_from_father;
+  // remove current parent from rewire candidates
+  if (auto it =
+          std::find_if(near_set.begin(), near_set.end(),
+                       [parent = subject.getParent()](const NearSetElement &e) {
+                         return e.element == parent;
+                       });
+      it != near_set.end()) {
+    near_set.erase(it);
   }
-  just_steered_cost_to_root_map.erase(just_steered_cost_to_root_map.begin());
 
   // check for rewires
-  const bool symmetric = context.description.simmetry;
-  Rewires result;
-  for (const auto &[c, node_info] : just_steered_cost_to_root_map) {
-    auto *node = node_info.father;
-    if (nullptr == node->getFatherInfo().father) {
+  bool symmetric = context.description.simmetry;
+  std::vector<Rewire> res;
+  for (auto [isRoot, node, nodeCost2Root, cost2GoPrev] : near_set) {
+    if (isRoot) {
       // root can't be rewired
       continue;
     }
-    const float cost_to_go_constrained =
-        symmetric ? node_info.cost_from_father
-                  : connector.minCost2GoConstrained(just_steered.getState(),
-                                                    node->getState());
-    if (cost_to_go_constrained == COST_MAX) {
+    float cost2Go = symmetric ? cost2GoPrev
+                              : connector.minCost2GoConstrained(subject.state(),
+                                                                node->state());
+    if (cost2Go == COST_MAX) {
       continue;
     }
-    const float by_pass_cost2Root =
-        just_steered_cost_to_root + cost_to_go_constrained;
-    if (by_pass_cost2Root < near_set.find(node)->second) {
-      result.emplace_back(Rewire{*node, cost_to_go_constrained});
+    float cost2RootRewire = cost2RootSubject + cost2Go;
+    if (cost2RootRewire < nodeCost2Root) {
+      res.emplace_back(Rewire{node, cost2Go});
     }
   }
-  return result;
+  return res;
+}
+
+namespace {
+bool contains(
+    const Node &to_steer_candidate, const float *target,
+    const TreeHandlerBasic::DeterministicSteerRegister &det_register) {
+  auto det_register_it = det_register.find(&to_steer_candidate);
+  if (det_register_it == det_register.end()) {
+    return false;
+  }
+  return det_register_it->second.find(target) != det_register_it->second.end();
+}
+} // namespace
+
+std::optional<Connector::SteerResult> extend(const View &target,
+                                             TreeHandler &tree_handler,
+                                             const bool is_deterministic) {
+  auto *nearest = tree_handler.nearestNeighbour(target);
+  auto &det_register = tree_handler.deterministic_steer_register;
+  if (!nearest ||
+      (is_deterministic && contains(*nearest, target.data, det_register))) {
+    return std::nullopt;
+  }
+  if (is_deterministic) {
+    det_register[nearest].emplace(target.data);
+  }
+  return tree_handler.problem().connector->steer(
+      *nearest, target, tree_handler.parameters.steer_trials);
+}
+
+std::optional<Connector::SteerResult>
+extend_star(const View &target, TreeHandler &tree_handler,
+            const bool is_deterministic, std::vector<Rewire> &rewires) {
+  auto maybe_steered = extend(target, tree_handler, is_deterministic);
+  if (!maybe_steered) {
+    return std::nullopt;
+  }
+  auto near_set = tree_handler.nearSet(maybe_steered->node);
+  rewires = compute_rewires(maybe_steered->node, std::move(near_set),
+                            DescriptionAndParameters{tree_handler.problem(),
+                                                     tree_handler.parameters});
+  return maybe_steered;
+}
+
+void apply_rewires_if_better(const Node &parent,
+                             const std::vector<Rewire> &rewires) {
+  float parentCost2Root = parent.cost2Root();
+  for (const auto &rew : rewires) {
+    if (parentCost2Root + rew.new_cost_from_father <
+        rew.involved_node->cost2Root()) {
+      rew.involved_node->setParent(parent, rew.new_cost_from_father);
+    }
+  }
 }
 } // namespace mt_rrt

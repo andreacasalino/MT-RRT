@@ -1,0 +1,63 @@
+{
+ "parameters": {
+  "strategy": "Star",
+  "steer_trials": 10,
+  "iterations": 3500,
+  "determinism": 0.15
+ },
+ "scene": {
+  "seed": 2,
+  "obstacles": [
+   {
+    "ray": 0.5,
+    "center": [
+     0,
+     2.0
+    ]
+   }
+  ],
+  "robots": [
+   {
+    "links": [
+     {
+      "ray": 0.1,
+      "length": 1
+     },
+     {
+      "ray": 0.1,
+      "length": 1
+     },
+     {
+      "ray": 0.1,
+      "length": 1
+     }
+    ],
+    "base": {
+     "position": [
+      0,
+      0
+     ],
+     "angle": 90
+    }
+   }
+  ]
+ },
+ "cases": [
+  {
+   "start": [
+    70,
+    -60,
+    30
+   ],
+   "end": [
+    -70,
+    60,
+    -30
+   ],
+   "title": "case-1"
+  }
+ ],
+ "planner": {
+    "type":"STANDARD"
+ }
+}

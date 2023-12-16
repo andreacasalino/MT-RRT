@@ -5,37 +5,31 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-carpet/Random.h>
+#include <MT-RRT/Random.h>
 
 #include <chrono>
 #include <mutex>
 
 namespace mt_rrt {
 namespace {
-class SeedRandomGenerator {
-public:
-  static Seed makeSeed() {
-    std::scoped_lock lock(program_begin_mtx);
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - program_begin);
-    Seed result = elapsed.count();
-    if (result == detail::MAX_POSSIBLE_SEED) {
-      program_begin = std::chrono::steady_clock::now();
-    }
-    return result;
-  }
-
-private:
-  static std::mutex program_begin_mtx;
-  static std::chrono::steady_clock::time_point program_begin;
+struct SeedGenerationContext {
+  std::mutex mtx;
+  std::chrono::steady_clock::time_point program_begin =
+      std::chrono::steady_clock::now();
 };
-
-std::mutex SeedRandomGenerator::program_begin_mtx = std::mutex{};
-std::chrono::steady_clock::time_point SeedRandomGenerator::program_begin =
-    std::chrono::steady_clock::now();
+static SeedGenerationContext info;
 } // namespace
 
-Seed make_random_seed() { return SeedRandomGenerator::makeSeed(); }
+Seed make_random_seed() {
+  std::scoped_lock lock{info.mtx};
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - info.program_begin);
+  Seed result = static_cast<Seed>(elapsed.count());
+  if (result == detail::MAX_POSSIBLE_SEED) {
+    info.program_begin = std::chrono::steady_clock::now();
+  }
+  return result;
+}
 
 GaussianEngine::GaussianEngine(const float &mean, const float &stdDeviation,
                                const std::optional<Seed> &seed)

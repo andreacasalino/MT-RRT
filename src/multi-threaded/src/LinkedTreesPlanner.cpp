@@ -5,199 +5,207 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-multi-threaded/LinkedTreesPlanner.h>
+#include <MT-RRT/ExtenderBidir.h>
+#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/LinkedTreesPlanner.h>
 
-#include <Extender.h>
-#include <LinkedCache.h>
-#include <MT-RRT-carpet/Error.h>
-#include <MultiThreadedUtils.h>
+#include "MultiThreadedUtils.h"
 
 #include <algorithm>
 #include <math.h>
 #include <omp.h>
+#include <unordered_map>
 
 namespace mt_rrt {
 namespace {
-class LinkedTreeHandler : public TreeHandler, public LinkedCache<NodePtr> {
-public:
-  LinkedTreeHandler(const NodePtr &root, const ProblemDescriptionPtr &problem,
-                    const Parameters &parameters)
-      : TreeHandler(root, problem, parameters) {}
+// generated during the last batch of extensions
+struct ExtensionsCache {
+  using Rew =
+      std::pair<Node *, std::vector<Rewire>>; // < new parent, involved >
 
-  Node *add(Node &&to_add) override {
-    for (auto &cache : LinkedCache<NodePtr>::outgoing_caches) {
-      NodePtr clone = std::make_shared<Node>(to_add.getState());
-      clone->setFatherInfo(to_add.getFatherInfo());
-      cache->push_back(clone);
-    }
-    return this->TreeHandler::add(std::forward<Node>(to_add));
-  }
-
-  virtual void drainCaches() {
-    LinkedCache<NodePtr>::drainIncomingCaches(
-        [&tree = this->tree](const NodePtr &to_add) {
-          tree->push_back(to_add);
-        });
-  }
-};
-using LinkedTreeHandlerPtr = std::unique_ptr<LinkedTreeHandler>;
-
-std::vector<LinkedTreeHandlerPtr>
-make_linked_trees(const State &root_state,
-                  const std::vector<ProblemDescriptionPtr> &problem_clones,
-                  const Parameters &parameters) {
-  std::vector<LinkedTreeHandlerPtr> result;
-  for (const auto &problem : problem_clones) {
-    result.emplace_back(std::make_unique<LinkedTreeHandler>(
-        make_root(root_state), problem, parameters));
-  }
-  LinkedCache<NodePtr>::link_caches(result.begin(), result.end());
-  return result;
-}
-
-class LinkedNode;
-using LinkedNodePtr = std::shared_ptr<LinkedNode>;
-class LinkedNode : public Node {
-public:
-  static std::vector<LinkedNodePtr>
-  make_roots(const State &root_state, const std::size_t clones_to_generate) {
-    std::vector<LinkedNodePtr> roots;
-    for (std::size_t k = 0; k < clones_to_generate; ++k) {
-      roots.emplace_back().reset(new LinkedNode(root_state));
-    }
-    link(roots);
-    return roots;
-  }
-
-  static LinkedNodePtr make_linked_node(Node &&o,
-                                        const std::size_t calling_thread) {
-    auto o_father_info = o.getFatherInfo();
-    std::vector<LinkedNodePtr> linked_nodes;
-    const auto &father_clones =
-        static_cast<LinkedNode *>(o_father_info.father)->getLinked();
-    auto father_clones_it = father_clones.begin();
-    const size_t threads = father_clones.size() + 1;
-    for (std::size_t k = 0; k < threads; ++k) {
-      if (k == calling_thread) {
-        linked_nodes.emplace_back();
-      } else {
-        linked_nodes.emplace_back().reset(new LinkedNode{
-            o.getState(), **father_clones_it, o_father_info.cost_from_father});
-        ++father_clones_it;
-      }
-    }
-    linked_nodes[calling_thread].reset(new LinkedNode{std::forward<Node>(o)});
-    link(linked_nodes);
-    return linked_nodes[calling_thread];
-  }
-
-  const std::vector<LinkedNodePtr> &getLinked() const { return linked; }
-
-private:
-  LinkedNode(const State &root_state) : Node(root_state) {}
-
-  LinkedNode(Node &&n) : Node(std::forward<Node>(n)) {}
-  LinkedNode(const State &state, Node &father, const float cost_from_father)
-      : LinkedNode(state) {
-    setFatherInfo(NodeFatherInfo{&father, cost_from_father});
-  }
-
-  static void link(const std::vector<LinkedNodePtr> nodes) {
-    for (std::size_t k = 0; k < nodes.size(); ++k) {
-      auto &linked = nodes[k]->linked;
-      for (LinkedIndicesRange l(k); l < nodes.size(); ++l) {
-        linked.push_back(nodes[l]);
-      }
-    }
-  }
-
-  std::vector<LinkedNodePtr> linked;
+  std::vector<Node *> nodes;
+  std::vector<Rew> rewires;
 };
 
-struct RewireComplete {
-  Node &new_father;
-  Rewire info;
-};
-
-class LinkedStarTreeHandler : public LinkedTreeHandler,
-                              public LinkedCache<RewireComplete> {
+// Allows to map nodes across trees
+//
+// Each node is assigned a FingerPrint that is <id of the tree that generated
+// the node, index in the generating tree>.
+// The only exception are roots, which are all assigned <0,0>
+//
+// This fingerprint allows to locate the node in the mainRegister and
+// consequently find the counterpart of that node in any tree
+class GlobalRegister {
 public:
-  LinkedStarTreeHandler(const LinkedNodePtr &root,
-                        const ProblemDescriptionPtr &problem,
-                        const Parameters &parameters)
-      : LinkedTreeHandler(root, problem, parameters),
-        thread_numb(static_cast<std::size_t>(omp_get_thread_num())) {}
+  GlobalRegister(const std::vector<Node *> &roots) { add(roots); }
 
-  Node *add(Node &&to_add) final {
-    auto as_linked_node =
-        LinkedNode::make_linked_node(std::forward<Node>(to_add), thread_numb);
-    const auto &linked_nodes = as_linked_node->getLinked();
-    for (std::size_t o = 0; o < linked_nodes.size(); ++o) {
-      LinkedCache<NodePtr>::outgoing_caches[0]->push_back(linked_nodes[o]);
-    }
-    tree->push_back(as_linked_node);
-    return tree->back().get();
+  // locates twin of to_find, but in the tree handled by thread with id threadId
+  Node *find(Node *to_find, std::size_t threadId) const {
+    auto index = fingerPrints.find(to_find)->second;
+    return mainRegister.find(index)->second[threadId];
   }
 
-  void applyRewires(Node &new_father, const Rewires &rewires) final {
-    const auto &father_clones =
-        static_cast<LinkedNode &>(new_father).getLinked();
-    for (const auto &[involved_node, new_cost] : rewires) {
-      const auto &involved_clones =
-          static_cast<LinkedNode &>(involved_node).getLinked();
-      for (std::size_t k = 0; k < involved_clones.size(); ++k) {
-        this->LinkedCache<RewireComplete>::outgoing_caches[k]->push_back(
-            RewireComplete{*father_clones[k],
-                           Rewire{*involved_clones[k], new_cost}});
-      }
+  void add(const std::vector<Node *> &nodes) {
+    for (auto *node : nodes) {
+      fingerPrints.emplace(node, fingerprintsCounter);
     }
-    this->TreeHandler::applyRewires(new_father, rewires);
-  }
-
-  void drainCaches() override {
-    this->LinkedTreeHandler::drainCaches();
-    LinkedCache<RewireComplete>::drainIncomingCaches(
-        [](const RewireComplete &rewire) {
-          rewire.info.involved_node.setFatherInfo(NodeFatherInfo{
-              &rewire.new_father, rewire.info.new_cost_from_father});
-        });
+    mainRegister[fingerprintsCounter++] = nodes;
   }
 
 private:
-  const std::size_t thread_numb;
+  std::size_t fingerprintsCounter = 0;
+  std::unordered_map<Node *, std::size_t> fingerPrints;
+  std::unordered_map<std::size_t, std::vector<Node *>> mainRegister;
 };
 
-std::vector<LinkedTreeHandlerPtr>
-make_linked_star_trees(const State &root_state,
-                       const std::vector<ProblemDescriptionPtr> &problem_clones,
-                       const Parameters &parameters) {
-  std::vector<LinkedTreeHandlerPtr> result;
-  auto roots = LinkedNode::make_roots(root_state, problem_clones.size());
-  for (std::size_t k = 0; k < roots.size(); ++k) {
-    result.emplace_back(std::make_unique<LinkedStarTreeHandler>(
-        roots[k], problem_clones[k], parameters));
+// generated by each tree while gathering the extensions results from all other
+// ones
+struct InternalizationCache {
+  // <the node coming from an ExtensionsCache, the node actually internalized>
+  std::unordered_map<Node *, Node *> mapping;
+  std::vector<Node *> nodes_coming_from_this_tree;
+};
+
+struct NodeFinder {
+  NodeFinder(std::size_t thId, InternalizationCache &cache,
+             GlobalRegister &global)
+      : thId{thId}, cache{cache}, global{global} {}
+
+  Node *find(Node *to_find) const {
+    if (auto it = cache.mapping.find(to_find); it != cache.mapping.end()) {
+      return it->second;
+    }
+    return global.find(to_find, thId);
   }
-  LinkedCache<NodePtr>::link_caches(result.begin(), result.end());
-  LinkedCache<RewireComplete>::link_caches(result.begin(), result.end());
-  return result;
+
+private:
+  std::size_t thId;
+  InternalizationCache &cache;
+  GlobalRegister &global;
+};
+
+class LinkedTreeHandler : public TreeHandlerBasic {
+public:
+  Node *internalize(const Node &subject) override {
+    Node *added = this->TreeHandlerBasic::internalize(subject);
+    extCache->nodes.push_back(added);
+    return added;
+  }
+
+  void applyRewires(const Node &new_father,
+                    const std::vector<Rewire> &rewires) override {
+    this->TreeHandlerBasic::applyRewires(new_father, rewires);
+    Node *parent = const_cast<Node *>(&new_father);
+    extCache->rewires.emplace_back(std::make_pair(parent, rewires));
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  static std::vector<std::unique_ptr<LinkedTreeHandler>>
+  make_trees(const View &root,
+             const std::vector<ProblemDescriptionPtr> &problems,
+             const Parameters &parameters) {
+    std::vector<std::unique_ptr<LinkedTreeHandler>> res;
+    std::vector<Node *> roots;
+    for (std::size_t th_id = 0; th_id < problems.size(); ++th_id) {
+      res.emplace_back().reset(
+          new LinkedTreeHandler(root, problems[th_id], parameters, th_id));
+      roots.push_back(res.back()->nodes.front());
+    }
+    auto allTrees = std::make_shared<std::vector<LinkedTreeHandler *>>();
+    for (const auto &tree : res) {
+      allTrees->push_back(tree.get());
+    }
+    auto sharedRegister = std::make_shared<GlobalRegister>(roots);
+    for (auto &tree : res) {
+      tree->sharedRegister = sharedRegister;
+      tree->allTrees = allTrees;
+    }
+    return res;
+  }
+
+  void resetExtensionCache() { extCache.emplace(); }
+
+  void internalizeResults() {
+    intCache.emplace();
+    intCache->nodes_coming_from_this_tree = extCache->nodes;
+    for (auto *added : extCache->nodes) {
+      intCache->mapping.emplace(added, added);
+    }
+    for (auto *hndlr : *allTrees) {
+      if (hndlr == this)
+        continue;
+      NodeFinder finder{threadId, intCache.value(), *sharedRegister};
+      // internalize explored nodes
+      std::size_t nodes_start = nodes.size();
+      for (auto *toAdd : hndlr->extCache->nodes) {
+        auto &added = allocator.emplace_back(toAdd->state());
+        nodes.push_back(&added);
+        intCache->mapping.emplace(toAdd, &added);
+        added.setParent(*toAdd->getParent(), toAdd->cost2Go());
+      }
+      std::for_each(nodes.begin() + nodes_start, nodes.end(), [&](Node *n) {
+        Node *parent = finder.find(const_cast<Node *>(n->getParent()));
+        n->setParent(*parent, n->cost2Go());
+      });
+      // internalize rewires
+      for (auto &[parent, rew] : hndlr->extCache->rewires) {
+        std::vector<Rewire> trsfm_rewires;
+        for (auto [involved, cost] : rew) {
+          trsfm_rewires.emplace_back(Rewire{finder.find(involved), cost});
+        }
+        apply_rewires_if_better(*finder.find(parent), trsfm_rewires);
+      }
+    }
+  }
+
+  void updateGlobalRegister() {
+    std::vector<Node *> twins;
+    twins.resize(allTrees->size());
+    for (auto *tree : *allTrees) {
+      for (auto *node : tree->intCache->nodes_coming_from_this_tree) {
+        std::size_t k = 0;
+        for (auto *handler : *allTrees) {
+          Node *n = handler == tree
+                        ? node
+                        : handler->intCache->mapping.find(node)->second;
+          twins[k++] = n;
+        }
+        sharedRegister->add(twins);
+      }
+    }
+  }
+
+private:
+  LinkedTreeHandler(const View &root, const ProblemDescriptionPtr &problem,
+                    const Parameters &parameters, std::size_t th_id)
+      : TreeHandlerBasic(root, problem, parameters), threadId{th_id} {}
+
+  std::size_t threadId;
+  std::shared_ptr<std::vector<LinkedTreeHandler *>> allTrees;
+  std::optional<ExtensionsCache> extCache;
+  std::optional<InternalizationCache> intCache;
+  std::shared_ptr<GlobalRegister> sharedRegister;
+};
+
+template <typename Pred>
+void for_each_handler(const std::vector<LinkedTreeHandler *> &handlers,
+                      Pred &&pred) {
+  for (std::size_t h = omp_get_thread_num(); h < handlers.size();
+       h += omp_get_num_threads()) {
+    pred(*handlers[h]);
+  }
 }
 } // namespace
 
-void LinkedTreesPlanner::solve_(const State &start, const State &end,
+void LinkedTreesPlanner::solve_(const std::vector<float> &start,
+                                const std::vector<float> &end,
                                 const Parameters &parameters,
                                 PlannerSolution &recipient) {
-  Extenders extenders;
-
-  std::vector<LinkedTreeHandler *> registered_handlers;
-  auto register_handlers =
-      [&registered_handlers](
-          const std::vector<LinkedTreeHandlerPtr> &handlers) {
-        for (const auto &element : handlers) {
-          registered_handlers.push_back(element.get());
-        }
-      };
-
   resizeDescriptions(getThreads());
+  Extenders extenders;
+  std::vector<LinkedTreeHandler *> handlers;
 
   auto batched_iterations = compute_batched_iterations(
       parameters.iterations, getThreads(), synchronization());
@@ -206,34 +214,29 @@ void LinkedTreesPlanner::solve_(const State &start, const State &end,
   batch_iter_parameters.iterations.set(batched_iterations);
 
   switch (parameters.expansion_strategy) {
-  case ExpansionStrategy::Single: {
-    auto handlers =
-        make_linked_trees(start, getAllDescriptions(), batch_iter_parameters);
-    register_handlers(handlers);
-    for (auto &handler : handlers) {
+  case ExpansionStrategy::Single:
+  case ExpansionStrategy::Star: {
+    for (auto &&tree : LinkedTreeHandler::make_trees(
+             start, getAllDescriptions(), batch_iter_parameters)) {
+      handlers.push_back(tree.get());
       extenders.emplace_back(
-          std::make_unique<ExtenderSingle>(std::move(handler), end));
+          std::make_unique<ExtenderSingle>(std::move(tree), end));
     }
   } break;
   case ExpansionStrategy::Bidir: {
-    auto front_handlers =
-        make_linked_trees(start, getAllDescriptions(), batch_iter_parameters);
-    register_handlers(front_handlers);
-    auto back_handlers =
-        make_linked_trees(end, getAllDescriptions(), batch_iter_parameters);
-    register_handlers(back_handlers);
-    for (std::size_t k = 0; k < front_handlers.size(); ++k) {
-      extenders.emplace_back(std::make_unique<ExtenderBidirectional>(
-          std::move(front_handlers[k]), std::move(back_handlers[k])));
+    auto front_trees = LinkedTreeHandler::make_trees(
+        start, getAllDescriptions(), batch_iter_parameters);
+    for (const auto &tree : front_trees) {
+      handlers.push_back(tree.get());
     }
-  } break;
-  case ExpansionStrategy::Star: {
-    auto handlers = make_linked_star_trees(start, getAllDescriptions(),
-                                           batch_iter_parameters);
-    register_handlers(handlers);
-    for (auto &handler : handlers) {
-      extenders.emplace_back(
-          std::make_unique<ExtenderSingle>(std::move(handler), end));
+    auto back_trees = LinkedTreeHandler::make_trees(end, getAllDescriptions(),
+                                                    batch_iter_parameters);
+    for (const auto &tree : back_trees) {
+      handlers.push_back(tree.get());
+    }
+    for (std::size_t k = 0; k < front_trees.size(); ++k) {
+      extenders.emplace_back(std::make_unique<ExtenderBidirectional>(
+          std::move(front_trees[k]), std::move(back_trees[k])));
     }
   } break;
   }
@@ -244,24 +247,30 @@ void LinkedTreesPlanner::solve_(const State &start, const State &end,
                                        parameters.expansion_strategy};
 
   parallel_region(getThreads(), [&]() {
-    const auto th_id = omp_get_thread_num();
-    Extender &extender = *extenders[th_id];
+    Extender &extender = *extenders[omp_get_thread_num()];
     while (search_predicate(iter)) {
+      for_each_handler(handlers, [](LinkedTreeHandler &hndlr) {
+        hndlr.resetExtensionCache();
+      });
       iter += extender.search();
       if (!extender.getSolutions().empty()) {
         search_predicate.one_solution_was_found = true;
       }
 #pragma omp barrier
-      for (std::size_t h = 0; h < registered_handlers.size();
-           h += omp_get_num_threads()) {
-        registered_handlers[h]->drainCaches();
-      }
+      for_each_handler(handlers, [](LinkedTreeHandler &hndlr) {
+        hndlr.internalizeResults();
+      });
 #pragma omp barrier
+      if (omp_get_thread_num() != 0)
+        continue;
+      for_each_handler(handlers, [](LinkedTreeHandler &hndlr) {
+        hndlr.updateGlobalRegister();
+      });
     }
   });
 
   recipient.iterations = iter;
-  emplace_solution(recipient, get_best_solution(extenders));
+  recipient.solution = get_best_solution(extenders);
   emplace_trees(recipient, extenders);
 }
 } // namespace mt_rrt

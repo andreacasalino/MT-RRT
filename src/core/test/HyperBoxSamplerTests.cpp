@@ -1,8 +1,7 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <gtest/gtest.h>
 
-#include <MT-RRT-carpet/Error.h>
-#include <MT-RRT-core/Sampler.h>
+#include <MT-RRT/Error.h>
+#include <MT-RRT/Sampler.h>
 
 namespace {
 bool almost_equal(const std::vector<float> &a, const std::vector<float> &b) {
@@ -18,32 +17,40 @@ bool almost_equal(const std::vector<float> &a, const std::vector<float> &b) {
 }
 } // namespace
 
-TEST_CASE("hyperbox sampler", mt_rrt::merge(TEST_TAG, "[hyper_box]")) {
-  using namespace mt_rrt;
+using namespace mt_rrt;
 
-  struct Corners {
-    State corner_min;
-    State corner_max;
-  };
+struct Corners {
+  std::vector<float> corner_min;
+  std::vector<float> corner_max;
+};
 
-  SECTION("negative cases") {
-    auto corners = GENERATE(Corners{{}, {}}, Corners{{}, {0}}, Corners{{0}, {}},
-                            Corners{{0, 0}, {1, 1, 1}}, Corners{{0}, {-1}},
-                            Corners{{0, 1, 2}, {-1, -2, -3}},
-                            Corners{{0, 1, 2}, {1, -2, 3}});
+using HyperBoxSamplerNegativeFixture = ::testing::TestWithParam<Corners>;
 
-    CHECK_THROWS_AS(
-        std::make_unique<HyperBox>(corners.corner_min, corners.corner_max),
-        Error);
-  }
+TEST_P(HyperBoxSamplerNegativeFixture, negative_tests) {
+  auto [corner_min, corner_max] = GetParam();
 
-  SECTION("positive cases") {
-    auto corners = GENERATE(Corners{{0}, {1}}, Corners{{0, 0}, {1, 1}},
-                            Corners{{0, 1, -2, -1}, {1, 2, -1, 1}});
-
-    HyperBox sampler(corners.corner_min, corners.corner_max);
-
-    CHECK(almost_equal(corners.corner_min, sampler.minCorner()));
-    CHECK(almost_equal(corners.corner_max, sampler.maxCorner()));
-  }
+  EXPECT_THROW(std::make_unique<HyperBox>(corner_min, corner_max), Error);
 }
+
+INSTANTIATE_TEST_CASE_P(
+    HyperBoxSamplerNegativeTests, HyperBoxSamplerNegativeFixture,
+    ::testing::Values(Corners{{}, {}}, Corners{{}, {0}}, Corners{{0}, {}},
+                      Corners{{0, 0}, {1, 1, 1}}, Corners{{0}, {-1}},
+                      Corners{{0, 1, 2}, {-1, -2, -3}},
+                      Corners{{0, 1, 2}, {1, -2, 3}}));
+
+using HyperBoxSamplerPositiveFixture = ::testing::TestWithParam<Corners>;
+
+TEST_P(HyperBoxSamplerPositiveFixture, Positive_tests) {
+  auto [corner_min, corner_max] = GetParam();
+
+  HyperBox sampler(corner_min, corner_max);
+
+  EXPECT_TRUE(almost_equal(corner_min, sampler.minCorner()));
+  EXPECT_TRUE(almost_equal(corner_max, sampler.maxCorner()));
+}
+
+INSTANTIATE_TEST_CASE_P(
+    HyperBoxSamplerPositiveTests, HyperBoxSamplerPositiveFixture,
+    ::testing::Values(Corners{{0}, {1}}, Corners{{0, 0}, {1, 1}},
+                      Corners{{0, 1, -2, -1}, {1, 2, -1, 1}}));

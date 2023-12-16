@@ -1,0 +1,24 @@
+{
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}test-scenarios"
+        ]
+    },
+    "show": [
+        {
+            "name": "show_single",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*SingleStrategy*"
+        },
+        {
+            "name": "show_bidir",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*BidirStrategy*"
+        },
+        {
+            "name": "show_star",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*StarStrategy*"
+        }
+    ]
+}

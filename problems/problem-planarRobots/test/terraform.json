@@ -1,0 +1,9 @@
+{
+    "show": [
+        {
+            "name": "three-dof",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-planarRobots/PlanarRobotsProblem.py",
+            "args": "--gtest_filter=*RealProblemTest*"
+        }
+    ]
+}

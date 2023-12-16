@@ -5,15 +5,15 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-core/TunneledConnector.h>
+#include <MT-RRT/TunneledConnector.h>
 
 #include <math.h>
 
 namespace mt_rrt {
-float euclidean_distance(const State &a, const State &b) {
+float euclidean_distance(const View &a, const View &b) {
   float result = 0;
-  for (std::size_t k = 0; k < a.size(); ++k) {
-    result += powf(a[k] - b[k], 2.f);
+  for (std::size_t k = 0; k < a.size; ++k) {
+    result += powf(a.data[k] - b.data[k], 2.f);
   }
   return sqrtf(result);
 }
@@ -30,44 +30,43 @@ TunneledConnector::TunneledConnector(const TunneledConnector &o)
   steer_degree.set(o.steer_degree.get());
 }
 
-float TunneledConnector::minCost2Go(const State &start,
-                                    const State &end) const {
+float TunneledConnector::minCost2Go(const View &start, const View &end) const {
   return euclidean_distance(start, end);
 }
 
-TrajectoryPtr TunneledConnector::getTrajectory(const State &start,
-                                               const State &end) const {
-  return std::make_unique<Line>(start, end, *this);
-}
-
-TunneledConnector::Line::Line(const State &start, const State &end,
+TunneledConnector::Line::Line(const View &start, const View &end,
                               const TunneledConnector &caller)
-    : caller(caller), start(start), attual(start), target(end) {}
+    : caller(caller), start(start), actual(start.convert()), target(end) {}
 
-AdvanceInfo TunneledConnector::Line::advance() {
-  const float remaining_distance = euclidean_distance(attual, target);
+Trajectory::AdvanceInfo TunneledConnector::Line::advance() {
+  float remaining_distance = euclidean_distance(actual, target);
   if (remaining_distance <= caller.steer_degree.get()) {
-    if (caller.checkAdvancement(attual, target)) {
-      return AdvanceInfo::blocked;
+    if (caller.checkAdvancement(actual, target)) {
+      return Trajectory::AdvanceInfo::blocked;
     }
-    attual = target;
-    return AdvanceInfo::targetReached;
+    actual = target.convert();
+    return Trajectory::AdvanceInfo::targetReached;
   }
-  State next_state = attual;
-  for (std::size_t k = 0; k < attual.size(); ++k) {
-    next_state[k] += caller.steer_degree.get() * (target[k] - attual[k]) /
-                     remaining_distance;
+  advanced = actual;
+  for (std::size_t k = 0; k < actual.size(); ++k) {
+    advanced[k] += caller.steer_degree.get() * (target.data[k] - actual[k]) /
+                   remaining_distance;
   }
-  auto const result = caller.checkAdvancement(attual, next_state)
-                          ? AdvanceInfo::blocked
-                          : AdvanceInfo::advanced;
-  if (result == AdvanceInfo::advanced) {
-      attual = std::move(next_state);
+  auto result = caller.checkAdvancement(actual, advanced)
+                    ? Trajectory::AdvanceInfo::blocked
+                    : Trajectory::AdvanceInfo::advanced;
+  if (result == Trajectory::AdvanceInfo::advanced) {
+    actual = std::move(advanced);
   }
   return result;
 }
 
 float TunneledConnector::Line::getCumulatedCost() const {
-  return euclidean_distance(start, attual);
+  return euclidean_distance(start, actual);
+}
+
+TrajectoryPtr TunneledConnector::getTrajectory(const View &start,
+                                               const View &end) const {
+  return std::make_unique<Line>(start, end, *this);
 }
 } // namespace mt_rrt

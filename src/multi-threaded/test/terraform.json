@@ -1,0 +1,34 @@
+{
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}test-scenarios"
+        ]
+    },
+    "show": [
+        {
+            "name": "show_embarassingly_parallel",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*MultiThreadedPlannerTest/0.*:*MultiThreadedPlannerTest/1.*:*MultiThreadedPlannerTest/2.*"
+        },
+        {
+            "name": "show_parallelized_queries",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*MultiThreadedPlannerTest/3.*:*MultiThreadedPlannerTest/4.*:*MultiThreadedPlannerTest/5.*"
+        },
+        {
+            "name": "show_shared_tree",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*MultiThreadedPlannerTest/6.*:*MultiThreadedPlannerTest/7.*:*MultiThreadedPlannerTest/8.*"
+        },
+        {
+            "name": "show_linked_trees",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*MultiThreadedPlannerTest/9.*:*MultiThreadedPlannerTest/10.*:*MultiThreadedPlannerTest/11.*"
+        },
+        {
+            "name": "show_multi_agent",
+            "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
+            "args": "--gtest_filter=*MultiThreadedPlannerTest/12.*:*MultiThreadedPlannerTest/13.*"
+        }
+    ]
+}

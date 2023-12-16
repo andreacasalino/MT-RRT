@@ -1,7 +1,9 @@
 \chapter{Parallel RRT}
 \label{chap:parallel_RRT}
 
-This Chapter will provide details about the multi-threaded strategies provided by MT-RRT. Further details are contained also in \cite{MT_RRT}, which is the publication were for the first time MT-RRT was presented. In \cite{MT_RRT} you can find also a comparison in terms of computational times.
+This Chapter will provide details about the multi-threaded strategies provided by MT-RRT. 
+The original implementation was proposed in \cite{MT_RRT}, which is the publication were for the first time MT-RRT was presented.
+That document has to be taken with a grain of salt, has the current implementation was improved with a few more optimizations.
 
  \begin{figure}
 \begin{tabular}{cc}
@@ -43,16 +45,18 @@ The key idea is to perform the above query operations by making use of a thread 
 All the threads in the pool are spawn when a new planning problem must be solved and remain active and ready to perform the parallel for described before.
 All the operations of the RRT (regardless the version considered) are done by the main thread, which notifies at the proper time when a new query operation must be process collectively by all the threads. Figure \ref{fig:parall_strategies}.a summarizes the approach.
 \\
-The object implementing this approach is QueryParallStrategy.
+The object implementing this approach is ParallelizedQueriesPlanner.
 
 \subsection{Shared tree critical regions}
 \label{sec:strtg_shared}
 
-Another way to obtain a parallelization is to actually do simultaneously, every single step of the RRT versions. Therefore, we can imagine having threads sharing a common tree (or two trees in the case of a bidirectional strategy), executing in parallel every step of the expansion process. Some critical sections must be designed to allow the threads executing the maintenance of the shared tree(s) (inserting new nodes or executing new rewirds) one at a time.
-More precisely, the steer is done outside and only the insertion of the steered configuration in the tree is performed inside a critical region.
-Similarly, the extending procedure of the RRT*, algorithm \ref{alg:Expand_star}, is modified by shifting the determination of the near set and the Rewird procedure in a critical section. Figure \ref{fig:parall_strategies}.b summarizes the approach.
+Another way to obtain a parallelization is to simultaneously do every step of the RRT expansions. Therefore, we can imagine having threads sharing a common tree (or two trees in the case of a bidirectional strategy), executing in parallel every step of the expansion process. 
+The data structure representing the shared tree can be a lock free list that does not require the adoption of any critical regions for adding elements at the end of the list as well as iterate the list elements.
+Therefore, in case of the classical RRT, threads will be simply perform in parallel the expansions steps: sample a random state, find the nearest neighbour, steer a state and then push back the newly added state to the shared lock free list.
+At the same time, in case of RRT* some critical regions are required for synchronizing the threads when doing rewires. Notice that such critical regions are achieved by making use of a spin lock instead of a traditional heavy duty mutex in order to save as much as possible time.
+Figure \ref{fig:parall_strategies}.b summarizes the approach.
 \\
-The object implementing this approach is SharedTreeStrategy.
+The object implementing this approach is SharedTreePlanner.
 
 \subsection{Parallel expansions on linked trees}
 \label{sec:strtg_copied}
@@ -70,7 +74,7 @@ When searching the best solution at the end of all the iterations, the best conn
 Clearly, the amount memory required by this approach is significantly high, since multiple copies of a node must live in the different threads.
 This can be a problem to account for.
 \\
-The object implementing this approach is LinkedTreesStrategy.
+The object implementing this approach is LinkedTreesPlanner.
 
 \subsection{Multi agents approach}
 \label{sec:strtg_multi}
@@ -92,4 +96,4 @@ Before concluding this Section it is worthy to notice that the mean time spent f
 lower, since such operations are performed by agents considering only their own local reduced size trees.
 \\
 Figure \ref{fig:parall_strategies}.d summarizes the approach.
-The object implementing this approach is MultiAgentStrategy.
+The object implementing this approach is MultiAgentPlanner.

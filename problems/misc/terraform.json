@@ -1,0 +1,18 @@
+{
+    "condition":["BUILD_MT_RRT_TESTS", "BUILD_MT_RRT_SAMPLES"],
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}multi-threaded",
+            "nlohmann_json::nlohmann_json"
+        ]
+    },
+    "definitions": {
+        "PUBLIC": [
+            {
+                "export":true,
+                "name":"MT_RRT_LOG_PATH",
+                "value":"${CMAKE_CURRENT_BINARY_DIR}/log_path"
+            }
+        ]
+    }
+}

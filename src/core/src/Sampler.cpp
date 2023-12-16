@@ -5,11 +5,12 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-carpet/Error.h>
-#include <MT-RRT-core/Sampler.h>
+#include <MT-RRT/Error.h>
+#include <MT-RRT/Sampler.h>
 
 namespace mt_rrt {
-HyperBox::HyperBox(const State &lowerCorner, const State &upperCorner,
+HyperBox::HyperBox(const std::vector<float> &lowerCorner,
+                   const std::vector<float> &upperCorner,
                    const std::optional<Seed> &seed)
     : UniformEngine(0, 1.f, seed) {
   // validate inputs
@@ -39,8 +40,8 @@ std::unique_ptr<Sampler> HyperBox::copy() const {
   return result;
 }
 
-State HyperBox::sampleState() const {
-  State result;
+std::vector<float> HyperBox::sampleState() const {
+  std::vector<float> result;
   result.reserve(min_corner.size());
   for (std::size_t k = 0; k < min_corner.size(); ++k) {
     result.push_back(min_corner[k] + UniformEngine::sample() * delta_corner[k]);
@@ -48,8 +49,8 @@ State HyperBox::sampleState() const {
   return result;
 }
 
-State HyperBox::maxCorner() const {
-  State result = min_corner;
+std::vector<float> HyperBox::maxCorner() const {
+  std::vector<float> result = min_corner;
   for (std::size_t k = 0; k < result.size(); ++k) {
     result[k] += delta_corner[k];
   }

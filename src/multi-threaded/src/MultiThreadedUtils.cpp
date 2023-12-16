@@ -5,7 +5,9 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MultiThreadedUtils.h>
+#include "MultiThreadedUtils.h"
+
+#include <algorithm>
 
 namespace mt_rrt {
 Iterations
@@ -16,14 +18,14 @@ compute_balanced_numer_of_iterations(const Iterations &max_iterations,
   return result;
 }
 
-SolutionPtr get_best_solution(const Extenders &extenders) {
+std::vector<std::vector<float>> get_best_solution(const Extenders &extenders) {
   Solutions merged;
   for (const auto &extender : extenders) {
-    for (const auto &[cost, solution] : extender->getSolutions()) {
-      merged.emplace(cost, solution);
+    for (const auto &sol : extender->getSolutions()) {
+      merged.push_back(sol);
     }
   }
-  return merged.empty() ? nullptr : merged.begin()->second;
+  return find_best_solution(merged);
 }
 
 void emplace_trees(PlannerSolution &recipient, const Extenders &extenders) {
