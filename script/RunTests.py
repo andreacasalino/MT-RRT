@@ -1,5 +1,13 @@
 import subprocess, argparse, os
 
+def pathJoin(front, *args):
+    res = front
+    for piece in args:
+        res = os.path.join(res, piece)
+    res = os.path.normpath(res)
+    res = str(res).replace('\\', '/')
+    return res
+
 class TestMap:
     def forEachProcess(self):
         for name in filter(lambda name: not name.find('Tests') == -1, os.listdir(self.folder)):
@@ -14,10 +22,7 @@ class TestMap:
     def run(self):
         failed = []
         for name in self.forEachProcess():
-            print('>>>===========================================================<<<')
-            print('running {}'.format(name))
-            print('>>>===========================================================<<<')
-            completed = subprocess.run(['./{}'.format(name)], cwd=self.folder, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            completed = subprocess.run([pathJoin(self.folder, name)], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if not completed.returncode == 0:
                 failed.append(name)
             print('{}\n{}\n'.format(completed.stdout, completed.stderr))
@@ -29,15 +34,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--folder', default=None)
     parser.add_argument('--list', action='store_true', default=False)
-    parser.add_argument('--run', action='store_true', default=False)
     args = parser.parse_args()
 
     map = TestMap(args.folder)
 
     if args.list:
         print(map)
-    elif args.run:
-        map.run()
+        return
+
+    map.run()
 
 if __name__ == '__main__':
     main()

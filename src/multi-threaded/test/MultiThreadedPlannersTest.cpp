@@ -201,7 +201,7 @@ using MultiThreadedPlannerTestTypes = testing::Types<
     Info<MultiAgentPlanner, ExpansionStrategy::Star>
 
     >;
-TYPED_TEST_CASE(MultiThreadedPlannerTest, MultiThreadedPlannerTestTypes);
+TYPED_TEST_SUITE(MultiThreadedPlannerTest, MultiThreadedPlannerTestTypes);
 
 TYPED_TEST(MultiThreadedPlannerTest, search_one_obstacle) {
   using Info = TypeParam;

@@ -104,14 +104,12 @@ using DeterminismTestFixture =
     ::testing::TestWithParam<std::pair<mt_rrt::Seed, bool>>;
 
 TEST_P(DeterminismTestFixture, check_sampling_determinism) {
-  auto [seed, multi_generation] = GetParam();
-
   auto epic_maker = [&]() {
     std::vector<float> result;
     std::unique_ptr<mt_rrt::UniformEngine> engine =
-        std::make_unique<mt_rrt::UniformEngine>(0, 1.f, seed);
+        std::make_unique<mt_rrt::UniformEngine>(0, 1.f, GetParam().first);
     result = sample(*engine);
-    if (multi_generation) {
+    if (GetParam().second) {
       for (std::size_t e = 0; e < 2; ++e) {
         engine = std::make_unique<mt_rrt::UniformEngine>(*engine);
         add(result, sample(*engine));
@@ -132,7 +130,7 @@ TEST_P(DeterminismTestFixture, check_sampling_determinism) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     DeterminismTests, DeterminismTestFixture,
     ::testing::Values(std::make_pair(0, false), std::make_pair(10, false),
                       std::make_pair(100, false), std::make_pair(10000, false),

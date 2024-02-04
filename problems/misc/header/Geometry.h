@@ -10,14 +10,18 @@
 #include <MT-RRT/Limited.h>
 #include <MT-RRT/View.h>
 
-#include <array>
+#ifdef _WIN32
+#include <corecrt_math_defines.h>
+#endif
 #include <math.h>
+
+#include <array>
 #include <optional>
 #include <variant>
 
 namespace mt_rrt::geom {
-static constexpr float PI = M_PI;
-static constexpr float PI_HALF = M_PI_2f;
+static constexpr float PI = static_cast<float>(M_PI);
+static constexpr float PI_HALF = static_cast<float>(M_PI_2);
 
 float to_rad(float angle);
 
