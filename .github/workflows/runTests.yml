@@ -12,11 +12,15 @@ jobs:
   unitTests:
     strategy:
       matrix:
-        name: [ubuntu-gcc, windows-VS]
+        name: [ubuntu-gcc, ubuntu-clang, windows-VS]
         include:
             - name: ubuntu-gcc
               os: ubuntu-latest
               compiler_opt: "-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
+              build_system: '-G Ninja'
+            - name: ubuntu-clang
+              os: ubuntu-latest
+              compiler_opt: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
               build_system: '-G Ninja'
             - name: windows-VS
               os: windows-latest
