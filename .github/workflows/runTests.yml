@@ -35,6 +35,9 @@ jobs:
       run:  git submodule update --init --recursive
     - name: show HEAD
       run: git rev-parse HEAD
+    - name: Install openMp
+      if: matrix.name == 'ubuntu-clang'
+      run: sudo apt-get update; sudo apt-get install -y libomp5 libomp-dev
     - name: Install Ninja
       if: matrix.build_system == '-G Ninja'
       uses: seanmiddleditch/gha-setup-ninja@master
