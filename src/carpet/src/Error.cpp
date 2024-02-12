@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-carpet/Error.h>
+#include <MT-RRT/Error.h>
 
 namespace mt_rrt {
 Error::Error(const std::string &what) : std::runtime_error(what) {}

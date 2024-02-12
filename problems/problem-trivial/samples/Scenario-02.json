@@ -1,0 +1,202 @@
+{
+    "parameters": {
+        "strategy": "Star",
+        "steer_trials": 10,
+        "iterations": 3000,
+        "determinism": 0.15
+    },
+    "scene": {
+        "obstacles": [
+            {
+                "min": [
+                    -0.3,
+                    -0.3
+                ],
+                "max": [
+                    0.3,
+                    0.3
+                ]
+            },
+            {
+                "min": [
+                    0.85,
+                    -1.1
+                ],
+                "max": [
+                    1.1,
+                    -0.85
+                ]
+            },
+            {
+                "min": [
+                    -1.1,
+                    0.85
+                ],
+                "max": [
+                    -0.85,
+                    1.1
+                ]
+            },
+            {
+                "min": [
+                    0.8,
+                    0.05
+                ],
+                "max": [
+                    0.9,
+                    0.8
+                ],
+                "label": "extern_bar_0"
+            },
+            {
+                "min": [
+                    -0.35,
+                    0.45
+                ],
+                "max": [
+                    0.35,
+                    0.55
+                ],
+                "label": "inner_bar_0"
+            },
+            {
+                "min": [
+                    0.8,
+                    0.8
+                ],
+                "max": [
+                    0.9,
+                    0.9
+                ],
+                "label": "extern_little_square_0"
+            },
+            {
+                "copy": "extern_bar_0",
+                "label": "extern_bar_rot_0",
+                "transform": {
+                    "angle": -90,
+                    "pivot": [
+                        0.8,
+                        0.8
+                    ],
+                    "translation": [
+                        0,
+                        0.1
+                    ]
+                }
+            },
+            {
+                "copy": "extern_bar_0",
+                "label": "extern_bar_1",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "inner_bar_0",
+                "label": "inner_bar_1",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_little_square_0",
+                "label": "extern_little_square_1",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_bar_rot_0",
+                "label": "extern_bar_rot_1",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_bar_1",
+                "label": "extern_bar_2",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "inner_bar_1",
+                "label": "inner_bar_2",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_little_square_1",
+                "label": "extern_little_square_2",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_bar_rot_1",
+                "label": "extern_bar_rot_2",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_bar_2",
+                "label": "extern_bar_3",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "inner_bar_2",
+                "label": "inner_bar_3",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_little_square_2",
+                "label": "extern_little_square_3",
+                "transform": {
+                    "angle": 90
+                }
+            },
+            {
+                "copy": "extern_bar_rot_2",
+                "label": "extern_bar_rot_3",
+                "transform": {
+                    "angle": 90
+                }
+            }
+        ],
+        "seed": 0
+    },
+    "cases": [
+        {
+            "title": "case-A",
+            "start": [
+                -1,
+                -1
+            ],
+            "end": [
+                1,
+                1
+            ]
+        },
+        {
+            "title": "case-B",
+            "start": [
+                -1,
+                -1
+            ],
+            "end": [
+                0.7,
+                0.7
+            ]
+        }
+    ],
+    "planner": {
+        "type": "STANDARD"
+    }
+}

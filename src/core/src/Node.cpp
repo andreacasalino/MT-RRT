@@ -5,48 +5,34 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-carpet/Error.h>
-#include <MT-RRT-core/Node.h>
+#include <MT-RRT/Node.h>
 
-#include <limits>
+#include <cstring>
 
 namespace mt_rrt {
-Node::Node(const State &state) : state(state) {
-  if (this->state.empty()) {
-    throw Error("empty state not valid for describing node state");
-  }
-  setFatherInfo();
-}
+Node::Node(const View &state) : state_{state} {}
 
-Node::Node(Node &&o) : state(std::move(o.state)), father(o.father) {
-  costFromFather.set(o.costFromFather.get());
-}
-
-void Node::setFatherInfo(const NodeFatherInfo &info) {
-  this->father = info.father;
-  this->costFromFather.set((this->father == nullptr) ? 0
-                                                     : info.cost_from_father);
-}
-
-namespace {
-constexpr std::size_t MAX_ITERATIONS = std::numeric_limits<std::size_t>::max();
+void Node::setParent(const Node &parent, float cost2Go) {
+  parent_ = &parent;
+  cost2Go_.set(cost2Go);
 }
 
 float Node::cost2Root() const {
-  float result = 0.f;
-  const Node *att_node = this;
+  float cost2Root = 0;
   size_t k = 0;
-  while (att_node != nullptr) {
-    const auto att_node_father = att_node->getFatherInfo();
-    result += att_node_father.cost_from_father;
-    att_node = att_node_father.father;
-    if (MAX_ITERATIONS == ++k) {
+  for (const Node *att_node = this; att_node != nullptr;
+       att_node = att_node->getParent(), ++k) {
+    if (MAX_ITERATIONS == k) {
       throw Error("Max number of iterations exceeded while computing cost to "
                   "go: a loop was generated inside a tree");
     }
+    cost2Root += att_node->cost2Go();
   }
-  return result;
+  return cost2Root;
 };
 
-NodePtr make_root(const State &state) { return std::make_shared<Node>(state); }
+NodeOwning::NodeOwning(std::vector<float> &&state)
+    : stateVec_{std::forward<std::vector<float>>(state)} {
+  state_ = View{stateVec_.data(), stateVec_.size()};
+}
 } // namespace mt_rrt

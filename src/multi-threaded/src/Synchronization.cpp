@@ -5,10 +5,10 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT-multi-threaded/Synchronization.h>
+#include <MT-RRT/Synchronization.h>
 
 namespace mt_rrt {
-SynchronizationDegree::SynchronizationDegree(const float initial_value)
+SynchronizationDegree::SynchronizationDegree(float initial_value)
     : Limited<float>(0, 0.5f, initial_value) {}
 
 SynchronizationDegree::SynchronizationDegree()

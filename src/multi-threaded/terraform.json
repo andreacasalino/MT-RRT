@@ -1,0 +1,16 @@
+{
+    "optional": true,
+    "require": [
+        "OpenMP",
+        "Threads"
+    ],
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}core"
+        ],
+        "PRIVATE": [
+            "OpenMP::OpenMP_CXX",
+            "${CMAKE_THREAD_LIBS_INIT}"
+        ]
+    }
+}

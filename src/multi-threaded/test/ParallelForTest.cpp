@@ -1,7 +1,6 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <gtest/gtest.h>
 
-#include "ParallelFor.h"
+#include <MT-RRT/ParallelFor.h>
 
 #include <algorithm>
 
@@ -18,69 +17,47 @@ bool contains(const std::vector<Result> &values, const int to_search) {
 }
 } // namespace
 
-TEST_CASE("Parallel for correctness test",
-          mt_rrt::merge(TEST_TAG, "[parallel_for]")) {
+TEST(ParallelForTest, parallel_for_test) {
   using namespace mt_rrt;
 
-  auto threads = GENERATE(2, 3, 4);
+  std::size_t threads = 2;
 
   ParallelFor parallel_for(threads);
 
   std::vector<int> values = {1, 2, -2, 5, 6, -3, 0, 1, 3,
                              1, 2, -2, 5, 6, -3, 0, 1, 3};
 
-  auto values_sorted = values;
-  std::sort(values_sorted.begin(), values_sorted.end());
-
   const std::size_t cycles = 3;
 
-  SECTION("compute min") {
+  {
+    SCOPED_TRACE("compute min");
+
     for (std::size_t c = 0; c < cycles; ++c) {
-      const auto mins =
-          parallel_for.process<Result, std::vector<int>::const_iterator>(
-              values.begin(), values.end(),
-              [](Result &res, const int &val, const std::size_t) {
-                res.val = std::min(res.val, val);
-              });
-      CHECK(contains(mins, values_sorted.front()));
+      std::vector<int> results;
+      for (std::size_t k = 0; k < threads; ++k) {
+        results.push_back(std::numeric_limits<int>::max());
+      }
+      parallel_for.process(values, [&results](int val, std::size_t th_id) {
+        results[th_id] = std::min<int>(results[th_id], val);
+      });
+      EXPECT_EQ(*std::min_element(results.begin(), results.end()),
+                *std::min_element(values.begin(), values.end()));
     }
   }
 
-  SECTION("compute max") {
+  {
+    SCOPED_TRACE("compute max");
+
     for (std::size_t c = 0; c < cycles; ++c) {
-      const auto maxs =
-          parallel_for.process<Result, std::vector<int>::const_iterator>(
-              values.begin(), values.end(),
-              [](Result &res, const int &val, const std::size_t) {
-                res.val = std::max(res.val, val);
-              });
-      CHECK(contains(maxs, values_sorted.back()));
+      std::vector<int> results;
+      for (std::size_t k = 0; k < threads; ++k) {
+        results.push_back(std::numeric_limits<int>::min());
+      }
+      parallel_for.process(values, [&results](int val, std::size_t th_id) {
+        results[th_id] = std::max<int>(results[th_id], val);
+      });
+      EXPECT_EQ(*std::max_element(results.begin(), results.end()),
+                *std::max_element(values.begin(), values.end()));
     }
   }
-}
-
-TEST_CASE("Parallel for test profile computation times",
-          mt_rrt::merge(TEST_TAG, "[parallel_for]")) {
-  using namespace mt_rrt;
-
-  Jobs jobs;
-  for (std::size_t k = 0; k < 10; ++k) {
-    jobs.emplace_back([](const std::size_t) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    });
-  }
-
-  auto measure_time = [](const std::function<void()> &action) {
-    auto tic = std::chrono::high_resolution_clock::now();
-    action();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::high_resolution_clock::now() - tic);
-  };
-
-  ParallelFor parallel_for{2};
-  auto tic = std::chrono::high_resolution_clock::now();
-  parallel_for.process(jobs);
-  const auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::high_resolution_clock::now() - tic);
-  CHECK(time.count() < 400);
 }

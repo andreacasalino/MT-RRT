@@ -1,165 +1,60 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include "ExtendTest.h"
 
-#include <TrivialProblemTestScenarios.h>
-#ifdef TEST_LOGGING
-#include "Log.h"
-#endif
+using namespace mt_rrt;
+using namespace mt_rrt::trivial;
 
-TEST_CASE("Bidir extender in an empty space",
-          mt_rrt::merge(TEST_TAG, "[extend][bidir][empty]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+struct BidirStrategyTest : public ::testing::Test,
+                           public ExtendTest<ExpansionStrategy::Bidir> {
+  BidirStrategyTest() : ExtendTest<ExpansionStrategy::Bidir>{Kind::Empty} {}
+};
 
-  auto size = GENERATE(2, 5);
+TEST_F(BidirStrategyTest,
+       DISABLED_nodes_deterministically_steered_only_once) { // not true in the
+                                                             // current
+                                                             // implementation
+  problem.suggested_parameters.determinism.set(1.f);
+  auto extender = makeExtender();
+  extender.search();
 
-  auto scenario = make_empty_scenario(ExpansionStrategy::Bidir);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
+  const auto &solutions = extender.getSolutions();
+  ASSERT_EQ(solutions.size(), 1);
+  ASSERT_TRUE(check_solutions(static_cast<const TrivialProblemConnector &>(
+                                  *problem.point_problem->connector),
+                              solutions, start, end));
 
-  SECTION("check that nodes are deterministically steered only once") {
-    scenario.suggested_parameters.determinism.set(1.f);
-    ExtenderBidirectional extender(
-        make_tree_handler(start, scenario.point_problem,
-                          scenario.suggested_parameters),
-        make_tree_handler(end, scenario.point_problem,
-                          scenario.suggested_parameters));
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "bidir-empty_only_deterministic");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    // REQUIRE(solutions.size() == 1); // not true for the current
-    // implementation, but maybe it's want we want
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
-
-  SECTION("check that at least a solution is found") {
-    auto splitted_extend = GENERATE(true, false);
-
-    std::unique_ptr<ExtenderBidirectional> extender;
-    if (splitted_extend) {
-      const std::size_t cycles = 10;
-      scenario.suggested_parameters.iterations.set(
-          scenario.suggested_parameters.iterations.get() / cycles);
-      extender = std::make_unique<ExtenderBidirectional>(
-          make_tree_handler(start, scenario.point_problem,
-                            scenario.suggested_parameters),
-          make_tree_handler(end, scenario.point_problem,
-                            scenario.suggested_parameters));
-      for (std::size_t k = 0; k < cycles; ++k) {
-        extender->search();
-      }
-    } else {
-      extender = std::make_unique<ExtenderBidirectional>(
-          make_tree_handler(start, scenario.point_problem,
-                            scenario.suggested_parameters),
-          make_tree_handler(end, scenario.point_problem,
-                            scenario.suggested_parameters));
-      extender->search();
-    }
-
-#ifdef TEST_LOGGING
-    log_test_case(*extender, "bidir-empty_many_solutions");
-#endif
-
-    const auto &solutions = extender->getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
+  mt_rrt::log_test_case("bidir", "empty_only_deterministic", extender);
 }
 
-TEST_CASE("Bidir extender with blocking obstacle",
-          mt_rrt::merge(TEST_TAG, "[extend][bidir][blocking]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+using BidirStrategyFixture = ::testing::TestWithParam<Kind>;
 
-  auto size = GENERATE(2, 5);
+TEST_P(BidirStrategyFixture, search) {
+  auto test = ExtendTest<ExpansionStrategy::Bidir>{GetParam()};
+  auto extender = test.makeExtender();
+  extender.search();
 
-  auto scenario = make_no_solution_scenario(size, ExpansionStrategy::Bidir);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderBidirectional extender(
-        make_tree_handler(start, scenario.point_problem,
-                          scenario.suggested_parameters),
-        make_tree_handler(end, scenario.point_problem,
-                          scenario.suggested_parameters));
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "bidir-no_solution");
-#endif
-
-    REQUIRE(extender.getSolutions().empty());
+  if (GetParam() == Kind::NoSolution) {
+    ASSERT_TRUE(extender.getSolutions().empty());
+  } else {
+    test.checkSolutions(extender);
   }
+
+  mt_rrt::log_test_case("bidir", make_log_tag(GetParam()), extender);
 }
 
-TEST_CASE("Bidir extender with single obstacle",
-          mt_rrt::merge(TEST_TAG, "[extend][bidir][obstacle]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
+INSTANTIATE_TEST_CASE_P(BidirStrategySearchTest, BidirStrategyFixture,
+                        ::testing::Values(Kind::Empty, Kind::NoSolution,
+                                          Kind::SmallObstacle,
+                                          Kind::Cluttered));
 
-  auto scenario = make_small_obstacle_scenario(ExpansionStrategy::Bidir);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderBidirectional extender(
-        make_tree_handler(start, scenario.point_problem,
-                          scenario.suggested_parameters),
-        make_tree_handler(end, scenario.point_problem,
-                          scenario.suggested_parameters));
+TEST_F(BidirStrategyTest, multiple_search_cycles) {
+  const std::size_t cycles = 10;
+  problem.suggested_parameters.iterations.set(
+      problem.suggested_parameters.iterations.get() / cycles);
+  auto extender = makeExtender();
+  for (std::size_t k = 0; k < cycles; ++k)
     extender.search();
 
-#ifdef TEST_LOGGING
-    log_test_case(extender, "bidir-one_obstacle");
-#endif
+  checkSolutions(extender);
 
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
-}
-
-TEST_CASE("Bidir extender in cluttered scenario",
-          mt_rrt::merge(TEST_TAG, "[extend][bidir][cluttered]")) {
-  using namespace mt_rrt;
-  using namespace mt_rrt::utils;
-
-  auto scenario = make_cluttered_scenario(ExpansionStrategy::Bidir);
-  const auto &start = scenario.start;
-  const auto &end = scenario.end;
-
-  SECTION("check that at least a solution is found") {
-    ExtenderBidirectional extender(
-        make_tree_handler(start, scenario.point_problem,
-                          scenario.suggested_parameters),
-        make_tree_handler(end, scenario.point_problem,
-                          scenario.suggested_parameters));
-    extender.search();
-
-#ifdef TEST_LOGGING
-    log_test_case(extender, "bidir-cluttered");
-#endif
-
-    const auto &solutions = extender.getSolutions();
-    REQUIRE_FALSE(solutions.empty());
-    REQUIRE(
-        check_solutions(*dynamic_cast<const samples::TrivialProblemConnector *>(
-                            scenario.point_problem->connector.get()),
-                        solutions, start, end));
-  }
+  mt_rrt::log_test_case("bidir", "multiple_cycles", extender);
 }

@@ -1,0 +1,8 @@
+{
+    "condition":["BUILD_MT_RRT_TESTS"],
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}problem-trivial"
+        ]
+    }
+}

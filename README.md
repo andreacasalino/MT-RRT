@@ -12,14 +12,14 @@
 
 ## INTRO
 
-**Multi Thread Rapidly Random exploring Trees**, aka **MT-RRT**, is a C++ library that can be used for path or trajectory planning, implementing different multi-threaded versions of the well known **Rapidly Random exploring Trees**, aka **RRT** algorithm. Inded, **RRT** are a popular cathegory of robotic algorithms used for computing paths or trajectories in a constrained environment.
-The multi-threaded strategies contained in this library are able to significantly speed up the normal **RRT**, **bidirectional  RRT** and **RRT***.
+**Multi Thread Rapidly Random exploring Trees**, aka **MT-RRT**, is a **C++** library that can be used for path or trajectory planning, implementing different multi-threaded versions of the well known **Rapidly Random exploring Trees**, aka **RRT** algorithm. Inded, **RRT** are a popular cathegory of robotic algorithms used for computing paths or trajectories in a constrained environment.
+The multi-threaded strategies contained in this library are able to significantly speed up the normal **RRT**, **bidirectional  RRT** and **RRT* **.
 
-This work is based on the results published in this **IROS** paper:
+The initial implementation of this work was based on the results published in this **IROS** paper:
 Andrea Casalino et al. :"Mt-rrt: a general purpose multithreading library for path planning", In IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019), pages 1510–1517. IEEE, 2019
+even though, it evolved much after the initial implementation.
 
-This library was conceived to solve any kind of planning problem. The only thing you need to do when solving a new kind of problem, is to derive a couple of objects that contain all the
-problem-specific information, refer to the [documentation](./doc/MT-RRT.pdf) and the [samples](#samples). 
+This library was conceived to solve any kind of planning problem. The only thing you need to do when solving your specific class, is to derive a couple of objects that contain all the problem-specific information, refer to the [documentation](./doc/MT-RRT.pdf) and the [samples](#samples). 
 
 **MT-RRT** is completely **cross platform**, let [CMake](#cmake-support) do all the work for you, and has no thirdy party dependency.
 
@@ -29,27 +29,28 @@ If you have found this library useful, please find the time to leave a **star** 
 
 This repository contains:
   - [documentation](./doc/MT-RRT.pdf): pdf discussing generalities about **RRT** together with info explaining how to use this library
+  - [readme](./ReadMeExample.cpp): hello world example showing you how to use in a nutshell this library. Have a look also [here](#usage).
   - [src](./src/): the sources containing the main features offered by this library. In particular:
-    - [src/core](./src/core/): containing **MT-RRT-core**, that provides background functionalities and the classical mon-thread implementation of the **RRT** algorithm.
-    - [src/core](./src/core/): containing **MT-RRT-multi-threaded**, that stores the multithreaded **RRT** planners characterizing this library
-  - [samples](./samples/): containing 3 classes of examples, explaining how to consume and use this library. Have a look also [here](#samples).
+    - [src/core](./src/core/): containing **MT-RRT-core**, that provides basic functionalities and the classical mono-thread implementation of the **RRT** algorithm.
+    - [src/multi-threaded](./src/multi-threaded/): containing **MT-RRT-multi-threaded**, that stores the multithreaded **RRT** planners proposed by this library
+  - [problems](./problems/): explaining how to use this library through 3 concrete planning problems examples, check the [ReadMe.md](./problems/ReadMe.md) of the samples. Have a look also [here](#samples).
 
 ## DOCUMENTATION
 
 It is strongly encouraged to start from the [documentation](doc/MT-RRT.pdf).
-This one provides a general background on the **RRT** algorithms and terminology in general and at the same time explains how to use and what to expect from the **RRT** planners implemented in this library.
+Indeed, the documentation provides a general background on the **RRT** algorithms and terminology in general and at the same time explains how to use and what to expect from the **RRT** planners implemented in this library.
 
 ## USAGE
 
 Haven't already left a **star**? Do it now ;)!
 
-These are the steps to follow in order to solve any planning problem (refer also to this [ReadMe.md](./samples/ReadMe.md)):
+These are the steps to follow in order to solve any planning problem (refer also to [ReadMeExample.md](./ReadMeExample.cpp)):
 - explain to **MT-RRT** how the problem you want to solve is made. In order to do this you need to:
   - define your own **mt_rrt::Sampler**, i.e. an object having the responsability to sample random states (some default ones, which are ok for 99% of the cases, are already provided by this library). Let's say your sampler is named **MySampler**:
   ```cpp
   mt_rrt::SamplerPtr my_sampler = std::make_unique<MySampler>(...);
   ```
-  - define your own **mt_rrt::Conenctor**, i.e. an object having the responsability to compute trajectories that connects pair of states.
+  - define your own **mt_rrt::Connector**, i.e. an object having the responsability to compute trajectories that connects pair of states.
   In [samples](./samples/), three classes of examples were implemented in order to show you how to do this for your own problem. Let's say your connector is named **MyConnector**:
   ```cpp
   mt_rrt::ConnectorPtr my_connector = std::make_unique<MyConnector>(...);
@@ -61,7 +62,7 @@ These are the steps to follow in order to solve any planning problem (refer also
 	problem_description.sampler = std::move(my_sampler);
   // and a couple of more ... see the samples
   ```
-- build a planner. The planner will absorb all the problem specific information. YOu can opt for a standard mono-threaded planner:
+- build a planner. The planner will absorb all the problem specific information. You can opt for a standard mono-threaded planner:
 ```cpp
 mt_rrt::StandardPlanner planner(std::move(problem_description));
 ```
@@ -106,12 +107,14 @@ mt_rrt::PlannerSolution solution = planner.solve(start_state, end_state, paramet
 
 Haven't already left a **star**? Do it now ;)!
 
-Tree classes of samples are contained in [./samples](./samples/). Such samples represent sample planning problems and aims at showing how to use **MT-RRT** in order to solve them.
-The [documentation](doc/MT-RRT.pdf) extensively describes the samples and it is strongly encouraged also to have a look to [ReadMe.md](./samples/ReadMe.md) and  [ReadMe.cpp](./samples/ReadMe.cpp) in the samples folder before dive into the samples implementations.
+Three classes of samples are contained in [./problems](./problems/). These are planning problemexamples showing how to use **MT-RRT** in order to solve them.
+The [documentation](doc/MT-RRT.pdf) extensively describes the samples and it is strongly encouraged also to have a look to the samples [ReadMe.md](./problems/ReadMe.md).
 In particular:
-	- [./samples/TrivialProblems](./samples/TrivialProblems) represents a 2D maze problem
-	- [./samples/PlanarRobotsProblems](./samples/PlanarRobotsProblems) represents a planar robots planning problem
-	- [./samples/NavigationProblems](./samples/NavigationProblems) represents a 2D moving cart problem
+- [./problems/problem-trivial](./problems/problem-trivial) represents a 2D maze problem
+- [./problems/problem-planarRobots](./problems/problem-planarRobots) represents a planar robots planning problem
+- [./problems/problem-navigation](./problems/problem-navigation) represents a 2D moving cart problem
+
+Notice that these are just samples, but as long as you provide a connector and a sampler suitable for your specific problem, you can solve ANY kind of problem with this library!!
 
 ## CMAKE SUPPORT
 
@@ -135,7 +138,7 @@ target_link_libraries(${TARGET_NAME} MT-RRT-multi-threaded
 )
 ```
 
-If you are only interested in the **MT-RRT-core** you can fecth as done before and link to this one:
+If you are only interested in the standard **RRT** implementation contained in **MT-RRT-core**, you can link just to that library:
 ```cmake
 target_link_libraries(${TARGET_NAME} MT-RRT-core
 )
@@ -143,4 +146,4 @@ target_link_libraries(${TARGET_NAME} MT-RRT-core
 
 **MT-RRT** internally makes use of [omp](https://en.wikipedia.org/wiki/OpenMP), which should be natively supported by any kind of modern compiler. **CMake** will automatically look for the latest **omp** version installed and in case nothing is found an error will occour.
 
-Sometimes is is usefull to check the progress of the solver, printing on the console the iterations done so far. This is not the default behaviour of **MT-RRT** but can be enabled turning to **ON** the **CMake** option called **MT_RRT_SHOW_PLANNER_PROGRESS**. This of course will affects the performance and should be done only for debugging purposes.
+Sometimes is is usefull to check the progress of the solver, printing on the console the iterations done so far. This is not the default behaviour of **MT-RRT** but can be enabled turning to **ON** the **CMake** option called **MT-RRT-SHOW_PLANNER_PROGRESS**. This of course will affects the performance and should be done mostly for debugging purposes.

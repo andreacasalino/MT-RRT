@@ -1,19 +1,20 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <gtest/gtest.h>
 
-#include <MT-RRT-carpet/Strings.h>
+#include <MT-RRT/Strings.h>
 
-TEST_CASE("merge strings", TEST_TAG) {
-  CHECK(mt_rrt::merge("first", "second") == "firstsecond");
-  CHECK(mt_rrt::merge("first", "second", "third") == "firstsecondthird");
+TEST(StringsTest, merge_strings) {
+  EXPECT_EQ(mt_rrt::merge("first", "second"), "firstsecond");
+  EXPECT_EQ(mt_rrt::merge("first", "second", "third"), "firstsecondthird");
 
-  CHECK(mt_rrt::merge("first", "second", "third", "again") ==
-        "firstsecondthirdagain");
+  EXPECT_EQ(mt_rrt::merge("first", "second", "third", "again"),
+            "firstsecondthirdagain");
 }
 
-#include <MT-RRT-carpet/Error.h>
+#include <MT-RRT/Error.h>
 
-TEST_CASE("merged error message", TEST_TAG) {
-  CHECK(mt_rrt::Error{"first"}.what() == std::string{"first"});
-  CHECK(mt_rrt::Error{"first", "second"}.what() == std::string{"firstsecond"});
+TEST(StringsTest, compose_Error) {
+  EXPECT_EQ(mt_rrt::Error{"first"}.what(), std::string{"first"});
+
+  mt_rrt::Error err{"first", "second"};
+  EXPECT_EQ(err.what(), std::string{"firstsecond"});
 }
