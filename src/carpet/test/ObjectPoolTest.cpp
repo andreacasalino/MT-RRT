@@ -47,30 +47,14 @@ TEST(ObjectPoolTest, complex_type_pool) {
 TEST(ObjectPoolTest, trivial_type_pool) {
   mt_rrt::ObjectPool<float> pool;
 
-  {
-    // add individually
-    std::size_t s = 10;
-    std::vector<float *> added;
-    for (std::size_t k = 0; k < s; ++k) {
-      float &a = pool.emplace_back(static_cast<float>(k));
-      added.push_back(&a);
-    }
-    for (std::size_t k = 0; k < added.size(); ++k) {
-      EXPECT_EQ(*added[k], static_cast<float>(k));
-    }
+  std::vector<float> values;
+  for (std::size_t k = 0; k < mt_rrt::ObjectPool<float>::INITIAL_CAPACITY;
+        ++k) {
+    values.push_back(static_cast<float>(k) + 15);
   }
 
-  {
-    // add many
-    std::vector<float> values;
-    for (std::size_t k = 0; k < mt_rrt::ObjectPool<float>::INITIAL_CAPACITY;
-         ++k) {
-      values.push_back(static_cast<float>(k) + 15);
-    }
-
-    float *added = pool.emplace_back_multiple(values.data(), values.size());
-    EXPECT_EQ(*added, values.front());
-    added = &added[values.size() - 1];
-    EXPECT_EQ(*added, values.back());
-  }
+  float *added = pool.emplace_back(values.data(), values.size());
+  EXPECT_EQ(*added, values.front());
+  added = &added[values.size() - 1];
+  EXPECT_EQ(*added, values.back());
 }

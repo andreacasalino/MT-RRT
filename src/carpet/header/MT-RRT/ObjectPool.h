@@ -33,54 +33,86 @@ template <typename T> struct Chunk : public ChunkBase<T> {
   using ChunkBase<T>::ChunkBase;
 
   ~Chunk() {
-    T *ptr = reinterpret_cast<T *>(buffer);
-    for (std::size_t k = 0; k < size_; ++k, ++ptr) {
+    T *ptr = reinterpret_cast<T *>(this->buffer);
+    for (std::size_t k = 0; k < this->size_; ++k, ++ptr) {
       ptr->~T();
     }
   }
 };
 
+template<>
 struct Chunk<int> : ChunkBase<int> {};
-struct Chunk<std::int16_t> : ChunkBase<std::int16_t> {};
-struct Chunk<std::int32_t> : ChunkBase<std::int32_t> {};
-struct Chunk<std::int64_t> : ChunkBase<std::int64_t> {};
-struct Chunk<std::uint16_t> : ChunkBase<std::uint16_t> {};
-struct Chunk<std::uint32_t> : ChunkBase<std::uint32_t> {};
-struct Chunk<std::uint64_t> : ChunkBase<std::uint64_t> {};
+template<>
 struct Chunk<float> : ChunkBase<float> {};
+template<>
 struct Chunk<double> : ChunkBase<double> {};
+template<>
+struct Chunk<std::int16_t> : ChunkBase<std::int16_t> {};
+template<>
+struct Chunk<std::int64_t> : ChunkBase<std::int64_t> {};
+template<>
+struct Chunk<std::uint16_t> : ChunkBase<std::uint16_t> {};
+template<>
+struct Chunk<std::uint32_t> : ChunkBase<std::uint32_t> {};
+template<>
+struct Chunk<std::uint64_t> : ChunkBase<std::uint64_t> {};
 
-template <typename T> class ObjectPool {
+template <typename T> class ObjectPoolBase {
 public:
-  ObjectPool();
-
-  template <typename... Args>
-  T &emplace_back(Args &&...args); // TODO this for normal types
-
-  T *emplace_back_multiple(
-      const T *source,
-      std::size_t how_many); // TODO this only for trivial types
+  ObjectPoolBase() {
+    chunks_.emplace_back(std::make_unique<Chunk<T>>(INITIAL_CAPACITY));
+  }
 
   static const inline std::size_t INITIAL_CAPACITY = 100;
 
-private:
-  std::vector<std::unique_ptr<Chunk>> chunks_;
+protected:
+  std::vector<std::unique_ptr<Chunk<T>>> chunks_;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class ObjectPool : public ObjectPoolBase<T> {
+public:
+  using ObjectPoolBase<T>::ObjectPoolBase;
 
-template <typename T> ObjectPool<T>::ObjectPool() {
-  chunks_.emplace_back(std::make_unique<Chunk>(INITIAL_CAPACITY));
-}
+  template <typename... Args>
+  T &emplace_back(Args &&...args);
+};
+
+template <typename T>
+class ObjectPoolMemCopiableTypes : public ObjectPoolBase<T> {
+public:
+  using ObjectPoolBase<T>::ObjectPoolBase;
+
+  T *emplace_back(const T *source_buffer, std::size_t buffer_size);
+};
+
+template<>
+struct ObjectPool<int> : ObjectPoolMemCopiableTypes<int> {};
+template<>
+struct ObjectPool<float> : ObjectPoolMemCopiableTypes<float> {};
+template<>
+struct ObjectPool<double> : ObjectPoolMemCopiableTypes<double> {};
+template<>
+struct ObjectPool<std::int16_t> : ObjectPoolMemCopiableTypes<std::int16_t> {};
+template<>
+struct ObjectPool<std::int64_t> : ObjectPoolMemCopiableTypes<std::int64_t> {};
+template<>
+struct ObjectPool<std::uint16_t> : ObjectPoolMemCopiableTypes<std::uint16_t> {};
+template<>
+struct ObjectPool<std::uint32_t> : ObjectPoolMemCopiableTypes<std::uint32_t> {};
+template<>
+struct ObjectPool<std::uint64_t> : ObjectPoolMemCopiableTypes<std::uint64_t> {};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 template <typename... Args>
 T &ObjectPool<T>::emplace_back(Args &&...args) {
-  Chunk *recipient = chunks_.back().get();
+  Chunk<T> *recipient = this->chunks_.back().get();
   if (recipient->size_ == recipient->capacity_) {
     // create a new chunk
     recipient =
-        chunks_.emplace_back(std::make_unique<Chunk>(recipient->capacity_ * 10))
+        this->chunks_.emplace_back(std::make_unique<Chunk<T>>(recipient->capacity_ * 10))
             .get();
   }
   T *slot = recipient->at(recipient->size_++);
@@ -89,19 +121,19 @@ T &ObjectPool<T>::emplace_back(Args &&...args) {
 }
 
 template <typename T>
-T *ObjectPool<T>::emplace_back_multiple(const T *source, std::size_t how_many) {
-  Chunk *recipient = chunks_.back().get();
+T *ObjectPoolMemCopiableTypes<T>::emplace_back(const T *source_buffer, std::size_t buffer_size) {
+  Chunk<T> *recipient = this->chunks_.back().get();
   if (std::size_t residual_size = recipient->capacity_ - recipient->size_;
-      residual_size < how_many) {
+      residual_size < buffer_size) {
     std::size_t next_chunk_cap =
-        std::max<std::size_t>(how_many, recipient->capacity_ * 10);
+        std::max<std::size_t>(buffer_size, recipient->capacity_ * 10);
     // create a new chunk
     recipient =
-        chunks_.emplace_back(std::make_unique<Chunk>(next_chunk_cap)).get();
+        this->chunks_.emplace_back(std::make_unique<Chunk<T>>(next_chunk_cap)).get();
   }
   T *slot = recipient->at(recipient->size_);
-  std::memcpy(slot, source, how_many * sizeof(T));
-  recipient->size_ += how_many;
+  std::memcpy(slot, source_buffer, buffer_size * sizeof(T));
+  recipient->size_ += buffer_size;
   return slot;
 }
 } // namespace mt_rrt
