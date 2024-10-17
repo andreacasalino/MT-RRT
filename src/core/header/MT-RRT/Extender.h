@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <optional>
+#include <variant>
 
 namespace mt_rrt {
 struct KeepSearchPredicate {
@@ -43,11 +44,20 @@ private:
   const float deterministic_rate_sampler_threshold;
 };
 
-/** @brief Used to extend one or two connected search trees
- */
-class Extender : public ProblemAware {
+class ExtenderBase : public ProblemAware {
+protected:
+  ExtenderBase(const TreeHandler &handler);
+
+  const Parameters &parameters;
+  std::optional<DeterminismRegulator> determinism_manager;
+};
+
+class ExtenderSingle;
+class ExtenderBidir;
+
+template <typename Impl> struct ExtenderT : public Impl {
 public:
-  virtual ~Extender() = default;
+  using Impl::Impl;
 
   /** @brief Perform the specified number of estensions on the wrapped tree(s).
    * This function may be called multiple times, for performing batch of
@@ -57,18 +67,12 @@ public:
    */
   std::size_t search();
 
-  virtual std::vector<TreeHandlerPtr> dumpTrees() = 0;
-
-  Solutions solutions;
-
-protected:
-  Extender(const TreeHandler &handler);
-
-  virtual void search_iteration() = 0;
-
-  const Parameters &parameters;
-  std::optional<DeterminismRegulator> determinism_manager;
+  Solutions<typename Impl::SolutionT> solutions;
 };
 
-using ExtenderPtr = std::unique_ptr<Extender>;
+using Extender =
+    std::variant<ExtenderT<ExtenderSingle>, ExtenderT<ExtenderBidir>>;
+
+std::vector<TreeHandlerPtr> dumpTrees(Extender &extender);
+
 } // namespace mt_rrt

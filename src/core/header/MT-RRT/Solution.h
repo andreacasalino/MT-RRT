@@ -10,21 +10,16 @@
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Types.h>
 
-#include <unordered_map>
-
 namespace mt_rrt {
 std::vector<std::vector<float>> sequence_from_root(const Node &subject);
 
-class Solution {
-public:
-  virtual ~Solution() = default;
-  virtual std::vector<std::vector<float>> materialize() const = 0;
-  virtual float cost() const = 0;
-};
+template <typename T> using Solutions = std::vector<T>;
 
-using Solutions = std::vector<std::shared_ptr<Solution>>;
-
-void sort_solutions(Solutions &subject);
-
-std::vector<std::vector<float>> materialize_best(const Solutions &subject);
+template <typename T>
+std::vector<std::vector<float>> materialize_best(const Solutions<T> &subject) {
+  if (subject.empty()) {
+    return {};
+  }
+  return std::max_element(subject.begin(), subject.end())->materialize();
+}
 } // namespace mt_rrt
