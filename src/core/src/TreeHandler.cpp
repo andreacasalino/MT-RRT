@@ -6,38 +6,35 @@
  **/
 
 #include <MT-RRT/TreeHandler.h>
-
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/TreeUtils.h>
 
 #include <algorithm>
 #include <math.h>
 
 namespace mt_rrt {
-TreeHandler::TreeHandler(const ProblemDescriptionPtr &problem,
-                         const Parameters &parameters)
+TreeHandlerBase::TreeHandlerBase(const ProblemDescriptionPtr &problem,
+                                 const Parameters &parameters)
     : ProblemAware{problem}, parameters(parameters) {}
 
-TreeHandlerBasic::TreeHandlerBasic(const View &root,
-                                   const ProblemDescriptionPtr &problem,
-                                   const Parameters &parameters)
-    : TreeHandler(problem, parameters) {
+TreeHandler::TreeHandler(const View &root, const ProblemDescriptionPtr &problem,
+                         const Parameters &parameters)
+    : TreeHandlerBase(problem, parameters) {
   auto &rootNode = allocator.emplace_back(root);
   nodes.push_back(&rootNode);
 }
 
-TreeHandlerBasic::TreeHandlerBasic(Node &root,
-                                   const ProblemDescriptionPtr &problem,
-                                   const Parameters &parameters)
-    : TreeHandler(problem, parameters) {
+TreeHandler::TreeHandler(Node &root, const ProblemDescriptionPtr &problem,
+                         const Parameters &parameters)
+    : TreeHandlerBase(problem, parameters) {
   nodes.push_back(&root);
 };
 
-const Node *TreeHandlerBasic::nearestNeighbour(const View &state) const {
+const Node *TreeHandler::nearestNeighbour(const View &state) const {
   return nearest_neighbour(state, nodes.begin(), nodes.end(),
                            DescriptionAndParameters{problem(), parameters});
 }
 
-NearSet TreeHandlerBasic::nearSet(const Node &subject) const {
+NearSet TreeHandler::nearSet(const Node &subject) const {
   NearSet res;
   res.cost2RootSubject = subject.cost2Root();
   res.set = near_set(subject.state(), nodes.begin(), nodes.end(), nodes.size(),
@@ -45,17 +42,16 @@ NearSet TreeHandlerBasic::nearSet(const Node &subject) const {
   return res;
 }
 
-Node *TreeHandlerBasic::internalize(const Node &subject) {
+Node *TreeHandler::internalize(const Node &subject) {
   auto &added = allocator.emplace_back(subject.state());
   added.setParent(*subject.getParent(), subject.cost2Go());
   nodes.push_back(&added);
   return &added;
 }
 
-void TreeHandlerBasic::applyRewires(const Node &new_father,
-                                    const std::vector<Rewire> &rewires) {
-  for (const auto &rewire : rewires) {
-    rewire.involved_node->setParent(new_father, rewire.new_cost_from_father);
+void TreeHandler::applyRewires(const Node &parent, const Rewires &rewires) {
+  for (auto [involved, cost] : rewires.involved_nodes) {
+    involved->setParent(parent, cost);
   }
 }
 

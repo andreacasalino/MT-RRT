@@ -51,7 +51,7 @@ public:
 
   /**
    * @return the cost to go from the beginning of the trajectory to the current
-   * reached state. IMPORTANT: it is a no-sense value in case last advance()
+   * reached state. IMPORTANT: it can be a no-sense value in case last advance()
    * returned blocked
    */
   virtual float getCumulatedCost() const = 0;

@@ -1,16 +1,56 @@
 #include <SampleBase.h>
 
 #include <MT-RRT/StandardPlanner.h>
-
+#ifdef MT_PLANNERS_ENABLED
 #include <MT-RRT/EmbarassinglyParallel.h>
 #include <MT-RRT/LinkedTreesPlanner.h>
 #include <MT-RRT/MultiAgentPlanner.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
 #include <MT-RRT/SharedTreePlanner.h>
+#endif
 
 #include <unordered_map>
 
 namespace mt_rrt {
+PlannerKind from_string(const std::string& str) {
+  PlannerKind res;
+  bool found = false;
+
+  if(str == "STANDARD") {
+    res = PlannerKind::Standard;
+    found = true;
+  }
+
+#ifdef MT_PLANNERS_ENABLED
+  if(str == "EMBARASS") {
+    res = PlannerKind::Embarass;
+    found = true;
+  }
+  if(str == "PQUERY") {
+    res = PlannerKind::PQuery;
+    found = true;
+  }
+  if(str == "SHARED") {
+    res = PlannerKind::Shared;
+    found = true;
+  }
+  if(str == "LINKED") {
+    res = PlannerKind::Linked;
+    found = true;
+  }
+  if(str == "MULTIAG") {
+    res = PlannerKind::Multiag;
+    found = true;
+  }
+#endif
+
+  if(!found) {
+    throw std::runtime_error{"Unrecognized planner kind"};
+  }
+
+  return res;
+}
+
 void from_json(Parameters &recipient, const nlohmann::json &src) {
   if (src.contains("strategy")) {
     static std::unordered_map<std::string, ExpansionStrategy> strategies =
@@ -39,50 +79,9 @@ void from_json(Parameters &recipient, const nlohmann::json &src) {
   }
 }
 
-namespace {
-class PlannerFactory {
-public:
-  std::unique_ptr<Planner> make(ProblemDescription &&descr,
-                                const std::string &name) const {
-    auto it = predicates.find(name);
-    if (it == predicates.end()) {
-      throw Error{name, " is a non recognized planner type"};
-    }
-    return it->second(std::forward<ProblemDescription>(descr));
-  }
-
-  static PlannerFactory &get() {
-    static PlannerFactory res = PlannerFactory{};
-    return res;
-  }
-
-private:
-  PlannerFactory() {
-    this->template providePredicate<StandardPlanner>("STANDARD");
-
-    this->template providePredicate<EmbarassinglyParallelPlanner>("EMBARASS");
-    this->template providePredicate<ParallelizedQueriesPlanner>("PQUERY");
-    this->template providePredicate<SharedTreePlanner>("SHARED");
-    this->template providePredicate<LinkedTreesPlanner>("LINKED");
-    this->template providePredicate<MultiAgentPlanner>("MULTIAG");
-  }
-
-  template <typename PlannerT> void providePredicate(const std::string &name) {
-    predicates.emplace(name, [](ProblemDescription &&descr) {
-      return std::make_unique<PlannerT>(
-          std::forward<ProblemDescription>(descr));
-    });
-  }
-
-  std::unordered_map<std::string, std::function<std::unique_ptr<Planner>(
-                                      ProblemDescription &&)>>
-      predicates;
-};
-} // namespace
-
 void from_json(PlannerParameters &recipient, const nlohmann::json &src) {
   if (src.contains("type")) {
-    recipient.type = src["type"];
+    recipient.type = from_string(src["type"]);
   }
   if (src.contains("threads")) {
     recipient.threads = src["threads"];
@@ -92,25 +91,31 @@ void from_json(PlannerParameters &recipient, const nlohmann::json &src) {
   }
 }
 
-std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc,
-                                     const std::string &type) {
-  return PlannerFactory::get().make(std::forward<ProblemDescription>(desc),
-                                    type);
-}
-
-void setUpPlanner(Planner &planner, const PlannerParameters &params) {
-  if (params.threads != 0) {
-    auto *maybe_mt = dynamic_cast<MultiThreadedPlanner *>(&planner);
-    if (maybe_mt) {
-      maybe_mt->setThreads(params.threads);
-    }
+std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind) {
+  std::unique_ptr<Planner> res;
+  switch (kind) {
+  case PlannerKind::Standard:
+    res = std::make_unique<StandardPlanner>(std::forward<ProblemDescription>(desc));
+    break;
+#ifdef MT_PLANNERS_ENABLED
+  case PlannerKind::Embarass:
+    res = std::make_unique<EmbarassinglyParallelPlanner>(std::forward<ProblemDescription>(desc));
+    break;
+  case PlannerKind::PQuery:
+    res = std::make_unique<ParallelizedQueriesPlanner>(std::forward<ProblemDescription>(desc));
+    break;
+  case PlannerKind::Shared:
+    res = std::make_unique<SharedTreePlanner>(std::forward<ProblemDescription>(desc));
+    break;
+  case PlannerKind::Linked:
+    res = std::make_unique<LinkedTreesPlanner>(std::forward<ProblemDescription>(desc));
+    break;
+  case PlannerKind::Multiag:
+    res = std::make_unique<MultiAgentPlanner>(std::forward<ProblemDescription>(desc));
+    break;
+#endif  
   }
-  if (params.synchronization != 0) {
-    auto *maybe_sy = dynamic_cast<SynchronizationAware *>(&planner);
-    if (maybe_sy) {
-      maybe_sy->synchronization().set(params.synchronization);
-    }
-  }
+  return res;
 }
 
 } // namespace mt_rrt

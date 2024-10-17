@@ -8,6 +8,7 @@
 #pragma once
 
 #include <atomic>
+#include <type_traits>
 
 namespace mt_rrt {
 template <typename T> class LockFreeForwardList {
@@ -21,8 +22,6 @@ public:
   template <typename Pred> void forEach(Pred &&pred);
 
   std::size_t size() const { return size_.load(); }
-
-  T *getFront() const { return front; }
 
 private:
   struct Node_ {
@@ -50,11 +49,11 @@ template <typename T>
 template <typename... Args>
 void LockFreeForwardList<T>::emplace_back(Args &&...args) {
   Node_ *to_add = new Node_{std::forward<Args>(args)...};
-  Node_ *cursor = tail.load();
+  Node_ *cursor = tail.load(std::memory_order::memory_order_acquire);
   while (true) {
     Node_ *expected = nullptr;
-    if (cursor->next.compare_exchange_strong(expected, to_add)) {
-      tail.store(to_add);
+    if (cursor->next.compare_exchange_strong(expected, to_add, std::memory_order::memory_order_acquire)) {
+      tail.store(to_add, std::memory_order::memory_order_acquire);
       break;
     } else {
       cursor = expected;
@@ -66,8 +65,13 @@ void LockFreeForwardList<T>::emplace_back(Args &&...args) {
 template <typename T>
 template <typename Pred>
 void LockFreeForwardList<T>::forEach(Pred &&pred) {
-  for (Node_ *cursor = front; cursor != nullptr; cursor = cursor->next.load()) {
-    pred(cursor->value);
+  for (Node_ *cursor = front; cursor != nullptr; cursor = cursor->next.load(std::memory_order::memory_order_acquire)) {
+    if constexpr (std::is_pointer_v<T>) {
+      pred(cursor->value);
+    }
+    else {
+      pred(std::ref(cursor->value));
+    }
   }
 }
 

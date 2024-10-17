@@ -19,22 +19,6 @@ bool is_a_collision_present(const TrivialProblemConnector &scenario,
   return false;
 }
 
-bool check_solutions(const TrivialProblemConnector &scenario,
-                     const mt_rrt::Solutions &solutions,
-                     const geom::Point &start, const geom::Point &end) {
-  const auto start_vec = start.asVec();
-  const auto end_vec = end.asVec();
-  for (const auto &sol : solutions) {
-    auto sequence = sol->getSequence();
-    if ((sequence.size() < 2) || (sequence.front() != start_vec) ||
-        (sequence.back() != end_vec) ||
-        is_a_collision_present(scenario, sequence)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool check_loopy_connections(const TreeHandler &tree) {
   return std::find_if(tree.nodes.begin(), tree.nodes.end(), [](const Node *n) {
            try {
@@ -53,7 +37,7 @@ geom::Point all_equals(float value) { return geom::Point{value, value}; }
 ExtendProblem make_empty_scenario(ExpansionStrategy expansion_strategy) {
   return ExtendProblem{TrivialProblemConnector::make(1, {}),
                        Parameters{expansion_strategy, SteerIterations{3},
-                                  Iterations{1500}, Determinism{0.15f}, false},
+                                  Iterations{1500}, Determinism{0.15f}, false, true},
                        all_equals(-1.f), all_equals(1.f)};
 }
 
@@ -64,7 +48,7 @@ ExtendProblem make_no_solution_scenario(ExpansionStrategy expansion_strategy) {
       TrivialProblemConnector::make(
           1, geom::Boxes{geom::Box{obstacle_min_corner, obstacle_max_corner}}),
       Parameters{expansion_strategy, SteerIterations{3}, Iterations{1500},
-                 Determinism{0.15f}, false},
+                 Determinism{0.15f}, false, true},
       all_equals(-1.f), all_equals(1.f)};
 }
 
@@ -74,7 +58,7 @@ make_small_obstacle_scenario(ExpansionStrategy expansion_strategy) {
       TrivialProblemConnector::make(
           1, geom::Boxes{geom::Box{all_equals(-0.8f), all_equals(0.8f)}}),
       Parameters{expansion_strategy, SteerIterations{3}, Iterations{1500},
-                 Determinism{0.15f}, false},
+                 Determinism{0.15f}, false, true},
       all_equals(-1.f), all_equals(1.f)};
 }
 
@@ -88,7 +72,7 @@ ExtendProblem make_cluttered_scenario(ExpansionStrategy expansion_strategy) {
 
   return ExtendProblem{TrivialProblemConnector::make(1, std::move(obstacles)),
                        Parameters{expansion_strategy, SteerIterations{3},
-                                  Iterations{2000}, Determinism{0.15f}, true},
+                                  Iterations{2000}, Determinism{0.15f}, true, true},
                        all_equals(-1.f), all_equals(1.f)};
 }
 } // namespace

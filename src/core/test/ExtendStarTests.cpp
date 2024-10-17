@@ -1,5 +1,7 @@
 #include "ExtendTest.h"
 
+#include <map>
+
 using namespace mt_rrt;
 using namespace mt_rrt::trivial;
 
@@ -15,8 +17,7 @@ TEST_P(StarStrategyFixture, search) {
   {
     SCOPED_TRACE("check optimality");
 
-    sort_solutions(extender.getSolutions());
-    const auto &best_solution = extender.getSolutions().front();
+    const auto best_solution = materialize_best(extender.solutions);
     using Sequence = std::vector<std::vector<float>>;
     std::vector<Sequence> optimal_paths;
     switch (GetParam()) {
@@ -39,8 +40,8 @@ TEST_P(StarStrategyFixture, search) {
     }
     bool is_optimal = std::any_of(
         optimal_paths.begin(), optimal_paths.end(),
-        [seq = best_solution->getSequence()](const auto &candidate) {
-          return geom::curve_similarity(seq, candidate) <= 0.2f;
+        [&best_solution](const auto &candidate) {
+          return geom::curve_similarity(best_solution, candidate) <= 0.2f;
         });
     EXPECT_TRUE(is_optimal);
   }

@@ -54,14 +54,13 @@ void to_json(nlohmann::json &j, const geom::Box &subject) {
   }
 }
 
-void to_json(nlohmann::json &j, const TreeHandler &subject) {
+void to_json(nlohmann::json &j, const PlannerSolution::TreeSerialized &subject) {
   j = nlohmann::json::array();
-  for (const auto *node : subject.nodes) {
+  for (const auto& node : subject) {
     auto &added = j.emplace_back();
-    added["state"] = node->state();
-    added["from"] =
-        node->getParent() ? node->getParent()->state() : node->state();
-    added["cost2Go"] = node->cost2Go();
+    added["state"] = node.state;
+    added["from"] = subject[node.parent_index].state;
+    added["cost2Go"] = node.cost2Go;
   }
 }
 

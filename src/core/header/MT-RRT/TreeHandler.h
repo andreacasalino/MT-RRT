@@ -13,75 +13,63 @@
 #include <unordered_set>
 
 namespace mt_rrt {
-struct NearSetElement {
-  bool isRoot;
-  Node *element;
-  float cost2Root;
-  float cost2go;
-};
-
-struct NearSet {
-  float cost2RootSubject;
-  std::vector<NearSetElement> set;
-};
-
-struct Rewire {
-  Node *involved_node;
-  float new_cost_from_father;
-};
-
-class TreeHandler : public ProblemAware {
+/*
+ * @brief contains the register of nodes that were already deterministically
+ * steered over a certain state
+ *
+ * keys are the steered node, while the values are the states
+ * toward which the node were deterministically steered
+ */
+class DeterministicSteerRegister {
 public:
-  virtual ~TreeHandler() = default;
+  DeterministicSteerRegister() = default;
 
-  // nullptr if nothing was found
-  virtual const Node *nearestNeighbour(const View &state) const = 0;
+  bool contains(const Node *node, const float *data) const {
+    auto it = register_.find(node);
+    return it != register_.end() && it->second.find(data) != it->second.end();
+  }
 
-  virtual NearSet nearSet(const Node &subject) const = 0;
+  void add(const Node *node, const float *data) {
+    register_[node].emplace(data);
+  }
 
-  virtual Node *internalize(const Node &subject) = 0;
+private:
+  std::unordered_map<const Node *, std::unordered_set<const float *>> register_;
+};
 
-  virtual void applyRewires(const Node &new_father,
-                            const std::vector<Rewire> &rewires) = 0;
+class TreeHandlerBase : public ProblemAware {
+public:
+  TreeHandlerBase(const ProblemDescriptionPtr &problem,
+                  const Parameters &parameters);
 
   std::vector<Node *> nodes;
   Parameters parameters;
-  // contains the register of nodes that were already deterministically
-  // steered over a certain state
-  //
-  // keys are the steered node, while the values are the states
-  // toward which the node were deterministically steered
-  using DeterministicSteerRegister =
-      std::unordered_map<const Node *, std::unordered_set<const float *>>;
   DeterministicSteerRegister deterministic_steer_register;
-
-protected:
-  TreeHandler(const ProblemDescriptionPtr &problem,
-              const Parameters &parameters);
 };
 
-class TreeHandlerBasic : public TreeHandler {
+class TreeHandler : public TreeHandlerBase {
 public:
-  TreeHandlerBasic(const View &root, const ProblemDescriptionPtr &problem,
-                   const Parameters &parameters);
-  TreeHandlerBasic(Node &root, const ProblemDescriptionPtr &problem,
-                   const Parameters &parameters);
+  TreeHandler(const View &root, const ProblemDescriptionPtr &problem,
+              const Parameters &parameters);
+  TreeHandler(Node &root, const ProblemDescriptionPtr &problem,
+              const Parameters &parameters);
 
-  const Node *nearestNeighbour(const View &state) const override;
+  const Node *nearestNeighbour(const View &state) const;
 
-  NearSet nearSet(const Node &subject) const override;
+  NearSet nearSet(const Node &subject) const;
 
-  Node *internalize(const Node &subject) override;
+  Node *internalize(const Node &subject);
 
-  void applyRewires(const Node &new_father,
-                    const std::vector<Rewire> &rewires) override;
+  void applyRewires(const Node &parent, const Rewires &rewires);
 
 protected:
   NodesAllocator allocator;
 };
 
-using TreeHandlerPtr = std::unique_ptr<TreeHandler>;
+template <typename TreeT> using TreeHandlerPtr = std::unique_ptr<TreeT>;
 
-float near_set_ray(std::size_t tree_size, std::size_t problem_size,
-                   float gamma);
+template <typename TreeT, typename... ARGS>
+TreeHandlerPtr<TreeT> make_tree(ARGS &&...args) {
+  return std::make_unique<TreeT>(std::forward<ARGS>(args)...);
+}
 } // namespace mt_rrt

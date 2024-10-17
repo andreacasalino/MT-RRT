@@ -21,18 +21,28 @@ void from_json(Parameters &recipient, const nlohmann::json &src);
 template <typename ConnectorT>
 ProblemDescription from_json(const nlohmann::json &src);
 
+enum class PlannerKind {
+  Standard
+#ifdef MT_PLANNERS_ENABLED
+  , Embarass
+  , PQuery
+  , Shared
+  , Linked
+  , Multiag
+#endif
+};
+
+PlannerKind from_string(const std::string& str);
+
 struct PlannerParameters {
-  std::string type;
+  PlannerKind type = PlannerKind::Standard;
   std::size_t threads = 0;
   float synchronization = 0;
 };
 
 void from_json(PlannerParameters &type, const nlohmann::json &src);
 
-std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc,
-                                     const std::string &type);
-
-void setUpPlanner(Planner &planner, const PlannerParameters &params);
+std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind);
 
 struct DefaultStateParser {
   std::vector<float> operator()(std::vector<float> subject) const {
@@ -99,6 +109,24 @@ void SampleBase<ConnectorT>::process() {
   auto the_problem = from_json<ConnectorT>(data["scene"]);
   auto planner =
       makePlanner(std::move(the_problem), globalPlannerParameters.type);
+
+#ifdef MT_PLANNERS_ENABLED
+  auto setUpPlanner = [&planner](const PlannerParameters& params) {
+    if (params.threads != 0) {
+      auto *maybe_mt = dynamic_cast<MultiThreadedPlanner *>(planner.get());
+      if (maybe_mt) {
+        maybe_mt->setThreads(params.threads);
+      }
+    }
+    if (params.synchronization != 0) {
+      auto *maybe_sy = dynamic_cast<SynchronizationAware *>(planner.get());
+      if (maybe_sy) {
+        maybe_sy->synchronization().set(params.synchronization);
+      }
+    }
+  };
+#endif  
+
   for (const auto &scenario : data["cases"]) {
     std::string title = scenario["title"];
     std::cout << "----------------------------------------------------------"
@@ -114,9 +142,11 @@ void SampleBase<ConnectorT>::process() {
     }
     std::vector<float> start = state_parser(scenario["start"]);
     std::vector<float> end = state_parser(scenario["end"]);
+#ifdef MT_PLANNERS_ENABLED
     if (scenario.contains("parameters")) {
-      setUpPlanner(*planner, plannerParameters);
+      setUpPlanner(plannerParameters);
     }
+#endif  
     auto solution = planner->solve(start, end, parameters);
     if (solution.solution.empty()) {
       std::cout << "A solution was NOT found" << std::endl;

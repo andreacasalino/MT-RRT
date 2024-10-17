@@ -6,8 +6,8 @@
  **/
 
 #include <MT-RRT/EmbarassinglyParallel.h>
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/extender/ExtenderBidir.h>
+#include <MT-RRT/extender/ExtenderSingle.h>
 
 #include "MultiThreadedUtils.h"
 
@@ -17,33 +17,37 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
                                           const std::vector<float> &end,
                                           const Parameters &parameters,
                                           PlannerSolution &recipient) {
-  Extenders extenders;
-  for (std::size_t t = 0; t < getThreads(); ++t) {
-    auto &extender = extenders.emplace_back();
+  auto perform = [&](auto &extenders) {
+    parallel_region(getThreads(),
+                    [&]() { extenders[omp_get_thread_num()].search(); });
 
-    switch (parameters.expansion_strategy) {
-    case ExpansionStrategy::Single:
-    case ExpansionStrategy::Star: {
+    recipient.iterations = parameters.iterations.get();
+    recipient.solution = materialize_best_in_extenders(extenders);
+    emplace_trees(recipient, extenders);
+  };
+
+  switch (parameters.expansion_strategy) {
+  case ExpansionStrategy::Single:
+  case ExpansionStrategy::Star: {
+    Extenders<ExtenderSingle> extenders;
+    for (std::size_t t = 0; t < getThreads(); ++t) {
       auto tree = std::make_unique<TreeHandlerBasic>(View{start}, problemPtr(),
                                                      parameters);
-      extender = std::make_unique<ExtenderSingle>(std::move(tree), end);
-    } break;
-    case ExpansionStrategy::Bidir: {
+      extenders.emplace_back(std::move(tree), end);
+      perform(extenders);
+    }
+  } break;
+  case ExpansionStrategy::Bidir: {
+    Extenders<ExtenderBidirectional> extenders;
+    for (std::size_t t = 0; t < getThreads(); ++t) {
       auto tree_start = std::make_unique<TreeHandlerBasic>(
           View{start}, problemPtr(), parameters);
       auto tree_end = std::make_unique<TreeHandlerBasic>(
           View{end}, problemPtr(), parameters);
-      extender = std::make_unique<ExtenderBidirectional>(std::move(tree_start),
-                                                         std::move(tree_end));
-    } break;
+      extenders.emplace_back(std::move(tree_start), std::move(tree_end));
+      perform(extenders);
     }
+    break;
   }
-
-  parallel_region(getThreads(),
-                  [&]() { extenders[omp_get_thread_num()]->search(); });
-
-  recipient.iterations = parameters.iterations.get();
-  recipient.solution = get_best_solution(extenders);
-  emplace_trees(recipient, extenders);
-}
+  }
 } // namespace mt_rrt

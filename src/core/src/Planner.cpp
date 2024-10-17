@@ -12,7 +12,25 @@
 #include "Progress.h"
 #endif
 
+#include <unordered_map>
+
 namespace mt_rrt {
+
+PlannerSolution::TreeSerialized
+serialize_tree(const std::vector<Node *> &nodes) {
+  std::unordered_map<const Node *, std::size_t> indicesMap{{nullptr, 0}};
+  for (std::size_t index = 0; index < nodes.size(); ++index) {
+    indicesMap.emplace(nodes[index], index);
+  }
+  PlannerSolution::TreeSerialized res;
+  for (auto *node : nodes) {
+    res.emplace_back(PlannerSolution::NodeSerialized{
+        node->cost2Go(), indicesMap[node->getParent()],
+        node->state().convert()});
+  }
+  return res;
+}
+
 namespace {
 ProblemDescriptionPtr make_description(ProblemDescription &&problem) {
   if (nullptr == problem.sampler) {

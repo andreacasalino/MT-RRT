@@ -9,26 +9,37 @@
 
 namespace mt_rrt {
 ParallelFor::~ParallelFor() {
-  for (auto &worker : workers) {
-    worker->context.life.store(false);
-    worker->loop.join();
+  life.store(false, std::memory_order::memory_order_acquire);
+  for (auto &worker : loops) {
+    worker.join();
   }
 }
 
 ParallelFor::ParallelFor(const Threads &pool_size) {
-  for (std::size_t k = 1; k < pool_size.get(); ++k) {
-    auto *ctxt = &workers.emplace_back(std::make_unique<Worker>())->context;
-    workers.back()->loop = std::thread{[ctxt = ctxt, id = k]() {
-      while (ctxt->life.load()) {
-        Phase expected{Phase::TaskReady};
-        if (ctxt->phase.compare_exchange_strong(expected, Phase::Processing,
-                                                std::memory_order_acquire)) {
-          ctxt->task->scan(id);
-          ctxt->task = nullptr;
-          ctxt->phase.store(Phase::Done);
-        }
+  states.resize(pool_size.get() - 1);
+  for (auto &state : states) {
+    state.store(State::None, std::memory_order::memory_order_acquire);
+  }
+  for (std::size_t id = 1; id < pool_size.get(); ++id) {
+    loops.emplace_back(std::bind(ParallelFor::worker_, std::ref(*this), id));
+  }
+}
+
+void ParallelFor::worker_(std::size_t id) {
+  while (true) {
+    do {
+      if (!life.load(std::memory_order::memory_order_acquire)) {
+        return;
       }
-    }};
+      State expected = State::TaskReady;
+      if (states[id - 1].compare_exchange_strong(
+              expected, State::Processing,
+              std::memory_order::memory_order_acquire)) {
+        break;
+      }
+    } while (true);
+    task_(id);
+    states[id - 1].store(State::None, std::memory_order::memory_order_release);
   }
 }
 } // namespace mt_rrt

@@ -8,6 +8,9 @@
 #pragma once
 
 #include <MT-RRT/Limited.h>
+#include <MT-RRT/Node.h>
+
+#include <vector>
 
 namespace mt_rrt {
 /**
@@ -64,5 +67,26 @@ struct Parameters {
    * additional solutions.
    */
   bool best_effort = true;
+  bool dumpTrees = false;
+};
+
+struct NearSetElement {
+  bool isRoot;
+  Node *element;
+  float cost2Root;
+  float cost2go;
+};
+
+struct NearSet {
+  float cost2RootSubject;
+  std::vector<NearSetElement> set;
+};
+
+struct Rewires {
+  struct Involved {
+    Node *node;
+    float new_cost_from_father;
+  };
+  std::vector<Involved> involved_nodes;
 };
 } // namespace mt_rrt

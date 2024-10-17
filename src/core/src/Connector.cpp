@@ -56,7 +56,7 @@ Connector::steer(const Node &start, const View &trg,
   if (steered.empty()) {
     return std::nullopt;
   }
-  SteerResult res{NodeOwning{std::move(steered)}, trg_reached};
+  SteerResult res{trg_reached, NodeOwning{std::move(steered)}};
   res.node.setParent(start, cost);
   return res;
 }

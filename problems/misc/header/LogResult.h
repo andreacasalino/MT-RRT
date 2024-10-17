@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <MT-RRT/Extender.h>
+#include <MT-RRT/extender/Extender.h>
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Planner.h>
 
@@ -43,14 +43,13 @@ public:
     added["type"] = ObstacleTrait<ObstacleT>::typeStr();
   }
 
-  void addTree(const TreeHandler &tree);
+  void addTree(const PlannerSolution::TreeSerialized &tree);
 
-  void addSolution(const std::vector<std::vector<float>> &sequence);
-  void addSolution(const Solution &solution);
+  void addSolution(const std::vector<std::vector<float>> &sequence, float cost);
 
   void addPlannerSolution(const PlannerSolution &sol) {
     for (const auto &tree : sol.trees) {
-      addTree(*tree);
+      addTree(tree);
     }
     auto &added = solutions.emplace_back();
     added["sequence"] = sol.solution;

@@ -2,13 +2,29 @@
 
 #include <gtest/gtest.h>
 
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/extender/Extender.h>
+#include <MiscConversions.h>
+#include <TrivialProblemConversions.h>
 #include <TestScenarios.h>
+#include <LogResult.h>
 
 namespace mt_rrt {
+template<typename ExtenderT>
 void log_test_case(const std::string &tag, const std::string &title,
-                   mt_rrt::Extender &subject);
+                   ExtenderT &subject) {
+  LogResult res;
+  to_json(res, static_cast<const trivial::TrivialProblemConnector &>(
+                   *subject.problem().connector));
+  for (const auto &solution : subject.solutions) {
+    res.addSolution(solution.materialize(), solution.cost());
+  }
+  std::vector<PlannerSolution::TreeSerialized> trees_serialized;
+  subject.serializeTrees(trees_serialized);
+  for (const auto &tree : trees_serialized) {
+    res.addTree(tree);
+  }
+  Logger::get().add(tag, title, res.get());
+}
 
 template <ExpansionStrategy strategy> class ExtendTest {
 public:
@@ -23,15 +39,15 @@ public:
   auto makeExtender() const {
     if constexpr (strategy == ExpansionStrategy::Single ||
                   strategy == ExpansionStrategy::Star) {
-      return ExtenderSingle(std::make_unique<TreeHandlerBasic>(
+      return ExtenderSingle<TreeHandler>(make_tree<TreeHandler>(
                                 start.asView(), problem.point_problem,
                                 problem.suggested_parameters),
                             end.asVec());
     } else {
-      return ExtenderBidirectional(std::make_unique<TreeHandlerBasic>(
+      return ExtenderBidirectional<TreeHandler>(make_tree<TreeHandler>(
                                        start.asView(), problem.point_problem,
                                        problem.suggested_parameters),
-                                   std::make_unique<TreeHandlerBasic>(
+                                   make_tree<TreeHandler>(
                                        end.asView(), problem.point_problem,
                                        problem.suggested_parameters));
     }
@@ -40,21 +56,22 @@ public:
   auto makeExtenderPtr() const {
     if constexpr (strategy == ExpansionStrategy::Single ||
                   strategy == ExpansionStrategy::Star) {
-      return std::make_unique<ExtenderSingle>(
-          std::make_unique<TreeHandler>(start.asView(), problem.point_problem,
+      return ExtenderSingle<TreeHandler>(
+          make_tree<TreeHandler>(start.asView(), problem.point_problem,
                                         problem.suggested_parameters),
           end.asVec());
     } else {
-      return std::make_unique<ExtenderBidirectional>(
-          std::make_unique<TreeHandler>(start.asView(), problem.point_problem,
+      return ExtenderBidirectional<TreeHandler>(
+          make_tree<TreeHandler>(start.asView(), problem.point_problem,
                                         problem.suggested_parameters),
-          std::make_unique<TreeHandler>(end.asView(), problem.point_problem,
+          make_tree<TreeHandler>(end.asView(), problem.point_problem,
                                         problem.suggested_parameters));
     }
   }
 
-  void checkSolutions(const Extender &extender) const {
-    const auto &solutions = extender.getSolutions();
+  template<typename ExtenderT>
+  void checkSolutions(const ExtenderT &extender) const {
+    const auto &solutions = extender.solutions;
     ASSERT_FALSE(solutions.empty());
     EXPECT_TRUE(
         check_solutions(static_cast<const trivial::TrivialProblemConnector &>(

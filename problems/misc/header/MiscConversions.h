@@ -8,7 +8,7 @@
 #pragma once
 
 #include <MT-RRT/Node.h>
-#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/Planner.h>
 
 #include <Geometry.h>
 #include <Primitives.h>
@@ -32,7 +32,7 @@ void to_json(nlohmann::json &j, const geom::Transform &subject);
 
 void to_json(nlohmann::json &j, const geom::Box &subject);
 
-void to_json(nlohmann::json &j, const TreeHandler &subject);
+void to_json(nlohmann::json &j, const PlannerSolution::TreeSerialized &subject);
 
 template <typename ConnectorT>
 std::vector<std::vector<float>>

@@ -34,11 +34,23 @@ struct PlannerSolution {
    * problem. Is empty in case a solution was not found
    */
   std::vector<std::vector<float>> solution;
+
+  struct NodeSerialized {
+    float cost2Go;
+    std::size_t parent_index;
+    std::vector<float> state;
+  };
+  using TreeSerialized = std::vector<NodeSerialized>;
   /**
-   * @brief The search trees produced while trying to solve the problem
+   * @brief The search trees produced while trying to solve the problem.
+   * Is not empty only if Parameters::dumpTrees was set to true.
+   * Beware that setting up this field comes with a peformance penalty.
    */
-  std::vector<TreeHandlerPtr> trees;
+  std::vector<TreeSerialized> trees;
 };
+
+PlannerSolution::TreeSerialized
+serialize_tree(const std::vector<Node *> &nodes);
 
 /**
  * @brief In order to solve any kind of problem you need to build a kind of

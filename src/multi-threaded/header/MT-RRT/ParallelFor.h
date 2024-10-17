@@ -13,6 +13,7 @@
 #include <atomic>
 #include <functional>
 #include <thread>
+#include <type_traits>
 
 namespace mt_rrt {
 class ParallelFor {
@@ -21,61 +22,37 @@ public:
   ~ParallelFor();
 
   template <typename T, typename Pred>
-  void process(const std::vector<T> &elements, Pred &&pred) {
-    ForEachT<T> forEach{workers.size() + 1, elements, std::forward<Pred>(pred)};
-    for (auto &worker : workers) {
-      worker->context.task = &forEach;
-      worker->context.phase.store(Phase::TaskReady);
-    }
-    forEach.scan(0);
-    for (auto &worker : workers) {
-      do {
-        Phase expected{Phase::Done};
-        if (worker->context.phase.compare_exchange_strong(
-                expected, Phase::None, std::memory_order_release)) {
-          break;
+  void process(const std::vector<T> &elements, Pred pred) {
+    task_ = [&pred, &elements, workers = loops.size()](std::size_t worker_id) {
+      for (std::size_t k = worker_id; k < elements.size(); k += workers) {
+        if constexpr (std::is_pointer_v<T>) {
+          pred(elements[k], worker_id);
+        } else {
+          pred(std::ref(elements[k]), worker_id);
         }
-      } while (true);
+      }
+    };
+    for (auto &state : states) {
+      state.store(State::TaskReady, std::memory_order::memory_order_acquire);
+    }
+    task_(0);
+    for (auto &state : states) {
+      while (state.load(std::memory_order::memory_order_release) !=
+             State::None) {
+      }
     }
   }
 
-  std::size_t size() const { return workers.size() + 1; }
+  std::size_t size() const { return loops.size() + 1; }
 
 private:
-  struct ForEach {
-    virtual ~ForEach() = default;
-    virtual void scan(std::size_t threadId) = 0;
-  };
+  void worker_(std::size_t id);
 
-  template <typename T> struct ForEachT : ForEach {
-    template <typename Pred>
-    ForEachT(std::size_t threads, const std::vector<T> &elements, Pred &&pred)
-        : threads{threads}, elements{elements}, pred{std::forward<Pred>(pred)} {
-    }
+  std::atomic_bool life{true};
+  std::function<void(std::size_t)> task_;
 
-    std::size_t threads;
-    const std::vector<T> &elements;
-    std::function<void(const T &, std::size_t)> pred;
-
-    void scan(std::size_t threadId) final {
-      for (std::size_t k = threadId; k < elements.size(); k += threads) {
-        pred(elements[k], threadId);
-      }
-    }
-  };
-
-  enum class Phase { None, TaskReady, Processing, Done };
-
-  struct WorkerContext {
-    std::atomic_bool life = true;
-    std::atomic<Phase> phase = Phase::None;
-    ForEach *task = nullptr;
-  };
-
-  struct Worker {
-    WorkerContext context;
-    std::thread loop;
-  };
-  std::vector<std::unique_ptr<Worker>> workers;
+  enum class State { None, TaskReady, Processing };
+  std::vector<std::atomic<State>> states;
+  std::vector<std::thread> loops;
 };
 } // namespace mt_rrt
