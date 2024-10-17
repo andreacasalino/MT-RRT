@@ -33,7 +33,7 @@ void StandardPlanner::solve_(const std::vector<float> &start,
   }
 
   recipient.iterations = extender->search();
-  recipient.solution = find_best_solution(extender->getSolutions());
+  recipient.solution = materialize_best(extender->getSolutions());
   recipient.trees = extender->dumpTrees();
 }
 } // namespace mt_rrt

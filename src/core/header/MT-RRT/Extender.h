@@ -20,7 +20,13 @@ struct KeepSearchPredicate {
   ExpansionStrategy strategy;
   std::atomic_bool one_solution_was_found = false;
 
-  bool operator()(std::size_t iter) const;
+  bool operator()(std::size_t iter) const {
+    if ((strategy != ExpansionStrategy::Star) && best_effort &&
+        one_solution_was_found) {
+      return false;
+    }
+    return iter < max_iterations;
+  }
 };
 
 class DeterminismRegulator {
@@ -53,8 +59,7 @@ public:
 
   virtual std::vector<TreeHandlerPtr> dumpTrees() = 0;
 
-  const Solutions &getSolutions() const { return solutions; };
-  Solutions &getSolutions() { return solutions; };
+  Solutions solutions;
 
 protected:
   Extender(const TreeHandler &handler);
@@ -62,7 +67,6 @@ protected:
   virtual void search_iteration() = 0;
 
   const Parameters &parameters;
-  Solutions solutions;
   std::optional<DeterminismRegulator> determinism_manager;
 };
 
