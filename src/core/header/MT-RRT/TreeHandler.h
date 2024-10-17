@@ -16,7 +16,7 @@ namespace mt_rrt {
 /*
  * @brief contains the register of nodes that were already deterministically
  * steered over a certain state
- * 
+ *
  * keys are the steered node, while the values are the states
  * toward which the node were deterministically steered
  */
@@ -24,12 +24,12 @@ class DeterministicSteerRegister {
 public:
   DeterministicSteerRegister() = default;
 
-  bool contains(const Node * node, const float* data) const {
+  bool contains(const Node *node, const float *data) const {
     auto it = register_.find(node);
     return it != register_.end() && it->second.find(data) != it->second.end();
   }
 
-  void add(const Node * node, const float* data) {
+  void add(const Node *node, const float *data) {
     register_[node].emplace(data);
   }
 
@@ -51,7 +51,7 @@ public:
 
   virtual Node *internalize(const Node &subject) = 0;
 
-  virtual void applyRewires(const Rewires &rewires) = 0;
+  virtual void applyRewires(const Node &parent, const Rewires &rewires) = 0;
 
   std::vector<Node *> nodes;
   Parameters parameters;
@@ -71,7 +71,7 @@ public:
 
   Node *internalize(const Node &subject) override;
 
-  void applyRewires(const Rewires &rewires) override;
+  void applyRewires(const Node &parent, const Rewires &rewires) override;
 
 protected:
   NodesAllocator allocator;

@@ -64,12 +64,12 @@ std::vector<NearSetElement> near_set(const View &state, IterT tree_begin,
   std::size_t problem_size = (*tree_begin)->state().size;
   float ray = near_set_ray(size, problem_size, context.description.gamma.get());
   NearSetQuery res{ray, state, context.description.connector.get()};
-  std::for_each(tree_begin, tree_end, [&](Node *node) { res(*node); });
+  std::for_each(tree_begin, tree_end, std::ref(res));
   return std::move(res.set);
 }
 
-std::vector<Rewire> compute_rewires(Node &candidate, NearSet &&near_set,
-                                    const DescriptionAndParameters &context);
+Rewires compute_rewires(Node &candidate, NearSet &&near_set,
+                        const DescriptionAndParameters &context);
 
 std::optional<Connector::SteerResult> extend(const View &target,
                                              TreeHandler &tree_handler,
@@ -78,8 +78,7 @@ std::optional<Connector::SteerResult> extend(const View &target,
 std::optional<Connector::SteerResult> extend_star(const View &target,
                                                   TreeHandler &tree_handler,
                                                   const bool is_deterministic,
-                                                  std::vector<Rewire> &rewires);
+                                                  Rewires &rewires);
 
-void apply_rewires_if_better(const Node &parent,
-                             const std::vector<Rewire> &rewires);
+void apply_rewires_if_better(const Node &parent, const Rewires &rewires);
 } // namespace mt_rrt

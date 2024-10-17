@@ -82,8 +82,6 @@ struct NearSet {
 };
 
 struct Rewires {
-  Node* new_father;
-
   struct Involved {
     Node *node;
     float new_cost_from_father;
