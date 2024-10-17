@@ -13,11 +13,35 @@
 #include <vector>
 
 namespace mt_rrt {
-template <typename T> struct ChunkBase {
-  ChunkBase(std::size_t capacity) : capacity_{capacity} {
+namespace detail {
+template <typename T>
+struct IsTrivialType {
+  static constexpr bool value =
+  std::is_same_v<T, int> ||
+  std::is_same_v<T, float> ||
+  std::is_same_v<T, double> ||
+  std::is_same_v<T, std::int16_t> ||
+  std::is_same_v<T, std::int64_t> ||
+  std::is_same_v<T, std::uint16_t> ||
+  std::is_same_v<T, std::uint32_t> ||
+  std::is_same_v<T, std::uint64_t>
+  ;
+};
+}
+
+template <typename T> struct Chunk {
+  Chunk(std::size_t capacity) : capacity_{capacity} {
     buffer = new char[sizeof(T) * capacity];
   }
-  ~ChunkBase() { delete[] buffer; }
+  ~Chunk() { 
+    if constexpr (!detail::IsTrivialType<T>::value) {
+      T *ptr = reinterpret_cast<T *>(this->buffer);
+      for (std::size_t k = 0; k < this->size_; ++k, ++ptr) {
+        ptr->~T();
+      }
+    }  
+    delete[] buffer; 
+  }
 
   T *at(std::size_t pos) {
     T *ptr = reinterpret_cast<T *>(buffer);
@@ -29,42 +53,7 @@ template <typename T> struct ChunkBase {
   char *buffer = nullptr;
 };
 
-template <typename T> struct Chunk : public ChunkBase<T> {
-  using ChunkBase<T>::ChunkBase;
-
-  ~Chunk() {
-    T *ptr = reinterpret_cast<T *>(this->buffer);
-    for (std::size_t k = 0; k < this->size_; ++k, ++ptr) {
-      ptr->~T();
-    }
-  }
-};
-
-template<>
-struct Chunk<int> : ChunkBase<int> {};
-template<>
-struct Chunk<float> : ChunkBase<float> {};
-template<>
-struct Chunk<double> : ChunkBase<double> {};
-template<>
-struct Chunk<std::int16_t> : ChunkBase<std::int16_t> {};
-template<>
-struct Chunk<std::int64_t> : ChunkBase<std::int64_t> {};
-template<>
-struct Chunk<std::uint16_t> : ChunkBase<std::uint16_t> {};
-template<>
-struct Chunk<std::uint32_t> : ChunkBase<std::uint32_t> {};
-template<>
-struct Chunk<std::uint64_t> : ChunkBase<std::uint64_t> {};
-
 template <typename T> class ObjectPoolBase {
-public:
-  ObjectPoolBase() {
-    chunks_.emplace_back(std::make_unique<Chunk<T>>(INITIAL_CAPACITY));
-  }
-
-  static const inline std::size_t INITIAL_CAPACITY = 100;
-
 protected:
   std::vector<std::unique_ptr<Chunk<T>>> chunks_;
 };
@@ -72,7 +61,11 @@ protected:
 template <typename T>
 class ObjectPool : public ObjectPoolBase<T> {
 public:
-  using ObjectPoolBase<T>::ObjectPoolBase;
+  static const inline std::size_t INITIAL_CAPACITY = 100;
+
+  ObjectPool() {
+    this->chunks_.emplace_back(std::make_unique<Chunk<T>>(INITIAL_CAPACITY));
+  }
 
   template <typename... Args>
   T &emplace_back(Args &&...args);
@@ -81,8 +74,12 @@ public:
 template <typename T>
 class ObjectPoolMemCopiableTypes : public ObjectPoolBase<T> {
 public:
-  using ObjectPoolBase<T>::ObjectPoolBase;
-
+  static const inline std::size_t INITIAL_CAPACITY = 10;
+ 
+  ObjectPoolMemCopiableTypes() {
+    this->chunks_.emplace_back(std::make_unique<Chunk<T>>(INITIAL_CAPACITY));
+  }
+  
   T *emplace_back(const T *source_buffer, std::size_t buffer_size);
 };
 
