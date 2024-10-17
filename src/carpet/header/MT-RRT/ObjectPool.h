@@ -13,44 +13,57 @@
 #include <vector>
 
 namespace mt_rrt {
+template <typename T> struct ChunkBase {
+  ChunkBase(std::size_t capacity) : capacity_{capacity} {
+    buffer = new char[sizeof(T) * capacity];
+  }
+  ~ChunkBase() { delete[] buffer; }
+
+  T *at(std::size_t pos) {
+    T *ptr = reinterpret_cast<T *>(buffer);
+    return &ptr[pos];
+  }
+
+  std::size_t capacity_;
+  std::size_t size_ = 0;
+  char *buffer = nullptr;
+};
+
+template <typename T> struct Chunk : public ChunkBase<T> {
+  using ChunkBase<T>::ChunkBase;
+
+  ~Chunk() {
+    T *ptr = reinterpret_cast<T *>(buffer);
+    for (std::size_t k = 0; k < size_; ++k, ++ptr) {
+      ptr->~T();
+    }
+  }
+};
+
+struct Chunk<int> : ChunkBase<int> {};
+struct Chunk<std::int16_t> : ChunkBase<std::int16_t> {};
+struct Chunk<std::int32_t> : ChunkBase<std::int32_t> {};
+struct Chunk<std::int64_t> : ChunkBase<std::int64_t> {};
+struct Chunk<std::uint16_t> : ChunkBase<std::uint16_t> {};
+struct Chunk<std::uint32_t> : ChunkBase<std::uint32_t> {};
+struct Chunk<std::uint64_t> : ChunkBase<std::uint64_t> {};
+struct Chunk<float> : ChunkBase<float> {};
+struct Chunk<double> : ChunkBase<double> {};
+
 template <typename T> class ObjectPool {
 public:
   ObjectPool();
 
-  template <typename... Args> T &emplace_back(Args &&...args);
+  template <typename... Args>
+  T &emplace_back(Args &&...args); // TODO this for normal types
 
-  T *emplace_back_multiple(const T *source, std::size_t how_many);
+  T *emplace_back_multiple(
+      const T *source,
+      std::size_t how_many); // TODO this only for trivial types
 
   static const inline std::size_t INITIAL_CAPACITY = 100;
 
 private:
-  struct Chunk {
-    Chunk(std::size_t capacity) : capacity_{capacity} {
-      buffer = new char[sizeof(T) * capacity];
-    }
-    ~Chunk() {
-      if constexpr (!(std::is_same_v<T, int> || std::is_same_v<T, float> ||
-                      std::is_same_v<T, double>)) // in principle others like
-                                                  // std::uintXX
-      {
-        T *ptr = reinterpret_cast<T *>(buffer);
-        for (std::size_t k = 0; k < size_; ++k, ++ptr) {
-          ptr->~T();
-        }
-      }
-      delete[] buffer;
-    }
-
-    T *at(std::size_t pos) {
-      T *ptr = reinterpret_cast<T *>(buffer);
-      return &ptr[pos];
-    }
-
-    std::size_t capacity_;
-    std::size_t size_ = 0;
-    char *buffer = nullptr;
-  };
-
   std::vector<std::unique_ptr<Chunk>> chunks_;
 };
 

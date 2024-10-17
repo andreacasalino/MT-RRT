@@ -16,7 +16,7 @@ struct View {
   View(const float *data, std::size_t size) : size{size}, data{data} {}
   View(const std::vector<float> &owner) : View{owner.data(), owner.size()} {};
 
-  View trim(std::size_t size, std::size_t from = 0) const {
+  View cutOut(std::size_t size, std::size_t from = 0) const {
     return View{data + from, size};
   }
 
