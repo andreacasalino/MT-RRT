@@ -7,16 +7,7 @@
 
 #include <MT-RRT/TunneledConnector.h>
 
-#include <math.h>
-
 namespace mt_rrt {
-float euclidean_distance(const View &a, const View &b) {
-  float result = 0;
-  for (std::size_t k = 0; k < a.size; ++k) {
-    result += powf(a.data[k] - b.data[k], 2.f);
-  }
-  return sqrtf(result);
-}
 
 TunneledConnector::TunneledConnector(const std::size_t size)
     : space_size(size) {

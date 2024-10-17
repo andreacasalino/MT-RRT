@@ -5,11 +5,10 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
-#include <MT-RRT/ExtenderUtils.h>
 #include <MT-RRT/ParallelFor.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
+#include <MT-RRT/TreeUtils.h>
+#include <MT-RRT/extender/Extender.h>
 
 #include "MultiThreadedUtils.h"
 
@@ -17,23 +16,22 @@
 
 namespace mt_rrt {
 namespace {
-class ParallelQueriesTreeHandler : public TreeHandlerBasic {
+class ParallelQueriesTreeHandler : public TreeHandler {
 public:
   ParallelQueriesTreeHandler(
       const View &rootState,
       const std::vector<ProblemDescriptionPtr> &descriptions,
       const Parameters &parameters, ParallelFor &parallelFor)
-      : TreeHandlerBasic(rootState, descriptions.front(), parameters),
+      : TreeHandler(rootState, descriptions.front(), parameters),
         parallelFor{&parallelFor}, descriptions(descriptions) {}
 
-  // nullptr if nothing was found
-  const Node *nearestNeighbour(const View &state) const override {
+  const Node *nearestNeighbour(const View &state) const {
     std::vector<NearestQuery> results;
     results.resize(parallelFor->size());
     parallelFor->process(nodes, [&](const Node *node, std::size_t threadId) {
       float dist =
           descriptions[threadId]->connector->minCost2Go(node->state(), state);
-      results[threadId](*node, dist);
+      results[threadId].process(*node, dist);
     });
     return std::min_element(results.begin(), results.end(),
                             [](const NearestQuery &a, const NearestQuery &b) {
@@ -42,7 +40,7 @@ public:
         ->closest;
   }
 
-  NearSet nearSet(const Node &subject) const override {
+  NearSet nearSet(const Node &subject) const {
     float ray = near_set_ray(nodes.size(), nodes.front()->state().size,
                              problem().gamma.get());
     std::vector<NearSetQuery> results;
@@ -52,7 +50,7 @@ public:
     }
     results.resize(parallelFor->size());
     parallelFor->process(nodes, [&](Node *node, std::size_t threadId) {
-      results[threadId](*node);
+      results[threadId].template process<true>(*node);
     });
     NearSet res;
     res.cost2RootSubject = subject.cost2Root();
@@ -76,27 +74,29 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
   resizeDescriptions(getThreads());
   const auto &descriptions = getAllDescriptions();
 
-  ExtenderPtr extender;
+  auto perform = [&](auto &&extender) {
+    recipient.iterations = extender.search();
+    recipient.solution = materialize_best(extender.solutions);
+    if (parameters.dumpTrees) {
+      extender.serializeTrees(recipient.trees);
+    }
+  };
+
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single:
   case ExpansionStrategy::Star: {
     auto tree = std::make_unique<ParallelQueriesTreeHandler>(
         start, descriptions, parameters, parallel_for_executor);
-    extender = std::make_unique<ExtenderSingle>(std::move(tree), end);
+    perform(ExtenderSingle<TreeHandler>{std::move(tree), end});
   } break;
   case ExpansionStrategy::Bidir: {
     auto tree_start = std::make_unique<ParallelQueriesTreeHandler>(
         start, descriptions, parameters, parallel_for_executor);
     auto tree_end = std::make_unique<ParallelQueriesTreeHandler>(
         end, descriptions, parameters, parallel_for_executor);
-    extender = std::make_unique<ExtenderBidirectional>(std::move(tree_start),
-                                                       std::move(tree_end));
+    perform(ExtenderBidirectional<TreeHandler>{std::move(tree_start), std::move(tree_end)});
   } break;
   }
-
-  recipient.iterations = extender->search();
-  recipient.solution = find_best_solution(extender->getSolutions());
-  recipient.trees = extender->dumpTrees();
 }
 
 } // namespace mt_rrt

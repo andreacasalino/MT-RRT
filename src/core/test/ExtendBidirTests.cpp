@@ -16,7 +16,7 @@ TEST_F(BidirStrategyTest,
   auto extender = makeExtender();
   extender.search();
 
-  const auto &solutions = extender.getSolutions();
+  const auto &solutions = extender.solutions;
   ASSERT_EQ(solutions.size(), 1);
   ASSERT_TRUE(check_solutions(static_cast<const TrivialProblemConnector &>(
                                   *problem.point_problem->connector),
@@ -33,7 +33,7 @@ TEST_P(BidirStrategyFixture, search) {
   extender.search();
 
   if (GetParam() == Kind::NoSolution) {
-    ASSERT_TRUE(extender.getSolutions().empty());
+    ASSERT_TRUE(extender.solutions.empty());
   } else {
     test.checkSolutions(extender);
   }

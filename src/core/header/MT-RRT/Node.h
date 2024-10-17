@@ -44,11 +44,14 @@ public:
    * @throw when the root is not reached, cause loopy connections were made for
    * some reason.
    */
-  virtual float cost2Root() const;
+  float cost2Root() const;
+
+  bool isRoot() const { return isRoot_; }
 
 protected:
   Node() = default;
 
+  bool isRoot_{true};
   View state_;
   /**
    * @brief The cost to spend to go from the parent to this node
@@ -56,7 +59,7 @@ protected:
   Positive<float> cost2Go_ = Positive<float>{0};
   const Node *parent_ = nullptr;
 
-  static const inline std::size_t MAX_ITERATIONS =
+  static const inline std::size_t MAX_ITERATIONS_COST2ROOT_DEDUCTION =
       std::numeric_limits<std::size_t>::max();
 };
 
@@ -68,8 +71,7 @@ public:
     if (state.size == 0) {
       throw Error("Empty state not valid for describing node state");
     }
-    float *state_cpy =
-        statesPool_.emplace_back_multiple(state.data, state.size);
+    float *state_cpy = statesPool_.emplace_back(state.data, state.size);
     return nodesPool_.emplace_back(View{state_cpy, state.size});
   }
 

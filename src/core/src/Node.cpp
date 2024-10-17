@@ -15,6 +15,7 @@ Node::Node(const View &state) : state_{state} {}
 void Node::setParent(const Node &parent, float cost2Go) {
   parent_ = &parent;
   cost2Go_.set(cost2Go);
+  isRoot_ = false;
 }
 
 float Node::cost2Root() const {
@@ -22,7 +23,7 @@ float Node::cost2Root() const {
   size_t k = 0;
   for (const Node *att_node = this; att_node != nullptr;
        att_node = att_node->getParent(), ++k) {
-    if (MAX_ITERATIONS == k) {
+    if (MAX_ITERATIONS_COST2ROOT_DEDUCTION == k) {
       throw Error("Max number of iterations exceeded while computing cost to "
                   "go: a loop was generated inside a tree");
     }

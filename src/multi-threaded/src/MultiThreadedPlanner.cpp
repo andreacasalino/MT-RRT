@@ -7,7 +7,7 @@
 
 #include <MT-RRT/MultiThreadedPlanner.h>
 
-#include <omp.h>
+#include <thread>
 
 namespace mt_rrt {
 ProblemDescriptionCloner::ProblemDescriptionCloner(
@@ -41,18 +41,7 @@ void MultiThreadedPlanner::setThreads(const Threads &threads_to_use) {
   threads.set(threads_to_use.get());
 }
 
-namespace {
-std::size_t max_number_of_threads() {
-  std::size_t result = 0;
-#pragma omp parallel
-  { result = omp_get_num_threads(); }
-  return result;
-}
-
-static const Threads MAX_NUMBER_OF_THREADS = Threads{max_number_of_threads()};
-} // namespace
-
 void MultiThreadedPlanner::setMaxThreads() {
-  setThreads(MAX_NUMBER_OF_THREADS);
+  setThreads(std::thread::hardware_concurrency());
 }
 } // namespace mt_rrt

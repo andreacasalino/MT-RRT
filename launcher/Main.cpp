@@ -68,7 +68,7 @@ struct Command {
     }
 
     while (fgets(buffer_str.data(), BUFFER_SIZE, fp) != NULL) {
-      //std::cout << buffer_str;
+      // std::cout << buffer_str;
     }
 
 #if _WIN64 || _WIN32

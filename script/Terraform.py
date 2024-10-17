@@ -201,6 +201,19 @@ else()
 endif()
 """.format(**frmt)
 
+    def addExtra_(self, content):
+        src = pathJoin(self.info.path, 'extra.cmake')
+        if not os.path.exists(src):
+            return content
+        with open(src, 'r') as stream:
+            return """{}
+
+###########################################################################
+##### Custom cmake code
+{}
+###########################################################################
+""".format(content, stream.read())
+
     def gen(self):
         with open(pathJoin(self.info.path, 'CMakeLists.txt'), 'w') as stream:
             stream.write("""###########################################################################
@@ -212,6 +225,7 @@ endif()
                 if not topic in BLOCKS:
                     continue
                 content += '\n{}'.format(BLOCKS[topic](recipe, self.info))
+            content = self.addExtra_(content)
             content = self.decorateWithConditions(content)
             content = self.decorateWithOptional(content)
             stream.write(content)

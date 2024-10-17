@@ -7,11 +7,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <atomic>
 #include <functional>
 #include <thread>
 #include <vector>
-#include <algorithm>
 
 namespace mt_rrt {
 class Person {

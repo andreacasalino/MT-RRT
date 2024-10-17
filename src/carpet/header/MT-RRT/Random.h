@@ -43,7 +43,7 @@ public:
 
 protected:
   Distribution(DistributionShape &&shape, const std::optional<Seed> &seed)
-      : distribution_shape(std::move(shape)) {
+      : distribution_shape(std::forward<DistributionShape>(shape)) {
     if (seed) {
       generator.seed(seed.value());
     } else {
@@ -67,7 +67,7 @@ public:
    * @param the mean of the normal distribution
    * @param the standard deviation of the normal distribution
    */
-  GaussianEngine(const float &mean = 0, const float &stdDeviation = 1.f,
+  GaussianEngine(float mean = 0, float stdDeviation = 1.f,
                  const std::optional<Seed> &seed = std::nullopt);
 };
 
@@ -81,7 +81,7 @@ public:
    * @param the lower bound of the compact interval
    * @param the upper bound of the compact interval
    */
-  UniformEngine(const float &lowerBound = 0, const float &upperBound = 1.f,
+  UniformEngine(float lowerBound = 0, float upperBound = 1.f,
                 const std::optional<Seed> &seed = std::nullopt);
 };
 } // namespace mt_rrt

@@ -8,15 +8,13 @@
 #pragma once
 
 #include <MT-RRT/MultiThreadedPlanner.h>
-#include <MT-RRT/Synchronization.h>
 
 namespace mt_rrt {
 /**
  * @brief Approach described at Section "Parallel expansions on linked trees" of
  * the documentation
  */
-class LinkedTreesPlanner : public MultiThreadedPlanner,
-                           public SynchronizationAware {
+class LinkedTreesPlanner : public MultiThreadedPlanner {
 public:
   using MultiThreadedPlanner::MultiThreadedPlanner;
 

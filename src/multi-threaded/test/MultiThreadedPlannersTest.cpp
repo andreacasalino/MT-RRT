@@ -118,10 +118,7 @@ template <> struct PlannerTrait<SharedTreePlanner> {
 template <> struct PlannerTrait<LinkedTreesPlanner> {
   static const inline std::string plannerName = "LinkedTreesPlanner";
   static const inline SetUpPred<LinkedTreesPlanner> setUp =
-      SetUpPred<LinkedTreesPlanner>{
-          [](LinkedTreesPlanner &planner, Parameters &) {
-            planner.synchronization().set(0.2f);
-          }};
+      SetUpPred<LinkedTreesPlanner>{};
 };
 
 template <> struct PlannerTrait<MultiAgentPlanner> {
@@ -161,7 +158,7 @@ protected:
       to_json(res, connector);
       res.addSolution(sequence);
       for (const auto &tree : solution.trees) {
-        res.addTree(*tree);
+        res.addTree(tree);
       }
       mt_rrt::Logger::get().add(PlannerTrait<PlannerT>::plannerName,
                                 to_string(kind) + "_" + to_string(TheStrategy),

@@ -8,7 +8,9 @@
 #pragma once
 
 #include <LogResult.h>
+#include <MT-RRT/MultiThreadedPlanner.h>
 #include <MT-RRT/Planner.h>
+#include <MT-RRT/Synchronization.h>
 #include <MiscConversions.h>
 
 #include <filesystem>
@@ -21,8 +23,22 @@ void from_json(Parameters &recipient, const nlohmann::json &src);
 template <typename ConnectorT>
 ProblemDescription from_json(const nlohmann::json &src);
 
+enum class PlannerKind {
+  Standard
+#ifdef MT_PLANNERS_ENABLED
+  ,
+  Embarass,
+  PQuery,
+  Shared,
+  Linked,
+  Multiag
+#endif
+};
+
+PlannerKind from_string(const std::string &str);
+
 struct PlannerParameters {
-  std::string type;
+  PlannerKind type = PlannerKind::Standard;
   std::size_t threads = 0;
   float synchronization = 0;
 };
@@ -30,9 +46,7 @@ struct PlannerParameters {
 void from_json(PlannerParameters &type, const nlohmann::json &src);
 
 std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc,
-                                     const std::string &type);
-
-void setUpPlanner(Planner &planner, const PlannerParameters &params);
+                                     PlannerKind kind);
 
 struct DefaultStateParser {
   std::vector<float> operator()(std::vector<float> subject) const {
@@ -42,13 +56,13 @@ struct DefaultStateParser {
 
 template <typename ConnectorT> class SampleBase {
 public:
-  SampleBase(const std::filesystem::path& src, const std::string& tag);
+  SampleBase(const std::filesystem::path &src, const std::string &tag);
   SampleBase(int argc, const char **argv, const std::string &tag);
 
   template <typename StateParser = DefaultStateParser> void process();
 
 private:
-  static std::filesystem::path parse_source(int argc, const char** argv);
+  static std::filesystem::path parse_source(int argc, const char **argv);
 
   std::string tag;
 
@@ -62,29 +76,29 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////
 template <typename ConnectorT>
-SampleBase<ConnectorT>::SampleBase(const std::filesystem::path& src, const std::string& tag)
-    : tag{tag}, source{src}  {
-}
+SampleBase<ConnectorT>::SampleBase(const std::filesystem::path &src,
+                                   const std::string &tag)
+    : tag{tag}, source{src} {}
 
 template <typename ConnectorT>
-std::filesystem::path SampleBase<ConnectorT>::parse_source(int argc, const char** argv) {
-    if (argc == 1) {
-        throw Error{
-            "Json file with the problem(s) description(s) was not specified" };
-    }
-    std::string res{ argv[1] };
+std::filesystem::path SampleBase<ConnectorT>::parse_source(int argc,
+                                                           const char **argv) {
+  if (argc == 1) {
+    throw Error{
+        "Json file with the problem(s) description(s) was not specified"};
+  }
+  std::string res{argv[1]};
 #if _WIN64 || _WIN32
-    // remove ' at the begin and at the end
-    res = std::string{res, 1, res.size() - 2};
+  // remove ' at the begin and at the end
+  res = std::string{res, 1, res.size() - 2};
 #endif
-    return std::filesystem::path{ res };
+  return std::filesystem::path{res};
 }
 
 template <typename ConnectorT>
 SampleBase<ConnectorT>::SampleBase(int argc, const char **argv,
                                    const std::string &tag)
-    : SampleBase{ parse_source(argc, argv), tag} {
-}
+    : SampleBase{parse_source(argc, argv), tag} {}
 
 template <typename ConnectorT>
 template <typename StateParser>
@@ -99,6 +113,24 @@ void SampleBase<ConnectorT>::process() {
   auto the_problem = from_json<ConnectorT>(data["scene"]);
   auto planner =
       makePlanner(std::move(the_problem), globalPlannerParameters.type);
+
+#ifdef MT_PLANNERS_ENABLED
+  auto setUpPlanner = [&planner](const PlannerParameters &params) {
+    if (params.threads != 0) {
+      auto *maybe_mt = dynamic_cast<MultiThreadedPlanner *>(planner.get());
+      if (maybe_mt) {
+        maybe_mt->setThreads(params.threads);
+      }
+    }
+    if (params.synchronization != 0) {
+      auto *maybe_sy = dynamic_cast<SynchronizationAware *>(planner.get());
+      if (maybe_sy) {
+        maybe_sy->synchronization().set(params.synchronization);
+      }
+    }
+  };
+#endif
+
   for (const auto &scenario : data["cases"]) {
     std::string title = scenario["title"];
     std::cout << "----------------------------------------------------------"
@@ -114,9 +146,11 @@ void SampleBase<ConnectorT>::process() {
     }
     std::vector<float> start = state_parser(scenario["start"]);
     std::vector<float> end = state_parser(scenario["end"]);
+#ifdef MT_PLANNERS_ENABLED
     if (scenario.contains("parameters")) {
-      setUpPlanner(*planner, plannerParameters);
+      setUpPlanner(plannerParameters);
     }
+#endif
     auto solution = planner->solve(start, end, parameters);
     if (solution.solution.empty()) {
       std::cout << "A solution was NOT found" << std::endl;
