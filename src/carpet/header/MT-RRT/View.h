@@ -25,4 +25,6 @@ struct View {
   std::size_t size = 0;
   const float *data = nullptr;
 };
+
+float euclidean_distance(const View &a, const View &b);
 } // namespace mt_rrt

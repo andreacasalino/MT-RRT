@@ -18,7 +18,7 @@ std::vector<std::vector<float>> sequence_from_root(const Node &subject);
 class Solution {
 public:
   virtual ~Solution() = default;
-  virtual std::vector<std::vector<float>> getSequence() const = 0;
+  virtual std::vector<std::vector<float>> materialize() const = 0;
   virtual float cost() const = 0;
 };
 
@@ -26,5 +26,5 @@ using Solutions = std::vector<std::shared_ptr<Solution>>;
 
 void sort_solutions(Solutions &subject);
 
-std::vector<std::vector<float>> find_best_solution(const Solutions &subject);
+std::vector<std::vector<float>> materialize_best(const Solutions &subject);
 } // namespace mt_rrt

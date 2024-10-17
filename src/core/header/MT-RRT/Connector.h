@@ -64,8 +64,8 @@ public:
    * reached. Is a nullopt when the steering was not possible at all
    */
   struct SteerResult {
-    NodeOwning node;
     bool target_is_reached;
+    NodeOwning node;
   };
   std::optional<SteerResult> steer(const Node &start, const View &target,
                                    const SteerIterations &trials) const;

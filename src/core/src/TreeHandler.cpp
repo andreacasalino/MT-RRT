@@ -52,10 +52,9 @@ Node *TreeHandlerBasic::internalize(const Node &subject) {
   return &added;
 }
 
-void TreeHandlerBasic::applyRewires(const Node &new_father,
-                                    const std::vector<Rewire> &rewires) {
-  for (const auto &rewire : rewires) {
-    rewire.involved_node->setParent(new_father, rewire.new_cost_from_father);
+void TreeHandlerBasic::applyRewires(const Rewires &rewires) {
+  for (auto [involved, cost] : rewires.involved_nodes) {
+    involved->setParent(*rewires.new_father, cost);
   }
 }
 

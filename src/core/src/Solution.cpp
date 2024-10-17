@@ -12,8 +12,7 @@
 namespace mt_rrt {
 std::vector<std::vector<float>> sequence_from_root(const Node &subject) {
   std::vector<std::vector<float>> result;
-  result.emplace_back(subject.state().convert());
-  for (const auto *cursor = subject.getParent(); nullptr != cursor;
+  for (const auto *cursor = &subject; nullptr != cursor;
        cursor = cursor->getParent()) {
     result.emplace_back(cursor->state().convert());
   }
@@ -21,43 +20,26 @@ std::vector<std::vector<float>> sequence_from_root(const Node &subject) {
   return result;
 }
 
-namespace {
-struct SolutionsComparer {
-  SolutionsComparer() = default;
-
-  bool operator()(const Solution &a, const Solution &b) const {
-    return getCost(a) < getCost(b);
-  }
-
-  float getCost(const Solution &subject) const {
-    auto it = solutions.find(&subject);
-    if (it == solutions.end()) {
-      it = solutions.emplace(&subject, subject.cost()).first;
-    }
-    return it->second;
-  }
-
-private:
-  mutable std::unordered_map<const Solution *, float> solutions;
-};
-} // namespace
-
 void sort_solutions(Solutions &subject) {
-  SolutionsComparer comparer;
+  std::unordered_map<const Solution *, float> costs;
+  for(const auto& sol : subject) {
+    costs.emplace(sol.get(), sol->cost());
+  }
   std::sort(
       subject.begin(), subject.end(),
-      [&comparer](const auto &a, const auto &b) { return comparer(*a, *b); });
+      [&costs](const auto &a, const auto &b) { return costs.at(a.get()) < costs.at(b.get()); });
 }
 
-std::vector<std::vector<float>> find_best_solution(const Solutions &subject) {
+std::vector<std::vector<float>> materialize_best(const Solutions &subject) {
   if (subject.empty()) {
     return {};
   };
-
-  SolutionsComparer comparer;
-  auto &best = *std::min_element(
-      subject.begin(), subject.end(),
-      [&comparer](const auto &a, const auto &b) { return comparer(*a, *b); });
-  return best->getSequence();
+  std::vector<float> costs;
+  costs.reserve(subject.size());
+  for(const auto& sol : subject) {
+    costs.emplace_back(sol->cost());
+  }
+  std::size_t index = std::max_element(costs.begin(), costs.end()) - costs.begin();
+  return subject[index]->materialize();
 }
 } // namespace mt_rrt

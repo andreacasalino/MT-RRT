@@ -12,6 +12,9 @@
 #include <algorithm>
 
 namespace mt_rrt {
+float near_set_ray(std::size_t tree_size, std::size_t problem_size,
+                   float gamma);
+
 struct NearestQuery {
   const Node *closest = nullptr;
   float closestCost = COST_MAX;

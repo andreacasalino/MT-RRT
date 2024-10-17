@@ -56,7 +56,7 @@ protected:
   Positive<float> cost2Go_ = Positive<float>{0};
   const Node *parent_ = nullptr;
 
-  static const inline std::size_t MAX_ITERATIONS =
+  static const inline std::size_t MAX_ITERATIONS_COST2ROOT_DEDUCTION =
       std::numeric_limits<std::size_t>::max();
 };
 
@@ -69,7 +69,7 @@ public:
       throw Error("Empty state not valid for describing node state");
     }
     float *state_cpy =
-        statesPool_.emplace_back_multiple(state.data, state.size);
+        statesPool_.emplace_back(state.data, state.size);
     return nodesPool_.emplace_back(View{state_cpy, state.size});
   }
 

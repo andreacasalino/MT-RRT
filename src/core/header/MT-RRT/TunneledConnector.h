@@ -10,8 +10,6 @@
 #include <MT-RRT/Connector.h>
 
 namespace mt_rrt {
-float euclidean_distance(const View &a, const View &b);
-
 /**
  * @brief Implements the approach described at
  * Section "Tunneled check collision" of the documentation.
