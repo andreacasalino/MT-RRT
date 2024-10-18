@@ -6,8 +6,7 @@
  **/
 
 #include <MT-RRT/TreeHandler.h>
-
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/TreeUtils.h>
 
 #include <algorithm>
 #include <math.h>

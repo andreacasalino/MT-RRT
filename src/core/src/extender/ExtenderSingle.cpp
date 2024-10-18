@@ -21,26 +21,25 @@ float SimpleSolution::cost() const {
 
 ExtenderSingle::ExtenderSingle(TreeHandlerPtr handler,
                                const std::vector<float> &trgt)
-    : ExtenderBase(*handler), target(trgt), tree_handler{std::move(handler)} {}
+    : ProblemAware(*handler), target(trgt), tree_handler{std::move(handler)} {}
 
-void ExtenderSingle::search_iteration(Solutions<SimpleSolution>& solutions) {
-  bool toward_target = determinism_manager->doDeterministicExtension();
-
+void ExtenderSingle::search_iteration(Solutions<SimpleSolution> &solutions,
+                                      bool deterministic) {
   std::vector<float> sampled_state;
-  if (!toward_target) {
+  if (!deterministic) {
     sampled_state = problem().sampler->sampleState();
   }
-  View target_state = toward_target ? View{target} : View{sampled_state};
+  View target_state = deterministic ? View{target} : View{sampled_state};
 
   std::optional<Connector::SteerResult> maybe_steered;
   Rewires rewires;
   switch (parameters().expansion_strategy) {
   case ExpansionStrategy::Single:
-    maybe_steered = extend(target_state, *tree_handler, toward_target);
+    maybe_steered = extend(target_state, *tree_handler, deterministic);
     break;
   case ExpansionStrategy::Star:
     maybe_steered =
-        extend_star(target_state, *tree_handler, toward_target, rewires);
+        extend_star(target_state, *tree_handler, deterministic, rewires);
     break;
   default:
     throw Error{"Trying to use ExtenderSingle with a bidirectional strategy"};
@@ -52,7 +51,7 @@ void ExtenderSingle::search_iteration(Solutions<SimpleSolution>& solutions) {
   }
 
   const auto &[target_is_reached, steered] = maybe_steered.value();
-  if (toward_target && maybe_steered->target_is_reached) {
+  if (deterministic && maybe_steered->target_is_reached) {
     float cost2Target = steered.cost2Go();
     solutions.emplace_back(std::make_shared<SimpleSolution>(
         steered.getParent(), cost2Target, target));

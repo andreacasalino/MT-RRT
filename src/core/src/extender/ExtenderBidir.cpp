@@ -12,9 +12,10 @@ namespace mt_rrt {
 std::vector<std::vector<float>> BidirSolution::materialize() const {
   auto result = sequence_from_root(*byPassFront);
   auto result_to_append = sequence_from_root(*byPassBack);
-  std::for_each(result_to_append.rbegin(), result_to_append.rend(), [&result](std::vector<float>&& seq){
-    result.emplace_back(std::forward<std::vector<float>>(seq));
-  });
+  std::for_each(result_to_append.rbegin(), result_to_append.rend(),
+                [&result](std::vector<float> &&seq) {
+                  result.emplace_back(std::forward<std::vector<float>>(seq));
+                });
   return result;
 }
 
@@ -24,9 +25,11 @@ float BidirSolution::cost() const {
 
 ExtenderBidirectional::ExtenderBidirectional(TreeHandlerPtr front,
                                              TreeHandlerPtr back)
-    : ExtenderBase(*front), front_handler{std::move(front)}, back_handler{std::move(back)} {}
+    : ProblemAware(*front), front_handler{std::move(front)},
+      back_handler{std::move(back)} {}
 
-void ExtenderBidirectional::search_iteration(Solutions<BidirSolution>& solutions) {
+void ExtenderBidirectional::search_iteration(
+    Solutions<BidirSolution> &solutions, bool deterministic) {
   extension_state = !extension_state;
   TreeHandler *master = front_handler.get(), *slave = back_handler.get();
   if (!extension_state) {
@@ -36,17 +39,14 @@ void ExtenderBidirectional::search_iteration(Solutions<BidirSolution>& solutions
   DescriptionAndParameters context =
       DescriptionAndParameters{problem(), parameters()};
 
-  bool deterministic_extension =
-      determinism_manager->doDeterministicExtension();
-
   // extend master
   std::vector<float> sampled_state;
-  if (!deterministic_extension) {
+  if (!deterministic) {
     sampled_state = problem().sampler->sampleState();
   }
-  View sampled_view = deterministic_extension ? slave->nodes.front()->state()
-                                              : View{sampled_state};
-  auto master_steered = extend(sampled_view, *master, deterministic_extension);
+  View sampled_view =
+      deterministic ? slave->nodes.front()->state() : View{sampled_state};
+  auto master_steered = extend(sampled_view, *master, deterministic);
   if (!master_steered) {
     return;
   }

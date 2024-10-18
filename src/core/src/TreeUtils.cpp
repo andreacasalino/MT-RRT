@@ -5,7 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/TreeUtils.h>
 
 namespace mt_rrt {
 float near_set_ray(std::size_t tree_size, std::size_t problem_size,

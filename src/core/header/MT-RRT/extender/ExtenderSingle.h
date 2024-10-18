@@ -7,9 +7,10 @@
 
 #pragma once
 
-#include <MT-RRT/extender/Types.h>
-#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/ProblemDescription.h>
 #include <MT-RRT/Solution.h>
+#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/extender/Types.h>
 
 namespace mt_rrt {
 struct SimpleSolution {
@@ -22,7 +23,7 @@ struct SimpleSolution {
   View target;
 };
 
-class ExtenderSingle : public ExtenderBase {
+class ExtenderSingle : public ProblemAware {
 public:
   using SolutionT = SimpleSolution;
 
@@ -31,16 +32,15 @@ public:
 
   ExtenderSingle(TreeHandlerPtr handler, const std::vector<float> &target);
 
-  void search_iteration(Solutions<SimpleSolution>& solutions);
-  
+  void search_iteration(Solutions<SimpleSolution> &solutions,
+                        bool deterministic);
+
   std::vector<TreeHandlerPtr> dumpTrees() {
     std::vector<TreeHandlerPtr> res;
     res.emplace_back(std::move(tree_handler));
     return res;
   }
 
-  const Parameters& parameters() const {
-    return tree_handler->parameters;
-  }
+  const Parameters &parameters() const { return tree_handler->parameters; }
 };
 } // namespace mt_rrt

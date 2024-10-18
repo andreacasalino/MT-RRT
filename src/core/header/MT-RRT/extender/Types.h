@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include <MT-RRT/ProblemDescription.h>
-#include <MT-RRT/Types.h>
 #include <MT-RRT/Random.h>
+#include <MT-RRT/Types.h>
 
 #include <atomic>
 
@@ -41,12 +40,5 @@ public:
 private:
   UniformEngine deterministic_rate_sampler;
   const float deterministic_rate_sampler_threshold;
-};
-
-class ExtenderBase : public ProblemAware {
-protected:
-  using ProblemAware::ProblemAware;
-
-  std::optional<DeterminismRegulator> determinism_manager;
 };
 } // namespace mt_rrt

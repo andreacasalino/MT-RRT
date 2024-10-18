@@ -7,9 +7,10 @@
 
 #pragma once
 
-#include <MT-RRT/extender/Types.h>
-#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/ProblemDescription.h>
 #include <MT-RRT/Solution.h>
+#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/extender/Types.h>
 
 namespace mt_rrt {
 struct BidirSolution {
@@ -22,7 +23,7 @@ struct BidirSolution {
   float cost2Back;
 };
 
-class ExtenderBidirectional : public ExtenderBase {
+class ExtenderBidirectional : public ProblemAware {
 public:
   using SolutionT = BidirSolution;
 
@@ -31,7 +32,8 @@ public:
 
   ExtenderBidirectional(TreeHandlerPtr front, TreeHandlerPtr back);
 
-  void search_iteration(Solutions<BidirSolution>& solutions);
+  void search_iteration(Solutions<BidirSolution> &solutions,
+                        bool deterministic);
 
   std::vector<TreeHandlerPtr> dumpTrees() {
     std::vector<TreeHandlerPtr> res;
@@ -40,9 +42,7 @@ public:
     return res;
   }
 
-  const Parameters& parameters() const {
-    return front_handler->parameters;
-  }
+  const Parameters &parameters() const { return front_handler->parameters; }
 
 private:
   bool extension_state = false; // if true master is front, slave is back
