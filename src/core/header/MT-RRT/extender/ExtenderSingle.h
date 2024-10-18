@@ -29,7 +29,7 @@ public:
   std::vector<float> target;
   TreeHandlerPtr tree_handler;
 
-  ExtenderSingle(TreeHandlerPtr handler, std::vector<float> &&target);
+  ExtenderSingle(TreeHandlerPtr handler, const std::vector<float> &target);
 
   void search_iteration(Solutions<SimpleSolution>& solutions);
   

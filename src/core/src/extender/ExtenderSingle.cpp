@@ -20,8 +20,8 @@ float SimpleSolution::cost() const {
 }
 
 ExtenderSingle::ExtenderSingle(TreeHandlerPtr handler,
-                               std::vector<float> &&trgt)
-    : ExtenderBase(*handler), target(std::forward<std::vector<float>>(trgt)), tree_handler{std::move(handler)} {}
+                               const std::vector<float> &trgt)
+    : ExtenderBase(*handler), target(trgt), tree_handler{std::move(handler)} {}
 
 void ExtenderSingle::search_iteration(Solutions<SimpleSolution>& solutions) {
   bool toward_target = determinism_manager->doDeterministicExtension();

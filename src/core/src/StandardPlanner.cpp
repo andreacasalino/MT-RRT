@@ -5,8 +5,9 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/extender/ExtenderSingle.h>
+#include <MT-RRT/extender/ExtenderBidir.h>
+#include <MT-RRT/extender/Extender.h>
 #include <MT-RRT/StandardPlanner.h>
 
 namespace mt_rrt {
@@ -14,26 +15,28 @@ void StandardPlanner::solve_(const std::vector<float> &start,
                              const std::vector<float> &end,
                              const Parameters &parameters,
                              PlannerSolution &recipient) {
-  ExtenderPtr extender;
+  auto perform = [&recipient](auto& extender) {
+    recipient.iterations = extender.search();
+    recipient.solution = materialize_best(extender.solutions);
+    recipient.trees = extender.dumpTrees();
+  };
+
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single:
   case ExpansionStrategy::Star: {
     auto tree =
         std::make_unique<TreeHandlerBasic>(start, problemPtr(), parameters);
-    extender = std::make_unique<ExtenderSingle>(std::move(tree), end);
+    Extender<ExtenderSingle> extender{std::move(tree), end};
+    perform(extender);
   } break;
   case ExpansionStrategy::Bidir: {
     auto tree_start =
         std::make_unique<TreeHandlerBasic>(start, problemPtr(), parameters);
     auto tree_end =
         std::make_unique<TreeHandlerBasic>(end, problemPtr(), parameters);
-    extender = std::make_unique<ExtenderBidirectional>(std::move(tree_start),
-                                                       std::move(tree_end));
+    Extender<ExtenderBidirectional> extender{std::move(tree_start), std::move(tree_end)};
+    perform(extender);
   } break;
   }
-
-  recipient.iterations = extender->search();
-  recipient.solution = materialize_best(extender->getSolutions());
-  recipient.trees = extender->dumpTrees();
 }
 } // namespace mt_rrt
