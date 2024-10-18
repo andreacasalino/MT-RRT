@@ -20,8 +20,8 @@ public:
   template <typename... ARGS>
   Extender(ARGS &&...args)
       : ExtenderImpl{std::forward<ARGS>(args)...},
-        determinismManager_{problem().sampler->sampleSeed(),
-                            parameters().determinism} {}
+        determinismManager_{this->problem().sampler->sampleSeed(),
+                            this->parameters().determinism} {}
 
   /** @brief Perform the specified number of estensions on the wrapped tree(s).
    * This function may be called multiple times, for performing batch of
@@ -31,8 +31,6 @@ public:
    */
   std::size_t search() {
     const auto &pars = this->parameters();
-    determinism_manager.emplace(problem().sampler->sampleSeed(),
-                                pars.determinism);
     KeepSearchPredicate search_predicate = KeepSearchPredicate{
         pars.best_effort, pars.iterations.get(), pars.expansion_strategy};
 

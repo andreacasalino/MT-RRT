@@ -5,16 +5,18 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/TreeUtils.h>
 #include <MT-RRT/extender/ExtenderBidir.h>
-#include <MT-RRT/extender/Utils.h>
+
+#include <algorithm>
 
 namespace mt_rrt {
 std::vector<std::vector<float>> BidirSolution::materialize() const {
   auto result = sequence_from_root(*byPassFront);
   auto result_to_append = sequence_from_root(*byPassBack);
   std::for_each(result_to_append.rbegin(), result_to_append.rend(),
-                [&result](std::vector<float> &&seq) {
-                  result.emplace_back(std::forward<std::vector<float>>(seq));
+                [&result](std::vector<float> &seq) {
+                  result.emplace_back(std::move(seq));
                 });
   return result;
 }
@@ -69,8 +71,8 @@ void ExtenderBidirectional::search_iteration(
     if (!extension_state) {
       std::swap(by_pass_begin, by_pass_end);
     }
-    solutions.emplace_back(std::make_shared<BidirSolution>(
-        by_pass_begin, by_pass_end, connectCost));
+    solutions.emplace_back(
+        BidirSolution{by_pass_begin, by_pass_end, connectCost});
     return;
   }
 }

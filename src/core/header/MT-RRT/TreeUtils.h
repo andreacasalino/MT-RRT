@@ -64,7 +64,7 @@ std::vector<NearSetElement> near_set(const View &state, IterT tree_begin,
   std::size_t problem_size = (*tree_begin)->state().size;
   float ray = near_set_ray(size, problem_size, context.description.gamma.get());
   NearSetQuery res{ray, state, context.description.connector.get()};
-  std::for_each(tree_begin, tree_end, std::ref(res));
+  std::for_each(tree_begin, tree_end, [&res](Node *ptr) { res(*ptr); });
   return std::move(res.set);
 }
 

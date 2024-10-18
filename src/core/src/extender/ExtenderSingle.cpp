@@ -5,8 +5,8 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/TreeUtils.h>
 #include <MT-RRT/extender/ExtenderSingle.h>
-#include <MT-RRT/extender/Utils.h>
 
 namespace mt_rrt {
 std::vector<std::vector<float>> SimpleSolution::materialize() const {
@@ -53,8 +53,8 @@ void ExtenderSingle::search_iteration(Solutions<SimpleSolution> &solutions,
   const auto &[target_is_reached, steered] = maybe_steered.value();
   if (deterministic && maybe_steered->target_is_reached) {
     float cost2Target = steered.cost2Go();
-    solutions.emplace_back(std::make_shared<SimpleSolution>(
-        steered.getParent(), cost2Target, target));
+    solutions.emplace_back(
+        SimpleSolution{steered.getParent(), cost2Target, target});
     return;
   }
 

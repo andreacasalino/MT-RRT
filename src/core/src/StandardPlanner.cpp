@@ -5,17 +5,17 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/extender/ExtenderSingle.h>
-#include <MT-RRT/extender/ExtenderBidir.h>
-#include <MT-RRT/extender/Extender.h>
 #include <MT-RRT/StandardPlanner.h>
+#include <MT-RRT/extender/Extender.h>
+#include <MT-RRT/extender/ExtenderBidir.h>
+#include <MT-RRT/extender/ExtenderSingle.h>
 
 namespace mt_rrt {
 void StandardPlanner::solve_(const std::vector<float> &start,
                              const std::vector<float> &end,
                              const Parameters &parameters,
                              PlannerSolution &recipient) {
-  auto perform = [&recipient](auto& extender) {
+  auto perform = [&recipient](auto &extender) {
     recipient.iterations = extender.search();
     recipient.solution = materialize_best(extender.solutions);
     recipient.trees = extender.dumpTrees();
@@ -34,7 +34,8 @@ void StandardPlanner::solve_(const std::vector<float> &start,
         std::make_unique<TreeHandlerBasic>(start, problemPtr(), parameters);
     auto tree_end =
         std::make_unique<TreeHandlerBasic>(end, problemPtr(), parameters);
-    Extender<ExtenderBidirectional> extender{std::move(tree_start), std::move(tree_end)};
+    Extender<ExtenderBidirectional> extender{std::move(tree_start),
+                                             std::move(tree_end)};
     perform(extender);
   } break;
   }
