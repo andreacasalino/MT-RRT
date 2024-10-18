@@ -7,12 +7,11 @@
 
 #pragma once
 
-#include <MT-RRT/Solution.h>
-#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/ProblemDescription.h>
+#include <MT-RRT/Types.h>
+#include <MT-RRT/Random.h>
 
 #include <atomic>
-#include <optional>
-#include <variant>
 
 namespace mt_rrt {
 struct KeepSearchPredicate {
@@ -32,7 +31,7 @@ struct KeepSearchPredicate {
 
 class DeterminismRegulator {
 public:
-  DeterminismRegulator(const Seed &seed, const Determinism &determinism);
+  DeterminismRegulator(Seed seed, const Determinism &determinism);
 
   bool doDeterministicExtension() const {
     return deterministic_rate_sampler.sample() <=
@@ -46,33 +45,8 @@ private:
 
 class ExtenderBase : public ProblemAware {
 protected:
-  ExtenderBase(const TreeHandler &handler);
+  using ProblemAware::ProblemAware;
 
-  const Parameters &parameters;
   std::optional<DeterminismRegulator> determinism_manager;
 };
-
-class ExtenderSingle;
-class ExtenderBidir;
-
-template <typename Impl> struct ExtenderT : public Impl {
-public:
-  using Impl::Impl;
-
-  /** @brief Perform the specified number of estensions on the wrapped tree(s).
-   * This function may be called multiple times, for performing batch of
-   * extensions. All the solutions found while extending are saved and stored in
-   * this object.
-   * @param the number of extension to perform
-   */
-  std::size_t search();
-
-  Solutions<typename Impl::SolutionT> solutions;
-};
-
-using Extender =
-    std::variant<ExtenderT<ExtenderSingle>, ExtenderT<ExtenderBidir>>;
-
-std::vector<TreeHandlerPtr> dumpTrees(Extender &extender);
-
 } // namespace mt_rrt

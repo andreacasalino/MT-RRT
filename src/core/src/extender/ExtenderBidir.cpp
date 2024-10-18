@@ -5,16 +5,16 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderBidir.h>
-
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/extender/ExtenderBidir.h>
+#include <MT-RRT/extender/Utils.h>
 
 namespace mt_rrt {
-std::vector<std::vector<float>> BidirSolution::getSequence() const {
+std::vector<std::vector<float>> BidirSolution::materialize() const {
   auto result = sequence_from_root(*byPassFront);
   auto result_to_append = sequence_from_root(*byPassBack);
-  result.insert(result.end(), result_to_append.rbegin(),
-                result_to_append.rend());
+  std::for_each(result_to_append.rbegin(), result_to_append.rend(), [&result](std::vector<float>&& seq){
+    result.emplace_back(std::forward<std::vector<float>>(seq));
+  });
   return result;
 }
 
@@ -24,10 +24,9 @@ float BidirSolution::cost() const {
 
 ExtenderBidirectional::ExtenderBidirectional(TreeHandlerPtr front,
                                              TreeHandlerPtr back)
-    : Extender(*front), front_handler{std::move(front)}, back_handler{
-                                                             std::move(back)} {}
+    : ExtenderBase(*front), front_handler{std::move(front)}, back_handler{std::move(back)} {}
 
-void ExtenderBidirectional::search_iteration() {
+void ExtenderBidirectional::search_iteration(Solutions<BidirSolution>& solutions) {
   extension_state = !extension_state;
   TreeHandler *master = front_handler.get(), *slave = back_handler.get();
   if (!extension_state) {
@@ -35,7 +34,7 @@ void ExtenderBidirectional::search_iteration() {
   }
 
   DescriptionAndParameters context =
-      DescriptionAndParameters{problem(), parameters};
+      DescriptionAndParameters{problem(), parameters()};
 
   bool deterministic_extension =
       determinism_manager->doDeterministicExtension();

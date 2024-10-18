@@ -5,12 +5,11 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderSingle.h>
-
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/extender/ExtenderSingle.h>
+#include <MT-RRT/extender/Utils.h>
 
 namespace mt_rrt {
-std::vector<std::vector<float>> SimpleSolution::getSequence() const {
+std::vector<std::vector<float>> SimpleSolution::materialize() const {
   auto result = sequence_from_root(*byPassNode);
   result.emplace_back(target.convert());
   return result;
@@ -21,10 +20,10 @@ float SimpleSolution::cost() const {
 }
 
 ExtenderSingle::ExtenderSingle(TreeHandlerPtr handler,
-                               const std::vector<float> &target)
-    : Extender(*handler), target(target), tree_handler{std::move(handler)} {}
+                               std::vector<float> &&trgt)
+    : ExtenderBase(*handler), target(std::forward<std::vector<float>>(trgt)), tree_handler{std::move(handler)} {}
 
-void ExtenderSingle::search_iteration() {
+void ExtenderSingle::search_iteration(Solutions<SimpleSolution>& solutions) {
   bool toward_target = determinism_manager->doDeterministicExtension();
 
   std::vector<float> sampled_state;
@@ -34,8 +33,8 @@ void ExtenderSingle::search_iteration() {
   View target_state = toward_target ? View{target} : View{sampled_state};
 
   std::optional<Connector::SteerResult> maybe_steered;
-  std::vector<Rewire> rewires;
-  switch (parameters.expansion_strategy) {
+  Rewires rewires;
+  switch (parameters().expansion_strategy) {
   case ExpansionStrategy::Single:
     maybe_steered = extend(target_state, *tree_handler, toward_target);
     break;
@@ -52,7 +51,7 @@ void ExtenderSingle::search_iteration() {
     return;
   }
 
-  const auto &[steered, target_is_reached] = maybe_steered.value();
+  const auto &[target_is_reached, steered] = maybe_steered.value();
   if (toward_target && maybe_steered->target_is_reached) {
     float cost2Target = steered.cost2Go();
     solutions.emplace_back(std::make_shared<SimpleSolution>(
@@ -61,7 +60,7 @@ void ExtenderSingle::search_iteration() {
   }
 
   auto *added = tree_handler->internalize(steered);
-  if ((nullptr == added) || (rewires.empty())) {
+  if ((nullptr == added) || (rewires.involved_nodes.empty())) {
     return;
   }
   tree_handler->applyRewires(*added, rewires);
