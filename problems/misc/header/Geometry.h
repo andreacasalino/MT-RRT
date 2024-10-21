@@ -11,9 +11,7 @@
 #include <MT-RRT/View.h>
 
 #ifdef _WIN32
-#if __MINGW32__
-#include <cmath>
-#elif _MSC_VER
+#if _MSC_VER
 #include <corecrt_math_defines.h>
 #endif 
 #endif 
@@ -25,8 +23,13 @@
 #include <variant>
 
 namespace mt_rrt::geom {
+#ifdef __MINGW32__
+static constexpr float PI = static_cast<float>(3.14159265358979323846);
+static constexpr float PI_HALF = 0.5f * PI;
+#else
 static constexpr float PI = static_cast<float>(M_PI);
 static constexpr float PI_HALF = static_cast<float>(M_PI_2);
+#endif
 
 float to_rad(float angle);
 

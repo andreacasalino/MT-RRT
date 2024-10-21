@@ -45,8 +45,7 @@ public:
 
   void addTree(const TreeHandler &tree);
 
-  void addSolution(const std::vector<std::vector<float>> &sequence);
-  void addSolution(const Solution &solution);
+  void addSolution(const std::vector<std::vector<float>> &sequence, float cost);
 
   void addPlannerSolution(const PlannerSolution &sol) {
     for (const auto &tree : sol.trees) {

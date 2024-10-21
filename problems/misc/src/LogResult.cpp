@@ -19,14 +19,9 @@ void LogResult::addTree(const TreeHandler &tree) {
   to_json(trees.emplace_back(), tree);
 }
 
-void LogResult::addSolution(const std::vector<std::vector<float>> &sequence) {
+void LogResult::addSolution(const std::vector<std::vector<float>> &sequence, float cost) {
   auto &added = solutions.emplace_back();
+  added["cost"] = cost;
   added["sequence"] = sequence;
-}
-
-void LogResult::addSolution(const Solution &solution) {
-  auto &added = solutions.emplace_back();
-  added["cost"] = solution.cost();
-  added["sequence"] = solution.getSequence();
 }
 } // namespace mt_rrt
