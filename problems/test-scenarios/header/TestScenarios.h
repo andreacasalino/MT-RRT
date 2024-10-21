@@ -29,7 +29,7 @@ bool check_solutions(const TrivialProblemConnector &scenario,
   const auto start_vec = start.asVec();
   const auto end_vec = end.asVec();
   for (const auto &sol : solutions) {
-    auto sequence = sol->materialize();
+    auto sequence = sol.materialize();
     if ((sequence.size() < 2) || (sequence.front() != start_vec) ||
         (sequence.back() != end_vec) ||
         is_a_collision_present(scenario, sequence)) {
