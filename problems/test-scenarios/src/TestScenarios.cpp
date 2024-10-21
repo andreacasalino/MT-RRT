@@ -19,22 +19,6 @@ bool is_a_collision_present(const TrivialProblemConnector &scenario,
   return false;
 }
 
-bool check_solutions(const TrivialProblemConnector &scenario,
-                     const mt_rrt::Solutions &solutions,
-                     const geom::Point &start, const geom::Point &end) {
-  const auto start_vec = start.asVec();
-  const auto end_vec = end.asVec();
-  for (const auto &sol : solutions) {
-    auto sequence = sol->getSequence();
-    if ((sequence.size() < 2) || (sequence.front() != start_vec) ||
-        (sequence.back() != end_vec) ||
-        is_a_collision_present(scenario, sequence)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool check_loopy_connections(const TreeHandler &tree) {
   return std::find_if(tree.nodes.begin(), tree.nodes.end(), [](const Node *n) {
            try {
