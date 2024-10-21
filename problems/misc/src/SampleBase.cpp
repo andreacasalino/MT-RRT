@@ -12,6 +12,45 @@
 #include <unordered_map>
 
 namespace mt_rrt {
+PlannerKind from_string(const std::string& str) {
+  PlannerKind res;
+  bool found = false;
+
+  if(str == "STANDARD") {
+    res = PlannerKind::Standard;
+    found = true;
+  }
+
+#ifdef MT_PLANNERS_ENABLED
+  if(str == "EMBARASS") {
+    res = PlannerKind::Embarass;
+    found = true;
+  }
+  if(str == "PQUERY") {
+    res = PlannerKind::PQuery;
+    found = true;
+  }
+  if(str == "SHARED") {
+    res = PlannerKind::Shared;
+    found = true;
+  }
+  if(str == "LINKED") {
+    res = PlannerKind::Linked;
+    found = true;
+  }
+  if(str == "MULTIAG") {
+    res = PlannerKind::Multiag;
+    found = true;
+  }
+#endif
+
+  if(!found) {
+    throw std::runtime_error{"Unrecognized planner kind"};
+  }
+
+  return res;
+}
+
 void from_json(Parameters &recipient, const nlohmann::json &src) {
   if (src.contains("strategy")) {
     static std::unordered_map<std::string, ExpansionStrategy> strategies =
@@ -42,7 +81,7 @@ void from_json(Parameters &recipient, const nlohmann::json &src) {
 
 void from_json(PlannerParameters &recipient, const nlohmann::json &src) {
   if (src.contains("type")) {
-    recipient.type = src["type"];
+    recipient.type = from_string(src["type"]);
   }
   if (src.contains("threads")) {
     recipient.threads = src["threads"];

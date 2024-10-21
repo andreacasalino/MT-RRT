@@ -21,14 +21,6 @@ void from_json(Parameters &recipient, const nlohmann::json &src);
 template <typename ConnectorT>
 ProblemDescription from_json(const nlohmann::json &src);
 
-struct PlannerParameters {
-  std::string type;
-  std::size_t threads = 0;
-  float synchronization = 0;
-};
-
-void from_json(PlannerParameters &type, const nlohmann::json &src);
-
 enum class PlannerKind {
   Standard
 #ifdef MT_PLANNERS_ENABLED
@@ -39,6 +31,16 @@ enum class PlannerKind {
   , Multiag
 #endif
 };
+
+PlannerKind from_string(const std::string& str);
+
+struct PlannerParameters {
+  PlannerKind type = PlannerKind::Standard;
+  std::size_t threads = 0;
+  float synchronization = 0;
+};
+
+void from_json(PlannerParameters &type, const nlohmann::json &src);
 
 std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind, const PlannerParameters &params);
 
