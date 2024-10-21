@@ -2,7 +2,7 @@
     "condition":["BUILD_MT_RRT_TESTS", "BUILD_MT_RRT_SAMPLES"],
     "depends": {
         "PUBLIC": [
-            "${PREFIX}multi-threaded",
+            "${PREFIX}core",
             "nlohmann_json::nlohmann_json"
         ]
     },

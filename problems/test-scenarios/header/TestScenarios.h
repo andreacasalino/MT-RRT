@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geometry.h>
-#include <MT-RRT/Extender.h>
+#include <MT-RRT/ProblemDescription.h>
 #include <TrivialProblem.h>
 
 namespace mt_rrt::trivial {

@@ -29,10 +29,18 @@ struct PlannerParameters {
 
 void from_json(PlannerParameters &type, const nlohmann::json &src);
 
-std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc,
-                                     const std::string &type);
+enum class PlannerKind {
+  Standard
+#ifdef MT_PLANNERS_ENABLED
+  , Embarass
+  , PQuery
+  , Shared
+  , Linked
+  , Multiag
+#endif
+};
 
-void setUpPlanner(Planner &planner, const PlannerParameters &params);
+std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind, const PlannerParameters &params);
 
 struct DefaultStateParser {
   std::vector<float> operator()(std::vector<float> subject) const {

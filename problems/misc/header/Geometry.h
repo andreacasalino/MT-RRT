@@ -11,8 +11,13 @@
 #include <MT-RRT/View.h>
 
 #ifdef _WIN32
+#if __MINGW32__
+#include <cmath>
+#elif _MSC_VER
 #include <corecrt_math_defines.h>
-#endif
+#endif 
+#endif 
+
 #include <math.h>
 
 #include <array>

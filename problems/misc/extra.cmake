@@ -1,0 +1,5 @@
+target_link_libraries(MT-RRT-misc PUBLIC MT-RRT-core)
+if(TARGET MT-RRT-multi-threaded)
+    target_link_libraries(MT-RRT-misc PUBLIC MT-RRT-multi-threaded)
+    target_compile_definitions(MT-RRT-misc PUBLIC -D MT_PLANNERS_ENABLED)
+endif()

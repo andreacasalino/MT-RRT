@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
+#include <MT-RRT/extender/ExtenderSingle.h>
+#include <MT-RRT/extender/ExtenderBidir.h>
 #include <TestScenarios.h>
 
 namespace mt_rrt {

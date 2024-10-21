@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <MT-RRT/Extender.h>
+#include <MT-RRT/extender/Extender.h>
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Planner.h>
 
