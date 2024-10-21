@@ -70,16 +70,11 @@ struct Parameters {
 };
 
 struct NearSetElement {
-  bool isRoot;
   Node *element;
-  float cost2Root;
   float cost2go;
 };
 
-struct NearSet {
-  float cost2RootSubject;
-  std::vector<NearSetElement> set;
-};
+using NearSet = std::vector<NearSetElement>;
 
 struct Rewires {
   struct Involved {
