@@ -6,8 +6,6 @@
  **/
 
 #include <MT-RRT/EmbarassinglyParallel.h>
-#include <MT-RRT/extender/ExtenderBidir.h>
-#include <MT-RRT/extender/ExtenderSingle.h>
 
 #include "MultiThreadedUtils.h"
 

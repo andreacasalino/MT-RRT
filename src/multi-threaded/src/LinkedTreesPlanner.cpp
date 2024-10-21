@@ -5,8 +5,6 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderBidir.h>
-#include <MT-RRT/ExtenderSingle.h>
 #include <MT-RRT/ExtenderUtils.h>
 #include <MT-RRT/LinkedTreesPlanner.h>
 
