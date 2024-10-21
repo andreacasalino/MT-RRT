@@ -91,7 +91,7 @@ void from_json(PlannerParameters &recipient, const nlohmann::json &src) {
   }
 }
 
-std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind, const PlannerParameters &params) {
+std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind) {
   std::unique_ptr<Planner> res;
   switch (kind) {
   case PlannerKind::Standard:
@@ -115,20 +115,6 @@ std::unique_ptr<Planner> makePlanner(ProblemDescription &&desc, PlannerKind kind
     break;
 #endif  
   }
-#ifdef MT_PLANNERS_ENABLED
-  if (params.threads != 0) {
-    auto *maybe_mt = dynamic_cast<MultiThreadedPlanner *>(res.get());
-    if (maybe_mt) {
-      maybe_mt->setThreads(params.threads);
-    }
-  }
-  if (params.synchronization != 0) {
-    auto *maybe_sy = dynamic_cast<SynchronizationAware *>(res.get());
-    if (maybe_sy) {
-      maybe_sy->synchronization().set(params.synchronization);
-    }
-  }
-#endif  
   return res;
 }
 
