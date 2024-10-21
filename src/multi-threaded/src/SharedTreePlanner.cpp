@@ -61,7 +61,7 @@ public:
   }
 
   Node *internalize(const Node &subject) override {
-    auto *added = &shared->allocators[threadId]->emplace_back(subject.state());
+    auto *added = &shared->allocators[threadId].emplace_back(subject.state());
     added->setParent(*subject.getParent(), subject.cost2Go());
     shared->nodes.emplace_back(added);
     return added;
@@ -102,14 +102,12 @@ private:
   struct SharedData {
     SharedData(const View &root_view, std::size_t threads)
         : root{root_view}, nodes{&root} {
-      for (std::size_t k = 0; k < threads; ++k) {
-        allocators.emplace_back(std::make_unique<NodesAllocator>());
-      }
+      allocators.resize(threads);
     };
 
     NodeOwning root;
     LockFreeForwardList<Node *> nodes;
-    std::vector<std::unique_ptr<NodesAllocator>> allocators;
+    std::vector<NodesAllocator> allocators;
     SpinLock lock;
   };
 
