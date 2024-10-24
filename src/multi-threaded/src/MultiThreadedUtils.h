@@ -24,6 +24,15 @@ compute_balanced_number_of_iterations(const Iterations &max_iterations,
 template<typename ExtenderT>
 using Extenders = std::vector<ExtenderT>;
 
+template<typename ExtenderT>
+void serializeTrees(const Extenders<ExtenderT>& extenders, const Parameters &parameters, PlannerSolution &recipient) {
+  if (parameters.dumpTrees) {
+    for(const auto& ext : extenders) {
+      ext.serializeTrees(recipient.trees);
+    }
+  }  
+}
+
 template<typename T>
 std::vector<std::vector<float>> materialize_best_in_extenders(const Extenders<T> &extenders) {
   using Solution = typename T::SolutionT;
@@ -53,4 +62,6 @@ void parallel_region(const Threads &threads, Predicate &&predicate) {
 #pragma omp parallel num_threads(static_cast <int>(threads.get()))
   { predicate(); }
 }
+
+
 } // namespace mt_rrt

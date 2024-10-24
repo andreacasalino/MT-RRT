@@ -22,11 +22,7 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
 
     recipient.iterations = parameters.iterations.get();
     recipient.solution = materialize_best_in_extenders(extenders);
-    if (parameters.dumpTrees) {
-      for(const auto& ext : extenders) {
-        ext.serializeTrees(recipient.trees);
-      }
-    }
+    serializeTrees(extenders, parameters, recipient);
   };
 
   switch (parameters.expansion_strategy) {
@@ -53,4 +49,5 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
     break;
   }
   }
+}
 } // namespace mt_rrt

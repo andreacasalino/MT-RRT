@@ -8,8 +8,7 @@
 #include <MT-RRT/ParallelFor.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
 #include <MT-RRT/TreeUtils.h>
-#include <MT-RRT/extender/ExtenderBidir.h>
-#include <MT-RRT/extender/ExtenderSingle.h>
+#include <MT-RRT/extender/Extender.h>
 
 #include "MultiThreadedUtils.h"
 
@@ -17,17 +16,16 @@
 
 namespace mt_rrt {
 namespace {
-class ParallelQueriesTreeHandler : public TreeHandlerBasic {
+class ParallelQueriesTreeHandler : public TreeHandler {
 public:
   ParallelQueriesTreeHandler(
       const View &rootState,
       const std::vector<ProblemDescriptionPtr> &descriptions,
       const Parameters &parameters, ParallelFor &parallelFor)
-      : TreeHandlerBasic(rootState, descriptions.front(), parameters),
+      : TreeHandler(rootState, descriptions.front(), parameters),
         parallelFor{&parallelFor}, descriptions(descriptions) {}
 
-  // nullptr if nothing was found
-  const Node *nearestNeighbour(const View &state) const override {
+  const Node *nearestNeighbour(const View &state) const {
     std::vector<NearestQuery> results;
     results.resize(parallelFor->size());
     parallelFor->process(nodes, [&](const Node *node, std::size_t threadId) {
@@ -42,7 +40,7 @@ public:
         ->closest;
   }
 
-  NearSet nearSet(const Node &subject) const override {
+  NearSet nearSet(const Node &subject) const {
     float ray = near_set_ray(nodes.size(), nodes.front()->state().size,
                              problem().gamma.get());
     std::vector<NearSetQuery> results;
@@ -79,7 +77,9 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
   auto perform = [&](auto &extender) {
     recipient.iterations = extender.search();
     recipient.solution = materialize_best(extender.solutions);
-    recipient.trees = extender.dumpTrees();
+    if (parameters.dumpTrees) {
+      extender.serializeTrees(recipient.trees);
+    }
   };
 
   switch (parameters.expansion_strategy) {
@@ -87,7 +87,7 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
   case ExpansionStrategy::Star: {
     auto tree = std::make_unique<ParallelQueriesTreeHandler>(
         start, descriptions, parameters, parallel_for_executor);
-    Extender<ExtenderSingle> extender{std::move(tree), end};
+    ExtenderSingle<TreeHandler> extender{std::move(tree), end};
     perform(extender);
   } break;
   case ExpansionStrategy::Bidir: {
@@ -95,7 +95,7 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
         start, descriptions, parameters, parallel_for_executor);
     auto tree_end = std::make_unique<ParallelQueriesTreeHandler>(
         end, descriptions, parameters, parallel_for_executor);
-    Extender<ExtenderBidirectional> extender{std::move(tree_start),
+    ExtenderBidirectional<TreeHandler> extender{std::move(tree_start),
                                              std::move(tree_end)};
     perform(extender);
   } break;
