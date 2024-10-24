@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <atomic>
+#include <memory>
 
 namespace mt_rrt {
 // single producer single consumer queue
@@ -49,4 +50,7 @@ private:
     std::atomic<std::size_t> consumer_cursor_{0};
     std::vector<T> buffer_;
 };
+
+template<typename T>
+using ChannelPtr = std::shared_ptr<Channel<T>>;
 }
