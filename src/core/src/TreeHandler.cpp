@@ -18,14 +18,14 @@ TreeHandlerBase::TreeHandlerBase(const ProblemDescriptionPtr &problem,
 
 TreeHandler::TreeHandler(const View &root, const ProblemDescriptionPtr &problem,
                          const Parameters &parameters)
-    : TreeHandlerBase(problem, parameters) {
+    : TreeHandler(problem, parameters) {
   auto &rootNode = allocator.emplace_back(root);
   nodes.push_back(&rootNode);
 }
 
 TreeHandler::TreeHandler(Node &root, const ProblemDescriptionPtr &problem,
                          const Parameters &parameters)
-    : TreeHandlerBase(problem, parameters) {
+    : TreeHandler(problem, parameters) {
   nodes.push_back(&root);
 };
 

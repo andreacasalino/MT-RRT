@@ -63,6 +63,10 @@ public:
   void applyRewires(const Node &parent, const Rewires &rewires);
 
 protected:
+  TreeHandler(const ProblemDescriptionPtr &problem,
+                  const Parameters &parameters)
+  : TreeHandlerBase{problem, parameters} {}
+
   NodesAllocator allocator;
 };
 

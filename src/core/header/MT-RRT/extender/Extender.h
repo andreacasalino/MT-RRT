@@ -41,7 +41,7 @@ public:
     for (; search_predicate(iter); ++iter) {
       this->search_iteration(solutions,
                              determinismManager_.doDeterministicExtension());
-      search_predicate.one_solution_was_found = !solutions.empty();
+      search_predicate.one_solution_was_found.store(!solutions.empty(), std::memory_order::memory_order_release);
 #ifdef SHOW_PLANNER_PROGRESS
       ++Progress::get();
 #endif
@@ -52,7 +52,7 @@ public:
 
   Solutions<typename ExtenderImpl::SolutionT> solutions;
 
-private:
+protected:
   DeterminismRegulator determinismManager_;
 };
 }
