@@ -21,8 +21,8 @@ Iterations
 compute_balanced_number_of_iterations(const Iterations &max_iterations,
                                       const Threads &threads);
 
-template<typename T>
-using Extenders = std::vector<Extender<T>>;
+template<typename ExtenderT>
+using Extenders = std::vector<ExtenderT>;
 
 template<typename T>
 std::vector<std::vector<float>> materialize_best_in_extenders(const Extenders<T> &extenders) {

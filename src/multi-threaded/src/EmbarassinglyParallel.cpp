@@ -6,8 +6,7 @@
  **/
 
 #include <MT-RRT/EmbarassinglyParallel.h>
-#include <MT-RRT/extender/ExtenderBidir.h>
-#include <MT-RRT/extender/ExtenderSingle.h>
+#include <MT-RRT/extender/Extender.h>
 
 #include "MultiThreadedUtils.h"
 
@@ -23,26 +22,30 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
 
     recipient.iterations = parameters.iterations.get();
     recipient.solution = materialize_best_in_extenders(extenders);
-    emplace_trees(recipient, extenders);
+    if (parameters.dumpTrees) {
+      for(const auto& ext : extenders) {
+        ext.serializeTrees(recipient.trees);
+      }
+    }
   };
 
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single:
   case ExpansionStrategy::Star: {
-    Extenders<ExtenderSingle> extenders;
+    Extenders<ExtenderSingle<TreeHandler>> extenders;
     for (std::size_t t = 0; t < getThreads(); ++t) {
-      auto tree = std::make_unique<TreeHandlerBasic>(View{start}, problemPtr(),
+      auto tree = make_tree<TreeHandler>(View{start}, problemPtr(),
                                                      parameters);
       extenders.emplace_back(std::move(tree), end);
       perform(extenders);
     }
   } break;
   case ExpansionStrategy::Bidir: {
-    Extenders<ExtenderBidirectional> extenders;
+    Extenders<ExtenderBidirectional<TreeHandler>> extenders;
     for (std::size_t t = 0; t < getThreads(); ++t) {
-      auto tree_start = std::make_unique<TreeHandlerBasic>(
+      auto tree_start = make_tree<TreeHandler>(
           View{start}, problemPtr(), parameters);
-      auto tree_end = std::make_unique<TreeHandlerBasic>(
+      auto tree_end = make_tree<TreeHandler>(
           View{end}, problemPtr(), parameters);
       extenders.emplace_back(std::move(tree_start), std::move(tree_end));
       perform(extenders);
