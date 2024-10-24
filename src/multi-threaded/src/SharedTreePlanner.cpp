@@ -6,12 +6,11 @@
  **/
 
 #include <MT-RRT/SharedTreePlanner.h>
-#include <MT-RRT/extender/ExtenderSingle.h>
-#include <MT-RRT/extender/ExtenderBidir.h>
+#include <MT-RRT/extender/Extender.h>
 #include <MT-RRT/LockFreeForwardList.h>
+#include <MT-RRT/SpinLock.h>
 
 #include "MultiThreadedUtils.h"
-#include "SpinLock.h"
 #include <MT-RRT/TreeUtils.h>
 
 #include <omp.h>
@@ -20,7 +19,7 @@ namespace mt_rrt {
 namespace {
 class SharedTreeHandler : public TreeHandler {
 public:
-  const Node *nearestNeighbour(const View &state) const override {
+  const Node *nearestNeighbour(const View &state) const {
     const auto &connector = *problem().connector;
     NearestQuery result;
     shared->nodes.forEach([&](Node *node) {
@@ -29,7 +28,7 @@ public:
     return result.closest;
   }
 
-  NearSet nearSet(const Node &node) const override {
+  NearSet nearSet(const Node &node) const {
     NearSet res;
     std::size_t problem_size = shared->root.state().size;
     float ray = near_set_ray(shared->nodes.size(), problem_size, problem().gamma.get());
@@ -45,14 +44,14 @@ public:
     return res;
   }
 
-  Node *internalize(const Node &subject) override {
+  Node *internalize(const Node &subject) {
     auto *added = &shared->allocators[threadId].emplace_back(subject.state());
     added->setParent(*subject.getParent(), subject.cost2Go());
     shared->nodes.emplace_back(added);
     return added;
   }
 
-  void applyRewires(const Node &parent, const Rewires &rewires) override {
+  void applyRewires(const Node &parent, const Rewires &rewires) {
     SpinLockGuard guard{shared->lock};
     for (const auto &rewire : rewires.involved_nodes) {
       rewire.node->setParent(parent, rewire.new_cost_from_father);
