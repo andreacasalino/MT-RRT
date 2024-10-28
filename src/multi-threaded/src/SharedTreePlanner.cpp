@@ -110,7 +110,7 @@ private:
 
 template <template <typename> class Implementation>
 class Extender<Implementation, SharedTreeHandler>
-: public extender::ExtenderBase<Implementation<SharedTreeHandler>> {
+    : public extender::ExtenderBase<Implementation<SharedTreeHandler>> {
 public:
   using extender::ExtenderBase<Implementation<SharedTreeHandler>>::ExtenderBase;
 
@@ -145,8 +145,8 @@ public:
       dynamic_cast<SharedTreeHandler *>(this->back_handler.get())
           ->copyToVectorNodes();
     }
-    this->extender::ExtenderBase<Implementation<SharedTreeHandler>>::serializeTrees(
-        recipient);
+    this->extender::ExtenderBase<
+        Implementation<SharedTreeHandler>>::serializeTrees(recipient);
   }
 };
 
@@ -175,13 +175,14 @@ void SharedTreePlanner::solve_(const std::vector<float> &start,
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single:
   case ExpansionStrategy::Star: {
-    perform(make_single_extenders(SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters), end));
+    perform(make_single_extenders(
+        SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters),
+        end));
   } break;
   case ExpansionStrategy::Bidir: {
     perform(make_bidirectional_extenders(
-      SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters),
-      SharedTreeHandler::make_trees(end, getAllDescriptions(), parameters)
-    ));
+        SharedTreeHandler::make_trees(start, getAllDescriptions(), parameters),
+        SharedTreeHandler::make_trees(end, getAllDescriptions(), parameters)));
   } break;
   }
 }

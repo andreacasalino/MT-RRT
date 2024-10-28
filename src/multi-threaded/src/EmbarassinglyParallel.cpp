@@ -12,14 +12,17 @@
 
 namespace mt_rrt {
 namespace {
-  std::vector<TreeHandlerPtr<TreeHandler>> make_trees(const std::vector<float>& root, const std::vector<ProblemDescriptionPtr>& problems, const Parameters& pars) {
-    std::vector<TreeHandlerPtr<TreeHandler>> res;
-    for(auto& problem : problems) {
-      res.emplace_back( std::make_unique<TreeHandler>(View{root}, problem, pars) );
-    }
-    return res;
+std::vector<TreeHandlerPtr<TreeHandler>>
+make_trees(const std::vector<float> &root,
+           const std::vector<ProblemDescriptionPtr> &problems,
+           const Parameters &pars) {
+  std::vector<TreeHandlerPtr<TreeHandler>> res;
+  for (auto &problem : problems) {
+    res.emplace_back(std::make_unique<TreeHandler>(View{root}, problem, pars));
   }
+  return res;
 }
+} // namespace
 
 void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
                                           const std::vector<float> &end,
@@ -39,13 +42,13 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single:
   case ExpansionStrategy::Star:
-    perform(make_single_extenders(make_trees(start, getAllDescriptions(), parameters), end));
+    perform(make_single_extenders(
+        make_trees(start, getAllDescriptions(), parameters), end));
     break;
   case ExpansionStrategy::Bidir:
     perform(make_bidirectional_extenders(
-      make_trees(start, getAllDescriptions(), parameters),
-      make_trees(end, getAllDescriptions(), parameters)
-    ));
+        make_trees(start, getAllDescriptions(), parameters),
+        make_trees(end, getAllDescriptions(), parameters)));
     break;
   }
 }

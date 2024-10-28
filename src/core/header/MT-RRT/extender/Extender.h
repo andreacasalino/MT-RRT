@@ -18,8 +18,7 @@
 
 namespace mt_rrt {
 namespace extender {
-template <typename Implementation>
-class ExtenderBase : public Implementation {
+template <typename Implementation> class ExtenderBase : public Implementation {
 public:
   template <typename... ARGS>
   ExtenderBase(ARGS &&...args)
@@ -42,8 +41,9 @@ public:
 
     std::size_t iter = 0;
     for (; search_predicate(iter); ++iter) {
-      this->search_iteration(this->solutions,
-                             this->determinismManager_.doDeterministicExtension());
+      this->search_iteration(
+          this->solutions,
+          this->determinismManager_.doDeterministicExtension());
       search_predicate.one_solution_was_found.store(
           !this->solutions.empty(), std::memory_order::memory_order_release);
 #ifdef SHOW_PLANNER_PROGRESS
@@ -57,7 +57,7 @@ public:
 protected:
   DeterminismRegulator determinismManager_;
 };
-}
+} // namespace extender
 
 template <template <typename> class Implementation, typename TreeT>
 class Extender : public extender::ExtenderBase<Implementation<TreeT>> {
@@ -65,10 +65,10 @@ public:
   using extender::ExtenderBase<Implementation<TreeT>>::ExtenderBase;
 };
 
-template<typename TreeT>
+template <typename TreeT>
 using ExtenderSingle = Extender<extender::Single, TreeT>;
 
-template<typename TreeT>
+template <typename TreeT>
 using ExtenderBidirectional = Extender<extender::Bidirectional, TreeT>;
 
 } // namespace mt_rrt

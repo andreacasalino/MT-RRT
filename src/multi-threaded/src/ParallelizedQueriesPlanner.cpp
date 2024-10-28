@@ -94,7 +94,8 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
         start, descriptions, parameters, parallel_for_executor);
     auto tree_end = std::make_unique<ParallelQueriesTreeHandler>(
         end, descriptions, parameters, parallel_for_executor);
-    perform(ExtenderBidirectional<TreeHandler>{std::move(tree_start), std::move(tree_end)});
+    perform(ExtenderBidirectional<TreeHandler>{std::move(tree_start),
+                                               std::move(tree_end)});
   } break;
   }
 }

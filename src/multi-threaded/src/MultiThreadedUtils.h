@@ -13,8 +13,8 @@
 #include <MT-RRT/extender/Extender.h>
 
 #include <atomic>
-#include <thread>
 #include <functional>
+#include <thread>
 
 namespace mt_rrt {
 
@@ -71,23 +71,27 @@ void parallel_region(const Threads &threads, Predicate &&predicate) {
   }
 }
 
-template<typename TreeT>
-Extenders<ExtenderSingle<TreeT>> make_single_extenders(std::vector<TreeHandlerPtr<TreeT>> trees, const std::vector<float>& target) {
+template <typename TreeT>
+Extenders<ExtenderSingle<TreeT>>
+make_single_extenders(std::vector<TreeHandlerPtr<TreeT>> trees,
+                      const std::vector<float> &target) {
   Extenders<ExtenderSingle<TreeT>> res;
-  for(auto& tree : trees) {
+  for (auto &tree : trees) {
     res.emplace_back(std::move(tree), target);
   }
   return res;
 }
 
-template<typename TreeT>
-Extenders<ExtenderBidirectional<TreeT>> make_bidirectional_extenders(std::vector<TreeHandlerPtr<TreeT>> front, std::vector<TreeHandlerPtr<TreeT>> back) {
-  if(front.size() != back.size()) {
+template <typename TreeT>
+Extenders<ExtenderBidirectional<TreeT>>
+make_bidirectional_extenders(std::vector<TreeHandlerPtr<TreeT>> front,
+                             std::vector<TreeHandlerPtr<TreeT>> back) {
+  if (front.size() != back.size()) {
     throw Error{"front and back trees must have the same size"};
   }
   Extenders<ExtenderBidirectional<TreeT>> res;
-  for(std::size_t k=0; k<front.size(); ++k) {
-    res.emplace_back( std::move(front[k]), std::move(back[k]) );
+  for (std::size_t k = 0; k < front.size(); ++k) {
+    res.emplace_back(std::move(front[k]), std::move(back[k]));
   }
   return res;
 }

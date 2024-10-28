@@ -164,10 +164,11 @@ private:
 };
 
 template <template <typename> class Implementation, bool SimpleOrStar>
-class ExtenderBase_
-: public extender::ExtenderBase<Implementation<LinkedTreeHandler<SimpleOrStar>>> {
+class ExtenderBase_ : public extender::ExtenderBase<
+                          Implementation<LinkedTreeHandler<SimpleOrStar>>> {
 public:
-  using extender::ExtenderBase<Implementation<LinkedTreeHandler<SimpleOrStar>>>::ExtenderBase;
+  using extender::ExtenderBase<
+      Implementation<LinkedTreeHandler<SimpleOrStar>>>::ExtenderBase;
 
   void search(std::atomic<std::size_t> &iter) {
     const auto &pars = this->parameters();
@@ -182,8 +183,9 @@ public:
       search_predicate.one_solution_was_found.store(
           !this->solutions.empty(), std::memory_order::memory_order_release);
 
-      if constexpr (std::is_same_v<Implementation<LinkedTreeHandler<SimpleOrStar>>,
-                                   extender::Single<LinkedTreeHandler<true>>> ||
+      if constexpr (std::is_same_v<
+                        Implementation<LinkedTreeHandler<SimpleOrStar>>,
+                        extender::Single<LinkedTreeHandler<true>>> ||
                     std::is_same_v<
                         Implementation<LinkedTreeHandler<SimpleOrStar>>,
                         extender::Single<LinkedTreeHandler<false>>>) {
@@ -203,14 +205,14 @@ public:
 
 template <template <typename> class Implementation>
 class Extender<Implementation, LinkedTreeHandler<true>>
-: public ExtenderBase_<Implementation, true> {
+    : public ExtenderBase_<Implementation, true> {
 public:
   using ExtenderBase_<Implementation, true>::ExtenderBase_;
 };
 
 template <template <typename> class Implementation>
 class Extender<Implementation, LinkedTreeHandler<false>>
-: public ExtenderBase_<Implementation, false> {
+    : public ExtenderBase_<Implementation, false> {
 public:
   using ExtenderBase_<Implementation, false>::ExtenderBase_;
 };
@@ -236,18 +238,23 @@ void LinkedTreesPlanner::solve_(const std::vector<float> &start,
 
   switch (parameters.expansion_strategy) {
   case ExpansionStrategy::Single: {
-    perform(make_single_extenders(LinkedTreeHandler<true>::make_trees(start, getAllDescriptions(), parameters), end));
+    perform(make_single_extenders(LinkedTreeHandler<true>::make_trees(
+                                      start, getAllDescriptions(), parameters),
+                                  end));
   } break;
 
   case ExpansionStrategy::Star: {
-    perform(make_single_extenders(LinkedTreeHandler<false>::make_trees(start, getAllDescriptions(), parameters), end));
+    perform(make_single_extenders(LinkedTreeHandler<false>::make_trees(
+                                      start, getAllDescriptions(), parameters),
+                                  end));
   } break;
 
   case ExpansionStrategy::Bidir: {
     perform(make_bidirectional_extenders(
-      LinkedTreeHandler<true>::make_trees(start, getAllDescriptions(), parameters),
-      LinkedTreeHandler<true>::make_trees(end, getAllDescriptions(), parameters)
-    ));
+        LinkedTreeHandler<true>::make_trees(start, getAllDescriptions(),
+                                            parameters),
+        LinkedTreeHandler<true>::make_trees(end, getAllDescriptions(),
+                                            parameters)));
   } break;
   }
 }

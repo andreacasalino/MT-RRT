@@ -37,11 +37,10 @@ public:
   Explorer(const Node &root, const ProblemDescriptionPtr &problem,
            const Parameters &parameters, const std::vector<float> &target,
            const std::vector<Node *> &master)
-      : extender::ExtenderBase<ExtenderSingle<TreeHandler>>{make_tree<TreeHandler>(
-                                                            root.state(),
-                                                            problem,
-                                                            parameters),
-                                                        target},
+      : extender::ExtenderBase<
+            ExtenderSingle<TreeHandler>>{make_tree<TreeHandler>(
+                                             root.state(), problem, parameters),
+                                         target},
         originalRoot{&root}, masterTree{master} {}
 
   std::size_t search() {
