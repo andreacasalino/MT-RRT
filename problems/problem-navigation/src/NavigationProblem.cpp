@@ -130,12 +130,12 @@ compute_cart_trajectory_info(const View &start, const View &end,
                              const CartSteerLimits &steer_limits) {
   geom::Versor start_dir(start.data[2]), end_dir(end.data[2]);
   auto intersection_coefficients =
-      geom::Segment::closest_on_lines(geom::Segment{start.trim(2), start_dir},
-                                      geom::Segment{end.trim(2), end_dir});
+      geom::Segment::closest_on_lines(geom::Segment{start.cutOut(2), start_dir},
+                                      geom::Segment{end.cutOut(2), end_dir});
 
   if (!intersection_coefficients.has_value()) {
     // start and end are aligned
-    geom::Versor start_to_end(start.trim(2), end.trim(2));
+    geom::Versor start_to_end(start.cutOut(2), end.cutOut(2));
     float dot_val = geom::dot(end_dir.asPoint(), start_to_end.asPoint());
     if (std::abs(dot_val - 1.f) < 1e-2f) {
       return TrivialLine{start, end};
@@ -164,7 +164,7 @@ compute_cart_trajectory_info(const View &start, const View &end,
     ray_info = from_ray(theta, steer_limits.maxRadius());
   }
 
-  geom::Point intersection_corner{start.trim(2)};
+  geom::Point intersection_corner{start.cutOut(2)};
   intersection_corner = geom::sum(intersection_corner, start_dir.asPoint(), s);
 
   geom::Point center;
