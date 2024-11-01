@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/StandardPlanner.h>
 #include <MT-RRT/extender/Extender.h>
 
@@ -13,9 +14,11 @@ void StandardPlanner::solve_(const std::vector<float> &start,
                              const std::vector<float> &end,
                              const Parameters &parameters,
                              PlannerSolution &recipient) {
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &extender) {
     recipient.iterations = extender.search();
     recipient.solution = materialize_best(extender.solutions);
+    duration.reset();
     if (parameters.dumpTrees) {
       extender.serializeTrees(recipient.trees);
     }

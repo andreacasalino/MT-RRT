@@ -72,11 +72,8 @@ PlannerSolution Planner::solve(const std::vector<float> &start,
 #ifdef SHOW_PLANNER_PROGRESS
   Progress::get().reset();
 #endif
-  auto tic = std::chrono::high_resolution_clock::now();
   PlannerSolution result;
   solve_(start, end, parameters, result);
-  result.time = std::chrono::duration_cast<PlannerSolution::TimeUnit>(
-      std::chrono::high_resolution_clock::now() - tic);
   return result;
 }
 } // namespace mt_rrt

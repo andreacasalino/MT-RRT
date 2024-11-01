@@ -16,7 +16,7 @@ namespace mt_rrt {
  * @brief Groups all the information characterizing a found solution
  */
 struct PlannerSolution {
-  using TimeUnit = std::chrono::microseconds;
+  using TimeUnit = std::chrono::nanoseconds;
 
   /**
    * @brief computation time spent for obtaining the solution, or trying to get

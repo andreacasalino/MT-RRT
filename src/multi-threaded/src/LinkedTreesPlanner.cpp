@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/Channel.h>
 #include <MT-RRT/LinkedTreesPlanner.h>
 #include <MT-RRT/TreeUtils.h>
@@ -223,6 +224,7 @@ void LinkedTreesPlanner::solve_(const std::vector<float> &start,
                                 PlannerSolution &recipient) {
   resizeDescriptions(getThreads());
 
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &&extenders) {
     std::atomic<std::size_t> iter = 0;
 
@@ -233,6 +235,7 @@ void LinkedTreesPlanner::solve_(const std::vector<float> &start,
 
     recipient.iterations = iter;
     recipient.solution = materialize_best_in_extenders(extenders);
+    duration.reset();
     serializeTrees(extenders, parameters, recipient);
   };
 

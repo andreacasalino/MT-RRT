@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/LockFreeForwardList.h>
 #include <MT-RRT/SharedTreePlanner.h>
 #include <MT-RRT/SpinLock.h>
@@ -156,6 +157,7 @@ void SharedTreePlanner::solve_(const std::vector<float> &start,
                                PlannerSolution &recipient) {
   resizeDescriptions(getThreads());
 
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &&extenders) {
     std::atomic<std::size_t> iter = 0;
 
@@ -166,7 +168,7 @@ void SharedTreePlanner::solve_(const std::vector<float> &start,
 
     recipient.iterations = iter;
     recipient.solution = materialize_best_in_extenders(extenders);
-
+    duration.reset();
     if (parameters.dumpTrees) {
       extenders.front().serializeTrees(recipient.trees);
     }

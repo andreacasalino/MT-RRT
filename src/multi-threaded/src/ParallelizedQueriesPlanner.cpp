@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/ParallelFor.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
 #include <MT-RRT/TreeUtils.h>
@@ -74,9 +75,11 @@ void ParallelizedQueriesPlanner::solve_(const std::vector<float> &start,
   resizeDescriptions(getThreads());
   const auto &descriptions = getAllDescriptions();
 
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &&extender) {
     recipient.iterations = extender.search();
     recipient.solution = materialize_best(extender.solutions);
+    duration.reset();
     if (parameters.dumpTrees) {
       extender.serializeTrees(recipient.trees);
     }

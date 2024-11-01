@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/MultiAgentPlanner.h>
 #include <MT-RRT/TreeUtils.h>
 #include <MT-RRT/Types.h>
@@ -217,6 +218,7 @@ void MultiAgentPlanner::solve_(const std::vector<float> &start,
 
   resizeDescriptions(getThreads());
 
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &tree, auto &&slaves) {
     std::size_t iter = 0;
     extender::KeepSearchPredicate search_predicate{
@@ -243,7 +245,10 @@ void MultiAgentPlanner::solve_(const std::vector<float> &start,
 
     recipient.iterations = iter;
     recipient.solution = materialize_best(tree.solutions);
-    recipient.trees.emplace_back(serialize_tree(tree.nodes));
+    duration.reset();
+    if(parameters.dumpTrees) {
+      recipient.trees.emplace_back(serialize_tree(tree.nodes));
+    }
   };
 
   switch (parameters.expansion_strategy) {

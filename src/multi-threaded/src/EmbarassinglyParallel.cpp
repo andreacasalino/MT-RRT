@@ -5,6 +5,7 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
+#include <MT-RRT/ScopedTimeDuration.h>
 #include <MT-RRT/EmbarassinglyParallel.h>
 #include <MT-RRT/extender/Extender.h>
 
@@ -30,12 +31,14 @@ void EmbarassinglyParallelPlanner::solve_(const std::vector<float> &start,
                                           PlannerSolution &recipient) {
   resizeDescriptions(getThreads());
 
+  std::optional<ScopedTimeDuration<>> duration{recipient.time};
   auto perform = [&](auto &&extenders) {
     parallel_region(getThreads(),
                     [&](std::size_t th_id) { extenders[th_id].search(); });
 
     recipient.iterations = parameters.iterations.get();
     recipient.solution = materialize_best_in_extenders(extenders);
+    duration.reset();
     serializeTrees(extenders, parameters, recipient);
   };
 
