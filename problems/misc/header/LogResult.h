@@ -43,6 +43,10 @@ public:
     added["type"] = ObstacleTrait<ObstacleT>::typeStr();
   }
 
+  void setTime(std::chrono::nanoseconds t) {
+    time = t.count();
+  }
+
   void addTree(const PlannerSolution::TreeSerialized &tree);
 
   void addSolution(const std::vector<std::vector<float>> &sequence);
@@ -58,6 +62,7 @@ public:
 
 private:
   nlohmann::json content;
+  nlohmann::json &time = content["time"];
   nlohmann::json &scene = content["scene"];
   nlohmann::json &obstacles = scene["obstacles"];
   nlohmann::json &trees = content["trees"];

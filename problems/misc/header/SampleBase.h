@@ -155,7 +155,7 @@ void SampleBase<ConnectorT>::process() {
     if (solution.solution.empty()) {
       std::cout << "A solution was NOT found" << std::endl;
     } else {
-      std::cout << "A solution was found in " << solution.time.count()
+      std::cout << "A solution was found in " << std::chrono::duration_cast<std::chrono::microseconds>(solution.time).count()
                 << " [us] using " << solution.iterations << " iterations"
                 << std::endl;
     }
@@ -164,6 +164,7 @@ void SampleBase<ConnectorT>::process() {
             static_cast<const ConnectorT &>(*planner->problem().connector));
     result.addToScene("start") = start;
     result.addToScene("end") = end;
+    result.setTime(solution.time);
 
     solution.solution = extract_solution<ConnectorT>(
         static_cast<const ConnectorT &>(*planner->problem().connector),
