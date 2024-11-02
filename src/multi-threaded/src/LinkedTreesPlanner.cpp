@@ -58,11 +58,13 @@ protected:
   }
 
   Node *findFromOriginal(const Node *original) {
-    return original2ThisNodes.find(original)->second;
+    auto it = original2ThisNodes.find(original);
+    return it == original2ThisNodes.end() ? nullptr : it->second;
   }
 
   Node *findFromThisNode(const Node *thisNode) {
-    return thisNodes2Original.find(thisNode)->second;
+    auto it = thisNodes2Original.find(thisNode);
+    return it == thisNodes2Original.end() ? nullptr : it->second;
   }
 
 private:
@@ -137,6 +139,9 @@ public:
     else {
       this->poll(MAX_SUCCESS_POLL, [this](const Msg &msg) {
         Node *parent = this->findFromOriginal(msg.parent);
+        if(!parent) {
+          return;
+        }
         switch (msg.kind) {
         case Msg::Kind::SteeredNode: {
           auto &added = this->allocator.emplace_back(msg.involved->state());
@@ -147,6 +152,9 @@ public:
 
         case Msg::Kind::Rewire: {
           Node *involved = this->findFromOriginal(msg.involved);
+          if(!involved) {
+            return;
+          }
           if (msg.costFromParent < involved->cost2Root()) {
             involved->setParent(*parent, msg.costFromParent);
           }

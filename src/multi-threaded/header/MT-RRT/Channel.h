@@ -57,9 +57,9 @@ private:
 
 template <typename T> using ChannelPtr = std::shared_ptr<Channel<T>>;
 
-template <typename T> class OutChannel {
+template <typename T> class ProducerSideChannel {
 public:
-  OutChannel(const ChannelPtr<T> &chnl) : channel{chnl} {}
+  ProducerSideChannel(const ChannelPtr<T> &chnl) : channel{chnl} {}
 
   void push(T to_add) {
     poll();
@@ -70,8 +70,11 @@ public:
   }
 
   void poll() {
-    for (; !pending.empty() && channel->push(pending.front());
-         pending.pop_front()) {
+    while (!pending.empty()) {
+      if(channel->push(pending.front())) {
+        pending.pop_front();
+      }
+      else break;
     }
   }
 
@@ -131,6 +134,6 @@ template <typename T> struct Network {
 
 protected:
   std::vector<ChannelPtr<T>> incoming;
-  std::vector<OutChannel<T>> outgoing;
+  std::vector<ProducerSideChannel<T>> outgoing;
 };
 } // namespace mt_rrt

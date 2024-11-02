@@ -44,7 +44,7 @@ std::vector<std::string> consume(Channel<std::string> &channel,
 
 struct ChannelTest : ::testing::Test {
   template <bool PollTillAllFlushed>
-  void produce(std::size_t how_many, OutChannel<std::string> &channel) {
+  void produce(std::size_t how_many, ProducerSideChannel<std::string> &channel) {
     produce_(how_many, &channel);
     if constexpr (PollTillAllFlushed) {
       while (!channel.pending.empty()) {
@@ -117,7 +117,7 @@ TEST_F(ChannelTest, push_while_poll) {
       return done.load(std::memory_order::memory_order_acquire);
     });
   }};
-  OutChannel<std::string> out{channel};
+  ProducerSideChannel<std::string> out{channel};
   produce<true>(100, out);
   done.store(true, std::memory_order::memory_order_release);
   consumer.join();
