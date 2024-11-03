@@ -39,3 +39,8 @@ if(BUILD_MT_RRT_README_SAMPLE)
     add_executable(ReadMeExample ReadMeExample.cpp)
     target_link_libraries(ReadMeExample MT-RRT-multi-threaded)
 endif()
+
+add_custom_target(MT-RRT-format
+COMMAND ${PYTHON_CMD} ${MT_RRT_SCRIPTS}/Format.py "-f" "-d" "${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/problems ${CMAKE_CURRENT_SOURCE_DIR}/launcher"
+SOURCES ${MT_RRT_SCRIPTS}/Format.py
+)

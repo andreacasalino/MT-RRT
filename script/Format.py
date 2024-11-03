@@ -1,12 +1,6 @@
 import subprocess, argparse, os, re, sys
 from io import StringIO
 
-def run(cmd):
-    res = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if not res.returncode == 0:
-        msg = 'something went wrong runnin: `{}`'.format(cmd)
-        raise Exception(msg)
-
 class Process:
     def __init__(self, cmd):
         hndlr = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -28,6 +22,15 @@ class Process:
     def stderrStream(self):
         for line in StringIO(self.err).readlines():
             yield line.strip()
+
+class ClangFormat(Process):
+    try:
+        Process('clang-format --version')
+    except:
+        raise Exception('clang-format was not found on your system!!!')
+
+    def __init__(self, cmd):
+        Process.__init__(self, 'clang-format {}'.format(cmd))
 
 def forEachFileInFolder(root):
     for name in os.listdir(root):
@@ -75,11 +78,11 @@ if __name__ == '__main__':
 
     if args.f:
         for file in filter(IsSource.check, forEachFile(args)):
-            run('clang-format {} -i'.format(file))
+            ClangFormat('{} -i'.format(file))
 
     elif args.c:
         def requiresFormat(filename):
-            return not len( Process( 'clang-format {} -i -n'.format(filename)).stderr() ) == 0
+            return not len( ClangFormat( '{} -i -n'.format(filename)).stderr() ) == 0
         unformattedFiles = [file for file in filter(requiresFormat ,filter(IsSource.check, forEachFile(args)))]
         if not len(unformattedFiles) == 0:
             print('These files requires formatting!!\n{}'.format( '\n'.join(unformattedFiles) ))
