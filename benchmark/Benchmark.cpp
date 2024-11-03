@@ -77,7 +77,7 @@ struct Args {
   using ParsPack = std::vector<std::vector<std::int64_t>>;
 
   static const inline ParsPack standard =
-      ParsPack{{0, 1, 2}, {0, 1}, {100, 200, 500, 1000, 2000, 5000}};
+      ParsPack{{0, 1, 2}, {0, 1}, {100, 200, 500, 1000, 2000, 5000, 10000}};
 
   struct ParsPackMerge {
     ParsPackMerge() = default;
