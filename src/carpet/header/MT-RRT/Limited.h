@@ -11,89 +11,112 @@
 #include <limits>
 
 namespace mt_rrt {
+namespace detail {
+template <typename T> class ValueAware {
+public:
+  T get() const { return val_; }
+
+protected:
+  T val_;
+};
+
+template <typename T> class UpperBoundAware {
+protected:
+  UpperBoundAware(T bound) : bound_{bound} {}
+
+  void check(T val) const {
+    if (bound_ < val) {
+      throw Error("inconsistent value: too big");
+    }
+  }
+
+private:
+  T bound_;
+};
+
+template <typename T> class LowerBoundAware {
+protected:
+  LowerBoundAware(T bound) : bound_{bound} {}
+
+  void check(T val) const {
+    if (val < bound_) {
+      throw Error("inconsistent value: too low");
+    }
+  }
+
+private:
+  T bound_;
+};
+} // namespace detail
+
+/**
+ * @brief A quantity whose value should always be below an upper threshold
+ */
+template <typename T>
+class UpperLimited : public detail::UpperBoundAware<T>,
+                     public detail::ValueAware<T> {
+public:
+  UpperLimited(T bound, T val) : detail::UpperBoundAware<T>{bound} {
+    this->set(val);
+  };
+
+  UpperLimited(T val) : UpperLimited{val, val} {}
+
+  void set(T newValue) {
+    this->chek(newValue);
+    this->val_ = newValue;
+  };
+};
+
+/**
+ * @brief A quantity whose value should always be above a lower threshold
+ */
+template <typename T>
+class LowerLimited : public detail::LowerBoundAware<T>,
+                     public detail::ValueAware<T> {
+public:
+  LowerLimited(T bound, T val) : detail::LowerBoundAware<T>{bound} {
+    this->set(val);
+  };
+
+  LowerLimited(T val) : LowerLimited{val, val} {}
+
+  void set(T newValue) {
+    this->check(newValue);
+    this->val_ = newValue;
+  };
+};
+
 /**
  * @brief A quantity whose value should always remain between defined
  * bounds
  */
-template <typename T> class Limited {
+template <typename T>
+class Limited : public detail::UpperBoundAware<T>,
+                public detail::LowerBoundAware<T>,
+                public detail::ValueAware<T> {
 public:
-  /** @param lower bound for the value
-   *  @param upper bound for the value
-   *  @param initial value to set
-   */
-  Limited(const T &lowerBound, const T &upperBound, const T &initialValue)
-      : lowerBound(lowerBound), upperBound(upperBound) {
-    if (this->lowerBound >= this->upperBound) {
-      throw Error("inconsistent bounds");
-    }
-    this->set(initialValue);
+  Limited(T l, T u, T val)
+      : detail::UpperBoundAware<T>{u}, detail::LowerBoundAware<T>{l} {
+    this->set(val);
   };
 
-  /** @brief similar to Limited::Limited(const T& lowerBound, const T&
-   * upperBound, const T& initialValue), assuming lowerBound as initial value
-   */
-  template <bool LowerOrUpper = true>
-  Limited(const T &lowerBound, const T &upperBound)
-      : Limited(lowerBound, upperBound,
-                LowerOrUpper ? lowerBound : upperBound){};
-
-  Limited(const Limited &) = default;
-  Limited &operator=(const Limited &) = default;
-
-  inline T getLowerBound() const { return this->lowerBound; };
-  inline T getUpperBound() const { return this->upperBound; };
-
-  /** @return the current value
-   */
-  inline T get() const { return this->value; };
-
-  /** @param the new value to assumed
-   *  @throw if the value is not consistent with the bounds
-   */
-  void set(const T &newValue) {
-    if (newValue < this->lowerBound) {
-      throw Error{"value is lower than minum which is ", lowerBound};
-    }
-    if (newValue > this->upperBound) {
-      throw Error{"value is higher than maximum which is ", upperBound};
-    }
-    this->value = newValue;
+  void set(T newValue) {
+    this->detail::UpperBoundAware<T>::check(newValue);
+    this->detail::LowerBoundAware<T>::check(newValue);
+    this->val_ = newValue;
   };
-
-protected:
-  T value;
-  T lowerBound;
-  T upperBound;
 };
 
-/**
- * @brief A @Limited quantity, having infinity as upper bound
- */
-template <typename T> class LowerLimited : public Limited<T> {
+template <typename T> class Positive : public detail::ValueAware<T> {
 public:
-  LowerLimited(const T &lowerBound, const T &initialValue)
-      : Limited<T>(lowerBound, std::numeric_limits<T>::max(), initialValue){};
+  Positive(T val = T{0}) { this->set(val); }
 
-  LowerLimited(const T &lowerBound) : LowerLimited(lowerBound, lowerBound){};
-};
-
-/**
- * @brief A @LowerLimited quantity, having 0.0 as lower bound
- */
-template <typename T> class Positive : public LowerLimited<T> {
-public:
-  Positive(const T &initialValue = static_cast<T>(0))
-      : LowerLimited<T>(static_cast<T>(0), initialValue){};
-};
-
-/**
- * @brief A @Limited quantity, having negative infinity as lower bound
- */
-template <typename T> class UpperLimited : public Limited<T> {
-public:
-  UpperLimited(const T &upperBound, const T &initialValue)
-      : Limited<T>(std::numeric_limits<T>::min(), upperBound, initialValue){};
-
-  UpperLimited(const T &upperBound) : UpperLimited(upperBound, upperBound){};
+  void set(T newValue) {
+    if (newValue < 0) {
+      throw Error("negative value not allowed");
+    }
+    this->val_ = newValue;
+  }
 };
 } // namespace mt_rrt

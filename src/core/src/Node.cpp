@@ -12,9 +12,9 @@
 namespace mt_rrt {
 Node::Node(const View &state) : state_{state} {}
 
-void Node::setParent(const Node &parent, float cost2Go) {
+void Node::setParent(const Node &parent, Positive<float> cost2Go) {
   parent_ = &parent;
-  cost2Go_.set(cost2Go);
+  cost2Go_ = cost2Go.get();
   isRoot_ = false;
 }
 

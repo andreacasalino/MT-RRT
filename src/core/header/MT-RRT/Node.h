@@ -23,6 +23,7 @@ namespace mt_rrt {
  * This class is used internally to extend search trees. The user is not
  * expected to consume it.
  */
+#pragma pack(1)
 class Node {
 public:
   virtual ~Node() = default;
@@ -36,8 +37,8 @@ public:
    */
   const Node *getParent() const { return parent_; }
 
-  float cost2Go() const { return cost2Go_.get(); }
-  void setParent(const Node &parent, float cost2Go);
+  float cost2Go() const { return cost2Go_; }
+  void setParent(const Node &parent, Positive<float> cost2Go);
 
   /**
    * @return Computes the cost to get from the root to this node, see 1.2.
@@ -56,7 +57,7 @@ protected:
   /**
    * @brief The cost to spend to go from the parent to this node
    */
-  Positive<float> cost2Go_ = Positive<float>{0};
+  float cost2Go_{0};
   const Node *parent_ = nullptr;
 
   static const inline std::size_t MAX_ITERATIONS_COST2ROOT_DEDUCTION =
