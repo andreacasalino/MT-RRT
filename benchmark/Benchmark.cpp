@@ -1,6 +1,6 @@
-#include <TestScenarios.h>
+#include <gtest/gtest.h>
 
-#include <benchmark/benchmark.h>
+#include <TestScenarios.h>
 
 #include <MT-RRT/ScopedTimeDuration.h>
 
@@ -14,6 +14,7 @@
 #include <nlohmann/json.hpp>
 
 #include <fstream>
+#include <span>
 
 using namespace mt_rrt;
 using namespace mt_rrt::trivial;
@@ -47,6 +48,7 @@ ExpansionStrategy toStrategy(std::int64_t val) {
   return res;
 }
 
+/*
 struct Logger {
 public:
   ~Logger() {
@@ -93,7 +95,61 @@ private:
 
   nlohmann::json data;
 };
+*/
 
+struct Args {
+  Args() = default;
+
+  Args &add(std::vector<std::int64_t> pack) {
+    args_.emplace_back(std::move(pack));
+    return *this;
+  }
+
+  Args &iterations(int iters) {
+    iterations_ = iters;
+    return *this;
+  }
+
+  template <typename Pred> void forEach(Pred pred) {
+    this->forEach_(std::vector<std::int64_t>{}, args_.begin(), pred);
+  }
+
+private:
+  template <typename Pred>
+  void forEach_(std::vector<std::int64_t> cumulated,
+                std::vector<std::vector<std::int64_t>>::iterator remainingIt,
+                const Pred &pred) {
+    if (remainingIt == args_.end()) {
+      for (int i = 0; i < iterations_; ++i) {
+        pred(cumulated);
+      }
+      return;
+    }
+    for (auto val : *remainingIt) {
+      auto cumulated_next = cumulated;
+      cumulated_next.push_back(val);
+      forEach_(std::move(cumulated_next), remainingIt + 1, pred);
+    }
+  }
+
+  std::vector<std::vector<std::int64_t>> args_;
+  int iterations_{20};
+};
+
+TEST(Foo, Bla) {
+  Args{}
+      .add(std::vector<std::int64_t>{0, 1})
+      .add(std::vector<std::int64_t>{3, 4, 5})
+      .add(std::vector<std::int64_t>{0, 7})
+      .forEach([](const std::vector<std::int64_t> &args) {
+        for (auto val : args) {
+          std::cout << ' ' << val;
+        }
+        std::cout << std::endl;
+      });
+}
+
+/*
 template <typename PlannerT> struct Benchmark {};
 
 template <typename PlannerT> struct BenchmarkBase : public benchmark::Fixture {
@@ -219,3 +275,5 @@ BENCHMARK_REGISTER_F(Benchmark, MultiAgentTest)
 
 // Run the benchmark
 BENCHMARK_MAIN();
+
+*/
