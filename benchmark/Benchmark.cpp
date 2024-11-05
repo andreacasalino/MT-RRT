@@ -2,12 +2,18 @@
 
 #include <benchmark/benchmark.h>
 
+#include <MT-RRT/ScopedTimeDuration.h>
+
 #include <MT-RRT/EmbarassinglyParallel.h>
 #include <MT-RRT/LinkedTreesPlanner.h>
 #include <MT-RRT/MultiAgentPlanner.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
 #include <MT-RRT/SharedTreePlanner.h>
 #include <MT-RRT/StandardPlanner.h>
+
+#include <nlohmann/json.hpp>
+
+#include <fstream>
 
 using namespace mt_rrt;
 using namespace mt_rrt::trivial;
@@ -41,9 +47,56 @@ ExpansionStrategy toStrategy(std::int64_t val) {
   return res;
 }
 
+struct Logger {
+public:
+  ~Logger() {
+    // TODO use meaningful location
+    std::ofstream{"/tmp/benchmark.json"} << data.dump(1);
+  }
+
+  static Logger &get() {
+    static Logger res;
+    return res;
+  }
+
+  struct Record {
+    Record(Logger &src, benchmark::State &state, int argsNumb)
+        : source_{src}, label_{state.name()} {
+      for (int k = 0; k < argsNumb; ++k) {
+        label_ += '-';
+        label_ += std::to_string(state.range(k));
+      }
+    }
+
+    ~Record() {
+      auto &recipient = source_.data[label_];
+      if (!recipient.is_array()) {
+        recipient = nlohmann::json::array();
+      }
+      recipient.emplace_back(std::int64_t{duration_.count()});
+    }
+
+  private:
+    Logger &source_;
+    std::chrono::nanoseconds duration_;
+    ScopedTimeDuration<std::chrono::nanoseconds> durationGuard_{duration_};
+    std::string label_;
+  };
+
+  template <typename... ARGS>
+  std::unique_ptr<Record> makeRecord(ARGS &&...args) {
+    return std::make_unique<Record>(*this, std::forward<ARGS>(args)...);
+  }
+
+private:
+  Logger() = default;
+
+  nlohmann::json data;
+};
+
 template <typename PlannerT> struct Benchmark {};
 
-template <typename PlannerT> struct BenchmarkBase {
+template <typename PlannerT> struct BenchmarkBase : public benchmark::Fixture {
   virtual void setUp(benchmark::State &state) {
     ExtendProblem data =
         make_scenario(toKind(state.range(0)), toStrategy(state.range(1)));
@@ -62,6 +115,7 @@ template <typename PlannerT> struct BenchmarkBase {
       state.PauseTiming();
       this->setUp(state);
       state.ResumeTiming();
+      auto durationGuard = Logger::get().makeRecord(state, this->ArgsCnt());
       planner->solve(start, end, pars);
     }
   }
@@ -96,8 +150,7 @@ struct Args {
 };
 
 template <>
-struct Benchmark<StandardPlanner> : public benchmark::Fixture,
-                                    public BenchmarkBase<StandardPlanner> {
+struct Benchmark<StandardPlanner> : public BenchmarkBase<StandardPlanner> {
   void setUp(benchmark::State &state) override {
     this->BenchmarkBase<StandardPlanner>::setUp(state);
     this->planner.emplace(std::move(*this->problem));
@@ -119,8 +172,7 @@ struct BenchmarkMultiThreaded : public BenchmarkBase<PlannerT> {
 
 template <>
 struct Benchmark<EmbarassinglyParallelPlanner>
-    : public benchmark::Fixture,
-      public BenchmarkMultiThreaded<EmbarassinglyParallelPlanner> {};
+    : public BenchmarkMultiThreaded<EmbarassinglyParallelPlanner> {};
 BENCHMARK_TEMPLATE_DEFINE_F(Benchmark, EmbarassinglyParallelTest,
                             EmbarassinglyParallelPlanner)
 (benchmark::State &st) { this->run(st); }
@@ -129,8 +181,7 @@ BENCHMARK_REGISTER_F(Benchmark, EmbarassinglyParallelTest)
 
 template <>
 struct Benchmark<ParallelizedQueriesPlanner>
-    : public benchmark::Fixture,
-      public BenchmarkMultiThreaded<ParallelizedQueriesPlanner> {};
+    : public BenchmarkMultiThreaded<ParallelizedQueriesPlanner> {};
 BENCHMARK_TEMPLATE_DEFINE_F(Benchmark, ParallelizedQueriesTest,
                             ParallelizedQueriesPlanner)
 (benchmark::State &st) { this->run(st); }
@@ -139,8 +190,7 @@ BENCHMARK_REGISTER_F(Benchmark, ParallelizedQueriesTest)
 
 template <>
 struct Benchmark<SharedTreePlanner>
-    : public benchmark::Fixture,
-      public BenchmarkMultiThreaded<SharedTreePlanner> {};
+    : public BenchmarkMultiThreaded<SharedTreePlanner> {};
 BENCHMARK_TEMPLATE_DEFINE_F(Benchmark, SharedTreeTest, SharedTreePlanner)
 (benchmark::State &st) { this->run(st); }
 BENCHMARK_REGISTER_F(Benchmark, SharedTreeTest)
@@ -148,8 +198,7 @@ BENCHMARK_REGISTER_F(Benchmark, SharedTreeTest)
 
 template <>
 struct Benchmark<LinkedTreesPlanner>
-    : public benchmark::Fixture,
-      public BenchmarkMultiThreaded<LinkedTreesPlanner> {};
+    : public BenchmarkMultiThreaded<LinkedTreesPlanner> {};
 BENCHMARK_TEMPLATE_DEFINE_F(Benchmark, LinkedTreesTest, LinkedTreesPlanner)
 (benchmark::State &st) { this->run(st); }
 BENCHMARK_REGISTER_F(Benchmark, LinkedTreesTest)
@@ -157,8 +206,7 @@ BENCHMARK_REGISTER_F(Benchmark, LinkedTreesTest)
 
 template <>
 struct Benchmark<MultiAgentPlanner>
-    : public benchmark::Fixture,
-      public BenchmarkMultiThreaded<MultiAgentPlanner> {
+    : public BenchmarkMultiThreaded<MultiAgentPlanner> {
   void setUp(benchmark::State &state) override {
     this->BenchmarkMultiThreaded<MultiAgentPlanner>::setUp(state);
     this->planner->synchronization().set(0.1f);
