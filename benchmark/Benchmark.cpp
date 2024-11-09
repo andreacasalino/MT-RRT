@@ -61,18 +61,19 @@ struct Args {
     return *this;
   }
 
-  template <typename Pred> void forEach(Pred pred) const {
+  template <typename Pred> void forEach(const Pred &pred) const {
     this->forEach_(std::vector<std::int64_t>{}, args_.begin(), pred);
   }
 
 private:
   template <typename Pred>
-  void forEach_(std::vector<std::int64_t> cumulated,
-                std::vector<std::vector<std::int64_t>>::iterator remainingIt,
-                const Pred &pred) const {
+  void
+  forEach_(std::vector<std::int64_t> cumulated,
+           std::vector<std::vector<std::int64_t>>::const_iterator remainingIt,
+           const Pred &pred) const {
     if (remainingIt == args_.end()) {
       for (int i = 0; i < iterations_; ++i) {
-        pred(cumulated, i + 1, iterations_);
+        // pred(cumulated, i + 1, iterations_);
       }
       return;
     }
@@ -86,12 +87,6 @@ private:
   std::vector<std::vector<std::int64_t>> args_;
   int iterations_{20};
 };
-
-const Args single_threaded_args = Args{}.add({0, 1, 2}).add({0, 1}).add(
-    {100, 200, 500, 1000, 2000, 5000, 10000});
-
-const Args multi_threaded_args =
-    Args{single_threaded_args}.add({2, 3, 4, 6, 8});
 
 struct Logger {
 public:
@@ -144,21 +139,21 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
   }
 
   void solve() {
-    // BenchmarkContext<PlannerT>::args.forEach(
-    //     [](const std::vector<std::uint64_t> &parameters, int iter,
-    //        int iter_tot) {
-    //       const auto name = getName();
-    //       std::cout << name << ' ' << iter << '/' << iter_tot;
-    //       ExtendProblem data =
-    //           make_scenario(toKind(state.range(0)),
-    //           toStrategy(state.range(1)));
-    //       data.suggested_parameters.iterations.set(parameters[2]);
-    //       auto planner =
-    //           BenchmarkContext<PlannerT>::make(data.point_problem,
-    //           parameters);
-    //       Logger::Record record{std::move(name)};
-    //       // planner->solve(data.start, data.end, data.suggested_parameters);
-    //     });
+    BenchmarkContext<PlannerT>::args.forEach(
+        [this](const std::vector<std::uint64_t> &parameters, int iter,
+               int iter_tot) {
+          auto name = this->getName(parameters);
+          std::cout << name << ' ' << iter << '/' << iter_tot;
+          ExtendProblem data =
+              make_scenario(toKind(parameters[0]), toStrategy(parameters[1]));
+          data.suggested_parameters.iterations.set(parameters[2]);
+          auto planner =
+              BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
+          Logger::Record record{std::move(name)};
+          planner->solve(data.start.asView().convert(),
+                         data.end.asView().convert(),
+                         data.suggested_parameters);
+        });
   }
 };
 
