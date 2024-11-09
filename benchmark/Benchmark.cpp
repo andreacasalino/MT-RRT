@@ -134,26 +134,31 @@ template <typename PlannerT> struct BenchmarkContext {};
 
 template <typename PlannerT> struct Benchmark : ::testing::Test {
   std::string getName(const std::vector<std::uint64_t> &parameters) const {
-    for (auto val : args) {
-      label_ += '-';
-      label_ += std::to_string(val);
+    std::string name{
+        ::testing::UnitTest::GetInstance()->current_test_info()->name()};
+    for (auto val : parameters) {
+      name += '-';
+      name += std::to_string(val);
     }
+    return name;
   }
 
   void solve() {
-    BenchmarkContext<PlannerT>::args.forEach(
-        [](const std::vector<std::uint64_t> &parameters, int iter,
-           int iter_tot) {
-          const auto name = getName();
-          std::cout << name << ' ' << iter << '/' << iter_tot;
-          ExtendProblem data =
-              make_scenario(toKind(state.range(0)), toStrategy(state.range(1)));
-          data.suggested_parameters.iterations.set(parameters[2]);
-          auto planner =
-              BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
-          Logger::Record record{std::move(name)};
-          planner->solve(data.start, data.end, data.suggested_parameters);
-        });
+    // BenchmarkContext<PlannerT>::args.forEach(
+    //     [](const std::vector<std::uint64_t> &parameters, int iter,
+    //        int iter_tot) {
+    //       const auto name = getName();
+    //       std::cout << name << ' ' << iter << '/' << iter_tot;
+    //       ExtendProblem data =
+    //           make_scenario(toKind(state.range(0)),
+    //           toStrategy(state.range(1)));
+    //       data.suggested_parameters.iterations.set(parameters[2]);
+    //       auto planner =
+    //           BenchmarkContext<PlannerT>::make(data.point_problem,
+    //           parameters);
+    //       Logger::Record record{std::move(name)};
+    //       // planner->solve(data.start, data.end, data.suggested_parameters);
+    //     });
   }
 };
 
@@ -168,8 +173,7 @@ template <> struct BenchmarkContext<StandardPlanner> {
       {100, 200, 500, 1000, 2000, 5000, 10000});
 };
 
-template <typename PlannerT>
-struct BenchmarkMultiThreaded : public BenchmarkBase<PlannerT> {
+template <typename PlannerT> struct BenchmarkMultiThreadedContext {
   static std::unique_ptr<PlannerT>
   make(std::shared_ptr<ProblemDescription> problem,
        const std::vector<std::uint64_t> &parameters) {
@@ -184,28 +188,28 @@ struct BenchmarkMultiThreaded : public BenchmarkBase<PlannerT> {
 
 template <>
 struct BenchmarkContext<EmbarassinglyParallelPlanner>
-    : BenchmarkMultiThreaded<EmbarassinglyParallelPlanner> {};
+    : BenchmarkMultiThreadedContext<EmbarassinglyParallelPlanner> {};
 
 template <>
 struct BenchmarkContext<ParallelizedQueriesPlanner>
-    : BenchmarkMultiThreaded<ParallelizedQueriesPlanner> {};
+    : BenchmarkMultiThreadedContext<ParallelizedQueriesPlanner> {};
 
 template <>
 struct BenchmarkContext<SharedTreePlanner>
-    : BenchmarkMultiThreaded<SharedTreePlanner> {};
+    : BenchmarkMultiThreadedContext<SharedTreePlanner> {};
 
 template <>
 struct BenchmarkContext<LinkedTreesPlanner>
-    : BenchmarkMultiThreaded<LinkedTreesPlanner> {};
+    : BenchmarkMultiThreadedContext<LinkedTreesPlanner> {};
 
 template <>
 struct BenchmarkContext<MultiAgentPlanner>
-    : BenchmarkMultiThreaded<MultiAgentPlanner> {
+    : BenchmarkMultiThreadedContext<MultiAgentPlanner> {
   static std::unique_ptr<MultiAgentPlanner>
   make(std::shared_ptr<ProblemDescription> problem,
        const std::vector<std::uint64_t> &parameters) {
-    auto planner =
-        BenchmarkMultiThreaded<MultiAgentPlanner>::make(problem, parameters);
+    auto planner = BenchmarkMultiThreadedContext<MultiAgentPlanner>::make(
+        problem, parameters);
     planner->synchronization().set(0.1f);
     return planner;
   }
