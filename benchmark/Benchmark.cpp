@@ -130,7 +130,7 @@ template <typename PlannerT> struct BenchmarkContext {};
 template <typename PlannerT> struct Benchmark : ::testing::Test {
   std::string getName(const std::vector<std::int64_t> &parameters) const {
     std::string name{
-        ::testing::UnitTest::GetInstance()->current_test_info()->name()};
+        ::testing::UnitTest::GetInstance()->current_test_suite()->type_param()};
     for (auto val : parameters) {
       name += '-';
       name += std::to_string(val);
