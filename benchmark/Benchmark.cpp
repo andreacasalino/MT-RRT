@@ -73,7 +73,7 @@ private:
            const Pred &pred) const {
     if (remainingIt == args_.end()) {
       for (int i = 0; i < iterations_; ++i) {
-        // pred(cumulated, i + 1, iterations_);
+        pred(cumulated, i + 1, iterations_);
       }
       return;
     }
@@ -128,7 +128,7 @@ private:
 template <typename PlannerT> struct BenchmarkContext {};
 
 template <typename PlannerT> struct Benchmark : ::testing::Test {
-  std::string getName(const std::vector<std::uint64_t> &parameters) const {
+  std::string getName(const std::vector<std::int64_t> &parameters) const {
     std::string name{
         ::testing::UnitTest::GetInstance()->current_test_info()->name()};
     for (auto val : parameters) {
@@ -140,7 +140,7 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
 
   void solve() {
     BenchmarkContext<PlannerT>::args.forEach(
-        [this](const std::vector<std::uint64_t> &parameters, int iter,
+        [this](const std::vector<std::int64_t> &parameters, int iter,
                int iter_tot) {
           auto name = this->getName(parameters);
           std::cout << name << ' ' << iter << '/' << iter_tot;
@@ -160,7 +160,7 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
 template <> struct BenchmarkContext<StandardPlanner> {
   static std::unique_ptr<StandardPlanner>
   make(std::shared_ptr<ProblemDescription> problem,
-       const std::vector<std::uint64_t> &parameters) {
+       const std::vector<std::int64_t> &parameters) {
     return std::make_unique<StandardPlanner>(std::move(*problem));
   }
 
@@ -171,7 +171,7 @@ template <> struct BenchmarkContext<StandardPlanner> {
 template <typename PlannerT> struct BenchmarkMultiThreadedContext {
   static std::unique_ptr<PlannerT>
   make(std::shared_ptr<ProblemDescription> problem,
-       const std::vector<std::uint64_t> &parameters) {
+       const std::vector<std::int64_t> &parameters) {
     auto planner = std::make_unique<PlannerT>(std::move(*problem));
     planner->setThreads(Threads(parameters.back()));
     return planner;
@@ -202,7 +202,7 @@ struct BenchmarkContext<MultiAgentPlanner>
     : BenchmarkMultiThreadedContext<MultiAgentPlanner> {
   static std::unique_ptr<MultiAgentPlanner>
   make(std::shared_ptr<ProblemDescription> problem,
-       const std::vector<std::uint64_t> &parameters) {
+       const std::vector<std::int64_t> &parameters) {
     auto planner = BenchmarkMultiThreadedContext<MultiAgentPlanner>::make(
         problem, parameters);
     planner->synchronization().set(0.1f);
