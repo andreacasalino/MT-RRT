@@ -150,9 +150,9 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
           Logger::Record record{std::move(name)};
-          // planner->solve(data.start.asView().convert(),
-          //                data.end.asView().convert(),
-          //                data.suggested_parameters);
+          planner->solve(data.start.asView().convert(),
+                         data.end.asView().convert(),
+                         data.suggested_parameters);
         });
   }
 };
