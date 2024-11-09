@@ -106,13 +106,8 @@ public:
   }
 
   struct Record {
-    Record(const std::vector<std::int64_t> &args)
-        : source_{Logger::get()}, label_{} {
-      for (auto val : args) {
-        label_ += '-';
-        label_ += std::to_string(val);
-      }
-    }
+    Record(std::string label)
+        : source_{Logger::get()}, label_{std::move(label)} {}
 
     ~Record() {
       auto &recipient = source_.data[label_];
@@ -138,16 +133,25 @@ private:
 template <typename PlannerT> struct BenchmarkContext {};
 
 template <typename PlannerT> struct Benchmark : ::testing::Test {
+  std::string getName(const std::vector<std::uint64_t> &parameters) const {
+    for (auto val : args) {
+      label_ += '-';
+      label_ += std::to_string(val);
+    }
+  }
+
   void solve() {
     BenchmarkContext<PlannerT>::args.forEach(
         [](const std::vector<std::uint64_t> &parameters, int iter,
            int iter_tot) {
+          const auto name = getName();
+          std::cout << name << ' ' << iter << '/' << iter_tot;
           ExtendProblem data =
               make_scenario(toKind(state.range(0)), toStrategy(state.range(1)));
           data.suggested_parameters.iterations.set(parameters[2]);
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
-          Logger::Record record{parameters};
+          Logger::Record record{std::move(name)};
           planner->solve(data.start, data.end, data.suggested_parameters);
         });
   }
@@ -207,6 +211,9 @@ struct BenchmarkContext<MultiAgentPlanner>
   }
 };
 
-using BenchmarkTypes = testing::Types<StandardPlanner>;
+using BenchmarkTypes =
+    testing::Types<StandardPlanner, EmbarassinglyParallelPlanner,
+                   ParallelizedQueriesPlanner, SharedTreePlanner,
+                   LinkedTreesPlanner, MultiAgentPlanner>;
 TYPED_TEST_SUITE(Benchmark, BenchmarkTypes);
 TYPED_TEST(Benchmark, profile) { this->solve(); }
