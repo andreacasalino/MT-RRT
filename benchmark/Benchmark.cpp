@@ -143,16 +143,16 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
         [this](const std::vector<std::int64_t> &parameters, int iter,
                int iter_tot) {
           auto name = this->getName(parameters);
-          std::cout << name << ' ' << iter << '/' << iter_tot;
+          std::cout << name << ' ' << iter << '/' << iter_tot << std::endl;
           ExtendProblem data =
               make_scenario(toKind(parameters[0]), toStrategy(parameters[1]));
           data.suggested_parameters.iterations.set(parameters[2]);
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
           Logger::Record record{std::move(name)};
-          planner->solve(data.start.asView().convert(),
-                         data.end.asView().convert(),
-                         data.suggested_parameters);
+          // planner->solve(data.start.asView().convert(),
+          //                data.end.asView().convert(),
+          //                data.suggested_parameters);
         });
   }
 };
