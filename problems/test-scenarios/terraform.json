@@ -1,5 +1,5 @@
 {
-    "condition":["BUILD_MT_RRT_TESTS"],
+    "condition":["BUILD_MT_RRT_TESTS", "BUILD_MT_RRT_BENCHMARKS"],
     "depends": {
         "PUBLIC": [
             "${PREFIX}problem-trivial"

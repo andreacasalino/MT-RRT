@@ -1,5 +1,5 @@
 {
-    "condition":["BUILD_MT_RRT_TESTS", "BUILD_MT_RRT_SAMPLES"],
+    "condition":["BUILD_MT_RRT_TESTS", "BUILD_MT_RRT_SAMPLES", "BUILD_MT_RRT_BENCHMARKS"],
     "depends": {
         "PUBLIC": [
             "${PREFIX}core",

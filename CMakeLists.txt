@@ -28,6 +28,8 @@ option(BUILD_MT_RRT_TESTS "Build MT-RRT tests" OFF)
 option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
 option(BUILD_MT_RRT_BENCHMARKS "Build MT-RRT benchmarks" OFF)
 
+################################################################################################################################################
+
 set(MT_RRT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(extern)
