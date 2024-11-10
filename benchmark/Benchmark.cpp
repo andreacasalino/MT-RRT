@@ -4,12 +4,14 @@
 
 #include <MT-RRT/ScopedTimeDuration.h>
 
+#if MT_PLANNERS_ENABLED
 #include <MT-RRT/EmbarassinglyParallel.h>
 #include <MT-RRT/LinkedTreesPlanner.h>
 #include <MT-RRT/MultiAgentPlanner.h>
 #include <MT-RRT/ParallelizedQueriesPlanner.h>
 #include <MT-RRT/SharedTreePlanner.h>
 #include <MT-RRT/StandardPlanner.h>
+#endif
 
 #include <nlohmann/json.hpp>
 
@@ -168,6 +170,7 @@ template <> struct BenchmarkContext<StandardPlanner> {
       {100, 200, 500, 1000, 2000, 5000, 10000});
 };
 
+#if MT_PLANNERS_ENABLED
 template <typename PlannerT> struct BenchmarkMultiThreadedContext {
   static std::unique_ptr<PlannerT>
   make(std::shared_ptr<ProblemDescription> problem,
@@ -209,10 +212,17 @@ struct BenchmarkContext<MultiAgentPlanner>
     return planner;
   }
 };
+#endif
 
 using BenchmarkTypes =
-    testing::Types<StandardPlanner, EmbarassinglyParallelPlanner,
-                   ParallelizedQueriesPlanner, SharedTreePlanner,
-                   LinkedTreesPlanner, MultiAgentPlanner>;
+    testing::Types<StandardPlanner
+#if MT_PLANNERS_ENABLED
+                  ,EmbarassinglyParallelPlanner
+                  ,ParallelizedQueriesPlanner
+                  ,SharedTreePlanner
+                  ,LinkedTreesPlanner
+                  ,MultiAgentPlanner
+#endif
+                   >;
 TYPED_TEST_SUITE(Benchmark, BenchmarkTypes);
 TYPED_TEST(Benchmark, profile) { this->solve(); }
