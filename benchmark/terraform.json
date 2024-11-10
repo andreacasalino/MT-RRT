@@ -6,5 +6,37 @@
             "gtest",
             "gtest_main"
         ]
-    }
+    },
+    "show": [
+        {
+            "name": "StandardPlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*StandardPlanner*"
+        },
+        {
+            "name": "EmbarassinglyParallelPlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*EmbarassinglyParallelPlanner*"
+        },
+        {
+            "name": "ParallelizedQueriesPlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*ParallelizedQueriesPlanner*"
+        },
+        {
+            "name": "SharedTreePlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*SharedTreePlanner*"
+        },
+        {
+            "name": "LinkedTreesPlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*LinkedTreesPlanner*"
+        },
+        {
+            "name": "MultiAgentPlanner",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": "--gtest_filter=*MultiAgentPlanner*"
+        }
+    ]
 }
