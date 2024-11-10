@@ -94,13 +94,14 @@ private:
 struct Records {
 public:
   ~Records() {
-    std::filesystem::create_directories(Logger::get().tmpFolderPath());
-    const auto location = Logger::get().tmpFolderPath() / "benchmark.json";
-    std::ofstream stream{location};
-    if(!stream.is_open()) {
-      throw Error{"Unable to log into results into: ", location};
+    const auto logDir = Logger::get().tmpFolderPath();
+    std::filesystem::create_directories(logDir);
+    for(const auto& [planner, data] : data) {
+      std::string resName = planner;
+      resName += ".benchamrk.json";
+      std::filesystem::path resPath = logDir / resName;
+      std::ofstream{resPath} << data.dump(1);
     }
-    stream << data.dump(1);
   }
 
   static Records &get() {
@@ -109,11 +110,13 @@ public:
   }
 
   struct Record {
-    Record(std::string label)
-    : label_{std::move(label)} {}
+    Record(std::string bName, std::string aLabel)
+    : benchmarkName{std::move(bName)} 
+    , argsLabel{std::move(aLabel)} 
+    {}
 
     ~Record() {
-      auto &recipient = Records::get().data[label_];
+      auto &recipient = Records::get().data[benchmarkName][argsLabel];
       if (!recipient.is_array()) {
         recipient = nlohmann::json::array();
       }
@@ -123,40 +126,43 @@ public:
   private:
     std::chrono::nanoseconds duration_;
     ScopedTimeDuration<std::chrono::nanoseconds> durationGuard_{duration_};
-    std::string label_;
+    std::string benchmarkName;
+    std::string argsLabel;
   };
 
 private:
   Records() = default;
 
-  nlohmann::json data;
+  std::unordered_map<std::string, nlohmann::json> data;
 };
 
 template <typename PlannerT> struct BenchmarkContext {};
 
 template <typename PlannerT> struct Benchmark : ::testing::Test {
-  std::string getName(const std::vector<std::int64_t> &parameters) const {
-    std::string name{
+  std::pair<std::string, std::string> getName(const std::vector<std::int64_t> &parameters) const {
+    std::pair<std::string, std::string> res;
+    res.first = std::string{
         ::testing::UnitTest::GetInstance()->current_test_suite()->type_param()};
+    res.second = "args";
     for (auto val : parameters) {
-      name += '-';
-      name += std::to_string(val);
+      res.second += '-';
+      res.second += std::to_string(val);
     }
-    return name;
+    return res;
   }
 
   void solve() {
     BenchmarkContext<PlannerT>::args.forEach(
         [this](const std::vector<std::int64_t> &parameters, int iter,
                int iter_tot) {
-          auto name = this->getName(parameters);
-          std::cout << name << ' ' << iter << '/' << iter_tot << std::endl;
+          auto&& [plannerName, argsLabel] = this->getName(parameters);
+          std::cout << plannerName << ' ' << argsLabel << ' ' << iter << '/' << iter_tot << std::endl;
           ExtendProblem data =
               make_scenario(toKind(parameters[0]), toStrategy(parameters[1]));
           data.suggested_parameters.iterations.set(parameters[2]);
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
-          Records::Record record{std::move(name)};
+          Records::Record record{std::move(plannerName), std::move(argsLabel)};
           planner->solve(data.start.asView().convert(),
                          data.end.asView().convert(),
                          data.suggested_parameters);

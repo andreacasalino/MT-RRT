@@ -37,6 +37,11 @@
             "name": "MultiAgentPlanner",
             "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
             "args": "--gtest_filter=*MultiAgentPlanner*"
+        },
+        {
+            "name": "ALL",
+            "script": "${CMAKE_SOURCE_DIR}/Benchmark.py",
+            "args": ""
         }
     ]
 }
