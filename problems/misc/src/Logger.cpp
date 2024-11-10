@@ -22,7 +22,33 @@ Logger &Logger::get() {
 }
 
 namespace {
-const std::unordered_set<char> TO_REPLACE = std::unordered_set<char>{' ', ':'};
+template<char ... Symbols>
+struct Match {
+  static bool match(char c) {
+    return match_<Symbols...>(c);
+  }
+
+private:
+  template<char first, char second, char ... Remaining>
+  static bool match_(char c) {
+    return first == c || 
+           match_<second, Remaining...>(c);
+  }
+  
+  template<char last>
+  static bool match_(char c) {
+    return last == c;
+  }
+};
+
+template<char Replacer, char ... Symbols>
+void replace(std::string& subject) {
+  for(std::size_t k=0; k<subject.size(); ++k) {
+    if(Match<Symbols...>::match(subject[k])) {
+      subject[k] = Replacer;
+    }
+  }
+}
 }
 
 std::string time_now() {
@@ -34,15 +60,26 @@ std::string time_now() {
     stream << std::put_time(std::gmtime(&now), "%c %Z");
     res = stream.str();
   }
-  for (auto &c : res) {
-    if (TO_REPLACE.find(c) != TO_REPLACE.end())
-      c = '_';
-  }
+  replace<'_', ' ', ':'>(res);
   return res;
 }
 
 Logger::Logger() {
-  std::string name = "MT_RRT_" + time_now();
+  std::string prefix{"MT_RRT_"};
+
+  // clean up the folder 
+  std::vector<std::filesystem::path> oldResults;
+  for(const auto& el : std::filesystem::directory_iterator(std::filesystem::temp_directory_path())) {
+    const auto& p = el.path();
+    if(std::filesystem::is_directory(p) && p.string().find({prefix}) == 0) {
+      oldResults.emplace_back(p);
+    }
+  }
+  for(const auto& p : oldResults) {
+    std::filesystem::remove_all(p);
+  }
+
+  std::string name = prefix + time_now();
   tmpFolderPath_ = std::filesystem::temp_directory_path() / name;
   std::ofstream{MT_RRT_LOG_PATH} << tmpFolderPath_.string();
 }
