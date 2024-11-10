@@ -18,9 +18,7 @@ using LimitedTestFixture = ::testing::TestWithParam<Limits>;
 TEST_P(LimitedTestFixture, limited_on_both_sides) {
   auto [min, max] = GetParam();
 
-  mt_rrt::Limited<float> limited(min, max);
-
-  limited.set(min);
+  mt_rrt::Limited<float> limited(min, max, min);
   EXPECT_EQ(limited.get(), min);
 
   limited.set(max);
@@ -40,7 +38,7 @@ using LimitedNegativeTestFixture = ::testing::TestWithParam<Limits>;
 TEST_P(LimitedNegativeTestFixture, limited_on_both_sides_negative_tests) {
   auto [min, max] = GetParam();
 
-  EXPECT_THROW(std::make_unique<mt_rrt::Limited<float>>(min, max),
+  EXPECT_THROW(std::make_unique<mt_rrt::Limited<float>>(min, max, min),
                mt_rrt::Error);
 }
 
@@ -49,7 +47,7 @@ INSTANTIATE_TEST_CASE_P(LimitedNegativeTests, LimitedNegativeTestFixture,
                                           Limits{-3.f, -6.f}));
 
 TEST(LimitedTest, set_outside_bounds) {
-  mt_rrt::Limited<float> limited(-3.0, 6.0);
+  mt_rrt::Limited<float> limited(-3.0, 6.0, -3.0);
 
   EXPECT_THROW(limited.set(-4.0), mt_rrt::Error);
   EXPECT_THROW(limited.set(7.0), mt_rrt::Error);

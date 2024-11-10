@@ -23,7 +23,6 @@ namespace mt_rrt {
  * This class is used internally to extend search trees. The user is not
  * expected to consume it.
  */
-#pragma pack(1)
 class Node {
 public:
   virtual ~Node() = default;

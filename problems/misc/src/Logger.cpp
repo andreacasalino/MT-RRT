@@ -15,6 +15,8 @@
 #include <sstream>
 #include <unordered_set>
 
+#include <iostream>
+
 namespace mt_rrt {
 Logger &Logger::get() {
   static Logger res = Logger{};
@@ -60,7 +62,7 @@ std::string time_now() {
     stream << std::put_time(std::gmtime(&now), "%c %Z");
     res = stream.str();
   }
-  replace<'_', ' ', ':'>(res);
+  replace<'_', ' ', ':', '.'>(res);
   return res;
 }
 
@@ -71,7 +73,7 @@ Logger::Logger() {
   std::vector<std::filesystem::path> oldResults;
   for(const auto& el : std::filesystem::directory_iterator(std::filesystem::temp_directory_path())) {
     const auto& p = el.path();
-    if(std::filesystem::is_directory(p) && p.string().find({prefix}) == 0) {
+    if(std::filesystem::is_directory(p) && p.filename().string().find({prefix}) == 0) {
       oldResults.emplace_back(p);
     }
   }
