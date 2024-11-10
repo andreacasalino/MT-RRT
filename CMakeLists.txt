@@ -26,6 +26,7 @@ option(LIB_OPT "Compile shared libraries (ON) or static (OFF)" OFF)
 
 option(BUILD_MT_RRT_TESTS "Build MT-RRT tests" OFF)
 option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
+option(BUILD_MT_RRT_BENCHMARKS "Build MT-RRT benchmarks" OFF)
 
 set(MT_RRT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -33,6 +34,11 @@ add_subdirectory(extern)
 
 Terraform(src)
 Terraform(problems)
+
+# TODO use terraform approach
+if(BUILD_MT_RRT_BENCHMARKS)
+    add_subdirectory(benchmark)
+endif()
 
 option(BUILD_MT_RRT_README_SAMPLE "" OFF)
 if(BUILD_MT_RRT_README_SAMPLE)
