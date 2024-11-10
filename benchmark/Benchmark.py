@@ -22,7 +22,7 @@ class Figure:
             self.data = json.load(fd)
         # self.fig, self.ax = plt.subplots()
 
-    def print(self):
+    def show(self):
         # TODO change me with code to produce real plot
         print('==========================\n{}:\n{}'.format( self.title, json.dumps(self.data, indent=1) ))
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     figures = [Figure(os.path.join(logDir, res)) for res in os.listdir(logDir)]
     for fig in figures:
-        fig.print()
+        fig.show()
 
     # plt.autoscale()
     # plt.show()
