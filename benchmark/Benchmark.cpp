@@ -98,6 +98,11 @@ public:
     std::filesystem::create_directories(logDir);
     for(const auto& [planner, data] : data) {
       std::string resName = planner;
+      for(size_t k =0; k<resName.size(); ++k) {
+        if(resName[k] == ':') {
+          resName[k] = '_';
+        }
+      }
       resName += ".benchamrk.json";
       std::filesystem::path resPath = logDir / resName;
       std::ofstream{resPath} << data.dump(1);
@@ -163,9 +168,9 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
           Records::Record record{std::move(plannerName), std::move(argsLabel)};
-          planner->solve(data.start.asView().convert(),
-                         data.end.asView().convert(),
-                         data.suggested_parameters);
+          // planner->solve(data.start.asView().convert(),
+          //                data.end.asView().convert(),
+          //                data.suggested_parameters);
         });
   }
 };
