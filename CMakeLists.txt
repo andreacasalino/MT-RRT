@@ -36,11 +36,7 @@ add_subdirectory(extern)
 
 Terraform(src)
 Terraform(problems)
-
-# TODO use terraform approach
-if(BUILD_MT_RRT_BENCHMARKS)
-    add_subdirectory(benchmark)
-endif()
+Terraform_exe(benchmark)
 
 option(BUILD_MT_RRT_README_SAMPLE "" OFF)
 if(BUILD_MT_RRT_README_SAMPLE)

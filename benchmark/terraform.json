@@ -1,0 +1,10 @@
+{
+    "condition":["BUILD_MT_RRT_BENCHMARKS"],
+    "depends": {
+        "PUBLIC": [
+            "${PREFIX}test-scenarios",
+            "gtest",
+            "gtest_main"
+        ]
+    }
+}

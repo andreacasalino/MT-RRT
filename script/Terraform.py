@@ -332,6 +332,32 @@ install(DIRECTORY {PATH}/header/ DESTINATION include/{NAME} FILES_MATCHING PATTE
         
         return content
 
+class Executable(Target):
+    def setUp_(self):
+        self.initContext_('definitions', 'PUBLIC')
+        for n, v in [('TEST_TAG', '[{}]'.format(self.info_parent.name)), ('TEST_FOLDER', '${CMAKE_CURRENT_SOURCE_DIR}')]:
+            self.context['definitions']['PUBLIC'].append({
+                'name':n,
+                'value':v
+            })
+
+        # script = self.locateScript_()
+        # self.context['show'] = [{
+        #     'name':filename.split('.')[0],
+        #     'script':script,
+        #     'args':"'{}'".format(pathJoin(self.info.path, filename))
+        # } for filename in filter(lambda name: not name.find('.json') == -1, os.listdir(self.info.path))]
+
+    def genCore(self):
+        frmt = {
+            'PATH':self.info.path,
+            'NAME':self.info.cmake_name,
+            'SOURCES':'{SOURCES}'
+        }
+        return """
+file(GLOB SOURCES {PATH}/*.h {PATH}/*.cpp)
+add_executable({NAME} ${SOURCES})""".format(**frmt)
+
 class CMake:
     def __init__(self, root):
         self.root = root
@@ -349,6 +375,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--multiple', default=None)
     parser.add_argument('-s', '--single', default=None)
+    parser.add_argument('-e', '--exec', default=None)
     args = parser.parse_args()
 
     if not args.multiple == None:
@@ -357,4 +384,8 @@ if __name__ == '__main__':
     elif not args.single == None:
         print('===> generating at {}'.format(args.single))
         handler = Library(args.single)
+        handler.gen()
+    elif not args.exec == None:
+        print('===> generating exe at {}'.format(args.exec))
+        handler = Executable(args.exec)
         handler.gen()
