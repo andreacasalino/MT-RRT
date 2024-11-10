@@ -3,6 +3,7 @@
 #include <TestScenarios.h>
 
 #include <MT-RRT/ScopedTimeDuration.h>
+#include <Logger.h>
 
 #if MT_PLANNERS_ENABLED
 #include <MT-RRT/EmbarassinglyParallel.h>
@@ -90,24 +91,24 @@ private:
   int iterations_{20};
 };
 
-struct Logger {
+struct Records {
 public:
-  ~Logger() {
-    // TODO use meaningful location
-    std::ofstream{"/tmp/benchmark.json"} << data.dump(1);
+  ~Records() {
+    const auto location = Logger::get().tmpFolderPath() / "benchmark.json";
+    std::ofstream{location} << data.dump(1);
   }
 
-  static Logger &get() {
-    static Logger res;
+  static Records &get() {
+    static Records res;
     return res;
   }
 
   struct Record {
     Record(std::string label)
-        : source_{Logger::get()}, label_{std::move(label)} {}
+    : label_{std::move(label)} {}
 
     ~Record() {
-      auto &recipient = source_.data[label_];
+      auto &recipient = Records::get().data[label_];
       if (!recipient.is_array()) {
         recipient = nlohmann::json::array();
       }
@@ -115,14 +116,13 @@ public:
     }
 
   private:
-    Logger &source_;
     std::chrono::nanoseconds duration_;
     ScopedTimeDuration<std::chrono::nanoseconds> durationGuard_{duration_};
     std::string label_;
   };
 
 private:
-  Logger() = default;
+  Records() = default;
 
   nlohmann::json data;
 };
@@ -151,7 +151,7 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
           data.suggested_parameters.iterations.set(parameters[2]);
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
-          Logger::Record record{std::move(name)};
+          Records::Record record{std::move(name)};
           planner->solve(data.start.asView().convert(),
                          data.end.asView().convert(),
                          data.suggested_parameters);
