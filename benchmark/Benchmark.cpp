@@ -168,9 +168,9 @@ template <typename PlannerT> struct Benchmark : ::testing::Test {
           auto planner =
               BenchmarkContext<PlannerT>::make(data.point_problem, parameters);
           Records::Record record{std::move(plannerName), std::move(argsLabel)};
-          // planner->solve(data.start.asView().convert(),
-          //                data.end.asView().convert(),
-          //                data.suggested_parameters);
+          planner->solve(data.start.asView().convert(),
+                         data.end.asView().convert(),
+                         data.suggested_parameters);
         });
   }
 };
