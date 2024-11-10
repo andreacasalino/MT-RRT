@@ -94,8 +94,13 @@ private:
 struct Records {
 public:
   ~Records() {
+    std::filesystem::create_directories(Logger::get().tmpFolderPath());
     const auto location = Logger::get().tmpFolderPath() / "benchmark.json";
-    std::ofstream{location} << data.dump(1);
+    std::ofstream stream{location};
+    if(!stream.is_open()) {
+      throw Error{"Unable to log into results into: ", location};
+    }
+    stream << data.dump(1);
   }
 
   static Records &get() {
