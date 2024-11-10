@@ -103,7 +103,7 @@ public:
           resName[k] = '_';
         }
       }
-      resName += ".benchamrk.json";
+      resName += ".benchmark.json";
       std::filesystem::path resPath = logDir / resName;
       std::ofstream{resPath} << data.dump(1);
     }
