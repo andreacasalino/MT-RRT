@@ -52,10 +52,10 @@ public:
    */
   void set(const T &newValue) {
     if (newValue < this->lowerBound) {
-      throw Error{"value is lower than minum which is ", lowerBound};
+      throw Error::make("value is lower than minum which is {}", lowerBound);
     }
     if (newValue > this->upperBound) {
-      throw Error{"value is higher than maximum which is ", upperBound};
+      throw Error::make("value is higher than maximum which is {}", upperBound);
     }
     this->value = newValue;
   };
