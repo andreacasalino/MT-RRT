@@ -11,13 +11,15 @@
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Types.h>
 
+#include <memory>
+
 namespace mt_rrt {
 
 /**
  * @brief Groups together all the static information characterizing the class of
  * problems to solve.
  */
-template <Connector C, > struct ProblemDescription {
+template <Connector C, Sampler S> struct ProblemDescription {
   /**
    * @brief when true, the path connecting start to end, can be traversed in the
    * opposite direction to connect end to start.
@@ -27,37 +29,34 @@ template <Connector C, > struct ProblemDescription {
    * @brief \gamma involved in the near set computation, refer to
    * Section 1.2.3 of the documentation
    */
-  Positive<float> gamma;
+  Positive gamma;
 
-  SamplerPtr sampler;
-  ConnectorPtr connector;
+  std::unique_ptr<S> sampler;
+  std::unique_ptr<C> connector;
 };
-using ProblemDescriptionPtr = std::shared_ptr<const ProblemDescription>;
 
-struct DescriptionAndParameters {
-  const ProblemDescription &description;
-  const Parameters &parameters;
+template <Connector C, Sampler S>
+using ProblemDescriptionPtr = std::shared_ptr<const ProblemDescription<C, S>>;
+
+template <Connector C, Sampler S> struct DescriptionAndParameters {
+  ProblemDescriptionPtr<C, S> description;
+  Parameters parameters;
 };
 
 /**
  * @brief Someone aware of the static description of the class of problems to
  * solve
  */
-class ProblemAware {
+template <Connector C, Sampler S> class ProblemAware {
 public:
   virtual ~ProblemAware() = default;
 
-  ProblemAware(const ProblemDescriptionPtr &description);
+  ProblemAware(ProblemDescriptionPtr<C, S> description)
+      : problem_{description} {}
 
-  ProblemAware(const ProblemAware &o) : ProblemAware(o.problem_){};
-
-  const ProblemDescription &problem() const { return *problem_; };
-
-protected:
-  ProblemDescriptionPtr problemPtr() const { return problem_; }
+  const auto &problem() const { return *problem_; };
 
 private:
-  ProblemDescriptionPtr problem_;
+  ProblemDescriptionPtr<C, S> problem_;
 };
-
 } // namespace mt_rrt
