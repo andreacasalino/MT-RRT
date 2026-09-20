@@ -7,54 +7,45 @@
 
 #pragma once
 
-#include <memory>
+#include <MT-RRT/Limited.h>
 #include <span>
+#include <variant>
 
 namespace mt_rrt {
+struct BlockedTag;
+struct Advanced {
+  std::span<float> reached_state;
+  Positive cumulatedCost;
+};
+struct TargetReached {
+  Positive cumulatedCost;
+};
 /**
- * @brief Interface describing an optimal trajectory \tau connecting 2 states,
+ * @brief explanation:
+ *  - blocked -> when the advancement is not anymore possible, i.e. last
+ *    state reached is not admitted by constraints
+ *  - advanced -> normal advancement. The state reached is admitted by
+ *    constraints.
+ *  - targetReached -> similar to advanced, but in case in the reached
+ state
+ * is the ending one
+ */
+using AdvanceInfo = std::variant<BlockedTag, Advanced, TargetReached>;
+
+/**
+ * @brief What constitutes an optimal trajectory \tau connecting 2 states,
  * Section 1.2 of the documentation, in a particular problem to solve.
  * After construction, the state on the trajectory is assumed at the beginning
  * of the trajectory itself. Calling advance(), shift the cursor along the
  * trajectory.
  */
-class Trajectory {
-public:
-  virtual ~Trajectory() = default;
-
-  Trajectory(const Trajectory &) = delete;
-  Trajectory &operator=(const Trajectory &) = delete;
-
+template <typename T>
+concept Trajectory = requires(T obj, const T obj_const) {
   /**
-   * @brief explanation:
-   *  - blocked -> when the advancement is not anymore possible, i.e. last
-   *    state reached is not admitted by constraints
-   *  - advanced -> normal advancement. The state reached is admitted by
-   *    constraints.
-   *  - targetReached -> similar to advanced, but in case in the reached state
-   * is the ending one
+   * @brief Advance along the trajectory toward the target state
    */
-  enum class AdvanceInfo { Blocked, Advanced, TargetReached };
+  { obj.advance() } -> std::same_as<AdvanceInfo>;
 
-  /**
-   * @brief Advance along the trajectory
-   */
-  virtual AdvanceInfo advance() = 0;
-
-  /**
-   * @return the current state on the trajectory.
-   * IMPORTANT: it is a no-sense value in case last this->advance() returned
-   * blocked
-   */
-  virtual std::span<const float> getState() const = 0;
-
-  /**
-   * @return the cost to go from the beginning of the trajectory to the current
-   * reached state. IMPORTANT: it is a no-sense value in case last advance()
-   * returned blocked
-   */
-  virtual float getCumulatedCost() const = 0;
+  { obj_const.targetState() } -> std::same_as<std::span<const float>>;
 };
-
-using TrajectoryPtr = std::unique_ptr<Trajectory>;
 } // namespace mt_rrt
