@@ -10,29 +10,35 @@
 #include <cstring>
 
 namespace mt_rrt {
-Node::Node(const View &state) : state_{state} {}
+Node::Node(std::span<const float> state) : data_{.state = state} {}
 
-void Node::setParent(const Node &parent, float cost2Go) {
-  parent_ = &parent;
-  cost2Go_.set(cost2Go);
+void Node::setParent(const Node &parent,
+                     const Positive<float> &cost2Go) noexcept {
+  data_.parent = &parent;
+  data_.cost2Go = cost2Go;
 }
 
 float Node::cost2Root() const {
   float cost2Root = 0;
   size_t k = 0;
   for (const Node *att_node = this; att_node != nullptr;
-       att_node = att_node->getParent(), ++k) {
-    if (MAX_ITERATIONS == k) {
+       att_node = att_node->data_.parent, ++k) {
+    if (std::numeric_limits<std::size_t>::max() == k) {
       throw Error("Max number of iterations exceeded while computing cost to "
                   "go: a loop was generated inside a tree");
     }
-    cost2Root += att_node->cost2Go();
+    cost2Root += att_node->data_.cost2Go.get();
   }
   return cost2Root;
 };
 
-NodeOwning::NodeOwning(std::vector<float> &&state)
-    : stateVec_{std::forward<std::vector<float>>(state)} {
-  state_ = View{stateVec_.data(), stateVec_.size()};
-}
+namespace detail {
+NodeOwningStorage::NodeOwningStorage(std::vector<float> allocated_state)
+    : storage_{std::move(allocated_state)} {}
+} // namespace detail
+
+NodeOwning::NodeOwning(std::vector<float> state)
+    : detail::NodeOwningStorage{std::move(state)}, Node{std::span<const float>{
+                                                       storage_.begin(),
+                                                       storage_.end()}} {}
 } // namespace mt_rrt

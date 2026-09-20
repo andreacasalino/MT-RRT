@@ -13,11 +13,12 @@
 namespace mt_rrt {
 template <typename T> class ObjectPool {
 public:
-  ObjectPool(std::size_t chunk_capacity = 1000) chunk_capacity_{chunk_capacity},
-      head_{Chunk::make(chunk_capacity_)}, tail_{head_} {}
+  ObjectPool(std::size_t chunk_capacity = 1000)
+      : chunk_capacity_{chunk_capacity}, head_{Chunk::make(chunk_capacity_)},
+        tail_{head_} {}
 
   ~ObjectPool() {
-    for (Chunk *current = root; current; current = current->next) {
+    for (Chunk *current = head_; current; current = current->next) {
       delete[] current->buffer;
     }
   }

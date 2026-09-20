@@ -11,8 +11,10 @@
 #include <MT-RRT/Limited.h>
 #include <MT-RRT/ObjectPool.h>
 
+#include <deque>
 #include <memory>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace mt_rrt {
@@ -24,41 +26,51 @@ namespace mt_rrt {
  */
 class Node {
 public:
-  virtual ~Node() = default;
-
   Node(std::span<const float> state);
 
-  const auto &dat() const { return data_; }
+  const auto &data() const { return data_; }
 
-  auto state() const { return state_; }
-
-  void setParent(const Node &parent, float cost2Go);
+  void setParent(const Node &parent, const Positive<float> &cost2Go) noexcept;
 
   /**
    * @return Computes the cost to get from the root to this node, see 1.2.
    * @throw when the root is not reached, cause loopy connections were made for
    * some reason.
    */
-  virtual float cost2Root() const;
+  float cost2Root() const;
 
   struct Data {
-    std::span<const float> state_;
+    std::span<const float> state;
     /**
      * @brief The cost to spend to go from the parent to this node
      */
-    Positive<float> cost2Go_ = Positive<float>{0};
-    const Node *parent_{nullptr};
+    Positive<float> cost2Go = Positive<float>{0};
+    const Node *parent{nullptr};
   };
 
 protected:
   Data data_;
 };
 
-template <typename NodeT> class NodesT {
-public:
-  NodesT() = default;
+namespace detail {
+class NodeOwningStorage {
+protected:
+  NodeOwningStorage(std::vector<float> allocated_state);
 
-  NodeT &emplace_back(std::span<const float> to_add) {
+  std::vector<float> storage_;
+};
+} // namespace detail
+
+class NodeOwning : public detail::NodeOwningStorage, public Node {
+public:
+  NodeOwning(std::vector<float> state);
+};
+
+template <typename NodeT> class Nodes {
+public:
+  Nodes() = default;
+
+  NodeT &push(std::span<const float> to_add) {
     auto copied_view = statesPool_.push(to_add);
     return nodesPool_.emplace_back(copied_view);
   }
@@ -68,15 +80,5 @@ public:
 private:
   ObjectPool<float> statesPool_;
   std::deque<NodeT> nodesPool_;
-};
-
-using Nodes = NodesT<Node>;
-
-class NodeOwning : public Node {
-public:
-  NodeOwning(std::vector<float> state);
-
-private:
-  std::vector<float> allocated_state_;
 };
 } // namespace mt_rrt

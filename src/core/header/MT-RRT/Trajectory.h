@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include <MT-RRT/View.h>
-
 #include <memory>
+#include <span>
 
 namespace mt_rrt {
 /**
@@ -35,7 +34,7 @@ public:
    *  - targetReached -> similar to advanced, but in case in the reached state
    * is the ending one
    */
-  enum class AdvanceInfo { blocked, advanced, targetReached };
+  enum class AdvanceInfo { Blocked, Advanced, TargetReached };
 
   /**
    * @brief Advance along the trajectory
@@ -47,7 +46,7 @@ public:
    * IMPORTANT: it is a no-sense value in case last this->advance() returned
    * blocked
    */
-  virtual View getState() const = 0;
+  virtual std::span<const float> getState() const = 0;
 
   /**
    * @return the cost to go from the beginning of the trajectory to the current
@@ -55,9 +54,6 @@ public:
    * returned blocked
    */
   virtual float getCumulatedCost() const = 0;
-
-protected:
-  Trajectory() = default;
 };
 
 using TrajectoryPtr = std::unique_ptr<Trajectory>;
