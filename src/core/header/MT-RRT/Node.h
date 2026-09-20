@@ -10,7 +10,6 @@
 #include <MT-RRT/Error.h>
 #include <MT-RRT/Limited.h>
 #include <MT-RRT/ObjectPool.h>
-#include <MT-RRT/View.h>
 
 #include <memory>
 #include <optional>
@@ -27,16 +26,12 @@ class Node {
 public:
   virtual ~Node() = default;
 
-  Node(const View &state);
+  Node(std::span<const float> state);
 
-  const View &state() const { return state_; }
+  const auto &dat() const { return data_; }
 
-  /**
-   * @brief position of the parent node inside the owning Tree
-   */
-  const Node *getParent() const { return parent_; }
+  auto state() const { return state_; }
 
-  float cost2Go() const { return cost2Go_.get(); }
   void setParent(const Node &parent, float cost2Go);
 
   /**
@@ -46,23 +41,22 @@ public:
    */
   virtual float cost2Root() const;
 
+  struct Data {
+    std::span<const float> state_;
+    /**
+     * @brief The cost to spend to go from the parent to this node
+     */
+    Positive<float> cost2Go_ = Positive<float>{0};
+    const Node *parent_{nullptr};
+  };
+
 protected:
-  Node() = default;
-
-  View state_;
-  /**
-   * @brief The cost to spend to go from the parent to this node
-   */
-  Positive<float> cost2Go_ = Positive<float>{0};
-  const Node *parent_ = nullptr;
-
-  static const inline std::size_t MAX_ITERATIONS =
-      std::numeric_limits<std::size_t>::max();
+  Data data_;
 };
 
-template <typename NodeT> class NodesAllocatorT {
+template <typename NodeT> class NodesT {
 public:
-  NodesAllocatorT() = default;
+  NodesT() = default;
 
   NodeT &emplace_back(const View &state) {
     if (state.size == 0) {
@@ -73,22 +67,20 @@ public:
     return nodesPool_.emplace_back(View{state_cpy, state.size});
   }
 
+  const auto &getNodes() const { return nodesPool_; }
+
 private:
   ObjectPool<float> statesPool_;
-  ObjectPool<NodeT> nodesPool_;
+  std::deque<NodeT> nodesPool_;
 };
 
-using NodesAllocator = NodesAllocatorT<Node>;
+using Nodes = NodesT<Node>;
 
 class NodeOwning : public Node {
 public:
-  NodeOwning(std::vector<float> &&state);
-
-  NodeOwning(const Node &o) : NodeOwning{o.state().convert()} {
-    setParent(*o.getParent(), o.cost2Go());
-  }
+  NodeOwning(std::vector<float> state);
 
 private:
-  std::vector<float> stateVec_;
+  std::vector<float> allocated_state_;
 };
 } // namespace mt_rrt
