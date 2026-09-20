@@ -16,9 +16,9 @@ public:
   explicit Error(std::string what);
 
   template <typename... Args>
-  static Error make_error(std::string_view format, const Args &...args) {
+  static Error make(std::string_view format, const Args &...args) {
     std::string msg = Format<Args...>{format, args...}.to_string();
-    return {std::move(msg)};
+    return Error{std::move(msg)};
   }
 };
 } // namespace mt_rrt
