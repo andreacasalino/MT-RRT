@@ -7,16 +7,18 @@
 
 #pragma once
 
-#include <MT-RRT/Strings.h>
+#include <MT-RRT/Format.h>
 #include <stdexcept>
 
 namespace mt_rrt {
 class Error : public std::runtime_error {
 public:
-  explicit Error(const std::string &what);
+  explicit Error(std::string what);
 
-  template <typename T1, typename T2, typename... Args>
-  Error(const T1 &first, const T2 &second, Args &&...slices_to_merge)
-      : Error(merge(first, second, std::forward<Args>(slices_to_merge)...)) {}
+  template <typename... Args>
+  static Error make_error(std::string_view format, const Args &...args) {
+    std::string msg = Format<Args...>{format, args...}.to_string();
+    return {std::move(msg)};
+  }
 };
 } // namespace mt_rrt

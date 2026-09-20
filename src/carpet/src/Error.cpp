@@ -8,5 +8,5 @@
 #include <MT-RRT/Error.h>
 
 namespace mt_rrt {
-Error::Error(const std::string &what) : std::runtime_error(what) {}
+Error::Error(std::string what) : std::runtime_error(std::move(what)) {}
 } // namespace mt_rrt
