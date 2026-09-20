@@ -19,7 +19,7 @@ public:
                                            std::span<const float> target,
                                            Positive cost2Target);
 
-  void add(std::span<const float> next, Positive cost2Go);
+  void add(std::span<const float> next, Positive cost2Go) noexcept;
 
   auto len() const { return len_; }
 

@@ -25,7 +25,7 @@ Solution::Solution(std::span<const float> start) : state_len_{start.size()} {
   len_ += 1;
 }
 
-void Solution::add(std::span<const float> next, Positive cost2Go) {
+void Solution::add(std::span<const float> next, Positive cost2Go) noexcept {
   cost_ += cost2Go.get();
   len_ += 1;
   states_.insert(states_.end(), next.begin(), next.end());
