@@ -58,13 +58,9 @@ template <typename NodeT> class NodesT {
 public:
   NodesT() = default;
 
-  NodeT &emplace_back(const View &state) {
-    if (state.size == 0) {
-      throw Error("Empty state not valid for describing node state");
-    }
-    float *state_cpy =
-        statesPool_.emplace_back_multiple(state.data, state.size);
-    return nodesPool_.emplace_back(View{state_cpy, state.size});
+  NodeT &emplace_back(std::span<const float> to_add) {
+    auto copied_view = statesPool_.push(to_add);
+    return nodesPool_.emplace_back(copied_view);
   }
 
   const auto &getNodes() const { return nodesPool_; }

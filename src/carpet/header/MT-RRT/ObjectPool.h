@@ -28,7 +28,7 @@ public:
   ObjectPool(ObjectPool &&) = delete;
   ObjectPool &operator=(ObjectPool &&) = delete;
 
-  void push(std::span<const T> to_add) {
+  std::span<const T> push(std::span<const T> to_add) {
     std::size_t residual = chunk_capacity_ - tail_->len;
     if (residual < to_add.size()) {
       auto *next = Chunk::make(chunk_capacity_);
@@ -37,6 +37,9 @@ public:
     }
     std::memcpy(tail_->buffer + tail_->len, to_add.data(),
                 sizeof(T) * to_add.size());
+    std::span<const T> res{tail_->buffer, to_add.size()};
+    tail_->len += to_add.size();
+    return res;
   }
 
 private:
