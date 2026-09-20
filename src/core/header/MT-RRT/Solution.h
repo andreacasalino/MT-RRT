@@ -10,21 +10,41 @@
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Types.h>
 
-#include <unordered_map>
-
 namespace mt_rrt {
-std::vector<std::vector<float>> sequence_from_root(const Node &subject);
-
 class Solution {
 public:
-  virtual ~Solution() = default;
-  virtual std::vector<std::vector<float>> getSequence() const = 0;
-  virtual float cost() const = 0;
+  Solution(std::span<const float> start);
+
+  static Solution fromFinalState(const Node &subject);
+
+  void add(std::span<const float> next, Positive cost2Go);
+
+  auto len() const { return len_; }
+
+  auto cost() const { return cost_; }
+
+  struct Iterator {
+    Iterator(std::span<const float> rest, std::size_t state_len)
+        : rest_{rest}, state_len_{state_len} {}
+
+    std::optional<std::span<const float>> next();
+
+  private:
+    std::span<const float> rest_;
+    std::size_t state_len_;
+  };
+  Iterator iter() const { return Iterator{states_, state_len_}; }
+
+private:
+  float cost_{0};
+  std::size_t len_{0};
+  std::size_t state_len_;
+  std::vector<float> states_;
 };
 
-using Solutions = std::vector<std::shared_ptr<Solution>>;
+using Solutions = std::vector<Solution>;
 
 void sort_solutions(Solutions &subject);
 
-std::vector<std::vector<float>> find_best_solution(const Solutions &subject);
+std::optional<Solution> find_best_solution(const Solutions &subject);
 } // namespace mt_rrt
