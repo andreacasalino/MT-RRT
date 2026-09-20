@@ -31,10 +31,14 @@ void Solution::add(std::span<const float> next, Positive cost2Go) {
   states_.insert(states_.end(), next.begin(), next.end());
 }
 
-Solution Solution::fromFinalState(const Node &subject) {
-  Solution res{subject.data().state};
-  for (const Node *current = subject.data().parent; current;
+Solution Solution::fromTargetAndEndingState(const Node &ending,
+                                            std::span<const float> target,
+                                            Positive cost2Target) {
+  Solution res{target};
+  res.cost_ = cost2Target.get();
+  for (const Node *current = &ending; current;
        current = current->data().parent) {
+    res.add(current->data().state, current->cost2Root());
   }
   // reverse
   std::reverse(res.states_.begin(), res.states_.end());
@@ -46,32 +50,9 @@ Solution Solution::fromFinalState(const Node &subject) {
   return res;
 }
 
-namespace {
-struct SolutionsComparer {
-  SolutionsComparer() = default;
-
-  bool operator()(const Solution &a, const Solution &b) const {
-    return getCost(a) < getCost(b);
-  }
-
-  float getCost(const Solution &subject) const {
-    auto it = solutions.find(&subject);
-    if (it == solutions.end()) {
-      it = solutions.emplace(&subject, subject.cost()).first;
-    }
-    return it->second;
-  }
-
-private:
-  mutable std::unordered_map<const Solution *, float> solutions;
-};
-} // namespace
-
 void sort_solutions(Solutions &subject) {
-  SolutionsComparer comparer;
-  std::sort(
-      subject.begin(), subject.end(),
-      [&comparer](const auto &a, const auto &b) { return comparer(a, b); });
+  std::sort(subject.begin(), subject.end(),
+            [](const auto &a, const auto &b) { return a.cost() < b.cost(); });
 }
 
 std::optional<Solution> find_best_solution(const Solutions &subject) {
@@ -79,10 +60,9 @@ std::optional<Solution> find_best_solution(const Solutions &subject) {
     return std::nullopt;
   };
 
-  SolutionsComparer comparer;
   auto &best = *std::min_element(
       subject.begin(), subject.end(),
-      [&comparer](const auto &a, const auto &b) { return comparer(a, b); });
+      [](const auto &a, const auto &b) { return a.cost() < b.cost(); });
   return std::make_optional(best);
 }
 } // namespace mt_rrt

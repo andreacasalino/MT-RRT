@@ -15,7 +15,9 @@ class Solution {
 public:
   Solution(std::span<const float> start);
 
-  static Solution fromFinalState(const Node &subject);
+  static Solution fromTargetAndEndingState(const Node &ending,
+                                           std::span<const float> target,
+                                           Positive cost2Target);
 
   void add(std::span<const float> next, Positive cost2Go);
 
