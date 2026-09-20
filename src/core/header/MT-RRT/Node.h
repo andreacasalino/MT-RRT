@@ -30,7 +30,7 @@ public:
 
   const auto &data() const { return data_; }
 
-  void setParent(const Node &parent, const Positive<float> &cost2Go) noexcept;
+  void setParent(const Node &parent, const Positive &cost2Go) noexcept;
 
   /**
    * @return Computes the cost to get from the root to this node, see 1.2.
@@ -44,7 +44,7 @@ public:
     /**
      * @brief The cost to spend to go from the parent to this node
      */
-    Positive<float> cost2Go = Positive<float>{0};
+    Positive cost2Go{0};
     const Node *parent{nullptr};
   };
 

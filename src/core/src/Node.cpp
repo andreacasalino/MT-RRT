@@ -12,8 +12,7 @@
 namespace mt_rrt {
 Node::Node(std::span<const float> state) : data_{.state = state} {}
 
-void Node::setParent(const Node &parent,
-                     const Positive<float> &cost2Go) noexcept {
+void Node::setParent(const Node &parent, const Positive &cost2Go) noexcept {
   data_.parent = &parent;
   data_.cost2Go = cost2Go;
 }
