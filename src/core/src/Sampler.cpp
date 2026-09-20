@@ -10,8 +10,7 @@
 
 namespace mt_rrt {
 HyperBox::HyperBox(std::vector<float> lowerCorner,
-                   std::vector<float> upperCorner,
-                   std::optional<Seed> seed = std::nullopt)
+                   std::vector<float> upperCorner, std::optional<Seed> seed)
     : UniformEngine(0, 1.f, seed), min_corner{std::move(lowerCorner)},
       delta_corner{std::move(upperCorner)} {
   // validate inputs
@@ -27,10 +26,6 @@ HyperBox::HyperBox(std::vector<float> lowerCorner,
       throw Error{"invalid corners"};
     }
   }
-}
-
-HyperBox::HyperBox(const HyperBox &o)
-    : UniformEngine(o), min_corner(o.min_corner), delta_corner(o.delta_corner) {
 }
 
 void HyperBox::sampleState(std::vector<float> &recipient) const noexcept {
