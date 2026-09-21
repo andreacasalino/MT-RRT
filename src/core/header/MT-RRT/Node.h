@@ -12,8 +12,6 @@
 #include <MT-RRT/ObjectPool.h>
 
 #include <deque>
-#include <memory>
-#include <optional>
 #include <span>
 #include <vector>
 
@@ -48,7 +46,7 @@ public:
     const Node *parent{nullptr};
   };
 
-protected:
+private:
   Data data_;
 };
 
@@ -57,6 +55,7 @@ class NodeOwningStorage {
 protected:
   NodeOwningStorage(std::vector<float> allocated_state);
 
+private:
   std::vector<float> storage_;
 };
 } // namespace detail
@@ -66,19 +65,19 @@ public:
   NodeOwning(std::vector<float> state);
 };
 
-template <typename NodeT> class Nodes {
+class Nodes {
 public:
   Nodes() = default;
 
-  NodeT &push(std::span<const float> to_add) {
-    auto copied_view = statesPool_.push(to_add);
+  Node &push(std::span<const float> to_add) {
+    auto copied_view = statesPool_->push(to_add);
     return nodesPool_.emplace_back(copied_view);
   }
 
   const auto &getNodes() const { return nodesPool_; }
 
 private:
-  ObjectPool<float> statesPool_;
-  std::deque<NodeT> nodesPool_;
+  std::unique_ptr<ObjectPool<float>> statesPool_;
+  std::deque<Node> nodesPool_;
 };
 } // namespace mt_rrt

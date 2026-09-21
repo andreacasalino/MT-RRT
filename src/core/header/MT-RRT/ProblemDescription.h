@@ -37,26 +37,4 @@ template <Connector C, Sampler S> struct ProblemDescription {
 
 template <Connector C, Sampler S>
 using ProblemDescriptionPtr = std::shared_ptr<const ProblemDescription<C, S>>;
-
-template <Connector C, Sampler S> struct DescriptionAndParameters {
-  ProblemDescriptionPtr<C, S> description;
-  Parameters parameters;
-};
-
-/**
- * @brief Someone aware of the static description of the class of problems to
- * solve
- */
-template <Connector C, Sampler S> class ProblemAware {
-public:
-  virtual ~ProblemAware() = default;
-
-  ProblemAware(ProblemDescriptionPtr<C, S> description)
-      : problem_{description} {}
-
-  const auto &problem() const { return *problem_; };
-
-private:
-  ProblemDescriptionPtr<C, S> problem_;
-};
 } // namespace mt_rrt

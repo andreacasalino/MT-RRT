@@ -64,10 +64,10 @@ protected:
 
 /** @brief Used to extend one or two connected search trees
  */
-template <typename E>
-concept Extender = requires(const E obj_const) {
-  // TODO
-};
+// template <typename E>
+// concept Extender = requires(const E obj_const) {
+//   // TODO
+// };
 
 // class Extender : public ProblemAware {
 // public:
