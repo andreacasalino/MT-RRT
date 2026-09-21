@@ -7,32 +7,13 @@
 
 #pragma once
 
-#include <MT-RRT/Copiable.h>
 #include <MT-RRT/Random.h>
 
+#include <memory>
+#include <optional>
 #include <vector>
 
 namespace mt_rrt {
-/**
- * @brief Interface for a sampler of states.
- */
-template <typename S>
-concept Sampler = requires(const S obj_const, std::vector<float> &recipient) {
-  /**
-   * @brief Returns a state randomly sampled in the \mathcal{X}
-   * space, Sections 1.2.1, 1.2.2 and 1.2.3 of the documentation.
-   * This random state are used for randomly growing searching trees.
-   * @return a drawn random state.
-   */
-  { obj_const.sampleState(recipient) } -> std::same_as<void>;
-
-  /**
-   * @return a random seed to use for intializing another Sampler.
-   */
-  { obj_const.sampleSeed() } -> std::same_as<Seed>;
-}
-&&std::is_base_of_v<Copiable<S>, S>;
-
 /**
  * @brief A sampler drawing samples inside an n-dimensioned hypercube
  * described by 2 corners. For example, corners [l1, l2, l3, l4] and [u1, u2,

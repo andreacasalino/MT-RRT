@@ -7,11 +7,8 @@
 
 #pragma once
 
-#include <MT-RRT/Error.h>
 #include <MT-RRT/Limited.h>
-#include <MT-RRT/ObjectPool.h>
 
-#include <deque>
 #include <span>
 #include <vector>
 
@@ -63,21 +60,5 @@ private:
 class NodeOwning : public detail::NodeOwningStorage, public Node {
 public:
   NodeOwning(std::vector<float> state);
-};
-
-class Nodes {
-public:
-  Nodes() = default;
-
-  Node &push(std::span<const float> to_add) {
-    auto copied_view = statesPool_->push(to_add);
-    return nodesPool_.emplace_back(copied_view);
-  }
-
-  const auto &getNodes() const { return nodesPool_; }
-
-private:
-  std::unique_ptr<ObjectPool<float>> statesPool_;
-  std::deque<Node> nodesPool_;
 };
 } // namespace mt_rrt

@@ -6,7 +6,7 @@
  **/
 
 #include <MT-RRT/Error.h>
-#include <MT-RRT/Sampler.h>
+#include <MT-RRT/HyperBox.h>
 
 namespace mt_rrt {
 HyperBox::HyperBox(std::vector<float> lowerCorner,
