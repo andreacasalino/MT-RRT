@@ -8,6 +8,36 @@
 #include <MT-RRT/extend/ExtenderUtils.h>
 
 namespace mt_rrt {
+std::optional<Connector::SteerResult> extend(const View &target,
+                                             TreeHandler &tree_handler,
+                                             const bool is_deterministic) {
+  auto *nearest = tree_handler.nearestNeighbour(target);
+  auto &det_register = tree_handler.deterministic_steer_register;
+  if (!nearest ||
+      (is_deterministic && contains(*nearest, target.data, det_register))) {
+    return std::nullopt;
+  }
+  if (is_deterministic) {
+    det_register[nearest].emplace(target.data);
+  }
+  return tree_handler.problem().connector->steer(
+      *nearest, target, tree_handler.parameters.steer_trials);
+}
+
+std::optional<Connector::SteerResult>
+extend_star(const View &target, TreeHandler &tree_handler,
+            const bool is_deterministic, std::vector<Rewire> &rewires) {
+  auto maybe_steered = extend(target, tree_handler, is_deterministic);
+  if (!maybe_steered) {
+    return std::nullopt;
+  }
+  auto near_set = tree_handler.nearSet(maybe_steered->node);
+  rewires = compute_rewires(maybe_steered->node, std::move(near_set),
+                            DescriptionAndParameters{tree_handler.problem(),
+                                                     tree_handler.parameters});
+  return maybe_steered;
+}
+
 std::vector<Rewire> compute_rewires(Node &subject, NearSet &&near_set_info,
                                     const DescriptionAndParameters &context) {
   auto &near_set = near_set_info.set;
@@ -71,36 +101,6 @@ bool contains(
   return det_register_it->second.find(target) != det_register_it->second.end();
 }
 } // namespace
-
-std::optional<Connector::SteerResult> extend(const View &target,
-                                             TreeHandler &tree_handler,
-                                             const bool is_deterministic) {
-  auto *nearest = tree_handler.nearestNeighbour(target);
-  auto &det_register = tree_handler.deterministic_steer_register;
-  if (!nearest ||
-      (is_deterministic && contains(*nearest, target.data, det_register))) {
-    return std::nullopt;
-  }
-  if (is_deterministic) {
-    det_register[nearest].emplace(target.data);
-  }
-  return tree_handler.problem().connector->steer(
-      *nearest, target, tree_handler.parameters.steer_trials);
-}
-
-std::optional<Connector::SteerResult>
-extend_star(const View &target, TreeHandler &tree_handler,
-            const bool is_deterministic, std::vector<Rewire> &rewires) {
-  auto maybe_steered = extend(target, tree_handler, is_deterministic);
-  if (!maybe_steered) {
-    return std::nullopt;
-  }
-  auto near_set = tree_handler.nearSet(maybe_steered->node);
-  rewires = compute_rewires(maybe_steered->node, std::move(near_set),
-                            DescriptionAndParameters{tree_handler.problem(),
-                                                     tree_handler.parameters});
-  return maybe_steered;
-}
 
 void apply_rewires_if_better(const Node &parent,
                              const std::vector<Rewire> &rewires) {
