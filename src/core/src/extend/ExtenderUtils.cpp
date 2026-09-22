@@ -5,16 +5,9 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtenderUtils.h>
+#include <MT-RRT/extend/ExtenderUtils.h>
 
 namespace mt_rrt {
-float near_set_ray(std::size_t tree_size, std::size_t problem_size,
-                   float gamma) {
-  const float tree_size_float = static_cast<float>(tree_size);
-  return gamma * powf(logf(tree_size_float) / tree_size_float,
-                      1.f / static_cast<float>(problem_size));
-}
-
 std::vector<Rewire> compute_rewires(Node &subject, NearSet &&near_set_info,
                                     const DescriptionAndParameters &context) {
   auto &near_set = near_set_info.set;
