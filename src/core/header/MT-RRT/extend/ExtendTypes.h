@@ -39,18 +39,13 @@ private:
   const float deterministic_rate_sampler_threshold;
 };
 
-// struct TreeData {
-//   Nodes<Node> nodes;
-
-//   // contains the register of nodes that were already deterministically
-//   // steered over a certain state
-//   //
-//   // keys are the steered node, while the values are the states
-//   // toward which the node were deterministically steered
-//   using DeterministicSteerRegister =
-//       std::unordered_set<std::pair<const Node *, const float *>>;
-//   DeterministicSteerRegister deterministic_steer_register;
-// };
+// contains the register of nodes that were already deterministically
+// steered over a certain state
+//
+// keys are the steered node, while the values are the states
+// toward which the node were deterministically steered
+using DeterministicSteerRegister =
+    std::unordered_set<std::pair<const Node *, const float *>>;
 
 struct NearestNeighbour {
   const Node *closest = nullptr;
