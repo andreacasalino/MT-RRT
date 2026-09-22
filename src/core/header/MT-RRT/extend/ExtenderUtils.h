@@ -8,21 +8,24 @@
 #pragma once
 
 #include <MT-RRT/Connector.hxx>
+#include <MT-RRT/concepts/Tree.h>
 #include <MT-RRT/extend/ExtendTypes.h>
 
 #include <deque>
 
 namespace mt_rrt {
-std::optional<SteerResult> extend(const View &target, TreeHandler &tree_handler,
-                                  const bool is_deterministic);
+template <Tree T, Connector C, bool IsDeterministic>
+std::optional<SteerResult> extend(std::span<const float> target, T &tree,
+                                  const C &connector);
 
-std::optional<SteerResult> extend_star(const View &target,
-                                       TreeHandler &tree_handler,
-                                       const bool is_deterministic,
+template <Tree T, Connector C, bool IsDeterministic>
+std::optional<SteerResult> extend_star(std::span<const float> target, T &tree,
+                                       const C &connector,
                                        std::vector<Rewire> &rewires);
 
-std::vector<Rewire> compute_rewires(Node &candidate, NearSet &&near_set,
-                                    const DescriptionAndParameters &context);
+void compute_rewires(std::vector<Rewire> &recipient, Node &candidate,
+                     NearSet &&near_set,
+                     const DescriptionAndParameters &context);
 
 void apply_rewires_if_better(const Node &parent,
                              const std::vector<Rewire> &rewires);

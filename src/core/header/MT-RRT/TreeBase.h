@@ -14,11 +14,9 @@
 #include <optional>
 
 namespace mt_rrt {
-template <Connector C, Sampler S>
-class TreeHandlerBasic : public ProblemAware<C, S> {
+template <Connector C, Sampler S> class TreeBase : public ProblemAware<C, S> {
 public:
-  TreeHandlerBasic(std::span<const float> root,
-                   ProblemDescriptionPtr<C, S> problem)
+  TreeBase(std::span<const float> root, ProblemDescriptionPtr<C, S> problem)
       : ProblemAware<C, S>{problem} {
     data_.nodes.push(root);
   }

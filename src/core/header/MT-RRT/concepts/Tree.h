@@ -13,8 +13,7 @@
 
 namespace mt_rrt {
 template <typename T>
-concept TreeHandler = requires(const T obj_const,
-                               std::span<const float> state) {
+concept Tree = requires(const T obj_const, std::span<const float> state) {
   /**
    * @brief nullptr if nothing was found
    */
