@@ -12,13 +12,6 @@
 #endif
 
 namespace mt_rrt {
-bool KeepSearchPredicate::operator()(std::size_t iter) const {
-  if ((strategy != ExpansionStrategy::Star) && best_effort &&
-      one_solution_was_found) {
-    return false;
-  }
-  return iter < max_iterations;
-}
 
 DeterminismRegulator::DeterminismRegulator(const Seed &seed,
                                            const Determinism &determinism)
