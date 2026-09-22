@@ -75,8 +75,7 @@ struct NearSet {
     Positive cost2go;
   };
 
-  NearSet(float gamma, std::size_t state_space_size)
-      : gamma_{gamma}, state_space_size_{state_space_size} {}
+  NearSet(float gamma, std::size_t state_space_size);
 
   template <Connector C, typename NodesIter>
   void update(std::span<const float> state, NodesIter nodes_begin,
