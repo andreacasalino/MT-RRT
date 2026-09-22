@@ -56,19 +56,17 @@ struct NearestNeighbour {
   const Node *closest = nullptr;
   float closestCost = COST_MAX;
 
-  void update(const Node &candidate, float cost2Go) {
-    if (cost2Go < closestCost) {
-      closest = &candidate;
-      closestCost = cost2Go;
-    }
-  }
-
   template <Connector C, typename NodesIter>
-  NearestNeighbour perform(std::span<const float> state, NodesIter nodes_begin,
-                           NodesIter nodes_end, const C &connector) {
+  static NearestNeighbour find(std::span<const float> state,
+                               NodesIter nodes_begin, NodesIter nodes_end,
+                               const C &connector) {
     NearestQuery query;
-    std::for_each(nodes_begin, nodes_end, [&](const auto &node) {
-      query.update(node, connector.minCost2Go(node.data().state, state).get());
+    std::for_each(nodes_begin, nodes_end, [&](const auto &candidate) {
+      float cost2Go = connector.minCost2Go(candidate.data().state, state);
+      if (cost2Go < closestCost) {
+        closest = &candidate;
+        closestCost = cost2Go;
+      }
     });
     return query;
   }
@@ -82,41 +80,44 @@ struct NearSet {
     Positive cost2go;
   };
 
-  std::size_t problem_size;
-  float gamma;
-
-  float ray;
-  std::span<const float> state_pivot;
-  // Positive cost2RootSubject;
-  std::vector<NearSetElement> set; // scratch buffer
-
-  template <Connector C> void update(const Node &subject, const C &connector) {
-    if (connector->minCost2Go(subject.state(), state_pivot) <= ray) {
-      float cost2Go =
-          connector->minCost2GoConstrained(subject.state(), state_pivot);
-      if (cost2Go == COST_MAX)
-        return;
-      set.emplace_back(NearSetElement{subject.getParent() == nullptr, &subject,
-                                      subject.cost2Root(), cost2Go});
-    }
-  }
-
-  void clear(std::size_t tree_size) {
-    ray = getRay(tree_size);
-    state_pivot = {};
-    set.clear();
-  }
+  NearSet(float gamma, std::size_t state_space_size)
+      : gamma_{gamma}, state_space_size_{state_space_size} {}
 
   template <Connector C, typename NodesIter>
-  void compute(std::span<const float> state, NodesIter nodes_begin,
-               NodesIter nodes_end, std::size_t tree_size, const C &connector) {
-    clear(tree_size);
-    std::for_each(nodes_begin, nodes_end,
-                  [&](auto &node) { update(node, connector); });
+  void update(std::span<const float> state, NodesIter nodes_begin,
+              NodesIter nodes_end, std::size_t tree_size, const C &connector) {
+    float ray = computeRay(tree_size);
+
+    data_.state_pivot = state;
+    data_.set.clear();
+
+    std::for_each(nodes_begin, nodes_end, [&](const Node &subject) {
+      if (connector.minCost2Go(subject.state(), state_pivot) <= ray) {
+        float cost2Go =
+            connector.minCost2GoConstrained(subject.state(), state_pivot);
+        if (cost2Go == COST_MAX)
+          return;
+        set.emplace_back(NearSetElement{subject.getParent() == nullptr,
+                                        &subject, subject.cost2Root(),
+                                        cost2Go});
+      }
+    });
   }
 
+  const auto &get() const { return near_set_; }
+
 private:
-  float getRay(std::size_t tree_size) const;
+  float computeRay(std::size_t tree_size) const {
+    const float tree_size_float = static_cast<float>(tree_size);
+    return gamma_ * powf(logf(tree_size_float) / tree_size_float,
+                         1.f / static_cast<float>(state_space_size_));
+  }
+
+  float gamma_;
+  std::size_t state_space_size_;
+
+  // re-usable buffers
+  std::vector<NearSetElement> near_set_;
 };
 
 struct Rewire {
