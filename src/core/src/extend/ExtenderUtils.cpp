@@ -8,21 +8,6 @@
 #include <MT-RRT/extend/ExtenderUtils.h>
 
 namespace mt_rrt {
-std::optional<Connector::SteerResult> extend(const View &target,
-                                             TreeHandler &tree_handler,
-                                             const bool is_deterministic) {
-  auto *nearest = tree_handler.nearestNeighbour(target);
-  auto &det_register = tree_handler.deterministic_steer_register;
-  if (!nearest ||
-      (is_deterministic && contains(*nearest, target.data, det_register))) {
-    return std::nullopt;
-  }
-  if (is_deterministic) {
-    det_register[nearest].emplace(target.data);
-  }
-  return tree_handler.problem().connector->steer(
-      *nearest, target, tree_handler.parameters.steer_trials);
-}
 
 std::optional<Connector::SteerResult>
 extend_star(const View &target, TreeHandler &tree_handler,

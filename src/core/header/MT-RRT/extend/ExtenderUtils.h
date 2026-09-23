@@ -15,8 +15,24 @@
 
 namespace mt_rrt {
 template <Tree T, Connector C, bool IsDeterministic>
-std::optional<SteerResult> extend(std::span<const float> target, T &tree,
-                                  const C &connector);
+std::optional<SteerResult>
+extend(std::vector<float> &reached_state, std::span<const float> target,
+       T &tree, const C &connector, const SteerIterations &trials) {
+  const Node *nearest = tree.nearestNeighbour(target);
+  if (!nearest) {
+    return std::nullopt;
+  }
+  if constexpr (IsDeterministic) {
+    auto &deterministic_register = tree.getDeterministicRegister();
+    bool is_new =
+        deterministic_register.emplace(std::make_pair(nearest, target.data()))
+            .first;
+    if (is_new) {
+      return std::nullopt;
+    }
+  }
+  return steer(connector, reached_state, nearest->data().state, target, trials);
+}
 
 template <Tree T, Connector C, bool IsDeterministic>
 std::optional<SteerResult> extend_star(std::span<const float> target, T &tree,
@@ -27,6 +43,7 @@ void compute_rewires(std::vector<Rewire> &recipient, Node &candidate,
                      NearSet &&near_set,
                      const DescriptionAndParameters &context);
 
-void apply_rewires_if_better(const Node &parent,
-                             const std::vector<Rewire> &rewires);
+// For each rewire cancidate, it applies it only if that is actually beffer than
+// current connections
+void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
 } // namespace mt_rrt

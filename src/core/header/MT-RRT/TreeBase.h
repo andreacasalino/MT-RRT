@@ -29,6 +29,10 @@ public:
 
   void applyRewires(const Node &new_father, const std::vector<Rewire> &rewires);
 
+  DeterministicSteerRegister &getDeterministicRegister() {
+    return deterministic_steers_;
+  }
+
 protected:
   Nodes nodes_;
   DeterministicSteerRegister deterministic_steers_;

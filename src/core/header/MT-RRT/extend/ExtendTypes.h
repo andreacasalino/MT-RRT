@@ -39,29 +39,6 @@ private:
   const float deterministic_rate_sampler_threshold;
 };
 
-struct DeterministicSteerRegisterHash {
-  template <typename T, typename U>
-  std::size_t
-  operator()(const std::pair<const Node *, const float *> &p) const noexcept {
-    std::size_t h1 = std::hash<T *>{}(p.first);
-    std::size_t h2 = std::hash<U *>{}(p.second);
-
-    // Combine the hashes using a high-quality mixing formula (from Boost)
-    // This avoids collisions like (A, B) having the same hash as (B, A) if T ==
-    // U
-    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
-  }
-};
-
-// contains the register of nodes that were already deterministically
-// steered over a certain state
-//
-// keys are the steered node, while the values are the states
-// toward which the node were deterministically steered
-using DeterministicSteerRegister =
-    std::unordered_set<std::pair<const Node *, const float *>,
-                       DeterministicSteerRegisterHash>;
-
 struct NearestNeighbour {
   const Node *closest = nullptr;
   float closestCost = COST_MAX;
