@@ -7,74 +7,41 @@
 
 #pragma once
 
+#include <MT-RRT/Nodes.h>
 #include <MT-RRT/NodesIterator.hxx>
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/concepts/Connector.h>
 #include <MT-RRT/concepts/Sampler.h>
+#include <MT-RRT/concepts/Tree.h>
 
+#include <deque>
 #include <optional>
 
 namespace mt_rrt {
-template <Connector C, Sampler S> class TreeBase : public ProblemAware<C, S> {
+class TreeBase {
 public:
-  using iter_value =
+  using the_iter =
       NodesIteratorFromContainer<typename std::deque<Node>::const_iterator>;
 
-  TreeBase(std::span<const float> root, ProblemDescriptionPtr<C, S> problem)
-      : ProblemAware<C, S>{problem} {
-    data_.nodes.push(root);
+  TreeBase(std::span<const float> root);
+
+  the_iter iter() const { return the_iter{nodes_.getNodes()}; }
+
+  const auto &getNodes() const { return nodes_; }
+
+  const Node *internalize(std::span<const float> state, const Node &parent,
+                          const Positive &cost2Go) {
+    auto &added = nodes_.push(state);
+    added.setParent(parent, cost2Go);
+    return &added;
   }
 
-  const Node *nearestNeighbour(std::span<const float> state) const;
+  void apply(const Rewires &rew);
 
-  void nearSet(const Node &subject, NearSet &recipient) const;
+  auto &getDeterministicRegister() { return register_; }
 
-  Node *internalize(const Node &subject);
-
-  void applyRewires(const Node &new_father, const std::vector<Rewire> &rewires);
-
-  DeterministicSteerRegister &getDeterministicRegister() {
-    return deterministic_steers_;
-  }
-
-protected:
+private:
   Nodes nodes_;
-  DeterministicSteerRegister deterministic_steers_;
+  DeterministicSteerRegister register_;
 };
-
-/** @brief Used to extend one or two connected search trees
- */
-// template <typename E>
-// concept Extender = requires(const E obj_const) {
-//   // TODO
-// };
-
-// class Extender : public ProblemAware {
-// public:
-//   virtual ~Extender() = default;
-
-//   /** @brief Perform the specified number of estensions on the wrapped
-//   tree(s).
-//    * This function may be called multiple times, for performing batch of
-//    * extensions. All the solutions found while extending are saved and stored
-//    in
-//    * this object.
-//    * @param the number of extension to perform
-//    */
-//   std::size_t search();
-
-//   virtual std::vector<TreeHandlerPtr> dumpTrees() = 0;
-
-//   const Solutions &getSolutions() const { return solutions; };
-//   Solutions &getSolutions() { return solutions; };
-
-// protected:
-//   Extender(const TreeHandler &handler);
-
-//   virtual void search_iteration() = 0;
-
-//   const Parameters &parameters;
-//   Solutions solutions;
-//   std::optional<DeterminismRegulator> determinism_manager;
-// };
 } // namespace mt_rrt

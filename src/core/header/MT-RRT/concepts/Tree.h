@@ -37,18 +37,19 @@ using DeterministicSteerRegister =
                        DeterministicSteerRegisterHash>;
 
 template <typename T>
-concept Tree = requires(T obj) {
+concept Tree = requires(const T obj_const) {
   typename T::the_iter;
 
   requires NodesIterator<typename T::the_iter>;
 
-  { obj.iter() } -> std::same_as<typename T::the_iter>;
+  { obj_const.iter() } -> std::same_as<typename T::the_iter>;
 }
-&&requires(T obj, const Node &subject) {
+&&requires(T obj, std::span<const float> state, const Node &parent,
+           const Positive &cost2Go) {
   /**
    * @brief nullptr if nothing was found
    */
-  { obj.internalize(subject) } -> std::same_as<Node *>;
+  { obj.internalize(state, parent, cost2Go) } -> std::same_as<const Node *>;
 }
 &&requires(T obj, const Rewires &rew) {
   /**
