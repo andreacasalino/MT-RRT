@@ -75,18 +75,6 @@ std::vector<Rewire> compute_rewires(Node &subject, NearSet &&near_set_info,
   return res;
 }
 
-namespace {
-bool contains(
-    const Node &to_steer_candidate, const float *target,
-    const TreeHandlerBasic::DeterministicSteerRegister &det_register) {
-  auto det_register_it = det_register.find(&to_steer_candidate);
-  if (det_register_it == det_register.end()) {
-    return false;
-  }
-  return det_register_it->second.find(target) != det_register_it->second.end();
-}
-} // namespace
-
 void apply_rewires_if_better(const Node &parent,
                              const std::vector<Rewire> &rewires) {
   float parentCost2Root = parent.cost2Root();

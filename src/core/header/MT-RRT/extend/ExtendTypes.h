@@ -43,21 +43,25 @@ struct NearestNeighbour {
   const Node *closest = nullptr;
   float closestCost = COST_MAX;
 
-  template <Connector C, typename NodesIter>
-  static NearestNeighbour find(std::span<const float> state,
-                               NodesIter nodes_begin, NodesIter nodes_end,
-                               const C &connector) {
-    NearestQuery query;
-    std::for_each(nodes_begin, nodes_end, [&](const auto &candidate) {
-      float cost2Go = connector.minCost2Go(candidate.data().state, state);
-      if (cost2Go < closestCost) {
-        closest = &candidate;
-        closestCost = cost2Go;
-      }
-    });
-    return query;
+  void update(const Node &candidate, float cost2Go) {
+    if (cost2Go < closestCost) {
+      closest = &candidate;
+      closestCost = cost2Go;
+    }
   }
 };
+
+template <Connector C, typename NodesIter>
+NearestNeighbour
+nearest_neighbour_basic(std::span<const float> state, NodesIter nodes_begin,
+                        NodesIter nodes_end, const C &connector) {
+  NearestNeighbour query;
+  std::for_each(nodes_begin, nodes_end, [&](const auto &candidate) {
+    float cost2Go = connector.minCost2Go(candidate.data().state, state);
+    query.update(candidate, cost2Go);
+  });
+  return query;
+}
 
 struct NearSet {
   struct NearSetElement {
@@ -106,8 +110,20 @@ private:
   std::vector<NearSetElement> near_set_;
 };
 
-struct Rewire {
-  Node *involved_node;
-  Positive new_cost_from_father;
+struct Rewires {
+  struct Rewire {
+    Node *involved_node;
+    Positive new_cost_from_father;
+  };
+
+  void compute_rewires(Node &candidate, NearSet &&near_set,
+                       const DescriptionAndParameters &context);
+
+  // For each rewire cancidate, it applies it only if that is actually beffer
+  // than current connections
+  void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
+
+  Node *pivot{nullptr};
+  std::vector<Rewire> rewires_;
 };
 } // namespace mt_rrt

@@ -38,12 +38,4 @@ template <Tree T, Connector C, bool IsDeterministic>
 std::optional<SteerResult> extend_star(std::span<const float> target, T &tree,
                                        const C &connector,
                                        std::vector<Rewire> &rewires);
-
-void compute_rewires(std::vector<Rewire> &recipient, Node &candidate,
-                     NearSet &&near_set,
-                     const DescriptionAndParameters &context);
-
-// For each rewire cancidate, it applies it only if that is actually beffer than
-// current connections
-void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
 } // namespace mt_rrt

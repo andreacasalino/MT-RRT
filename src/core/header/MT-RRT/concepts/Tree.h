@@ -9,6 +9,7 @@
 
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Solution.h>
+#include <MT-RRT/concepts/NodesIterator.h>
 #include <MT-RRT/extend/ExtendTypes.h>
 
 namespace mt_rrt {
@@ -36,29 +37,24 @@ using DeterministicSteerRegister =
                        DeterministicSteerRegisterHash>;
 
 template <typename T>
-concept Tree = requires(const T obj_const, std::span<const float> state) {
-  /**
-   * @brief nullptr if nothing was found
-   */
-  { obj_const.nearestNeighbour(state) } -> std::same_as<const Node *>;
+concept Tree = requires(T obj) {
+  typename T::the_iter;
+
+  requires NodesIterator<typename T::the_iter>;
+
+  { obj.iter() } -> std::same_as<typename T::the_iter>;
 }
-&&requires(const T obj_const, const Node &subject, NearSet &recipient) {
-  /**
-   * @brief nullptr if nothing was found
-   */
-  { obj_const.nearSet(subject, recipient) } -> std::same_as<void>;
-}
-&&requires(T obj, const Node &subject, NearSet &recipient) {
+&&requires(T obj, const Node &subject) {
   /**
    * @brief nullptr if nothing was found
    */
   { obj.internalize(subject) } -> std::same_as<Node *>;
 }
-&&requires(T obj, const Node &new_father, const std::vector<Rewire> &rewires) {
+&&requires(T obj, const Rewires &rew) {
   /**
    * @brief nullptr if nothing was found
    */
-  { obj.applyRewires(new_father, rewires) } -> std::same_as<void>;
+  { obj.apply(rew) } -> std::same_as<void>;
 }
 &&requires(T obj) {
   {

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <MT-RRT/NodesIterator.hxx>
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/concepts/Connector.h>
 #include <MT-RRT/concepts/Sampler.h>
@@ -16,6 +17,9 @@
 namespace mt_rrt {
 template <Connector C, Sampler S> class TreeBase : public ProblemAware<C, S> {
 public:
+  using iter_value =
+      NodesIteratorFromContainer<typename std::deque<Node>::const_iterator>;
+
   TreeBase(std::span<const float> root, ProblemDescriptionPtr<C, S> problem)
       : ProblemAware<C, S>{problem} {
     data_.nodes.push(root);
