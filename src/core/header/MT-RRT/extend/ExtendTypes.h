@@ -8,6 +8,7 @@
 #pragma once
 
 #include <MT-RRT/Node.h>
+#include <MT-RRT/NodesIterator.hxx>
 #include <MT-RRT/Random.h>
 #include <MT-RRT/concepts/Connector.h>
 
@@ -51,14 +52,13 @@ struct NearestNeighbour {
   }
 };
 
-template <Connector C, typename NodesIter>
-NearestNeighbour
-nearest_neighbour_basic(std::span<const float> state, NodesIter nodes_begin,
-                        NodesIter nodes_end, const C &connector) {
+template <Connector C, NodesIterator It>
+NearestNeighbour find_nearest_neighbour(std::span<const float> state, It iter,
+                                        const C &connector) {
   NearestNeighbour query;
-  std::for_each(nodes_begin, nodes_end, [&](const auto &candidate) {
-    float cost2Go = connector.minCost2Go(candidate.data().state, state);
-    query.update(candidate, cost2Go);
+  for_each_nodes(std::move(it), [](const Node *candidate) {
+    float cost2Go = connector.minCost2Go(candidate->data().state, state);
+    query.update(*candidate, cost2Go);
   });
   return query;
 }

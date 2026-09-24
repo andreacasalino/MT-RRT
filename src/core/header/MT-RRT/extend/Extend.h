@@ -18,7 +18,7 @@ template <Tree T, Connector C, bool IsDeterministic>
 std::optional<SteerResult>
 extend(std::vector<float> &reached_state, std::span<const float> target,
        T &tree, const C &connector, const SteerIterations &trials) {
-  const Node *nearest = tree.nearestNeighbour(target);
+  const Node *nearest = find_nearest_neighbour(target, tree.iter(), connector);
   if (!nearest) {
     return std::nullopt;
   }
