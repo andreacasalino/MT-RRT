@@ -14,6 +14,17 @@
 #include <deque>
 
 namespace mt_rrt {
+template <Connector C, NodesIterator It>
+NearestNeighbour find_nearest_neighbour(std::span<const float> state, It iter,
+                                        const C &connector) {
+  NearestNeighbour query;
+  for_each_nodes(std::move(it), [](const Node *candidate) {
+    float cost2Go = connector.minCost2Go(candidate->data().state, state);
+    query.update(*candidate, cost2Go);
+  });
+  return query;
+}
+
 template <Tree T, Connector C, bool IsDeterministic>
 std::optional<SteerResult>
 extend(std::vector<float> &reached_state, std::span<const float> target,

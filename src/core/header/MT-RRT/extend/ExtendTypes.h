@@ -52,18 +52,7 @@ struct NearestNeighbour {
   }
 };
 
-template <Connector C, NodesIterator It>
-NearestNeighbour find_nearest_neighbour(std::span<const float> state, It iter,
-                                        const C &connector) {
-  NearestNeighbour query;
-  for_each_nodes(std::move(it), [](const Node *candidate) {
-    float cost2Go = connector.minCost2Go(candidate->data().state, state);
-    query.update(*candidate, cost2Go);
-  });
-  return query;
-}
-
-struct NearSet {
+struct Rewiring {
   struct NearSetElement {
     bool isRoot;
     const Node *element;
@@ -71,7 +60,14 @@ struct NearSet {
     Positive cost2go;
   };
 
-  NearSet(float gamma, std::size_t state_space_size);
+  struct Rewire {
+    Node *involved_node;
+    Positive new_cost_from_father;
+  };
+
+  Rewiring(float gamma, std::size_t state_space_size);
+
+  const auto &get() const { return data_; }
 
   template <Connector C, typename NodesIter>
   void update(std::span<const float> state, NodesIter nodes_begin,
@@ -94,28 +90,6 @@ struct NearSet {
     });
   }
 
-  const auto &get() const { return near_set_; }
-
-private:
-  float computeRay(std::size_t tree_size) const {
-    const float tree_size_float = static_cast<float>(tree_size);
-    return gamma_ * powf(logf(tree_size_float) / tree_size_float,
-                         1.f / static_cast<float>(state_space_size_));
-  }
-
-  float gamma_;
-  std::size_t state_space_size_;
-
-  // re-usable buffers
-  std::vector<NearSetElement> near_set_;
-};
-
-struct Rewires {
-  struct Rewire {
-    Node *involved_node;
-    Positive new_cost_from_father;
-  };
-
   void compute_rewires(Node &candidate, NearSet &&near_set,
                        const DescriptionAndParameters &context);
 
@@ -123,7 +97,13 @@ struct Rewires {
   // than current connections
   void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
 
+  // re-usable buffers
   Node *pivot{nullptr};
+  std::vector<NearSetElement> near_set_;
   std::vector<Rewire> rewires_;
+
+private:
+  float gamma_;
+  std::size_t state_space_size_;
 };
 } // namespace mt_rrt
