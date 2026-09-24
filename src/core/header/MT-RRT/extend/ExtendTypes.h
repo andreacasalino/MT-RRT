@@ -62,7 +62,7 @@ struct Rewiring {
 
   struct Rewire {
     Node *involved_node;
-    Positive new_cost_from_father;
+    Positive updatedCost2Go;
   };
 
   Rewiring(float gamma, std::size_t state_space_size);
@@ -98,9 +98,9 @@ struct Rewiring {
   void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
 
   // re-usable buffers
-  Node *pivot{nullptr};
-  std::vector<NearSetElement> near_set_;
-  std::vector<Rewire> rewires_;
+  std::span<const float> pivot;
+  std::vector<NearSetElement> near_set;
+  std::vector<Rewire> rewires;
 
 private:
   float gamma_;

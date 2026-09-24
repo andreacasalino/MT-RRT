@@ -37,27 +37,39 @@ using DeterministicSteerRegister =
                        DeterministicSteerRegisterHash>;
 
 template <typename T>
-concept Tree = requires(const T obj_const) {
+concept TreeWithIter = requires(const T obj_const) {
   typename T::the_iter;
 
   requires NodesIterator<typename T::the_iter>;
 
   { obj_const.iter() } -> std::same_as<typename T::the_iter>;
+};
+
+template <typename T>
+concept TreeWithCustomQueries = requires(const T obj_const,
+                                         std::span<const float> state) {
+  { obj_const.nearestNeighbour(state) } -> std::same_as<NearestNeighbour>;
 }
-&&requires(T obj, std::span<const float> state, const Node &parent,
-           const Positive &cost2Go) {
-  /**
-   * @brief nullptr if nothing was found
-   */
+&&requires(const T obj_const, std::span<const float> state,
+           std::vector<Rewiring::NearSetElement> &near_set) {
+  { obj_const.nearSet(state, near_set) } -> std::same_as<void>;
+};
+
+template <typename T>
+concept TreeWithIterOrCustomQueries =
+    TreeWithIter<T> || TreeWithCustomQueries<T>;
+
+template <typename T>
+concept TreeWithCustomRewiring = requires(const T obj, const Rewires &rew) {
+  { obj.applyRewiring(rew) } -> std::same_as<void>;
+};
+
+template <typename T>
+concept Tree = TreeWithIterOrCustomQueries<T> &&
+    requires(T obj, std::span<const float> state, const Node &parent,
+             const Positive &cost2Go) {
   { obj.internalize(state, parent, cost2Go) } -> std::same_as<const Node *>;
-}
-&&requires(T obj, const Rewires &rew) {
-  /**
-   * @brief nullptr if nothing was found
-   */
-  { obj.apply(rew) } -> std::same_as<void>;
-}
-&&requires(T obj) {
+} && requires(T obj) {
   {
     obj.getDeterministicRegister()
     } -> std::same_as<DeterministicSteerRegister &>;
