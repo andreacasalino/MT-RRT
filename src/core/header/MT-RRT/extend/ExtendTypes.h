@@ -67,43 +67,68 @@ struct Rewiring {
 
   Rewiring(float gamma, std::size_t state_space_size);
 
-  const auto &get() const { return data_; }
+  void updateFirstStep(std::span<const float> pivot, std::size_t tree_size);
 
-  template <Connector C, typename NodesIter>
-  void update(std::span<const float> state, NodesIter nodes_begin,
-              NodesIter nodes_end, std::size_t tree_size, const C &connector) {
-    float ray = computeRay(tree_size);
-
-    data_.state_pivot = state;
-    data_.set.clear();
-
-    std::for_each(nodes_begin, nodes_end, [&](const Node &subject) {
-      if (connector.minCost2Go(subject.state(), state_pivot) <= ray) {
-        float cost2Go =
-            connector.minCost2GoConstrained(subject.state(), state_pivot);
-        if (cost2Go == COST_MAX)
-          return;
-        set.emplace_back(NearSetElement{subject.getParent() == nullptr,
-                                        &subject, subject.cost2Root(),
-                                        cost2Go});
-      }
-    });
+  template <Connector C>
+  void updateSecondStep(const Node &candidate, const C &connector) {
+    if (connector.minCost2Go(candidate.state(), state_pivot) <= ray) {
+      float cost2Go =
+          connector.minCost2GoConstrained(candidate.state(), state_pivot);
+      if (cost2Go == COST_MAX)
+        return;
+      set.emplace_back(NearSetElement{candidate.getParent() == nullptr,
+                                      &candidate, candidate.cost2Root(),
+                                      cost2Go});
+    }
   }
 
-  void compute_rewires(Node &candidate, NearSet &&near_set,
-                       const DescriptionAndParameters &context);
+  void append(NearSetElement to_add);
 
-  // For each rewire cancidate, it applies it only if that is actually beffer
-  // than current connections
-  void apply_rewires(const Node &parent, const std::vector<Rewire> &rewires);
+  // // // void compute_rewires(Node &candidate, NearSet &&near_set,
+  // // //                      const DescriptionAndParameters &context);
 
-  // re-usable buffers
-  std::span<const float> pivot;
-  std::vector<NearSetElement> near_set;
-  std::vector<Rewire> rewires;
+  // // // // For each rewire cancidate, it applies it only if that is actually
+  // beffer
+  // // // // than current connections
+  // // // void apply_rewires(const Node &parent, const std::vector<Rewire>
+  // &rewires);
+
+  // scratch buffers
+  struct Data {
+    std::span<const float> pivot;
+    std::vector<NearSetElement> near_set;
+    std::vector<Rewire> rewires;
+  };
+
+  const auto &get() const { return data_; }
 
 private:
   float gamma_;
   std::size_t state_space_size_;
+
+  Data data_;
 };
+
+struct DeterministicSteerRegisterHash {
+  template <typename T, typename U>
+  std::size_t
+  operator()(const std::pair<const Node *, const float *> &p) const noexcept {
+    std::size_t h1 = std::hash<T *>{}(p.first);
+    std::size_t h2 = std::hash<U *>{}(p.second);
+
+    // Combine the hashes using a high-quality mixing formula (from Boost)
+    // This avoids collisions like (A, B) having the same hash as (B, A) if T ==
+    // U
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+  }
+};
+
+// contains the register of nodes that were already deterministically
+// steered over a certain state
+//
+// keys are the steered node, while the values are the states
+// toward which the node were deterministically steered
+using DeterministicSteerRegister =
+    std::unordered_set<std::pair<const Node *, const float *>,
+                       DeterministicSteerRegisterHash>;
 } // namespace mt_rrt

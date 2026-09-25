@@ -14,12 +14,12 @@
 #include <deque>
 
 namespace mt_rrt {
-template <Connector C, Tree T>
-NearestNeighbour find_nearest_neighbour(std::span<const float> state,
-                                        const T &tree, const C &connector) {
-  if constexpr (TreeWithCustomQueries<T>) {
-    return tree.nearestNeighbour(state, connector);
-  } else {
+template <typename T, Connector C>
+NearestNeighbour find_nearest_neighbour(
+    std::span<const float> state, const T &tree,
+    const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
+
+  if constexpr (tree::HasIter<T>) {
     NearestNeighbour query;
     for_each_nodes(tree.iter(), [](const Node *candidate) {
       float cost2Go = connector.minCost2Go(candidate->data().state, state);
@@ -27,30 +27,85 @@ NearestNeighbour find_nearest_neighbour(std::span<const float> state,
     });
     return query;
   }
+
+  else {
+    return tree.nearestNeighbour(state, connector);
+  }
 }
 
-template <Tree T, Connector C, bool IsDeterministic>
-std::optional<SteerResult>
-extend(std::vector<float> &reached_state, std::span<const float> target,
-       T &tree, const C &connector, const SteerIterations &trials) {
-  const Node *nearest = find_nearest_neighbour(target, tree.iter(), connector);
-  if (!nearest) {
-    return std::nullopt;
+template <typename T, Connector C>
+void get_near_set(
+    Rewiring &recipient, std::span<const float> state, const T &tree,
+    const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
+
+  if constexpr (tree::HasIter<T>) {
+    auto it = tree.iter();
+    recipient.updateFirstStep(state, it.size());
+    for_each_nodes(std::move(it), [](const Node *candidate) {
+      recipient.update(*candidate, connector);
+    });
   }
-  if constexpr (IsDeterministic) {
-    auto &deterministic_register = tree.getDeterministicRegister();
-    bool is_new =
-        deterministic_register.emplace(std::make_pair(nearest, target.data()))
-            .first;
-    if (is_new) {
+
+  else {
+    tree.nearSet(recipient, connector);
+  }
+}
+
+struct ExtendResult {
+  bool target_reached{false};
+
+  // when target_reached = true  => the node from which the extension was
+  // possible
+  //
+  // when target_reached = false => the actually created node
+  const Node *node;
+};
+
+class Extender {
+public:
+  Extender() = default;
+
+  template <typename T, Connector C, bool IsDeterministic>
+  std::optional<ExtendResult> extend(std::span<const float> target, T &tree,
+                                     const C &connector,
+                                     const SteerIterations &trials) {
+    const Node *nearest = find_nearest_neighbour(target, tree, connector);
+    if (!nearest) {
       return std::nullopt;
     }
-  }
-  return steer(connector, reached_state, nearest->data().state, target, trials);
-}
+    if constexpr (IsDeterministic) {
+      bool is_new =
+          register_.emplace(std::make_pair(nearest, target.data())).first;
+      if (is_new) {
+        return std::nullopt;
+      }
+    }
 
-template <Tree T, Connector C, bool IsDeterministic>
-std::optional<SteerResult> extend_star(std::span<const float> target, T &tree,
-                                       const C &connector,
-                                       std::vector<Rewire> &rewires);
+    auto res = steer(connector, buffer_, nearest->data().state, target, trials);
+    if (!res.has_value()) {
+      return std::nullopt;
+    }
+
+    if (res->target_reached) {
+      return ExtendResult{true, nearest};
+    }
+
+    else {
+      // TODO IsExtendable concept here
+      const Node *added = tree.internalize(std::span<const float>{buffer_},
+                                           *nearest, res->cost2Go);
+      return ExtendResult{false, added};
+    }
+  }
+
+  // // template <Tree T, Connector C, bool IsDeterministic>
+  // // std::optional<SteerResult> extend_star(std::span<const float> target, T
+  // // &tree,
+  // //                                        const C &connector,
+  // //                                        std::vector<Rewire> &rewires);
+
+private:
+  DeterministicSteerRegisterHash register_;
+  std::vector<float> buffer_;
+};
 } // namespace mt_rrt
