@@ -7,37 +7,34 @@
 
 #pragma once
 
-#include <MT-RRT/Extender.h>
+#include <MT-RRT/extend/Extend.h>
 
 namespace mt_rrt {
-class SimpleSolution : public Solution {
-public:
-  SimpleSolution(const Node *byPassNode, float cost2Target, const View &target)
-      : byPassNode{byPassNode}, cost2Target(cost2Target), target(target){};
-
-  std::vector<std::vector<float>> getSequence() const final;
-
-  float cost() const final;
-
-  const Node *byPassNode;
-  float cost2Target;
-  View target;
-};
-
-class ExtenderSingle : public Extender {
+template <typename T, Connector C> class ExtenderSingle : public Extender {
 public:
   std::vector<float> target;
   TreeHandlerPtr tree_handler;
 
-  ExtenderSingle(TreeHandlerPtr handler, const std::vector<float> &target);
+  ExtenderSingle(T tree, C &conn, std::span<const float> target);
 
-  std::vector<TreeHandlerPtr> dumpTrees() final {
-    std::vector<TreeHandlerPtr> res;
-    res.emplace_back(std::move(tree_handler));
-    return res;
-  }
+  Nodes extractNodes();
 
-protected:
-  void search_iteration() final;
+  void extend();
+
+  struct Solution {
+    const Node *byPassNode;
+    float cost2Target;
+  };
+
+  auto target() const { return target_; }
+
+  const auto &solutions() const { return solutions_; }
+
+private:
+  C &connector_;
+  std::span<const float> target_;
+  T tree_;
+
+  std::vector<Solution> solutions_;
 };
 } // namespace mt_rrt

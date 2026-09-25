@@ -63,12 +63,13 @@ struct ExtendResult {
 
 class Extender {
 protected:
-  Extender() = default;
+  Extender(bool star_extend_enabled, const SteerIterations &trials);
+
+  bool shallBeDeterministic();
 
   template <typename T, Connector C, bool IsDeterministic>
   std::optional<ExtendResult> extend(std::span<const float> target, T &tree,
-                                     const C &connector,
-                                     const SteerIterations &trials) requires
+                                     const C &connector) requires
       tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
     const Node *nearest = find_nearest_neighbour(target, tree, connector);
     if (!nearest) {
@@ -83,10 +84,12 @@ protected:
     }
 
     auto res =
-        steer(connector, state_buffer_, nearest->data().state, target, trials);
+        steer(connector, state_buffer_, nearest->data().state, target, trials_);
     if (!res.has_value()) {
       return std::nullopt;
     }
+
+    // TODO star_extend_enabled_ ... use internal rewiring_
 
     if (res->target_reached) {
       return ExtendResult{true, nearest};
@@ -99,22 +102,12 @@ protected:
     }
   }
 
-  template <typename T, Connector C, bool IsDeterministic>
-  std::optional<ExtendResult>
-  extend_star(std::span<const float> target, T &tree, const C &connector,
-              const SteerIterations &trials) requires
-      tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
-    auto res = extend<T, C, IsDeterministic>(target, tree, connector, trials);
-    if (!res.has_value()) {
-      return std::nullopt;
-    }
-
-    // TODO, reusing the internal rewiring_
-
-    return res;
-  }
-
 private:
+  SteerIterations trials_;
+
+  // TODO determinism sampler
+  bool star_extend_enabled_{false};
+
   DeterministicSteerRegisterHash register_;
   std::vector<float> state_buffer_;
   Rewiring rewiring_;
