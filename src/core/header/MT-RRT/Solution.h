@@ -10,6 +10,8 @@
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Types.h>
 
+#include <optional>
+
 namespace mt_rrt {
 class Solution {
 public:

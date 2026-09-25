@@ -34,6 +34,8 @@ concept Connector = requires(const C obj_const, std::span<const float> start,
    */
   { obj_const.minCost2Go(start, target) } -> std::same_as<Positive>;
 
+  typename C::trajectory_type;
+
   /**
    * @param the starting state
    * @param the ending state
@@ -42,7 +44,7 @@ concept Connector = requires(const C obj_const, std::span<const float> start,
    */
   {
     obj_const.getTrajectory(start, target)
-    } -> std::same_as<std::optional<typename C::Trajectory>>;
+    } -> std::same_as<std::optional<typename C::trajectory_type>>;
 }
 &&std::is_base_of_v<Copiable<C>, C>;
 } // namespace mt_rrt

@@ -56,13 +56,10 @@ void sort_solutions(Solutions &subject) {
 }
 
 std::optional<Solution> find_best_solution(const Solutions &subject) {
-  if (subject.empty()) {
-    return std::nullopt;
-  };
-
-  auto &best = *std::min_element(
+  auto it = std::min_element(
       subject.begin(), subject.end(),
       [](const auto &a, const auto &b) { return a.cost() < b.cost(); });
-  return std::make_optional(best);
+
+  return it == subject.end() ? std::nullopt : std::make_optional(*it);
 }
 } // namespace mt_rrt

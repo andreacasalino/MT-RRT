@@ -65,7 +65,7 @@ class Extender {
 protected:
   Extender(bool star_extend_enabled, const SteerIterations &trials);
 
-  bool shallBeDeterministic();
+  bool shallThisBeDeterministic();
 
   template <typename T, Connector C, bool IsDeterministic>
   std::optional<ExtendResult> extend(std::span<const float> target, T &tree,

@@ -12,9 +12,6 @@
 namespace mt_rrt {
 template <typename T, Connector C> class ExtenderSingle : public Extender {
 public:
-  std::vector<float> target;
-  TreeHandlerPtr tree_handler;
-
   ExtenderSingle(T tree, C &conn, std::span<const float> target);
 
   Nodes extractNodes();
