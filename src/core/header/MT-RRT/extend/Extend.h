@@ -62,13 +62,14 @@ struct ExtendResult {
 };
 
 class Extender {
-public:
+protected:
   Extender() = default;
 
   template <typename T, Connector C, bool IsDeterministic>
   std::optional<ExtendResult> extend(std::span<const float> target, T &tree,
                                      const C &connector,
-                                     const SteerIterations &trials) {
+                                     const SteerIterations &trials) requires
+      tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
     const Node *nearest = find_nearest_neighbour(target, tree, connector);
     if (!nearest) {
       return std::nullopt;
@@ -81,7 +82,8 @@ public:
       }
     }
 
-    auto res = steer(connector, buffer_, nearest->data().state, target, trials);
+    auto res =
+        steer(connector, state_buffer_, nearest->data().state, target, trials);
     if (!res.has_value()) {
       return std::nullopt;
     }
@@ -91,21 +93,30 @@ public:
     }
 
     else {
-      // TODO IsExtendable concept here
-      const Node *added = tree.internalize(std::span<const float>{buffer_},
-                                           *nearest, res->cost2Go);
+      const Node *added = tree.internalize(
+          std::span<const float>{state_buffer_}, *nearest, res->cost2Go);
       return ExtendResult{false, added};
     }
   }
 
-  // // template <Tree T, Connector C, bool IsDeterministic>
-  // // std::optional<SteerResult> extend_star(std::span<const float> target, T
-  // // &tree,
-  // //                                        const C &connector,
-  // //                                        std::vector<Rewire> &rewires);
+  template <typename T, Connector C, bool IsDeterministic>
+  std::optional<ExtendResult>
+  extend_star(std::span<const float> target, T &tree, const C &connector,
+              const SteerIterations &trials) requires
+      tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
+    auto res = extend<T, C, IsDeterministic>(target, tree, connector, trials);
+    if (!res.has_value()) {
+      return std::nullopt;
+    }
+
+    // TODO, reusing the internal rewiring_
+
+    return res;
+  }
 
 private:
   DeterministicSteerRegisterHash register_;
-  std::vector<float> buffer_;
+  std::vector<float> state_buffer_;
+  Rewiring rewiring_;
 };
 } // namespace mt_rrt
