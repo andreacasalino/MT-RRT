@@ -18,10 +18,10 @@ public:
   ExtenderSingle(std::span<const float> target, T tree, C &conn,
                  const S &sampler);
 
-  T extract() { return std::move(tree_); }
+  T tree_;
 
   struct Solution {
-    Node &pivot;
+    const Node &pivot;
     float costTot;
     Positve cost2Target;
 
@@ -52,7 +52,6 @@ public:
 
 private:
   std::span<const float> target_;
-  T tree_;
   C &connector_;
   const S &sampler_;
   std::vector<float> sample_buffer_;

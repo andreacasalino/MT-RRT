@@ -7,43 +7,69 @@
 
 #pragma once
 
-#include <MT-RRT/Extender.h>
+#include <MT-RRT/Extend.h>
+#include <MT-RRT/Sampler.h>
+#include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
-class BidirSolution : public Solution {
-public:
-  BidirSolution(const Node *byPassFront, const Node *byPassBack,
-                float cost2Back)
-      : byPassFront{byPassFront}, byPassBack{byPassBack}, cost2Back{
-                                                              cost2Back} {};
+// class BidirSolution : public Solution {
+// public:
+//   BidirSolution(const Node *byPassFront, const Node *byPassBack,
+//                 float cost2Back)
+//       : byPassFront{byPassFront}, byPassBack{byPassBack}, cost2Back{
+//                                                               cost2Back} {};
 
-  std::vector<std::vector<float>> getSequence() const final;
+//   std::vector<std::vector<float>> getSequence() const final;
 
-  float cost() const final;
+//   float cost() const final;
 
-  const Node *byPassFront;
-  const Node *byPassBack;
-  float cost2Back;
-};
+//   const Node *byPassFront;
+//   const Node *byPassBack;
+//   float cost2Back;
+// };
 
+template <typename T, Connector C, Sampler S>
 class ExtenderBidirectional : public Extender {
 public:
-  TreeHandlerPtr front_handler;
-  TreeHandlerPtr back_handler;
+  ExtenderBidirectional(T first, T second, C &conn, const S &sampler);
 
-  ExtenderBidirectional(TreeHandlerPtr front, TreeHandlerPtr back);
+  std::pair<T, T> trees_;
 
-  std::vector<TreeHandlerPtr> dumpTrees() final {
-    std::vector<TreeHandlerPtr> res;
-    res.emplace_back(std::move(front_handler));
-    res.emplace_back(std::move(back_handler));
-    return res;
-  };
+  void extend() {
+    std::optional<DeterministicTargetReached> res_master;
+    if (shallThisBeDeterministic()) {
+      res_master = this->Extender::extend<T, C, true>(
+          slave_->root()->data().state, *master_, connector_);
+    } else {
+      sampler_.sampleState(sample_buffer_);
+      res_master = this->Extender::extend<T, C, false>(
+          std::span<const float>{sample_buffer_}, *master_, connector_);
+    }
 
-protected:
-  void search_iteration() final;
+    if (res_master.has_value()) {
+      // new solution
+      // TODO master reached slave root directly
+    }
+
+    std::optional<DeterministicTargetReached> res_slave;
+    res_master = this->Extender::extend<T, C, true>(
+        ??, *slave_, connector_);
+
+    if (res_slave.has_value()) {
+      // new solution
+      // TODO master reached slave root directly
+    }
+
+    std::swap(master_, slave_);
+  }
 
 private:
-  bool extension_state = false; // if true master is front, slave is back
+  T *master_;
+  T *slave_;
+
+  C &connector_;
+  const S &sampler_;
+  std::vector<float> sample_buffer_;
+  std::vector<Solution> solutions_;
 };
 } // namespace mt_rrt
