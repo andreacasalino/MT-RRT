@@ -7,31 +7,41 @@
 
 #pragma once
 
-#include <MT-RRT/extend/Extend.h>
+#include <MT-RRT/Extend.h>
+#include <MT-RRT/Sampler.h>
+#include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
-template <typename T, Connector C> class ExtenderSingle : public Extender {
+template <typename T, Connector C, Sampler S>
+class ExtenderSingle : public Extender {
 public:
-  ExtenderSingle(T tree, C &conn, std::span<const float> target);
+  ExtenderSingle(std::span<const float> target, T tree, C &conn,
+                 const S &sampler);
 
-  Nodes extractNodes();
+  T extract() { return std::move(tree_); }
 
-  void extend();
+  void extend() {
+    std::optional<DeterministicTargetReached> res;
+    if (shallThisBeDeterministic()) {
+      res = this->Extender::extend(target_, tree_, connector_);
+    } else {
+      sampler_.sampleState(sample_buffer_);
+      res = this->Extender::extend(std::span<const float>{sample_buffer_},
+                                   tree_, connector_);
+    }
 
-  struct Solution {
-    const Node *byPassNode;
-    float cost2Target;
-  };
+    if (res.has_value()) {
+      // new solution
+    }
+  }
 
   auto target() const { return target_; }
 
-  const auto &solutions() const { return solutions_; }
-
 private:
-  C &connector_;
   std::span<const float> target_;
   T tree_;
-
-  std::vector<Solution> solutions_;
+  C &connector_;
+  const S &sampler_;
+  std::vector<float> sample_buffer_;
 };
 } // namespace mt_rrt
