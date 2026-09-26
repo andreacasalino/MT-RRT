@@ -95,14 +95,10 @@ protected:
     return std::nullopt;
   }
 
-  void addSolution(Solution sol) { solutions_.emplace_back(std::move(sol)); }
-  const auto &solutions() const { return solutions_; }
-
 private:
   bool star_extend_enabled_{false};
   DeterminismRegulator determinism_;
   DeterministicSteerRegisterHash determinism_register_;
-  std::vector<Solution> solutions_;
 
   // scratch buffers
   std::vector<float> steer_buffer_;
