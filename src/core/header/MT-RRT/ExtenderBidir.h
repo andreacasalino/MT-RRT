@@ -18,7 +18,7 @@ struct ExtenderBidirectionalSolution {
   // node from the second tree
   const Node &back;
   float costTot;
-  Positve cost2Bridge;
+  Positive cost2Bridge;
 
   mt_rrt::Solution materialize() const;
 };
