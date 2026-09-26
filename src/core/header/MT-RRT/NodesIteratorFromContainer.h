@@ -7,19 +7,9 @@
 
 #pragma once
 
-#include <MT-RRT/concepts/NodesIterator.h>
+#include <MT-RRT/Node.h>
 
 namespace mt_rrt {
-template <NodesIterator N, typename Pred> void for_each_nodes(N it, Pred pred) {
-  while (true) {
-    if (const Node *next = it.next(); next) {
-      pred(next);
-    } else {
-      break;
-    }
-  }
-}
-
 template <typename Container> class NodesIteratorFromContainer {
 public:
   NodesIteratorFromContainer(const Container &container)
@@ -28,11 +18,11 @@ public:
 
   std::size_t size() const { return size_; }
 
-  const Node *next() {
+  const Node &next() {
     if (current_ == end_) {
       return nullptr;
     } else {
-      const Node *res = &(*current_);
+      const Node &res = *current_;
       ++current_;
       return res;
     }
