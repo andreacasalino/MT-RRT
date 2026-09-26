@@ -23,7 +23,7 @@ struct KeepSearchPredicate {
   ExpansionStrategy strategy;
   std::atomic_bool one_solution_was_found = false;
 
-  bool operator()(std::size_t iter) const;
+  bool keepSearch(std::size_t iter) const;
 };
 
 class DeterminismRegulator {
