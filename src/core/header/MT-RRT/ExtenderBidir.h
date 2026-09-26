@@ -12,22 +12,6 @@
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
-// class BidirSolution : public Solution {
-// public:
-//   BidirSolution(const Node *byPassFront, const Node *byPassBack,
-//                 float cost2Back)
-//       : byPassFront{byPassFront}, byPassBack{byPassBack}, cost2Back{
-//                                                               cost2Back} {};
-
-//   std::vector<std::vector<float>> getSequence() const final;
-
-//   float cost() const final;
-
-//   const Node *byPassFront;
-//   const Node *byPassBack;
-//   float cost2Back;
-// };
-
 template <typename T, Connector C, Sampler S>
 class ExtenderBidirectional : public Extender {
 public:
