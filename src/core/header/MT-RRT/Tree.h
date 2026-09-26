@@ -7,11 +7,11 @@
 
 #pragma once
 
+#include <MT-RRT/Connector.h>
+#include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Node.h>
+#include <MT-RRT/NodesIterator.h>
 #include <MT-RRT/Solution.h>
-#include <MT-RRT/concepts/Connector.h>
-#include <MT-RRT/concepts/NodesIterator.h>
-#include <MT-RRT/extend/ExtendTypes.h>
 
 namespace mt_rrt {
 namespace tree {
@@ -32,7 +32,8 @@ concept HasCustomQueries = requires(const T obj_const,
 
   { obj_const.nearestNeighbour(state, conn) } -> std::same_as<NearestNeighbour>;
 }
-&&requires(const T obj_const, const C &conn, Rewiring &recipient) {
+&&requires(const T obj_const, const C &conn,
+           std::vector<NearSetElement> &recipient) {
   requires Connector<C>;
 
   { obj_const.nearSet(recipient, conn) } -> std::same_as<void>;
@@ -43,7 +44,7 @@ concept HasIterOrCustomQueries = HasIter<T> || HasCustomQueries<T, C>;
 
 template <typename T, typename C>
 concept HasCustomRewiring = requires(T obj, const C &conn,
-                                     const Rewiring &rew) {
+                                     const std::vector<Rewire> &rew) {
   requires Connector<C>;
 
   { obj.applyRewiring(rew, conn) } -> std::same_as<void>;
