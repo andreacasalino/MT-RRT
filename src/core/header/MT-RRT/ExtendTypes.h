@@ -8,9 +8,7 @@
 #pragma once
 
 #include <MT-RRT/Node.h>
-#include <MT-RRT/NodesIterator.hxx>
 #include <MT-RRT/Random.h>
-#include <MT-RRT/concepts/Connector.h>
 
 #include <algorithm>
 #include <atomic>
@@ -134,8 +132,8 @@ struct DeterministicSteerRegisterHash {
 // contains the register of nodes that were already deterministically
 // steered over a certain state
 //
-// keys are the steered node, while the values are the states
-// toward which the node were deterministically steered
+// keys are the pair steered node - the states toward which the node were
+// deterministically steered
 using DeterministicSteerRegister =
     std::unordered_set<std::pair<const Node *, const float *>,
                        DeterministicSteerRegisterHash>;
