@@ -31,7 +31,7 @@ public:
   };
 
   void extend() {
-    std::optional<DeterministicTargetReached> res_master;
+    ExtendResult res_master;
     if (shallThisBeDeterministic()) {
       res_master = this->Extender::extend<T, C, true>(
           slave_->root()->data().state, *master_, connector_);
@@ -41,18 +41,38 @@ public:
           std::span<const float>{sample_buffer_}, *master_, connector_);
     }
 
-    if (res_master.has_value()) {
-      // new solution
-      // TODO master reached slave root directly
-    }
+    const Node *master_added = std::visit(
+        [](const auto &res_master) {
+          if constexpr (std::is_same_v<decltype(res_master),
+                                       const DeterministicTargetReached &>) {
+            // new solution
+            // TODO master reached slave root directly
+            return nullptr;
+          }
 
-    std::optional<DeterministicTargetReached> res_slave;
-    res_master = this->Extender::extend<T, C, true>(
-        ??, *slave_, connector_);
+          else if constexpr (std::is_same_v<decltype(res_master),
+                                            const Steered &>) {
+            return &res_master.added;
 
-    if (res_slave.has_value()) {
-      // new solution
-      // TODO master reached slave root directly
+          }
+
+          else {
+            return nullptr;
+          }
+        },
+        res_master);
+
+    if (master_added) {
+      ExtendResult res_slave;
+      res_master = this->Extender::extend<T, C, true>(
+          master_added->data().state, *slave_, connector_);
+
+      if (const DeterministicTargetReached *trg_reached =
+              std::get_if<DeterministicTargetReached>(&res_slave);
+          trg_reached) {
+        // new solution
+        // TODO master reached slave root directly
+      }
     }
 
     std::swap(master_, slave_);

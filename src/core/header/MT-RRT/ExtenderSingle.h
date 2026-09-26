@@ -29,7 +29,7 @@ public:
   };
 
   void extend() {
-    std::optional<DeterministicTargetReached> res;
+    ExtendResult res;
     if (shallThisBeDeterministic()) {
       res = this->Extender::extend<T, C, true>(target_, tree_, connector_);
     } else {
@@ -38,11 +38,13 @@ public:
           std::span<const float>{sample_buffer_}, tree_, connector_);
     }
 
-    if (res.has_value()) {
-      // new solution
+    if (const DeterministicTargetReached *trg_reached =
+            std::get_if<DeterministicTargetReached>(&res);
+        trg_reached) {
       solutions_.emplace_back(
-          Solution{res->parent, res->parent.cost2Root().get() + res->cost2Go,
-                   res->cost2Go});
+          Solution{trg_reached->parent,
+                   trg_reached->parent.cost2Root().get() + trg_reached->cost2Go,
+                   trg_reached->cost2Go});
     }
   }
 

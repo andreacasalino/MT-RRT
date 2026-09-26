@@ -17,24 +17,6 @@
 #include <variant>
 
 namespace mt_rrt {
-template <typename T, Connector C>
-const Node *find_nearest_neighbour(
-    std::span<const float> state, const T &tree,
-    const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
-
-  if constexpr (tree::HasCustomQueries<T, C>) {
-    return tree.nearestNeighbour(state, connector).closest;
-  }
-
-  else if constexpr (tree::HasIter<T>) {
-    NearestNeighbour query{state};
-    for_each_nodes(tree.iter(), [&](const Node &candidate) {
-      query.update(candidate, connector);
-    });
-    return query.closest;
-  }
-}
-
 class Extender {
 protected:
   Extender(bool star_extend_enabled, Determinism det);
@@ -103,6 +85,24 @@ protected:
   }
 
 private:
+  template <typename T, Connector C>
+  const Node *find_nearest_neighbour(
+      std::span<const float> state, const T &tree,
+      const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
+
+    if constexpr (tree::HasCustomQueries<T, C>) {
+      return tree.nearestNeighbour(state, connector).closest;
+    }
+
+    else if constexpr (tree::HasIter<T>) {
+      NearestNeighbour query{state};
+      for_each_nodes(tree.iter(), [&](const Node &candidate) {
+        query.update(candidate, connector);
+      });
+      return query.closest;
+    }
+  }
+
   bool star_extend_enabled_{false};
   DeterminismRegulator determinism_;
   DeterministicSteerRegisterHash determinism_register_;
