@@ -19,6 +19,7 @@ NearestNeighbour find_nearest_neighbour(
     std::span<const float> state, const T &tree,
     const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
 
+  // TODO first check if custom queries existing for T
   if constexpr (tree::HasIter<T>) {
     NearestNeighbour query;
     for_each_nodes(tree.iter(), [](const Node *candidate) {

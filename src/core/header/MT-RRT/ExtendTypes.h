@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <MT-RRT/Connector.h>
 #include <MT-RRT/Node.h>
 #include <MT-RRT/Random.h>
 #include <MT-RRT/Types.h>
@@ -79,6 +80,20 @@ struct NearSetElement {
   const Node *element;
   Positive cost2Root;
   Positive cost2go;
+};
+
+struct NearSetHandler {
+  NearSetHandler(float r, Node &pvt, std::vector<NearSetElement> &set)
+      : ray{r}, pivot{pvt}, near_set{set} {
+    near_set.clear();
+  }
+
+  // TODO compute cost and if below ray add to the set
+  template <Connector C> void tryAdd(Node &node, C &connector);
+
+  float ray;
+  Node &pivot;
+  std::vector<NearSetElement> &near_set;
 };
 
 struct Rewire {

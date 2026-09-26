@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <MT-RRT/Connector.h>
 #include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Tree.h>
 
@@ -14,53 +15,37 @@ namespace mt_rrt {
 struct Rewiring {
   Rewiring(float gamma, std::size_t state_space_size);
 
-  void reset(std::span<const float> pivot, std::size_t tree_size);
-
-  // TODO
-  // - internally compute near set getting from outside the connector and tree,
-  // then compute rewires without executing them
-  // - once done, get the computed rewires and apply them (from outside)
-
   template <Connector C, typename T>
-  void
-  update(const T &tree,
-         Connector &connector); // internally check it Tree has iter() or not
+  void update(Node &pivot, const T &tree, C &connector) {
+    pivot_ = pivot;
 
-  // template <Connector C>
-  // void updateNearSet(const Node &candidate, const C &connector) {
-  //   if (connector.minCost2Go(candidate.state(), state_pivot) <= ray) {
-  //     float cost2Go =
-  //         connector.minCost2GoConstrained(candidate.state(), state_pivot);
-  //     if (cost2Go == COST_MAX)
-  //       return;
-  //     set.emplace_back(NearSetElement{candidate.getParent() == nullptr,
-  //                                     &candidate, candidate.cost2Root(),
-  //                                     cost2Go});
-  //   }
-  // }
+    NearSetHandler ns_hndlr{...};
+    if constexpr (HasCustomQueries<T, C>) {
+      tree.nearSet(ns_hndlr, connector);
+    } else {
+      // TODO iter the tree and compute the near set
+    }
 
-  // // // void compute_rewires(Node &candidate, NearSet &&near_set,
-  // // //                      const DescriptionAndParameters &context);
+    rewires_.clear();
+    computeRewires(pivot, connector);
 
-  // // // // For each rewire cancidate, it applies it only if that is actually
-  // beffer
-  // // // // than current connections
-  // // // void apply_rewires(const Node &parent, const std::vector<Rewire>
-  // &rewires);
+    if constexpr (HasCustomRewiring<T, C>) {
+      tree.applyRewiring(pivot, rewires_, connector);
+    } else {
+      // TODO apply rewires one by one
+    }
+  }
 
-  // scratch buffers
-  struct Data {
-    Node pivot;
-    std::vector<NearSetElement> near_set;
-    std::vector<Rewire> rewires;
-  };
-
-  const auto &get() const { return data_; }
+  const auto &getRewires() const { return rewires_; }
 
 private:
+  template <Connector C> void computeRewires(Node &pivot, C &connector);
+
   float gamma_;
   std::size_t state_space_size_;
 
-  Data data_;
+  // scratch buffers
+  std::vector<NearSetElement> near_set_;
+  std::vector<Rewire> rewires_;
 };
 } // namespace mt_rrt

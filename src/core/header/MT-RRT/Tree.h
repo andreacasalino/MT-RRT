@@ -32,8 +32,7 @@ concept HasCustomQueries = requires(const T obj_const,
 
   { obj_const.nearestNeighbour(state, conn) } -> std::same_as<NearestNeighbour>;
 }
-&&requires(const T obj_const, const C &conn,
-           std::vector<NearSetElement> &recipient) {
+&&requires(const T obj_const, const C &conn, NearSetHandler recipient) {
   requires Connector<C>;
 
   { obj_const.nearSet(recipient, conn) } -> std::same_as<void>;
@@ -43,11 +42,11 @@ template <typename T, typename C>
 concept HasIterOrCustomQueries = HasIter<T> || HasCustomQueries<T, C>;
 
 template <typename T, typename C>
-concept HasCustomRewiring = requires(T obj, const C &conn,
+concept HasCustomRewiring = requires(T obj, const C &conn, const Node &pivot,
                                      const std::vector<Rewire> &rew) {
   requires Connector<C>;
 
-  { obj.applyRewiring(rew, conn) } -> std::same_as<void>;
+  { obj.applyRewiring(pivot, rew, conn) } -> std::same_as<void>;
 };
 
 template <typename T>
