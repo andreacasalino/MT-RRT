@@ -79,6 +79,8 @@ public:
     std::swap(master_, slave_);
   }
 
+  const auto &getSolutions() const { return solutions_; }
+
 private:
   T *master_;
   T *slave_;
