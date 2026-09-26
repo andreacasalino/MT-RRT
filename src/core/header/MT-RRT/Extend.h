@@ -7,110 +7,104 @@
 
 #pragma once
 
-#include <MT-RRT/Connector.hxx>
-#include <MT-RRT/concepts/Tree.h>
-#include <MT-RRT/extend/ExtendTypes.h>
+#include <MT-RRT/Connector.h>
+#include <MT-RRT/ExtendTypes.h>
+#include <MT-RRT/Rewiring.h>
+#include <MT-RRT/Tree.h>
 
 #include <deque>
+#include <variant>
 
 namespace mt_rrt {
 template <typename T, Connector C>
-NearestNeighbour find_nearest_neighbour(
+const Node *find_nearest_neighbour(
     std::span<const float> state, const T &tree,
     const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
 
-  // TODO first check if custom queries existing for T
-  if constexpr (tree::HasIter<T>) {
-    NearestNeighbour query;
-    for_each_nodes(tree.iter(), [](const Node *candidate) {
-      float cost2Go = connector.minCost2Go(candidate->data().state, state);
-      query.update(*candidate, cost2Go);
-    });
-    return query;
+  if constexpr (tree::HasCustomQueries<T, C>) {
+    return tree.nearestNeighbour(state, connector).closest;
   }
 
-  else {
-    return tree.nearestNeighbour(state, connector);
+  else if constexpr (tree::HasIter<T>) {
+    NearestNeighbour query{state};
+    for_each_nodes(tree.iter(), [&](const Node &candidate) {
+      query.update(candidate, connector);
+    });
+    return query.closest;
   }
 }
 
-template <typename T, Connector C>
-void get_near_set(
-    Rewiring &recipient, std::span<const float> state, const T &tree,
-    const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
-
-  if constexpr (tree::HasIter<T>) {
-    auto it = tree.iter();
-    recipient.updateFirstStep(state, it.size());
-    for_each_nodes(std::move(it), [](const Node *candidate) {
-      recipient.update(*candidate, connector);
-    });
-  }
-
-  else {
-    tree.nearSet(recipient, connector);
-  }
-}
-
-struct ExtendResult {
-  bool target_reached{false};
-
-  // when target_reached = true  => the node from which the extension was
-  // possible
-  //
-  // when target_reached = false => the actually created node
-  const Node *node;
+namespace extend_result {
+struct NotPossible {};
+struct TargetReached {
+  Positive cost2Go;
+  const Node &parent;
 };
+struct TreeSteered {
+  const Node &steered;
+};
+} // namespace extend_result
+using ExtendResult =
+    std::variant<extend_result::NotPossible, extend_result::TargetReached,
+                 extend_result::TreeSteered>;
 
 class Extender {
 protected:
-  Extender(bool star_extend_enabled, const SteerIterations &trials);
+  Extender(bool star_extend_enabled, Determinism det);
 
-  bool shallThisBeDeterministic();
+  bool shallThisBeDeterministic() {
+    return determinism_.shallThisBeDeterministic();
+  }
 
   template <typename T, Connector C, bool IsDeterministic>
-  std::optional<ExtendResult> extend(std::span<const float> target, T &tree,
-                                     const C &connector) requires
+  ExtendResult extend(std::span<const float> target, T &tree,
+                      C &connector) requires
       tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
     const Node *nearest = find_nearest_neighbour(target, tree, connector);
     if (!nearest) {
-      return std::nullopt;
+      return extend_result::NotPossible;
     }
     if constexpr (IsDeterministic) {
       bool is_new =
           register_.emplace(std::make_pair(nearest, target.data())).first;
       if (is_new) {
-        return std::nullopt;
+        return extend_result::NotPossible;
       }
     }
 
-    auto res =
-        steer(connector, state_buffer_, nearest->data().state, target, trials_);
-    if (!res.has_value()) {
-      return std::nullopt;
+    auto traj = connector.makeTrajectory(nearest->data().state, target);
+    if (!traj.has_value()) {
+      return extend_result::NotPossible;
     }
 
-    // TODO star_extend_enabled_ ... use internal rewiring_
-
-    if (res->target_reached) {
-      return ExtendResult{true, nearest};
+    auto steer_result = traj->traverse(steer_buffer_);
+    if (!steer_result.has_value()) {
+      return extend_result::NotPossible;
+    }
+    if (steer_result->target_was_reached) {
+      return extend_result::TargetReached{steer_result->cost2Go, *nearest};
     }
 
-    else {
-      const Node *added = tree.internalize(
-          std::span<const float>{state_buffer_}, *nearest, res->cost2Go);
-      return ExtendResult{false, added};
+    const Node *steer_node =
+        tree.internalize(steer_buffer_, *nearest, steer_result->cost2Go);
+
+    if (star_extend_enabled_ && !steer_result->target_was_reached) {
+      /////////////// star rewiring ///////////////
+      rewiring_.update(*steer_node, tree, connector);
     }
+
+    return extend_result::TreeSteered{.steered = *steer_node};
   }
 
+  const auto &getRewires() const { return rewiring_.getRewires(); }
+
 private:
-  SteerIterations trials_;
-
-  // TODO determinism sampler
   bool star_extend_enabled_{false};
+  DeterminismRegulator determinism_;
+  DeterministicSteerRegisterHash determinism_register_;
 
-  DeterministicSteerRegisterHash register_;
-  std::vector<float> state_buffer_;
+  // scratch buffers
+  std::vector<float> steer_buffer_;
   Rewiring rewiring_;
 };
 } // namespace mt_rrt

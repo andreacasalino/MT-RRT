@@ -19,6 +19,7 @@ struct Rewiring {
   void update(Node &pivot, const T &tree, C &connector) {
     pivot_ = pivot;
 
+    rewires_.clear();
     NearSetHandler ns_hndlr{...};
     if constexpr (HasCustomQueries<T, C>) {
       tree.nearSet(ns_hndlr, connector);
@@ -26,7 +27,6 @@ struct Rewiring {
       // TODO iter the tree and compute the near set
     }
 
-    rewires_.clear();
     computeRewires(pivot, connector);
 
     if constexpr (HasCustomRewiring<T, C>) {

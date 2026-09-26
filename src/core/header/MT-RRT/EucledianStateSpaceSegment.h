@@ -23,7 +23,7 @@ public:
   /**
    * @brief tunneled advancement see TODO Chapter
    */
-  std::optional<TraverseResult> traverse();
+  std::optional<TraverseResult> traverse(std::vector<float> &steer_buffer);
 
 private:
   EucledianConnector<Constraints> &source_;
@@ -50,6 +50,5 @@ public:
 private:
   float quantized_advancement_;
   Constraints constraints_;
-  std::vector<float> advance_buffer_;
 };
 } // namespace mt_rrt

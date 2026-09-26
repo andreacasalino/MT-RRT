@@ -17,12 +17,6 @@ struct TraverseResult {
   bool target_was_reached;
 
   /**
-   * the last valid state along \tau, that is reachable accounting for
-   * all constraints
-   */
-  std::span<float> reached_state;
-
-  /**
    * the total cost to go from the starting state to the rached one
    */
   Positive cost2Go;
@@ -36,7 +30,8 @@ struct TraverseResult {
  * trajectory.
  */
 template <typename T>
-concept Trajectory = requires(T obj, const T obj_const) {
+concept Trajectory = requires(T obj, const T obj_const,
+                              std::vector<float> &reached) {
   /**
    * @return the cost C(\tau), Section 1.2 of the documentation, to traverse the
    * optimal trajectory connecting the passed pair of states. This cost does not
@@ -44,6 +39,10 @@ concept Trajectory = requires(T obj, const T obj_const) {
    */
   { obj_const.minCost2Go() } -> std::same_as<Positive>;
 
-  { obj.traverse() } -> std::same_as<std::optional<TraverseResult>>;
+  /**
+   * @param the last valid state along \tau, that is reachable accounting for
+   * all constraints
+   */
+  { obj.traverse(reached) } -> std::same_as<std::optional<TraverseResult>>;
 };
 } // namespace mt_rrt
