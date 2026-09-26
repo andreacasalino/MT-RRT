@@ -26,6 +26,8 @@ concept Connector = requires(C obj, std::span<const float> start,
                              std::span<const float> target) {
   typename C::trajectory_type;
 
+  requires Trajectory<typename C::trajectory_type>;
+
   /**
    * @param the starting state
    * @param the ending state

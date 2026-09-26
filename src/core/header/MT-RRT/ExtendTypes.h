@@ -64,10 +64,15 @@ using DeterministicSteerRegister =
                        DeterministicSteerRegisterHash>;
 
 struct NearestNeighbour {
+  std::span<const float> state_to_reach;
   const Node *closest = nullptr;
   float closestCost = COST_MAX;
 
-  void update(const Node &candidate, float cost2Go) {
+  template <Connector C> void update(const Node &candidate, C &connector) {
+    auto cost2Go =
+        connector.makeTrajectory(candidate.data().state, state_to_reach)
+            .minCost2Go()
+            .get();
     if (cost2Go < closestCost) {
       closest = &candidate;
       closestCost = cost2Go;
@@ -83,13 +88,30 @@ struct NearSetElement {
 };
 
 struct NearSetHandler {
-  NearSetHandler(float r, Node &pvt, std::vector<NearSetElement> &set)
-      : ray{r}, pivot{pvt}, near_set{set} {
+  static float nearSetRay(std::size_t tree_size, std::size_t problem_size,
+                          const Positive &gamma) {
+    const float tree_size_float = static_cast<float>(tree_size);
+    return gamma.get() * powf(logf(tree_size_float) / tree_size_float,
+                              1.f / static_cast<float>(problem_size));
+  }
+
+  NearSetHandler(Positive r, Node &pvt, std::vector<NearSetElement> &set)
+      : ray{r.get()}, pivot{pvt}, near_set{set} {
     near_set.clear();
   }
 
-  // TODO compute cost and if below ray add to the set
-  template <Connector C> void tryAdd(Node &node, C &connector);
+  template <Connector C> void tryAdd(Node &node, C &connector) {
+    auto traj =
+        connector.makeTrajectory(candidate.data().state, state_to_reach);
+    if (traj.has_value() && traj->minCost2Go().get() <= ray) {
+      auto traversed = traj->traverse();
+      if (traversed.has_value()) {
+        float cost2Go = traversed->cost2Go.get();
+        set.emplace_back(NearSetElement{node.data().parent == nullptr, &node,
+                                        node.cost2Root(), cost2Go});
+      }
+    }
+  }
 
   float ray;
   Node &pivot;
