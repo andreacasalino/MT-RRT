@@ -46,19 +46,4 @@ public:
 private:
   Data data_;
 };
-
-namespace detail {
-class NodeOwningStorage {
-protected:
-  NodeOwningStorage(std::vector<float> allocated_state);
-
-private:
-  std::vector<float> storage_;
-};
-} // namespace detail
-
-class NodeOwning : public detail::NodeOwningStorage, public Node {
-public:
-  NodeOwning(std::vector<float> state);
-};
 } // namespace mt_rrt

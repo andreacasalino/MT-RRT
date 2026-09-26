@@ -30,14 +30,4 @@ float Node::cost2Root() const {
   }
   return cost2Root;
 };
-
-namespace detail {
-NodeOwningStorage::NodeOwningStorage(std::vector<float> allocated_state)
-    : storage_{std::move(allocated_state)} {}
-} // namespace detail
-
-NodeOwning::NodeOwning(std::vector<float> state)
-    : detail::NodeOwningStorage{std::move(state)}, Node{std::span<const float>{
-                                                       storage_.begin(),
-                                                       storage_.end()}} {}
 } // namespace mt_rrt

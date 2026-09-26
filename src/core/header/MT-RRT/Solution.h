@@ -17,11 +17,7 @@ class Solution {
 public:
   Solution(std::span<const float> start);
 
-  static Solution fromTargetAndEndingState(const Node &ending,
-                                           std::span<const float> target,
-                                           Positive cost2Target);
-
-  void add(std::span<const float> next, Positive cost2Go) noexcept;
+  void add(std::span<const float> next, Positive cost2Go);
 
   auto len() const { return len_; }
 
@@ -45,10 +41,4 @@ private:
   std::size_t state_len_;
   std::vector<float> states_;
 };
-
-using Solutions = std::vector<Solution>;
-
-void sort_solutions(Solutions &subject);
-
-std::optional<Solution> find_best_solution(const Solutions &subject);
 } // namespace mt_rrt

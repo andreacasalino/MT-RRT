@@ -25,41 +25,12 @@ Solution::Solution(std::span<const float> start) : state_len_{start.size()} {
   len_ += 1;
 }
 
-void Solution::add(std::span<const float> next, Positive cost2Go) noexcept {
+void Solution::add(std::span<const float> next, Positive cost2Go) {
+  if (next.size() != state_len_) {
+    throw Error{"Invalid solution step space size"};
+  }
   cost_ += cost2Go.get();
   len_ += 1;
   states_.insert(states_.end(), next.begin(), next.end());
-}
-
-Solution Solution::fromTargetAndEndingState(const Node &ending,
-                                            std::span<const float> target,
-                                            Positive cost2Target) {
-  Solution res{target};
-  res.cost_ = cost2Target.get();
-  for (const Node *current = &ending; current;
-       current = current->data().parent) {
-    res.add(current->data().state, current->cost2Root());
-  }
-  // reverse
-  std::reverse(res.states_.begin(), res.states_.end());
-  for (std::size_t offset{0}; offset < res.states_.size();
-       offset += res.state_len_) {
-    std::reverse(res.states_.begin() + offset,
-                 res.states_.begin() + offset + res.state_len_);
-  }
-  return res;
-}
-
-void sort_solutions(Solutions &subject) {
-  std::sort(subject.begin(), subject.end(),
-            [](const auto &a, const auto &b) { return a.cost() < b.cost(); });
-}
-
-std::optional<Solution> find_best_solution(const Solutions &subject) {
-  auto it = std::min_element(
-      subject.begin(), subject.end(),
-      [](const auto &a, const auto &b) { return a.cost() < b.cost(); });
-
-  return it == subject.end() ? std::nullopt : std::make_optional(*it);
 }
 } // namespace mt_rrt
