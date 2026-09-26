@@ -12,23 +12,23 @@
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
+struct ExtenderBidirectionalSolution {
+  // node from the first tree
+  const Node &front;
+  // node from the second tree
+  const Node &back;
+  float costTot;
+  Positve cost2Bridge;
+
+  mt_rrt::Solution materialize() const;
+};
+
 template <typename T, Connector C, Sampler S>
 class ExtenderBidirectional : public Extender {
 public:
   ExtenderBidirectional(T first, T second, C &conn, const S &sampler);
 
   std::pair<T, T> trees_;
-
-  struct Solution {
-    // node from the first tree
-    const Node &front;
-    // node from the second tree
-    const Node &back;
-    float costTot;
-    Positve cost2Bridge;
-
-    mt_rrt::Solution materialize() const;
-  };
 
   void extend() {
     ExtendResult res_master;
@@ -45,8 +45,9 @@ public:
         [](const auto &res_master) {
           if constexpr (std::is_same_v<decltype(res_master),
                                        const DeterministicTargetReached &>) {
-            // new solution
-            // TODO master reached slave root directly
+            // new solution: master reaches directly the slave root
+            addSolution(res_master->parent, slave_->root(),
+                        res_master->cost2Go);
             return nullptr;
           }
 
@@ -71,7 +72,7 @@ public:
               std::get_if<DeterministicTargetReached>(&res_slave);
           trg_reached) {
         // new solution
-        // TODO master reached slave root directly
+        addSolution(*master_added, res_master->parent, res_master->cost2Go);
       }
     }
 
@@ -85,6 +86,16 @@ private:
   C &connector_;
   const S &sampler_;
   std::vector<float> sample_buffer_;
-  std::vector<Solution> solutions_;
+
+  void addSolution(const Node &a, const Node &b, Positive cost2Bridge) {
+    if (master_ == &trees_.first) {
+      solutions_.emplace_back(ExtenderBidirectionalSolution{
+          a, b, a.cost2Root() + b.cost2Root() + cost2Bridge, cost2Bridge});
+    } else {
+      solutions_.emplace_back(ExtenderBidirectionalSolution{
+          b, a, a.cost2Root() + b.cost2Root() + cost2Bridge, cost2Bridge});
+    }
+  }
+  std::vector<ExtenderBidirectionalSolution> solutions_;
 };
 } // namespace mt_rrt

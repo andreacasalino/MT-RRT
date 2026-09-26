@@ -19,7 +19,7 @@
 namespace mt_rrt {
 class Extender {
 protected:
-  Extender(bool star_extend_enabled, Determinism det);
+  Extender(bool isStar, Determinism det);
 
   bool shallThisBeDeterministic() {
     return determinism_.shallThisBeDeterministic();
@@ -46,7 +46,7 @@ protected:
     }
     if constexpr (IsDeterministic) {
       bool is_new =
-          register_.emplace(std::make_pair(nearest, target.data())).first;
+          register_.emplace(std::make_pair(nearest, target.data())).second;
       if (is_new) {
         return ExtendNotPossible;
       }
@@ -68,7 +68,7 @@ protected:
     const Node *steer_node =
         tree.internalize(steer_buffer_, *nearest, steer_result->cost2Go);
 
-    if (star_extend_enabled_ && !steer_result->target_was_reached) {
+    if (isStar_ && !steer_result->target_was_reached) {
       /////////////// star rewiring ///////////////
       rewiring_.update(*steer_node, tree, connector);
 
@@ -103,7 +103,7 @@ private:
     }
   }
 
-  bool star_extend_enabled_{false};
+  bool isStar_{false};
   DeterminismRegulator determinism_;
   DeterministicSteerRegisterHash determinism_register_;
 

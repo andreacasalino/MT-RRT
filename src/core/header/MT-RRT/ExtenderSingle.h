@@ -12,6 +12,15 @@
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
+struct ExtenderSingleSolution {
+  std::span<const float> target;
+  const Node &pivot;
+  float costTot;
+  Positive cost2Target;
+
+  mt_rrt::Solution materialize() const;
+};
+
 template <typename T, Connector C, Sampler S>
 class ExtenderSingle : public Extender {
 public:
@@ -19,14 +28,6 @@ public:
                  const S &sampler);
 
   T tree_;
-
-  struct Solution {
-    const Node &pivot;
-    float costTot;
-    Positve cost2Target;
-
-    mt_rrt::Solution materialize() const;
-  };
 
   void extend() {
     ExtendResult res;
@@ -41,10 +42,10 @@ public:
     if (const DeterministicTargetReached *trg_reached =
             std::get_if<DeterministicTargetReached>(&res);
         trg_reached) {
-      solutions_.emplace_back(
-          Solution{trg_reached->parent,
-                   trg_reached->parent.cost2Root().get() + trg_reached->cost2Go,
-                   trg_reached->cost2Go});
+      solutions_.emplace_back(ExtenderSingleSolution{
+          target_, trg_reached->parent,
+          trg_reached->parent.cost2Root().get() + trg_reached->cost2Go,
+          trg_reached->cost2Go});
     }
   }
 
@@ -57,6 +58,6 @@ private:
   C &connector_;
   const S &sampler_;
   std::vector<float> sample_buffer_;
-  std::vector<Solution> solutions_;
+  std::vector<ExtenderSingleSolution> solutions_;
 };
 } // namespace mt_rrt
