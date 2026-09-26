@@ -35,6 +35,17 @@ public:
 
   std::pair<T, T> trees_;
 
+  struct Solution {
+    // node from the first tree
+    const Node &front;
+    // node from the second tree
+    const Node &back;
+    float costTot;
+    Positve cost2Bridge;
+
+    mt_rrt::Solution materialize() const;
+  };
+
   void extend() {
     std::optional<DeterministicTargetReached> res_master;
     if (shallThisBeDeterministic()) {

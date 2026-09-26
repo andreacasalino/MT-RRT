@@ -14,6 +14,7 @@
 
 #include <deque>
 #include <optional>
+#include <variant>
 
 namespace mt_rrt {
 template <typename T, Connector C>
@@ -34,11 +35,6 @@ const Node *find_nearest_neighbour(
   }
 }
 
-struct DeterministicTargetReached {
-  Positive cost2Go;
-  const Node &parent;
-};
-
 class Extender {
 protected:
   Extender(bool star_extend_enabled, Determinism det);
@@ -47,30 +43,41 @@ protected:
     return determinism_.shallThisBeDeterministic();
   }
 
+  struct ExtendNotPossible {};
+  struct DeterministicTargetReached {
+    Positive cost2Go;
+    const Node &parent;
+  };
+  struct Steered {
+    const Node &added;
+  };
+  using ExtendResult =
+      std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
+
   template <typename T, Connector C, bool IsDeterministic>
-  std::optional<DeterministicTargetReached>
-  extend(std::span<const float> target, T &tree, C &connector) requires
-      tree::HasIterOrCustomQueries<T, C> && tree::IsExtendable<T> {
+  ExtendResult extend(std::span<const float> target, T &tree,
+                      C &connector) requires
+      tree::HasIterOrCustomQueries<T, C> && tree::IsTree<T> {
     const Node *nearest = find_nearest_neighbour(target, tree, connector);
     if (!nearest) {
-      return std::nullopt;
+      return ExtendNotPossible;
     }
     if constexpr (IsDeterministic) {
       bool is_new =
           register_.emplace(std::make_pair(nearest, target.data())).first;
       if (is_new) {
-        return std::nullopt;
+        return ExtendNotPossible;
       }
     }
 
     auto traj = connector.makeTrajectory(nearest->data().state, target);
     if (!traj.has_value()) {
-      return std::nullopt;
+      return ExtendNotPossible;
     }
 
     auto steer_result = traj->traverse(steer_buffer_);
     if (!steer_result.has_value()) {
-      return std::nullopt;
+      return ExtendNotPossible;
     }
     if (steer_result->target_was_reached) {
       return DeterministicTargetReached{steer_result->cost2Go, *nearest};
@@ -92,7 +99,7 @@ protected:
       }
     }
 
-    return std::nullopt;
+    return Steered{*steer_node};
   }
 
 private:
