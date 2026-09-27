@@ -7,26 +7,22 @@
 
 #pragma once
 
-#include <MT-RRT/Connector.h>
 #include <MT-RRT/Nodes.h>
-#include <MT-RRT/ProblemDescription.h>
-#include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 
-#include <mutex>
+#include <chrono>
+#include <optional>
 
 namespace mt_rrt {
 /**
  * @brief Groups all the information characterizing a found solution
  */
 struct PlannerSolution {
-  using TimeUnit = std::chrono::microseconds;
-
   /**
    * @brief computation time spent for obtaining the solution, or trying to get
    * one.
    */
-  TimeUnit time;
+  std::chrono::nanoseconds time;
 
   /**
    * @brief iterations spent for obtaining the solution, or trying to get
@@ -38,16 +34,13 @@ struct PlannerSolution {
    * @brief The sequence of states forming the solution to the planning
    * problem. Is empty in case a solution was not found
    */
-  Solution solution;
+  std::optional<Solution> solution;
 
-  struct DebugDiagnostic {
+  struct ExtraInfo {
     std::vector<Solution> all_solutions;
-
-    /**
-     * @brief The search trees produced while trying to solve the problem
-     */
-    std::vector<Nodes> trees;
+    std::vector<Nodes> nodes;
   };
+  std::optional<ExtraInfo> extra_info;
 };
 
 /**
@@ -62,16 +55,30 @@ struct PlannerSolution {
  * debug purpose and you should be aware that this of course affects
  * performances.
  */
-template <typename P, typename C, typename S>
-concept Planner = requires(ProblemDescription<C, S> decription) {
-  { P::make(std::move(decription)) } -> std::same_as<std::unique_ptr<P>>;
-}
-&&requires(P obj, const std::vector<float> &start,
-           const std::vector<float> &end, const Parameters &parameters,
-           PlannerSolution &recipient) {
-  requires Connector<C>;
-  requires Sampler<S>;
-
-  { obj.solve(recipient, start, end, parameters) } -> std::same_as<void>;
+template <typename P>
+concept Planner = requires(P obj, PlannerSolution &recipient,
+                           std::span<const float> start,
+                           std::span<const float> end,
+                           const Parameters &parameters) {
+  {
+    obj.solve(recipient, start, end, parameters)
+    } -> std::same_as<std::pair<std::size_t, std::optional<Solution>>>;
 };
+
+template <Planner P>
+void solve(P &planner, PlannerSolution &recipient, std::span<const float> start,
+           std::span<const float> end, const Parameters &parameters) {
+  recipient.extra_info.reset();
+
+  // TODO check the problem is symetric is bidir approach is asked !
+
+  std::chrono::steady_clock clck;
+  auto tic = clck.now();
+  auto &&[iterations, solution] =
+      planner.solve(recipient, start, end, parameters);
+  recipient.iterations = iterations;
+  recipient.solution = std::move(solution);
+  recipient.time =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(clck.now() - tic);
+}
 } // namespace mt_rrt

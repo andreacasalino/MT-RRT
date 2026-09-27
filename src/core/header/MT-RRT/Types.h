@@ -51,14 +51,16 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  * know to solve a specific problem for connecting 2 pair of states.
  */
 struct Parameters {
-  ExpansionStrategy expansion_strategy = ExpansionStrategy::Star;
+  ExpansionStrategy expansion_strategy{ExpansionStrategy::Star};
   Iterations iterations;
-  Determinism determinism = Determinism{0.35f};
+  Determinism determinism{0.35f};
   /**
    * @brief If true, the expansion of the tree(s) is arrested as soon as a
    * solution is found. Otherwise, the search is kept on possibly finding
    * additional solutions.
    */
-  bool best_effort = true;
+  bool best_effort{true};
+
+  bool provide_extra_info{false};
 };
 } // namespace mt_rrt

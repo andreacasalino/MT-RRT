@@ -29,6 +29,8 @@ public:
 
   const auto &getNodes() const { return nodes_; }
 
+  Nodes extractNodes() { return std::move(nodes_); }
+
   const Node *root() const { return &nodes_.getNodes().front(); }
 
   const Node *internalize(std::span<const float> state, const Node &parent,

@@ -30,14 +30,13 @@ concept FoundSolution = requires(const S obj_const) {
 template <FoundSolution S, Connector C, Sampler Smplr> class Extender {
 public:
   template <FoundSolution S>
-  std::optional<Solution>
-  materializeBestSolution(const std::vector<S> &encoded) {
+  std::optional<Solution> materializeBestSolution() const {
     auto it_best = std::min_element(
-        encoded.begin(), encoded.end(),
+        solutions_.begin(), solutions_.end(),
         [&](const auto &a, const auto &b) { return a.costTot < b.costTot; });
 
-    return it == encoded.end() ? std::nullopt
-                               : std::make_optional(it_best->materialize());
+    return it == solutions_.end() ? std::nullopt
+                                  : std::make_optional(it_best->materialize());
   }
 
   const auto &getSolutions() const { return solutions_; }
@@ -151,16 +150,14 @@ private:
 };
 
 template <FoundSolution S, Connector C, Sampler Smplr>
-std::size_t extend_iterations(Extender<S, C, Smplr> &ext,
-                              const Parameters &parameters) {
-  KeepSearchPredicate search_predicate{parameters.best_effort,
-                                       parameters.iterations.get(),
-                                       parameters.expansion_strategy};
+std::size_t
+extend_iterations(Extender<S, C, Smplr> &ext,
+                  std::shared_ptr<KeepSearchPredicate> search_predicate) {
   std::size_t iter = 0;
-  for (; search_predicate(iter); ++iter) {
+  for (; search_predicate->keepSearch(iter); ++iter) {
     ext.extend();
-    search_predicate.one_solution_was_found.store(!ext.getSolutions().empty(),
-                                                  std::memory_order::seq_cst);
+    search_predicate->one_solution_was_found.store(!ext.getSolutions().empty(),
+                                                   std::memory_order::release);
   }
   return iter;
 }
