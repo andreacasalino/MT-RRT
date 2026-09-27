@@ -39,11 +39,16 @@ public:
 
       if (parameters.provide_extra_info) {
         auto &ref = recipient.extra_info.emplace();
-        if constexpr (std::is_same_v < decltype(extender), ExtenderSingle) {
+
+        if constexpr (std::is_same_v<decltype(extender), ExtenderSingle>) {
           ref.nodes.emplace_back(extender.tree_.extractNodes());
         } else {
           ref.nodes.emplace_back(extender.trees_.first.extractNodes());
           ref.nodes.emplace_back(extender.trees_.second.extractNodes());
+        }
+
+        for (const auto &sol : extender.getSolutions()) {
+          ref.all_solutions.emplace_back(sol.materialize());
         }
       }
     };
