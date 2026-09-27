@@ -71,6 +71,8 @@ void solve(P &planner, PlannerSolution &recipient, std::span<const float> start,
   recipient.extra_info.reset();
 
   // TODO check the problem is symetric is bidir approach is asked !
+  // TODO check start and end size are the same and equal to the problem state
+  // space size
 
   std::chrono::steady_clock clck;
   auto tic = clck.now();
