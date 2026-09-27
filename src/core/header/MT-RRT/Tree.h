@@ -39,9 +39,6 @@ concept HasCustomQueries = requires(const T obj_const,
 };
 
 template <typename T, typename C>
-concept HasIterOrCustomQueries = HasIter<T> || HasCustomQueries<T, C>;
-
-template <typename T, typename C>
 concept HasCustomRewiring = requires(T obj, const C &conn, const Node &pivot,
                                      const std::vector<Rewire> &rew) {
   requires Connector<C>;
@@ -50,9 +47,10 @@ concept HasCustomRewiring = requires(T obj, const C &conn, const Node &pivot,
 };
 
 template <typename T>
-concept IsTree = requires(const T obj_const, T obj,
-                          std::span<const float> state, const Node &parent,
-                          const Positive &cost2Go) {
+concept HasBasicMethods = requires(const T obj_const, T obj,
+                                   std::span<const float> state,
+                                   const Node &parent,
+                                   const Positive &cost2Go) {
   { obj_const.root() } -> std::same_as<const Node *>;
 
   { obj.internalize(state, parent, cost2Go) } -> std::same_as<const Node *>;
