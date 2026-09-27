@@ -52,7 +52,6 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  */
 struct Parameters {
   ExpansionStrategy expansion_strategy = ExpansionStrategy::Star;
-  SteerIterations steer_trials;
   Iterations iterations;
   Determinism determinism = Determinism{0.35f};
   /**

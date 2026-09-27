@@ -13,6 +13,7 @@
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/Tree.h>
+#include <MT-RRT/Types.h>
 
 #include <deque>
 #include <optional>
@@ -148,4 +149,19 @@ private:
   std::vector<float> steer_buffer_;
   Rewiring rewiring_;
 };
+
+template <FoundSolution S, Connector C, Sampler Smplr>
+std::size_t extend_iterations(Extender<S, C, Smplr> &ext,
+                              const Parameters &parameters) {
+  KeepSearchPredicate search_predicate{parameters.best_effort,
+                                       parameters.iterations.get(),
+                                       parameters.expansion_strategy};
+  std::size_t iter = 0;
+  for (; search_predicate(iter); ++iter) {
+    ext.extend();
+    search_predicate.one_solution_was_found.store(!ext.getSolutions().empty(),
+                                                  std::memory_order::seq_cst);
+  }
+  return iter;
+}
 } // namespace mt_rrt

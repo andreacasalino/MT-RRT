@@ -25,6 +25,7 @@ template <Connector C, Sampler S> struct ProblemDescription {
    * opposite direction to connect end to start.
    */
   bool simmetry;
+
   /**
    * @brief \gamma involved in the near set computation, refer to
    * Section 1.2.3 of the documentation
