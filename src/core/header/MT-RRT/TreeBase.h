@@ -7,12 +7,12 @@
 
 #pragma once
 
+#include <MT-RRT/Connector.h>
 #include <MT-RRT/Nodes.h>
-#include <MT-RRT/NodesIterator.hxx>
+#include <MT-RRT/NodesIteratorFromContainer.h>
+#include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
-#include <MT-RRT/concepts/Connector.h>
-#include <MT-RRT/concepts/Sampler.h>
-#include <MT-RRT/concepts/Tree.h>
+#include <MT-RRT/Tree.h>
 
 #include <deque>
 #include <optional>
@@ -25,9 +25,11 @@ public:
 
   TreeBase(std::span<const float> root);
 
-  the_iter iter() const { return the_iter{nodes_.getNodes()}; }
+  iter_type iter() const { return iter_type{nodes_.getNodes()}; }
 
   const auto &getNodes() const { return nodes_; }
+
+  const Node *root() const { return &nodes_.getNodes().front(); }
 
   const Node *internalize(std::span<const float> state, const Node &parent,
                           const Positive &cost2Go) {
@@ -36,12 +38,7 @@ public:
     return &added;
   }
 
-  void apply(const Rewires &rew);
-
-  auto &getDeterministicRegister() { return register_; }
-
 private:
   Nodes nodes_;
-  DeterministicSteerRegister register_;
 };
 } // namespace mt_rrt
