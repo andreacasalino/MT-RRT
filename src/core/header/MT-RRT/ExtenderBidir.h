@@ -7,24 +7,25 @@
 
 #pragma once
 
-#include <MT-RRT/Extend.h>
+#include <MT-RRT/Extender.h>
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
 struct ExtenderBidirectionalSolution {
+  float costTot;
+
+  mt_rrt::Solution materialize() const;
+
   // node from the first tree
   const Node &front;
   // node from the second tree
   const Node &back;
-  float costTot;
   Positive cost2Bridge;
-
-  mt_rrt::Solution materialize() const;
 };
 
 template <typename T, Connector C, Sampler S>
-class ExtenderBidirectional : public Extender {
+class ExtenderBidirectional : public Extender<ExtenderBidirectionalSolution> {
 public:
   ExtenderBidirectional(T first, T second, C &conn, const S &sampler);
 
@@ -79,8 +80,6 @@ public:
     std::swap(master_, slave_);
   }
 
-  const auto &getSolutions() const { return solutions_; }
-
 private:
   T *master_;
   T *slave_;
@@ -89,15 +88,14 @@ private:
   const S &sampler_;
   std::vector<float> sample_buffer_;
 
-  void addSolution(const Node &a, const Node &b, Positive cost2Bridge) {
+  void pushSolution_(const Node &a, const Node &b, Positive cost2Bridge) {
     if (master_ == &trees_.first) {
-      solutions_.emplace_back(ExtenderBidirectionalSolution{
-          a, b, a.cost2Root() + b.cost2Root() + cost2Bridge, cost2Bridge});
+      pushSolution(ExtenderBidirectionalSolution{
+          a, b, a.cost2Root() + b.cost2Root() + cost2Bridge, cost2Bridge})
     } else {
-      solutions_.emplace_back(ExtenderBidirectionalSolution{
+      pushSolution(ExtenderBidirectionalSolution{
           b, a, a.cost2Root() + b.cost2Root() + cost2Bridge, cost2Bridge});
     }
   }
-  std::vector<ExtenderBidirectionalSolution> solutions_;
 };
 } // namespace mt_rrt

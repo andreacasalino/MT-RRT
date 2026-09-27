@@ -10,6 +10,7 @@
 #include <MT-RRT/Connector.h>
 #include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Rewiring.h>
+#include <MT-RRT/Solution.h>
 #include <MT-RRT/Tree.h>
 
 #include <deque>
@@ -17,7 +18,28 @@
 #include <variant>
 
 namespace mt_rrt {
-class Extender {
+template <typename S>
+concept FoundSolution = requires(const S obj_const) {
+  { obj_const.costTot } -> std::same_as<float>;
+
+  { obj_const.materialize() } -> std::same_as<Solution>;
+};
+
+template <FoundSolution S> class Extender {
+public:
+  template <FoundSolution S>
+  std::optional<Solution>
+  materializeBestSolution(const std::vector<S> &encoded) {
+    auto it_best = std::min_element(
+        encoded.begin(), encoded.end(),
+        [&](const auto &a, const auto &b) { return a.costTot < b.costTot; });
+
+    return it == encoded.end() ? std::nullopt
+                               : std::make_optional(it_best->materialize());
+  }
+
+  const auto &getSolutions() const { return solutions_; }
+
 protected:
   Extender(bool isStar, Determinism det);
 
@@ -84,6 +106,8 @@ protected:
     return Steered{*steer_node};
   }
 
+  void pushSolution(S to_add) { solutions_.emplace_back(std::move(to_add)); }
+
 private:
   template <typename T, Connector C>
   const Node *find_nearest_neighbour(
@@ -106,6 +130,8 @@ private:
   bool isStar_{false};
   DeterminismRegulator determinism_;
   DeterministicSteerRegisterHash determinism_register_;
+
+  std::vector<S> solutions_;
 
   // scratch buffers
   std::vector<float> steer_buffer_;

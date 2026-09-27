@@ -7,22 +7,23 @@
 
 #pragma once
 
-#include <MT-RRT/Extend.h>
+#include <MT-RRT/Extender.h>
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
 struct ExtenderSingleSolution {
-  std::span<const float> target;
-  const Node &pivot;
   float costTot;
-  Positive cost2Target;
 
   mt_rrt::Solution materialize() const;
+
+  std::span<const float> target;
+  const Node &pivot;
+  Positive cost2Target;
 };
 
 template <typename T, Connector C, Sampler S>
-class ExtenderSingle : public Extender {
+class ExtenderSingle : public Extender<ExtenderSingleSolution> {
 public:
   ExtenderSingle(std::span<const float> target, T tree, C &conn,
                  const S &sampler);
@@ -42,22 +43,18 @@ public:
     if (const DeterministicTargetReached *trg_reached =
             std::get_if<DeterministicTargetReached>(&res);
         trg_reached) {
-      solutions_.emplace_back(ExtenderSingleSolution{
-          target_, trg_reached->parent,
-          trg_reached->parent.cost2Root().get() + trg_reached->cost2Go,
-          trg_reached->cost2Go});
+      pushSolution(ExtenderSingleSolution{
+          trg_reached->parent.cost2Root().get() + trg_reached->cost2Go, target_,
+          trg_reached->parent, trg_reached->cost2Go});
     }
   }
 
   auto target() const { return target_; }
-
-  const auto &getSolutions() const { return solutions_; }
 
 private:
   std::span<const float> target_;
   C &connector_;
   const S &sampler_;
   std::vector<float> sample_buffer_;
-  std::vector<ExtenderSingleSolution> solutions_;
 };
 } // namespace mt_rrt
