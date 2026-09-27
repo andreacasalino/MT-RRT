@@ -8,7 +8,6 @@
 #pragma once
 
 #include <MT-RRT/Extender.h>
-#include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 
 namespace mt_rrt {
@@ -23,7 +22,7 @@ struct ExtenderSingleSolution {
 };
 
 template <typename T, Connector C, Sampler S>
-class ExtenderSingle : public Extender<ExtenderSingleSolution> {
+class ExtenderSingle : public Extender<ExtenderSingleSolution, C, S> {
 public:
   ExtenderSingle(std::span<const float> target, T tree, C &conn,
                  const S &sampler);
@@ -33,11 +32,9 @@ public:
   void extend() {
     ExtendResult res;
     if (shallThisBeDeterministic()) {
-      res = this->Extender::extend<T, C, true>(target_, tree_, connector_);
+      res = this->Extender::extend<T, true>(target_, tree_);
     } else {
-      sampler_.sampleState(sample_buffer_);
-      res = this->Extender::extend<T, C, false>(
-          std::span<const float>{sample_buffer_}, tree_, connector_);
+      res = this->Extender::extend<T, false>(sampleState(), tree_);
     }
 
     if (const DeterministicTargetReached *trg_reached =
@@ -53,8 +50,5 @@ public:
 
 private:
   std::span<const float> target_;
-  C &connector_;
-  const S &sampler_;
-  std::vector<float> sample_buffer_;
 };
 } // namespace mt_rrt

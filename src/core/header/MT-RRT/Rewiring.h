@@ -28,12 +28,6 @@ struct Rewiring {
     }
 
     computeRewires(pivot, connector);
-
-    if constexpr (HasCustomRewiring<T, C>) {
-      tree.applyRewiring(pivot, rewires_, connector);
-    } else {
-      // TODO apply rewires one by one
-    }
   }
 
   const auto &getRewires() const { return rewires_; }

@@ -20,7 +20,7 @@
 namespace mt_rrt {
 class TreeBase {
 public:
-  using the_iter =
+  using iter_type =
       NodesIteratorFromContainer<typename std::deque<Node>::const_iterator>;
 
   TreeBase(std::span<const float> root);

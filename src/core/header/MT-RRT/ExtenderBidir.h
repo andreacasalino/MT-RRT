@@ -25,7 +25,8 @@ struct ExtenderBidirectionalSolution {
 };
 
 template <typename T, Connector C, Sampler S>
-class ExtenderBidirectional : public Extender<ExtenderBidirectionalSolution> {
+class ExtenderBidirectional
+    : public Extender<ExtenderBidirectionalSolution, C, S> {
 public:
   ExtenderBidirectional(T first, T second, C &conn, const S &sampler);
 
@@ -34,12 +35,12 @@ public:
   void extend() {
     ExtendResult res_master;
     if (shallThisBeDeterministic()) {
-      res_master = this->Extender::extend<T, C, true>(
-          slave_->root()->data().state, *master_, connector_);
+      res_master = this->Extender::extend<T, true>(slave_->root()->data().state,
+                                                   *master_);
     } else {
       sampler_.sampleState(sample_buffer_);
-      res_master = this->Extender::extend<T, C, false>(
-          std::span<const float>{sample_buffer_}, *master_, connector_);
+      res_master = this->Extender::extend<T, false>(
+          std::span<const float>{sample_buffer_}, *master_);
     }
 
     const Node *master_added = std::visit(
@@ -66,8 +67,8 @@ public:
 
     if (master_added) {
       ExtendResult res_slave;
-      res_master = this->Extender::extend<T, C, true>(
-          master_added->data().state, *slave_, connector_);
+      res_master =
+          this->Extender::extend<T, true>(master_added->data().state, *slave_);
 
       if (const DeterministicTargetReached *trg_reached =
               std::get_if<DeterministicTargetReached>(&res_slave);
@@ -83,10 +84,6 @@ public:
 private:
   T *master_;
   T *slave_;
-
-  C &connector_;
-  const S &sampler_;
-  std::vector<float> sample_buffer_;
 
   void pushSolution_(const Node &a, const Node &b, Positive cost2Bridge) {
     if (master_ == &trees_.first) {

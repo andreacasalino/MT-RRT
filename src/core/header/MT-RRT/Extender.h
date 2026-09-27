@@ -10,6 +10,7 @@
 #include <MT-RRT/Connector.h>
 #include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Rewiring.h>
+#include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/Tree.h>
 
@@ -25,7 +26,7 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
-template <FoundSolution S> class Extender {
+template <FoundSolution S, Connector C, Sampler Smplr> class Extender {
 public:
   template <FoundSolution S>
   std::optional<Solution>
@@ -41,8 +42,6 @@ public:
   const auto &getSolutions() const { return solutions_; }
 
 protected:
-  Extender(bool isStar, Determinism det);
-
   bool shallThisBeDeterministic() {
     return determinism_.shallThisBeDeterministic();
   }
@@ -58,10 +57,11 @@ protected:
   using ExtendResult =
       std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
 
-  template <typename T, Connector C, bool IsDeterministic>
-  ExtendResult extend(std::span<const float> target, T &tree,
-                      C &connector) requires
-      tree::HasIterOrCustomQueries<T, C> && tree::IsTree<T> {
+  template <typename T, bool IsDeterministic>
+      ExtendResult extend(std::span<const float> target,
+                          T &tree) requires(tree::HasIter<T> ||
+                                            tree::HasCustomQueries<T, C>) &&
+      tree::HasBasicMethods<T> {
     const Node *nearest = find_nearest_neighbour(target, tree, connector);
     if (!nearest) {
       return ExtendNotPossible;
@@ -108,12 +108,20 @@ protected:
 
   void pushSolution(S to_add) { solutions_.emplace_back(std::move(to_add)); }
 
+  std::span<const float> sampleState() const {
+    sampler_.sampleState(sample_buffer_);
+    return sample_buffer_;
+  }
+
+  Extender(bool isStar, Determinism det, C &connector, const Smplr &sampler);
+
+  C &connector_;
+
 private:
   template <typename T, Connector C>
-  const Node *find_nearest_neighbour(
-      std::span<const float> state, const T &tree,
-      const C &connector) requires tree::HasIterOrCustomQueries<T, C> {
-
+  const Node *find_nearest_neighbour(std::span<const float> state,
+                                     const T &tree, const C &connector) requires
+      tree::HasIter<T> || tree::HasCustomQueries<T, C> {
     if constexpr (tree::HasCustomQueries<T, C>) {
       return tree.nearestNeighbour(state, connector).closest;
     }
@@ -132,6 +140,9 @@ private:
   DeterministicSteerRegisterHash determinism_register_;
 
   std::vector<S> solutions_;
+
+  const Smplr &sampler_;
+  std::vector<float> sample_buffer_;
 
   // scratch buffers
   std::vector<float> steer_buffer_;
