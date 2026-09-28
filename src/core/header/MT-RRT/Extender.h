@@ -74,12 +74,8 @@ protected:
       }
     }
 
-    auto traj = connector.makeTrajectory(nearest->data().state, target);
-    if (!traj.has_value()) {
-      return ExtendNotPossible;
-    }
-
-    auto steer_result = traj->traverse(steer_buffer_);
+    auto steer_result =
+        connector.steer(nearest->data().state, target, steer_buffer_);
     if (!steer_result.has_value()) {
       return ExtendNotPossible;
     }
