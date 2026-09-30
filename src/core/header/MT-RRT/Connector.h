@@ -38,7 +38,7 @@ concept Connector = requires(C obj, std::span<const float> start,
    * optimal trajectory connecting the passed pair of states. This cost does not
    * account for constraints, as this is done by minCost2GoConstrained(...).
    */
-  { obj.minCost2Go() } -> std::same_as<Positive>;
+  { obj.minCost2Go(start, target) } -> std::same_as<Positive>;
 
   /**
    * @param the last valid state along \tau, i.e. the optimal trjectory
