@@ -15,8 +15,8 @@
 
 namespace mt_rrt {
 template <typename P>
-concept ProblemDescription = requires(S obj) {
-  { obj_const.gamma } -> std::same_as<Positive>;
+concept ProblemDescription = requires(P obj) {
+  { obj.gamma } -> std::same_as<Positive>;
 
   requires Sampler<typename P::sampler_type>;
   { obj.sampler } -> std::same_as<std::unique_ptr<typename P::sampler_type>>;
@@ -26,7 +26,8 @@ concept ProblemDescription = requires(S obj) {
     obj.connector
     } -> std::same_as<std::unique_ptr<typename P::connector_type>>;
 
-  { P::simmetry_value } -> std::same_as<constexpr bool>;
+  typename std::bool_constant<P::simmetry_value>;
+  requires std::same_as<const bool, decltype(P::simmetry_value)>;
 };
 
 /**

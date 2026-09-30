@@ -9,6 +9,7 @@
 
 #include <MT-RRT/Connector.h>
 #include <MT-RRT/ExtendTypes.h>
+#include <MT-RRT/ProblemDescription.h>
 #include <MT-RRT/Rewiring.h>
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
@@ -27,7 +28,7 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
-template <typename ProblemDescriptionT, FoundSolution S> class Extender {
+template <ProblemDescription P, FoundSolution S> class Extender {
 public:
   std::optional<Solution> materializeBestSolution() const;
 
@@ -60,13 +61,13 @@ protected:
   void pushSolution(S to_add) { solutions_.emplace_back(std::move(to_add)); }
 
   std::span<const float> sampleState() const {
-    sampler_.sampleState(sample_buffer_);
+    problem.sampler.sampleState(sample_buffer_);
     return sample_buffer_;
   }
 
-  Extender(bool isStar, Determinism det, ProblemDescriptionT &problem);
+  Extender(bool isStar, Determinism det, P &problem);
 
-  ProblemDescriptionT &problem;
+  P &problem;
 
 private:
   template <typename T, Connector C>
