@@ -20,13 +20,13 @@ namespace mt_rrt {
  * @brief the classical mon-thread solver described in Section "Background on
  * RRT" of the documentation.
  */
-template <Connector C, Sampler S> class StandardPlanner {
+template <IsProblemDescription P> class StandardPlanner {
 public:
-  StandardPlanner(ProblemDescription<C, S> problem);
+  StandardPlanner(Problem<P> problem);
 
   std::pair<std::size_t, std::optional<Solution>>
   solve(PlannerSolution &recipient, std::span<const float> start,
-        std::span<const float> end, const Parameters &parameters) {
+        std::span<const float> end, Problem<P> &problem) {
     std::pair<std::size_t, std::optional<Solution>> res;
 
     using ExtenderSingle = ExtenderSingle<TreeBase, C, S>;
@@ -70,6 +70,6 @@ public:
   }
 
 protected:
-  ProblemDescription<C, S> problem_;
+  Problem<P> problem_;
 };
 } // namespace mt_rrt

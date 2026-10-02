@@ -56,23 +56,19 @@ struct PlannerSolution {
  * debug purpose and you should be aware that this of course affects
  * performances.
  */
-template <typename P, Connector C, Sampler S, bool Simmetry,
-          ExpansionStrategy ExpansionStrategyT>
-concept Planner =
-    requires(P obj, PlannerSolution &recipient, std::span<const float> start,
-             std::span<const float> end,
-             Problem<C, S, Simmetry, ExpansionStrategyT> &problem) {
+template <IsProblemDescription P>
+concept Planner = requires(P obj, PlannerSolution &recipient,
+                           std::span<const float> start,
+                           std::span<const float> end, Problem<P> &problem) {
   {
     obj.solve(recipient, start, end, problem)
     } -> std::same_as<
         std::pair<std::size_t /* iterations spent */, std::optional<Solution>>>;
 };
 
-template <Planner P, Connector C, Sampler S, bool Simmetry,
-          ExpansionStrategy ExpansionStrategyT>
+template <IsProblemDescription P>
 void solve(P &planner, PlannerSolution &recipient, std::span<const float> start,
-           std::span<const float> end,
-           Problem<C, S, Simmetry, ExpansionStrategyT> &problem) {
+           std::span<const float> end, Problem<P> &problem) {
   recipient.extra_info.reset();
 
   // TODO check start and end size are the same and equal to the problem state

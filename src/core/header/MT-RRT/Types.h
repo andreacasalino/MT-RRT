@@ -53,9 +53,7 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  * @brief Groups together all the parameters that a @Planner neeeds to
  * know to solve a specific problem for connecting 2 pair of states.
  */
-template <Connector C, Sampler S, bool Simmetry,
-          ExpansionStrategy ExpansionStrategyT>
-struct Problem : ProblemDescription<C, S, Simmetry, ExpansionStrategyT> {
+template <IsProblemDescription P> struct Problem : P {
   Iterations iterations;
   Determinism determinism{0.35f};
 

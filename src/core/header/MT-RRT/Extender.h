@@ -27,7 +27,7 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
-template <typename P, FoundSolution S> class Extender {
+template <IsProblemDescription P, FoundSolution S> class Extender {
 public:
   std::optional<Solution> materializeBestSolution() const;
 
@@ -69,11 +69,11 @@ protected:
     return sample_buffer_;
   }
 
-  Extender(P &prblm)
+  Extender(Problem<P> &prblm)
       : problem{prblm}, determinismRegulator{prblm.sampler->sampleSeed(),
                                              prblm.determinism} {}
 
-  P &problem;
+  Problem<P> &problem;
   DeterminismRegulator determinismRegulator;
 
 private:
@@ -108,7 +108,7 @@ std::size_t extend_many(E &ext,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename P, FoundSolution S>
+template <IsProblemDescription P, FoundSolution S>
 std::optional<Solution> Extender<P, S>::materializeBestSolution() const {
   auto it_best = std::min_element(
       solutions_.begin(), solutions_.end(),
@@ -118,7 +118,7 @@ std::optional<Solution> Extender<P, S>::materializeBestSolution() const {
                                 : std::make_optional(it_best->materialize());
 }
 
-template <typename P, FoundSolution S>
+template <IsProblemDescription P, FoundSolution S>
 template <typename T>
 const Node *
 Extender<P, S>::find_nearest_neighbour<T>(std::span<const float> state,
@@ -137,7 +137,7 @@ Extender<P, S>::find_nearest_neighbour<T>(std::span<const float> state,
   }
 }
 
-template <typename P, FoundSolution S>
+template <IsProblemDescription P, FoundSolution S>
     template <typename T, bool IsDeterministic>
     Extender<P, S>::ExtendResult
     Extender<P, S>::extend<T>(std::span<const float> target, T &tree) requires(

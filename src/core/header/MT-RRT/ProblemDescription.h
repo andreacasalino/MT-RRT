@@ -50,4 +50,16 @@ struct ProblemDescription {
   static inline constexpr ExpansionStrategy kExpansionStrategy =
       ExpansionStrategyT;
 };
+
+namespace details {
+template <typename P> struct is_problem_description : std::false_type {};
+
+template <Connector C, Sampler S, bool Simmetry,
+          ExpansionStrategy ExpansionStrategyT>
+struct is_problem_description<
+    ProblemDescription<C, S, Simmetry, ExpansionStrategyT>> : std::true_type {};
+} // namespace details
+
+template <typename P>
+concept IsProblemDescription = details::is_problem_description<P>::value;
 } // namespace mt_rrt
