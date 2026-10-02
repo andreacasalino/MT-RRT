@@ -56,27 +56,24 @@ struct PlannerSolution {
  * debug purpose and you should be aware that this of course affects
  * performances.
  */
-template <IsProblemDescription P>
+template <typename P>
 concept Planner = requires(P obj, PlannerSolution &recipient,
                            std::span<const float> start,
-                           std::span<const float> end, Problem<P> &problem) {
+                           std::span<const float> end) {
   {
-    obj.solve(recipient, start, end, problem)
+    obj.solve(recipient, start, end)
     } -> std::same_as<
         std::pair<std::size_t /* iterations spent */, std::optional<Solution>>>;
 };
 
-template <IsProblemDescription P>
+template <Planner P>
 void solve(P &planner, PlannerSolution &recipient, std::span<const float> start,
-           std::span<const float> end, Problem<P> &problem) {
+           std::span<const float> end) {
   recipient.extra_info.reset();
-
-  // TODO check start and end size are the same and equal to the problem state
-  // space size
 
   std::chrono::steady_clock clck;
   auto tic = clck.now();
-  auto &&[iterations, solution] = planner.solve(recipient, start, end, problem);
+  auto &&[iterations, solution] = planner.solve(recipient, start, end);
   recipient.iterations = iterations;
   recipient.solution = std::move(solution);
   recipient.time =

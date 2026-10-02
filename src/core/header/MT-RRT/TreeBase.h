@@ -15,16 +15,14 @@
 #include <MT-RRT/Tree.h>
 
 #include <deque>
-#include <optional>
+#include <span>
 
 namespace mt_rrt {
 class TreeBase {
 public:
-  using iter_type =
-      NodesIteratorFromContainer<typename std::deque<Node>::const_iterator>;
-
   TreeBase(std::span<const float> root);
 
+  using iter_type = NodesIteratorFromContainer<std::deque<Node>>;
   iter_type iter() const { return iter_type{nodes_.getNodes()}; }
 
   const auto &getNodes() const { return nodes_; }
