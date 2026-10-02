@@ -9,6 +9,7 @@
 
 #include <MT-RRT/Nodes.h>
 #include <MT-RRT/Solution.h>
+#include <MT-RRT/Types.h>
 
 #include <chrono>
 #include <optional>
@@ -55,29 +56,31 @@ struct PlannerSolution {
  * debug purpose and you should be aware that this of course affects
  * performances.
  */
-template <typename P>
-concept Planner = requires(P obj, PlannerSolution &recipient,
-                           std::span<const float> start,
-                           std::span<const float> end,
-                           const Parameters &parameters) {
+template <typename P, Connector C, Sampler S, bool Simmetry,
+          ExpansionStrategy ExpansionStrategyT>
+concept Planner =
+    requires(P obj, PlannerSolution &recipient, std::span<const float> start,
+             std::span<const float> end,
+             Problem<C, S, Simmetry, ExpansionStrategyT> &problem) {
   {
-    obj.solve(recipient, start, end, parameters)
-    } -> std::same_as<std::pair<std::size_t, std::optional<Solution>>>;
+    obj.solve(recipient, start, end, problem)
+    } -> std::same_as<
+        std::pair<std::size_t /* iterations spent */, std::optional<Solution>>>;
 };
 
-template <Planner P>
+template <Planner P, Connector C, Sampler S, bool Simmetry,
+          ExpansionStrategy ExpansionStrategyT>
 void solve(P &planner, PlannerSolution &recipient, std::span<const float> start,
-           std::span<const float> end, const Parameters &parameters) {
+           std::span<const float> end,
+           Problem<C, S, Simmetry, ExpansionStrategyT> &problem) {
   recipient.extra_info.reset();
 
-  // TODO check the problem is symetric is bidir approach is asked !
   // TODO check start and end size are the same and equal to the problem state
   // space size
 
   std::chrono::steady_clock clck;
   auto tic = clck.now();
-  auto &&[iterations, solution] =
-      planner.solve(recipient, start, end, parameters);
+  auto &&[iterations, solution] = planner.solve(recipient, start, end, problem);
   recipient.iterations = iterations;
   recipient.solution = std::move(solution);
   recipient.time =
