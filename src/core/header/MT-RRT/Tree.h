@@ -25,14 +25,17 @@ concept HasIter = requires(const T obj_const) {
 };
 
 template <typename T, typename C>
-concept HasCustomQueries = requires(const T obj_const,
-                                    std::span<const float> state,
-                                    const C &conn) {
+concept HasCustomNearestNeighbour = requires(const T obj_const,
+                                             std::span<const float> state,
+                                             const C &conn) {
   requires Connector<C>;
 
   { obj_const.nearestNeighbour(state, conn) } -> std::same_as<NearestNeighbour>;
-}
-&&requires(const T obj_const, const C &conn, NearSetHandler recipient) {
+};
+
+template <typename T, typename C>
+concept HasCustomNearSet = requires(const T obj_const, const C &conn,
+                                    NearSetHandler &recipient) {
   requires Connector<C>;
 
   { obj_const.nearSet(recipient, conn) } -> std::same_as<void>;

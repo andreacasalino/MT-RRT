@@ -24,67 +24,31 @@ struct ExtenderBidirectionalSolution {
   Positive cost2Bridge;
 };
 
-template <typename P>
+template <IsProblemDescription P, tree::HasBasicMethods T>
 class ExtenderBidirectional
     : public Extender<P, ExtenderBidirectionalSolution> {
 public:
-  ExtenderBidirectional(P &prblm, T first, T second)
+  ExtenderBidirectional(Problem<P> &prblm, T first, T second)
       : Extender<P, ExtenderBidirectionalSolution>{prblm},
         tree_{std::make_pair(std::move(first), std::move(second))},
         master_{&tree_.first}, slave_{&tree_.second} {}
 
   std::pair<T, T> trees_;
 
-  void extend() {
-    ExtendResult res_master;
-    if (determinismRegulator.shallThisBeDeterministic()) {
-      res_master = this->Extender::extend<T, true>(slave_->root()->data().state,
-                                                   *master_);
-    } else {
-      sampler_.sampleState(sample_buffer_);
-      res_master = this->Extender::extend<T, false>(
-          std::span<const float>{sample_buffer_}, *master_);
-    }
-
-    const Node *master_added = std::visit(
-        [](const auto &res_master) {
-          if constexpr (std::is_same_v<decltype(res_master),
-                                       const DeterministicTargetReached &>) {
-            // new solution: master reaches directly the slave root
-            addSolution(res_master->parent, slave_->root(),
-                        res_master->cost2Go);
-            return nullptr;
-          }
-
-          else if constexpr (std::is_same_v<decltype(res_master),
-                                            const Steered &>) {
-            return &res_master.added;
-
-          }
-
-          else {
-            return nullptr;
-          }
-        },
-        res_master);
-
-    if (master_added) {
-      ExtendResult res_slave;
-      res_master =
-          this->Extender::extend<T, true>(master_added->data().state, *slave_);
-
-      if (const DeterministicTargetReached *trg_reached =
-              std::get_if<DeterministicTargetReached>(&res_slave);
-          trg_reached) {
-        // new solution
-        addSolution(*master_added, res_master->parent, res_master->cost2Go);
-      }
-    }
-
-    std::swap(master_, slave_);
-  }
+  void extend();
 
 private:
+  struct RAIISwapper {
+    T **m;
+    T **s;
+
+    ~RAIISwapper() {
+      T *tmp = *m;
+      *m = *s;
+      *s = tmp;
+    }
+  };
+
   T *master_;
   T *slave_;
 
@@ -98,4 +62,55 @@ private:
     }
   }
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <IsProblemDescription P, tree::HasBasicMethods T>
+void ExtenderBidirectional<P, T>::extend() {
+  RAIISwapper swapper{&master_, &slave_};
+
+  ExtendResult res_master;
+  if (determinismRegulator.shallThisBeDeterministic()) {
+    res_master =
+        this->Extender::extend<T, true>(slave_->root()->data().state, *master_);
+  } else {
+    sampler_.sampleState(sample_buffer_);
+    res_master = this->Extender::extend<T, false>(
+        std::span<const float>{sample_buffer_}, *master_);
+  }
+
+  const Node *master_added = std::visit(
+      [](const auto &res_master) {
+        if constexpr (std::is_same_v<decltype(res_master),
+                                     const DeterministicTargetReached &>) {
+          // new solution: master reaches directly the slave root
+          addSolution(res_master->parent, slave_->root(), res_master->cost2Go);
+          return nullptr;
+        }
+
+        else if constexpr (std::is_same_v<decltype(res_master),
+                                          const Steered &>) {
+          return &res_master.added;
+
+        }
+
+        else {
+          return nullptr;
+        }
+      },
+      res_master);
+
+  if (master_added) {
+    ExtendResult res_slave;
+    res_master =
+        this->Extender::extend<T, true>(master_added->data().state, *slave_);
+
+    if (const DeterministicTargetReached *trg_reached =
+            std::get_if<DeterministicTargetReached>(&res_slave);
+        trg_reached) {
+      // new solution
+      addSolution(*master_added, res_master->parent, res_master->cost2Go);
+    }
+  }
+}
 } // namespace mt_rrt

@@ -21,35 +21,40 @@ struct ExtenderSingleSolution {
   Positive cost2Target;
 };
 
-template <typename P>
+template <IsProblemDescription P, tree::HasBasicMethods T>
 class ExtenderSingle : public Extender<P, ExtenderSingleSolution> {
 public:
-  ExtenderSingle(P &prblm, std::span<const float> target, T tree)
+  ExtenderSingle(Problem<P> &prblm, std::span<const float> target, T tree)
       : Extender<P, ExtenderSingleSolution>{prblm}, tree_{std::move(tree)},
         target_{target} {}
 
   T tree_;
 
-  void extend() {
-    ExtendResult res;
-    if (determinismRegulator.shallThisBeDeterministic()) {
-      res = this->Extender::extend<T, true>(target_, tree_);
-    } else {
-      res = this->Extender::extend<T, false>(sampleState(), tree_);
-    }
-
-    if (const DeterministicTargetReached *trg_reached =
-            std::get_if<DeterministicTargetReached>(&res);
-        trg_reached) {
-      pushSolution(ExtenderSingleSolution{
-          trg_reached->parent.cost2Root().get() + trg_reached->cost2Go, target_,
-          trg_reached->parent, trg_reached->cost2Go});
-    }
-  }
+  void extend();
 
   auto target() const { return target_; }
 
 private:
   std::span<const float> target_;
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <IsProblemDescription P, tree::HasBasicMethods T>
+void ExtenderSingle<P, T>::extend() {
+  ExtendResult res;
+  if (determinismRegulator.shallThisBeDeterministic()) {
+    res = this->Extender::extend<T, true>(target_, tree_);
+  } else {
+    res = this->Extender::extend<T, false>(sampleState(), tree_);
+  }
+
+  if (const DeterministicTargetReached *trg_reached =
+          std::get_if<DeterministicTargetReached>(&res);
+      trg_reached) {
+    pushSolution(ExtenderSingleSolution{
+        trg_reached->parent.cost2Root().get() + trg_reached->cost2Go, target_,
+        trg_reached->parent, trg_reached->cost2Go});
+  }
+}
 } // namespace mt_rrt
