@@ -45,7 +45,7 @@ public:
 
 private:
   struct Chunk {
-    Chunk *make(std::size_t cap) {
+    static Chunk *make(std::size_t cap) {
       return new Chunk{.buffer = new T[cap], .len = 0};
     }
 
