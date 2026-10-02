@@ -8,8 +8,8 @@
 #pragma once
 
 #include <MT-RRT/Connector.h>
-#include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Tree.h>
+#include <MT-RRT/Types.h>
 
 namespace mt_rrt {
 struct Rewiring {

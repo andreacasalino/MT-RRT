@@ -21,17 +21,18 @@ struct ExtenderSingleSolution {
   Positive cost2Target;
 };
 
-template <typename T, Connector C, Sampler S>
-class ExtenderSingle : public Extender<ExtenderSingleSolution, C, S> {
+template <typename P>
+class ExtenderSingle : public Extender<P, ExtenderSingleSolution> {
 public:
-  ExtenderSingle(std::span<const float> target, T tree, C &conn,
-                 const S &sampler);
+  ExtenderSingle(P &prblm, std::span<const float> target, T tree)
+      : Extender<P, ExtenderSingleSolution>{prblm}, tree_{std::move(tree)},
+        target_{target} {}
 
   T tree_;
 
   void extend() {
     ExtendResult res;
-    if (shallThisBeDeterministic()) {
+    if (determinismRegulator.shallThisBeDeterministic()) {
       res = this->Extender::extend<T, true>(target_, tree_);
     } else {
       res = this->Extender::extend<T, false>(sampleState(), tree_);

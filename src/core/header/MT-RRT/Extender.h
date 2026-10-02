@@ -8,7 +8,6 @@
 #pragma once
 
 #include <MT-RRT/Connector.h>
-#include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/ProblemDescription.h>
 #include <MT-RRT/Rewiring.h>
 #include <MT-RRT/Sampler.h>
@@ -37,6 +36,8 @@ public:
   bool hasSolution() const { return !solutions_.empty(); }
 
 protected:
+  bool shallThisBeDeterministic() { return }
+
   template <typename T>
   const Node *find_nearest_neighbour(std::span<const float> state,
                                      const T &tree) requires tree::HasIter<T> ||
@@ -68,9 +69,12 @@ protected:
     return sample_buffer_;
   }
 
-  Extender(P &prblm) : problem{prblm} {}
+  Extender(P &prblm)
+      : problem{prblm}, determinismRegulator{prblm.sampler->sampleSeed(),
+                                             prblm.determinism} {}
 
   P &problem;
+  DeterminismRegulator determinismRegulator;
 
 private:
   DeterministicSteerRegisterHash determinism_register_;
@@ -165,16 +169,18 @@ template <typename P, FoundSolution S>
   const Node *steer_node =
       tree.internalize(steer_buffer_, *nearest, steer_result->cost2Go);
 
-  if (isStar_ && !steer_result->target_was_reached) {
-    /////////////// star rewiring ///////////////
-    rewiring_.update(*steer_node, tree, *problem.connector);
+  if constexpr (P::kExpansionStrategy == ExpansionStrategy::Star) {
+    if (!steer_result->target_was_reached) {
+      /////////////// star rewiring ///////////////
+      rewiring_.update(*steer_node, tree, *problem.connector);
 
-    if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
-      tree.applyRewiring(*steer_node, rewiring_.getRewires(),
-                         *problem.connector);
-    } else {
-      for (const auto &rew : rewiring_.getRewires()) {
-        rew.involved_node->setParent(*steer_node, rew.updatedCost2Go);
+      if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
+        tree.applyRewiring(*steer_node, rewiring_.getRewires(),
+                           *problem.connector);
+      } else {
+        for (const auto &rew : rewiring_.getRewires()) {
+          rew.involved_node->setParent(*steer_node, rew.updatedCost2Go);
+        }
       }
     }
   }

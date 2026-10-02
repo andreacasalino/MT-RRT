@@ -24,17 +24,20 @@ struct ExtenderBidirectionalSolution {
   Positive cost2Bridge;
 };
 
-template <typename T, Connector C, Sampler S>
+template <typename P>
 class ExtenderBidirectional
-    : public Extender<ExtenderBidirectionalSolution, C, S> {
+    : public Extender<P, ExtenderBidirectionalSolution> {
 public:
-  ExtenderBidirectional(T first, T second, C &conn, const S &sampler);
+  ExtenderBidirectional(P &prblm, T first, T second)
+      : Extender<P, ExtenderBidirectionalSolution>{prblm},
+        tree_{std::make_pair(std::move(first), std::move(second))},
+        master_{&tree_.first}, slave_{&tree_.second} {}
 
   std::pair<T, T> trees_;
 
   void extend() {
     ExtendResult res_master;
-    if (shallThisBeDeterministic()) {
+    if (determinismRegulator.shallThisBeDeterministic()) {
       res_master = this->Extender::extend<T, true>(slave_->root()->data().state,
                                                    *master_);
     } else {

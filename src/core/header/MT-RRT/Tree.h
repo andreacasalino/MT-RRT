@@ -8,10 +8,10 @@
 #pragma once
 
 #include <MT-RRT/Connector.h>
-#include <MT-RRT/ExtendTypes.h>
 #include <MT-RRT/Node.h>
 #include <MT-RRT/NodesIterator.h>
 #include <MT-RRT/Solution.h>
+#include <MT-RRT/Types.h>
 
 namespace mt_rrt {
 namespace tree {
