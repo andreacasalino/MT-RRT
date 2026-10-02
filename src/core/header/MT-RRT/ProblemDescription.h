@@ -14,28 +14,19 @@
 #include <memory>
 
 namespace mt_rrt {
-template <typename P>
-concept ProblemDescription = requires(P obj) {
-  { obj.gamma } -> std::same_as<Positive>;
-
-  requires Sampler<typename P::sampler_type>;
-  { obj.sampler } -> std::same_as<std::unique_ptr<typename P::sampler_type>>;
-
-  requires Connector<typename P::connector_type>;
-  {
-    obj.connector
-    } -> std::same_as<std::unique_ptr<typename P::connector_type>>;
-
-  typename std::bool_constant<P::simmetry_value>;
-  requires std::same_as<const bool, decltype(P::simmetry_value)>;
-};
+/**
+ * @brief The kind of strategy to use, refer to documentation at
+ * Sections 1.2.1, 1.2.2 and 1.2.3
+ */
+enum class ExpansionStrategy { Single, Bidir, Star };
 
 /**
  * @brief Groups together all the static information characterizing the class of
  * problems to solve.
  */
-template <Connector C, Sampler S, bool Simmetry>
-struct ProblemDescriptionConcrete {
+template <Connector C, Sampler S, bool Simmetry,
+          ExpansionStrategy ExpansionStrategyT>
+struct ProblemDescription {
   /**
    * @brief \gamma involved in the near set computation, refer to
    * Section 1.2.3 of the documentation
@@ -52,6 +43,8 @@ struct ProblemDescriptionConcrete {
    * @brief when true, the path connecting start to end, can be traversed in the
    * opposite direction to connect end to start.
    */
-  static constexpr bool simmetry_value = Simmetry;
+  static inline constexpr bool kSimmetry = Simmetry;
+  static inline constexpr ExpansionStrategy kExpansionStrategy =
+      ExpansionStrategyT;
 };
 } // namespace mt_rrt

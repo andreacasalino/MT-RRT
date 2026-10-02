@@ -8,6 +8,7 @@
 #pragma once
 
 #include <MT-RRT/Limited.h>
+#include <MT-RRT/ProblemDescription.h>
 
 namespace mt_rrt {
 /**
@@ -31,12 +32,6 @@ struct PositiveIntegerWithDefault
  */
 using Iterations = PositiveIntegerWithDefault<1000>;
 
-/**
- * @brief The kind of strategy to use, refer to documentation at
- * Sections 1.2.1, 1.2.2 and 1.2.3
- */
-enum class ExpansionStrategy { Single, Bidir, Star };
-
 using Cost = Positive;
 static constexpr float COST_MAX = std::numeric_limits<float>::max();
 
@@ -50,10 +45,12 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  * @brief Groups together all the parameters that a @Planner neeeds to
  * know to solve a specific problem for connecting 2 pair of states.
  */
-struct Parameters {
-  ExpansionStrategy expansion_strategy{ExpansionStrategy::Star};
+template <Connector C, Sampler S, bool Simmetry,
+          ExpansionStrategy ExpansionStrategyT>
+struct Problem : ProblemDescription<C, S, Simmetry, ExpansionStrategyT> {
   Iterations iterations;
   Determinism determinism{0.35f};
+
   /**
    * @brief If true, the expansion of the tree(s) is arrested as soon as a
    * solution is found. Otherwise, the search is kept on possibly finding

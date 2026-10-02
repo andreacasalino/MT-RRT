@@ -28,7 +28,7 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
-template <ProblemDescription P, FoundSolution S> class Extender {
+template <typename P, FoundSolution S> class Extender {
 public:
   std::optional<Solution> materializeBestSolution() const;
 
@@ -37,9 +37,10 @@ public:
   bool hasSolution() const { return !solutions_.empty(); }
 
 protected:
-  bool shallThisBeDeterministic() {
-    return determinism_.shallThisBeDeterministic();
-  }
+  template <typename T>
+  const Node *find_nearest_neighbour(std::span<const float> state,
+                                     const T &tree) requires tree::HasIter<T> ||
+      tree::HasCustomQueries<T, typename P::connector_type>;
 
   struct ExtendNotPossible {};
   struct DeterministicTargetReached {
@@ -53,30 +54,25 @@ protected:
       std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
 
   template <typename T, bool IsDeterministic>
-      ExtendResult extend(std::span<const float> target,
-                          T &tree) requires(tree::HasIter<T> ||
-                                            tree::HasCustomQueries<T, C>) &&
+      ExtendResult extend(std::span<const float> target, T &tree) requires(
+          tree::HasIter<T> ||
+          tree::HasCustomQueries<T, typename P::connector_type>) &&
       tree::HasBasicMethods<T>;
 
-  void pushSolution(S to_add) { solutions_.emplace_back(std::move(to_add)); }
+  void pushSolution(S &&to_add) {
+    solutions_.emplace_back(std::forward<S>(to_add));
+  }
 
   std::span<const float> sampleState() const {
     problem.sampler.sampleState(sample_buffer_);
     return sample_buffer_;
   }
 
-  Extender(bool isStar, Determinism det, P &problem);
+  Extender(P &prblm) : problem{prblm} {}
 
   P &problem;
 
 private:
-  template <typename T, Connector C>
-  const Node *find_nearest_neighbour(
-      std::span<const float> state,
-      const T &tree) requires tree::HasIter<T> || tree::HasCustomQueries<T, C>;
-
-  bool isStar_{false};
-  DeterminismRegulator determinism_;
   DeterministicSteerRegisterHash determinism_register_;
 
   std::vector<S> solutions_;
@@ -108,9 +104,8 @@ std::size_t extend_many(E &ext,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename ProblemDescriptionT, FoundSolution S>
-std::optional<Solution>
-Extender<ProblemDescriptionT, S>::materializeBestSolution() const {
+template <typename P, FoundSolution S>
+std::optional<Solution> Extender<P, S>::materializeBestSolution() const {
   auto it_best = std::min_element(
       solutions_.begin(), solutions_.end(),
       [&](const auto &a, const auto &b) { return a.costTot < b.costTot; });
@@ -119,12 +114,13 @@ Extender<ProblemDescriptionT, S>::materializeBestSolution() const {
                                 : std::make_optional(it_best->materialize());
 }
 
-template <typename ProblemDescriptionT, FoundSolution S>
-template <typename T, Connector C>
-const Node *Extender<ProblemDescriptionT, S>::find_nearest_neighbour<T, C>(
-    std::span<const float> state,
-    const T &tree) requires tree::HasIter<T> || tree::HasCustomQueries<T, C> {
-  if constexpr (tree::HasCustomQueries<T, C>) {
+template <typename P, FoundSolution S>
+template <typename T>
+const Node *
+Extender<P, S>::find_nearest_neighbour<T>(std::span<const float> state,
+                                          const T &tree) requires
+    tree::HasIter<T> || tree::HasCustomQueries<T, typename P::connector_type> {
+  if constexpr (tree::HasCustomQueries<T, typename P::connector_type>) {
     return tree.nearestNeighbour(state, *problem.connector).closest;
   }
 
@@ -137,15 +133,12 @@ const Node *Extender<ProblemDescriptionT, S>::find_nearest_neighbour<T, C>(
   }
 }
 
-template <typename ProblemDescriptionT, FoundSolution S>
+template <typename P, FoundSolution S>
     template <typename T, bool IsDeterministic>
-    Extender<ProblemDescriptionT, S>::ExtendResult
-    Extender<ProblemDescriptionT, S>::extend<T, IsDeterministic>(
-        std::span<const float> target,
-        T &tree) requires(tree::HasIter<T> ||
-                          tree::HasCustomQueries<
-                              T,
-                              typename ProblemDescriptionT::connector_type>) &&
+    Extender<P, S>::ExtendResult
+    Extender<P, S>::extend<T>(std::span<const float> target, T &tree) requires(
+        tree::HasIter<T> ||
+        tree::HasCustomQueries<T, typename P::connector_type>) &&
     tree::HasBasicMethods<T> {
   const Node *nearest =
       find_nearest_neighbour(target, tree, *problem.connector);
@@ -176,8 +169,7 @@ template <typename ProblemDescriptionT, FoundSolution S>
     /////////////// star rewiring ///////////////
     rewiring_.update(*steer_node, tree, *problem.connector);
 
-    if constexpr (tree::HasCustomRewiring<
-                      T, typename ProblemDescriptionT::connector_type>) {
+    if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
       tree.applyRewiring(*steer_node, rewiring_.getRewires(),
                          *problem.connector);
     } else {
