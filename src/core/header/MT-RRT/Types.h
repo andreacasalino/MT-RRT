@@ -137,6 +137,8 @@ struct NearSetElement {
   const Node *element;
   Positive cost2Root;
   Positive cost2go;
+
+  float costTot() const { return cost2Root.get() + cost2go.get(); }
 };
 
 struct NearSetHandler {

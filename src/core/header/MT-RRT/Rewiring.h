@@ -27,7 +27,8 @@ private:
                                1.f / static_cast<float>(state_space_size_));
   }
 
-  template <Connector C> void computeRewires(Node &pivot, C &connector);
+  template <Connector C>
+  void computeRewires(NearSetHandler &handler, C &connector);
 
   Positive gamma_;
   std::size_t state_space_size_;
@@ -44,85 +45,42 @@ void Rewiring::update<C, T>(Node &pivot, const T &tree, C &connector) {
   rewires_.clear();
   NearSetHandler handler{nearSetRay(tree.size()), pivot, near_set_};
 
-  if constexpr (HasCustomQueries<T, C>) {
+  if constexpr (tree::HasCustomQueries<T, C>) {
     tree.nearSet(handler, connector);
   } else {
     for_each_nodes(tree.iter(),
                    [&](const Node &next) { handler.tryAdd(next, connector); });
   }
 
-  computeRewires(pivot, connector);
+  computeRewires(handler, connector);
 }
 
 template <Connector C>
-void Rewiring::computeRewires<C>(Node &pivot, C &connector) {
-  // std::vector<Rewire> compute_rewires(Node &subject, NearSet
-  // &&near_set_info,
-  //                                     const DescriptionAndParameters
-  //                                     &context)
-  //                                     {
-  //   auto &near_set = near_set_info.set;
-  //   if (near_set.empty()) {
-  //     return {};
-  //   }
+void Rewiring::computeRewires<C>(NearSetHandler &handler, C &connector) {
+  auto it_best = std::min_element(
+      handler.near_set.begin(), handler.near_set.end(),
+      [](const auto &a, const auto &b) { return a.costTot() < b.costTot(); });
+  if (it_best == handler.near_set.end()) {
+    return;
+  }
 
-  //   const auto &connector = *context.description.connector;
-  //   float cost2RootSubject = near_set_info.cost2RootSubject;
+  // rewire just_steered to the best father
+  handler.pivot.setParent(*it_best->element, it_best->cost2go);
+  float cost2RootPivot = it_best->costTot();
+  // remove current parent from rewire candidates
+  handler.near_set.erase(it_best);
 
-  //   // rewire just_steered to the best father
-  //   if (auto it = std::min_element(
-  //           near_set.begin(), near_set.end(),
-  //           [](const NearSetElement &a, const NearSetElement &b) {
-  //             return a.cost2go + a.cost2Root < b.cost2go + b.cost2Root;
-  //           });
-  //       it->cost2go + it->cost2Root < cost2RootSubject) {
-  //     subject.setParent(*it->element, it->cost2go);
-  //     cost2RootSubject = it->cost2go + it->cost2Root;
-  //   }
-  //   // remove current parent from rewire candidates
-  //   if (auto it =
-  //           std::find_if(near_set.begin(), near_set.end(),
-  //                        [parent = subject.getParent()](const
-  //                        NearSetElement &e) {
-  //                          return e.element == parent;
-  //                        });
-  //       it != near_set.end()) {
-  //     near_set.erase(it);
-  //   }
-
-  //   // check for rewires
-  //   bool symmetric = context.description.simmetry;
-  //   std::vector<Rewire> res;
-  //   for (auto [isRoot, node, nodeCost2Root, cost2GoPrev] : near_set) {
-  //     if (isRoot) {
-  //       // root can't be rewired
-  //       continue;
-  //     }
-  //     float cost2Go = symmetric ? cost2GoPrev
-  //                               :
-  //                               connector.minCost2GoConstrained(subject.state(),
-  //                                                                 node->state());
-  //     if (cost2Go == COST_MAX) {
-  //       continue;
-  //     }
-  //     float cost2RootRewire = cost2RootSubject + cost2Go;
-  //     if (cost2RootRewire < nodeCost2Root) {
-  //       res.emplace_back(Rewire{node, cost2Go});
-  //     }
-  //   }
-  //   return res;
-  // }
-
-  // void apply_rewires_if_better(const Node &parent,
-  //                              const std::vector<Rewire> &rewires) {
-  //   float parentCost2Root = parent.cost2Root();
-  //   for (const auto &rew : rewires) {
-  //     if (parentCost2Root + rew.new_cost_from_father <
-  //         rew.involved_node->cost2Root()) {
-  //       rew.involved_node->setParent(parent, rew.new_cost_from_father);
-  //     }
-  //   }
-  // }
+  // check for rewires
+  std::vector<Rewire> res;
+  for (auto [isRoot, node, nodeCost2Root, cost2GoPrev] : near_set) {
+    if (isRoot) {
+      // root can't be rewired
+      continue;
+    }
+    float cost2RootRewired = cost2RootPivot + cost2GoPrev;
+    if (cost2RootRewired < nodeCost2Root) {
+      res.emplace_back(Rewire{node, cost2GoPrev});
+    }
+  }
 }
-
 } // namespace mt_rrt

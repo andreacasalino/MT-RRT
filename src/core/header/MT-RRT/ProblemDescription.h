@@ -27,6 +27,9 @@ enum class ExpansionStrategy { Single, Bidir, Star };
 template <Connector C, Sampler S, bool Simmetry,
           ExpansionStrategy ExpansionStrategyT>
 struct ProblemDescription {
+  // TODO static assert if not Simmetry cannot have ExpansionStrategy star ore
+  // bidir
+
   /**
    * @brief \gamma involved in the near set computation, refer to
    * Section 1.2.3 of the documentation
