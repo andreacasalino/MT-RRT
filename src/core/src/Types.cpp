@@ -5,10 +5,10 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#include <MT-RRT/ExtendTypes.h>
+#include <MT-RRT/Types.h>
 
 namespace mt_rrt {
-bool KeepSearchPredicate::operator()(std::size_t iter) const {
+bool KeepSearchPredicate::keepSearch(std::size_t iter) const {
   if ((strategy != ExpansionStrategy::Star) && best_effort &&
       one_solution_was_found) {
     return false;
