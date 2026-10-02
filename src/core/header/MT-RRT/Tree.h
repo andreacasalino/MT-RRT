@@ -51,6 +51,8 @@ concept HasBasicMethods = requires(const T obj_const, T obj,
                                    std::span<const float> state,
                                    const Node &parent,
                                    const Positive &cost2Go) {
+  { obj_const.size() } -> std::same_as<std::size_t>;
+
   { obj_const.root() } -> std::same_as<const Node *>;
 
   { obj.internalize(state, parent, cost2Go) } -> std::same_as<const Node *>;

@@ -140,13 +140,6 @@ struct NearSetElement {
 };
 
 struct NearSetHandler {
-  static float nearSetRay(std::size_t tree_size, std::size_t problem_size,
-                          const Positive &gamma) {
-    const float tree_size_float = static_cast<float>(tree_size);
-    return gamma.get() * powf(logf(tree_size_float) / tree_size_float,
-                              1.f / static_cast<float>(problem_size));
-  }
-
   NearSetHandler(Positive r, Node &pvt, std::vector<NearSetElement> &set)
       : ray{r.get()}, pivot{pvt}, near_set{set} {
     near_set.clear();
@@ -165,7 +158,7 @@ struct NearSetHandler {
     }
   }
 
-  float ray;
+  Positive ray;
   Node &pivot;
   std::vector<NearSetElement> &near_set;
 };
