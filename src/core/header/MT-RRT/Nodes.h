@@ -16,7 +16,7 @@
 namespace mt_rrt {
 class Nodes {
 public:
-  Nodes() = default;
+  Nodes();
 
   Node &push(std::span<const float> to_add) {
     auto copied_view = statesPool_->push(to_add);
