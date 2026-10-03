@@ -7,14 +7,11 @@
 
 #pragma once
 
-#include <MT-RRT/Connector.h>
 #include <MT-RRT/Limited.h>
 #include <MT-RRT/Node.h>
-#include <MT-RRT/ProblemDescription.h>
 #include <MT-RRT/Random.h>
 #include <MT-RRT/Types.h>
 
-#include <algorithm>
 #include <atomic>
 #include <unordered_set>
 
@@ -50,22 +47,10 @@ static constexpr float COST_MAX = std::numeric_limits<float>::max();
 using SteerIterations = PositiveIntegerWithDefault<10>;
 
 /**
- * @brief Groups together all the parameters that a @Planner neeeds to
- * know to solve a specific problem for connecting 2 pair of states.
+ * @brief The kind of strategy to use, refer to documentation at
+ * Sections 1.2.1, 1.2.2 and 1.2.3
  */
-template <IsProblemDescription P> struct Problem : P {
-  Iterations iterations;
-  Determinism determinism{0.35f};
-
-  /**
-   * @brief If true, the expansion of the tree(s) is arrested as soon as a
-   * solution is found. Otherwise, the search is kept on possibly finding
-   * additional solutions.
-   */
-  bool best_effort{true};
-
-  bool provide_extra_info{false};
-};
+enum class ExpansionStrategy { Single, Bidir, Star };
 
 struct KeepSearchPredicate {
   bool best_effort;
@@ -112,58 +97,4 @@ struct DeterministicSteerRegisterHash {
 using DeterministicSteerRegister =
     std::unordered_set<std::pair<const Node *, const float *>,
                        DeterministicSteerRegisterHash>;
-
-struct NearestNeighbour {
-  std::span<const float> state_to_reach;
-  const Node *closest = nullptr;
-  float closestCost = COST_MAX;
-
-  template <Connector C> void update(const Node &candidate, C &connector) {
-    auto cost2Go =
-        connector.makeTrajectory(candidate.data().state, state_to_reach)
-            .minCost2Go()
-            .get();
-    if (cost2Go < closestCost) {
-      closest = &candidate;
-      closestCost = cost2Go;
-    }
-  }
-};
-
-struct NearSetElement {
-  bool isRoot;
-  const Node *element;
-  Positive cost2Root;
-  Positive cost2go;
-
-  float costTot() const { return cost2Root.get() + cost2go.get(); }
-};
-
-struct NearSetHandler {
-  NearSetHandler(Positive r, Node &pvt, std::vector<NearSetElement> &set)
-      : ray{r.get()}, pivot{pvt}, near_set{set} {
-    near_set.clear();
-  }
-
-  template <Connector C> void tryAdd(Node &node, C &connector) {
-    auto traj = connector.makeTrajectory(node.data().state, pivot.data().state);
-    if (traj.has_value() && traj->minCost2Go().get() <= ray) {
-      auto traversed = traj->traverse();
-      if (traversed.has_value()) {
-        float cost2Go = traversed->cost2Go.get();
-        near_set.emplace_back(NearSetElement{node.data().parent == nullptr,
-                                             &node, node.cost2Root(), cost2Go});
-      }
-    }
-  }
-
-  Positive ray;
-  Node &pivot;
-  std::vector<NearSetElement> &near_set;
-};
-
-struct Rewire {
-  Node *involved_node;
-  Positive updatedCost2Go;
-};
 } // namespace mt_rrt

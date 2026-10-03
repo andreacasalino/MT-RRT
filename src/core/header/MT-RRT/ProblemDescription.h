@@ -14,11 +14,6 @@
 #include <memory>
 
 namespace mt_rrt {
-/**
- * @brief The kind of strategy to use, refer to documentation at
- * Sections 1.2.1, 1.2.2 and 1.2.3
- */
-enum class ExpansionStrategy { Single, Bidir, Star };
 
 /**
  * @brief Groups together all the static information characterizing the class of
@@ -62,4 +57,22 @@ struct is_problem_description<
 
 template <typename P>
 concept IsProblemDescription = details::is_problem_description<P>::value;
+
+/**
+ * @brief Groups together all the parameters that a @Planner neeeds to
+ * know to solve a specific problem for connecting 2 pair of states.
+ */
+template <IsProblemDescription P> struct Problem : P {
+  Iterations iterations;
+  Determinism determinism{0.35f};
+
+  /**
+   * @brief If true, the expansion of the tree(s) is arrested as soon as a
+   * solution is found. Otherwise, the search is kept on possibly finding
+   * additional solutions.
+   */
+  bool best_effort{true};
+
+  bool provide_extra_info{false};
+};
 } // namespace mt_rrt
