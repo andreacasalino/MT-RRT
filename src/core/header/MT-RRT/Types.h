@@ -146,13 +146,13 @@ struct NearSetHandler {
   }
 
   template <Connector C> void tryAdd(Node &node, C &connector) {
-    auto traj = connector.makeTrajectory(node.data().state, state_to_reach);
+    auto traj = connector.makeTrajectory(node.data().state, pivot.data().state);
     if (traj.has_value() && traj->minCost2Go().get() <= ray) {
       auto traversed = traj->traverse();
       if (traversed.has_value()) {
         float cost2Go = traversed->cost2Go.get();
-        set.emplace_back(NearSetElement{node.data().parent == nullptr, &node,
-                                        node.cost2Root(), cost2Go});
+        near_set.emplace_back(NearSetElement{node.data().parent == nullptr,
+                                             &node, node.cost2Root(), cost2Go});
       }
     }
   }
