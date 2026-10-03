@@ -28,6 +28,17 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
+struct ExtendNotPossible {};
+struct DeterministicTargetReached {
+  Positive cost2Go;
+  const Node &parent;
+};
+struct Steered {
+  const Node &added;
+};
+using ExtendResult =
+    std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
+
 template <IsProblemDescription P, FoundSolution S> class Extender {
 public:
   std::optional<Solution> materializeBestSolution() const;
@@ -35,17 +46,6 @@ public:
   const auto &getSolutions() const { return solutions_; }
 
   bool hasSolution() const { return !solutions_.empty(); }
-
-  struct ExtendNotPossible {};
-  struct DeterministicTargetReached {
-    Positive cost2Go;
-    const Node &parent;
-  };
-  struct Steered {
-    const Node &added;
-  };
-  using ExtendResult =
-      std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
 
 protected:
   Extender(Problem<P> &prblm)
@@ -132,10 +132,13 @@ const Node *Extender<P, S>::find_nearest_neighbour(std::span<const float> state,
   }
 }
 
+// template <IsProblemDescription P, FoundSolution S>
+//   template <tree::HasBasicMethods T, bool IsDeterministic>
+//   ExtendResult extend(std::span<const float> target, T &tree)
+
 template <IsProblemDescription P, FoundSolution S>
 template <tree::HasBasicMethods T, bool IsDeterministic>
-Extender<P, S>::ExtendResult
-Extender<P, S>::extend(std::span<const float> target, T &tree) {
+ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
   const Node *nearest =
       find_nearest_neighbour(target, tree, *problem.connector);
   if (!nearest) {
