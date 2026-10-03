@@ -14,6 +14,7 @@
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/Tree.h>
 #include <MT-RRT/Types.h>
+#include <MT-RRT/Utils.hxx>
 
 #include <deque>
 #include <optional>
