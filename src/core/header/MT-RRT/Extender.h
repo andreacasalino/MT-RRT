@@ -72,7 +72,7 @@ protected:
   DeterminismRegulator determinismRegulator;
 
 private:
-  DeterministicSteerRegisterHash determinism_register_;
+  DeterministicSteerRegister determinism_register_;
 
   std::vector<S> solutions_;
 
@@ -109,15 +109,15 @@ std::optional<Solution> Extender<P, S>::materializeBestSolution() const {
       solutions_.begin(), solutions_.end(),
       [&](const auto &a, const auto &b) { return a.costTot < b.costTot; });
 
-  return it == solutions_.end() ? std::nullopt
-                                : std::make_optional(it_best->materialize());
+  return it_best == solutions_.end()
+             ? std::nullopt
+             : std::make_optional(it_best->materialize());
 }
 
 template <IsProblemDescription P, FoundSolution S>
 template <typename T>
-const Node *
-Extender<P, S>::find_nearest_neighbour<T>(std::span<const float> state,
-                                          const T &tree) {
+const Node *Extender<P, S>::find_nearest_neighbour(std::span<const float> state,
+                                                   const T &tree) {
   if constexpr (tree::HasCustomNearestNeighbour<T,
                                                 typename P::connector_type>) {
     return tree.nearestNeighbour(state, *problem.connector).closest;
@@ -135,24 +135,25 @@ Extender<P, S>::find_nearest_neighbour<T>(std::span<const float> state,
 template <IsProblemDescription P, FoundSolution S>
 template <tree::HasBasicMethods T, bool IsDeterministic>
 Extender<P, S>::ExtendResult
-Extender<P, S>::extend<T>(std::span<const float> target, T &tree) {
+Extender<P, S>::extend(std::span<const float> target, T &tree) {
   const Node *nearest =
       find_nearest_neighbour(target, tree, *problem.connector);
   if (!nearest) {
-    return ExtendNotPossible;
+    return ExtendNotPossible{};
   }
   if constexpr (IsDeterministic) {
     bool is_new =
-        register_.emplace(std::make_pair(nearest, target.data())).second;
+        determinism_register_.emplace(std::make_pair(nearest, target.data()))
+            .second;
     if (is_new) {
-      return ExtendNotPossible;
+      return ExtendNotPossible{};
     }
   }
 
   auto steer_result =
       problem.connector->steer(nearest->data().state, target, steer_buffer_);
   if (!steer_result.has_value()) {
-    return ExtendNotPossible;
+    return ExtendNotPossible{};
   }
   if (steer_result->target_was_reached) {
     return DeterministicTargetReached{steer_result->cost2Go, *nearest};
