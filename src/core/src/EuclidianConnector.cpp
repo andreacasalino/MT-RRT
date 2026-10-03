@@ -5,8 +5,6 @@
  * report any bug to andrecasa91@gmail.com.
  **/
 
-#pragma once
-
 #include <MT-RRT/EuclidianConnector.h>
 
 namespace mt_rrt {

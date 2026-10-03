@@ -56,13 +56,12 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
   float distance_tot = euclidean_distance(start, target);
   float distance_done{0};
   for (std::size_t i{0}; i < steers_.get();
-       ++i, distance_done += quantized_advancement_) {
-    if (distance_tot - distance_done < quantized_advancement_) {
+       ++i, distance_tot += quantized_advancement_.get()) {
+    if (distance_tot - distance_done < quantized_advancement_.get()) {
       reached.clear();
       reached.insert(reached.end(), target.begin(), target.end());
-      return TraverseResult {
-        .target_was_reached = true, .cost2Go = Positive{distance_tot};
-      }
+      return TraverseResult{.target_was_reached = true,
+                            .cost2Go = Positive{distance_tot}};
     }
 
     float scale = distance_done / distance_tot;
@@ -79,9 +78,8 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
   if (distance_done == 0) {
     return std::nullopt;
   } else {
-    return TraverseResult {
-      .target_was_reached = false, .cost2Go = Positive{distance_done};
-    }
+    return TraverseResult{.target_was_reached = false,
+                          .cost2Go = Positive{distance_done}};
   }
 }
 } // namespace mt_rrt
