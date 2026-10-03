@@ -23,9 +23,9 @@ concept IsConstraintsChecker = requires(C obj, std::span<const float> state) {
 [[nodiscard]] float euclidean_distance(std::span<const float> a,
                                        std::span<const float> b);
 
-template <IsConstraintsChecker ConstraintsChecker> class EucledianConnector {
+template <IsConstraintsChecker ConstraintsChecker> class EuclidianConnector {
 public:
-  EucledianConnector(Positive quantized_advancement, SteerIterations steers,
+  EuclidianConnector(Positive quantized_advancement, SteerIterations steers,
                      ConstraintsChecker &&checker)
       : quantized_advancement_{quantized_advancement}, steers_{steers},
         checker_{std::forward<ConstraintsChecker>(checker)} {}
@@ -50,7 +50,7 @@ private:
 
 template <IsConstraintsChecker ConstraintsChecker>
 std::optional<TraverseResult>
-EucledianConnector<ConstraintsChecker>::steer(std::span<const float> start,
+EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
                                               std::span<const float> target,
                                               std::vector<float> &reached) {
   float distance_tot = euclidean_distance(start, target);
@@ -83,4 +83,5 @@ EucledianConnector<ConstraintsChecker>::steer(std::span<const float> start,
       .target_was_reached = false, .cost2Go = Positive{distance_done};
     }
   }
+}
 } // namespace mt_rrt
