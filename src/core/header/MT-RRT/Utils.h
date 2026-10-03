@@ -9,6 +9,7 @@
 
 #include <MT-RRT/Connector.h>
 #include <MT-RRT/Node.h>
+#include <MT-RRT/Tree.h>
 #include <MT-RRT/Types.h>
 
 namespace mt_rrt {
@@ -92,7 +93,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <Connector C, typename T>
-void Rewiring::update<C, T>(Node &pivot, const T &tree, C &connector) {
+void Rewiring::update(Node &pivot, const T &tree, C &connector) {
   rewires_.clear();
   NearSetHandler handler{nearSetRay(tree.size()), pivot, near_set_};
 

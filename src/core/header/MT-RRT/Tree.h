@@ -14,6 +14,10 @@
 #include <MT-RRT/Types.h>
 
 namespace mt_rrt {
+struct NearestNeighbour;
+struct NearSetHandler;
+struct Rewire;
+
 namespace tree {
 template <typename T>
 concept HasIter = requires(const T obj_const) {
