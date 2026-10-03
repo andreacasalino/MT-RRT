@@ -18,13 +18,13 @@ public:
 
   std::size_t size() const { return size_; }
 
-  const Node &next() {
+  const Node *next() {
     if (current_ == end_) {
       return nullptr;
     } else {
       const Node &res = *current_;
       ++current_;
-      return res;
+      return &res;
     }
   }
 
