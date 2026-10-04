@@ -58,11 +58,7 @@ struct is_problem_description<
 template <typename P>
 concept IsProblemDescription = details::is_problem_description<P>::value;
 
-/**
- * @brief Groups together all the parameters that a @Planner neeeds to
- * know to solve a specific problem for connecting 2 pair of states.
- */
-template <IsProblemDescription P> struct Problem : P {
+struct ProblemParameters {
   Iterations iterations;
   Determinism determinism{0.35f};
 
@@ -75,4 +71,11 @@ template <IsProblemDescription P> struct Problem : P {
 
   bool provide_extra_info{false};
 };
+
+/**
+ * @brief Groups together all the parameters that a @Planner neeeds to
+ * know to solve a specific problem for connecting 2 pair of states.
+ */
+template <IsProblemDescription P>
+using Problem = std::pair<P, ProblemParameters>;
 } // namespace mt_rrt
