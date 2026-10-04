@@ -133,7 +133,7 @@ make_scenario_data(Kind kind) {
     return make_no_solution_scenario();
   case Kind::SmallObstacle:
     return make_small_obstacle_scenario();
-  case Kind::Cluttered:
+  default: // case Kind::Cluttered:
     return make_cluttered_scenario();
   }
 }
