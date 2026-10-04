@@ -49,8 +49,8 @@ public:
 
 protected:
   Extender(Problem<P> &prblm)
-      : problem{prblm}, determinismRegulator{prblm.sampler->sampleSeed(),
-                                             prblm.determinism} {}
+      : problem{prblm}, determinismRegulator{prblm.first.sampler->sampleSeed(),
+                                             prblm.second.determinism} {}
 
   template <typename T>
   const Node *find_nearest_neighbour(std::span<const float> state,
@@ -64,7 +64,7 @@ protected:
   }
 
   std::span<const float> sampleState() const {
-    problem.sampler.sampleState(sample_buffer_);
+    problem.first.sampler.sampleState(sample_buffer_);
     return sample_buffer_;
   }
 
@@ -120,13 +120,13 @@ const Node *Extender<P, S>::find_nearest_neighbour(std::span<const float> state,
                                                    const T &tree) {
   if constexpr (tree::HasCustomNearestNeighbour<T,
                                                 typename P::connector_type>) {
-    return tree.nearestNeighbour(state, *problem.connector).closest;
+    return tree.nearestNeighbour(state, *problem.first.connector).closest;
   }
 
   else if constexpr (tree::HasIter<T>) {
     NearestNeighbour query{state};
     for_each_nodes(tree.iter(), [&](const Node &candidate) {
-      query.update(candidate, *problem.connector);
+      query.update(candidate, *problem.first.connector);
     });
     return query.closest;
   }
@@ -140,7 +140,7 @@ template <IsProblemDescription P, FoundSolution S>
 template <tree::HasBasicMethods T, bool IsDeterministic>
 ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
   const Node *nearest =
-      find_nearest_neighbour(target, tree, *problem.connector);
+      find_nearest_neighbour(target, tree, *problem.first.connector);
   if (!nearest) {
     return ExtendNotPossible{};
   }
@@ -153,8 +153,8 @@ ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
     }
   }
 
-  auto steer_result =
-      problem.connector->steer(nearest->data().state, target, steer_buffer_);
+  auto steer_result = problem.first.connector->steer(nearest->data().state,
+                                                     target, steer_buffer_);
   if (!steer_result.has_value()) {
     return ExtendNotPossible{};
   }
@@ -168,11 +168,11 @@ ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
   if constexpr (P::kExpansionStrategy == ExpansionStrategy::Star) {
     if (!steer_result->target_was_reached) {
       /////////////// star rewiring ///////////////
-      rewiring_.update(*steer_node, tree, *problem.connector);
+      rewiring_.update(*steer_node, tree, *problem.first.connector);
 
       if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
         tree.applyRewiring(*steer_node, rewiring_.getRewires(),
-                           *problem.connector);
+                           *problem.first.connector);
       } else {
         for (const auto &rew : rewiring_.getRewires()) {
           rew.involved_node->setParent(*steer_node, rew.updatedCost2Go);

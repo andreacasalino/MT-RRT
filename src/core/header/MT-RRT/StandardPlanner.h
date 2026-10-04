@@ -32,12 +32,13 @@ public:
         std::span<const float> end) {
     if constexpr (P::kExpansionStrategy == ExpansionStrategy::Single ||
                   P::kExpansionStrategy == ExpansionStrategy::Star) {
-      return solve_(ExtenderSingle extender{
-          end, TreeBase{start}, *problem_.connector, *problem_.sampler});
+      return solve_(ExtenderSingle extender{end, TreeBase{start},
+                                            *problem_.first.connector,
+                                            *problem_.first.sampler});
     } else if constexpr (P::kExpansionStrategy == ExpansionStrategy::Bidir) {
       return solve_(ExtenderBidirectional extender{
-          TreeBase{start}, TreeBase{end}, *problem_.connector,
-          *problem_.sampler});
+          TreeBase{start}, TreeBase{end}, *problem_.first.connector,
+          *problem_.first.sampler});
     }
   }
 
@@ -50,7 +51,7 @@ protected:
         extend_many(extender, std::make_shared<KeepSearchPredicate>(...));
     res.second = extender.materializeBestSolution();
 
-    if (problem_.provide_extra_info) {
+    if (problem_.second.provide_extra_info) {
       auto &ref = recipient.extra_info.emplace();
 
       if constexpr (std::is_same_v<E, ExtenderSingle>) {
