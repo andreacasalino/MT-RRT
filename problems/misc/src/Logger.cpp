@@ -49,19 +49,14 @@ Logger::Logger() {
 
 void Logger::add(const std::string &tag, const std::string &title,
                  const nlohmann::json &content) {
+  if (!results.emplace(std::make_pair(tag, title)).second) {
+    throw Error::make("`{}` was already used for topic `{}`", title, tag);
+  }
   std::filesystem::path p = tmpFolderPath_ / tag;
-  auto it = results.find(tag);
-  if (it == results.end()) {
-    std::filesystem::create_directories(p);
-    it = results.emplace(tag, std::unordered_set<std::string>{}).first;
-  }
-  if (it->second.find(tag) != it->second.end()) {
-    throw Error{merge(title, " was already used for topic ", tag)};
-  }
   p /= title + ".json";
   std::ofstream stream{p};
   if (!stream.is_open()) {
-    throw Error{"Can't open stream to ", p};
+    throw Error::make("Can't open stream to: {}", p);
   }
   stream << content.dump(1);
 }

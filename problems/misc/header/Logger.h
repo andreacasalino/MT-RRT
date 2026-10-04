@@ -10,7 +10,6 @@
 #include <nlohmann/json.hpp>
 
 #include <filesystem>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace mt_rrt {
@@ -29,9 +28,19 @@ private:
 
   std::filesystem::path tmpFolderPath_;
 
-  std::unordered_map<std::string, std::unordered_set<std::string>> results;
+  struct PairHash {
+    std::size_t operator()(const std::pair<std::string, std::string> &p) const {
+      static const std::hash<std::string> hasher;
+      // Hash both elements
+      std::size_t h1 = hasher(p.first);
+      std::size_t h2 = hasher(p.second);
+      // Combine the two hash values using a bit-mixing shift
+      return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    }
+  };
+
+  std::unordered_set<std::pair<std::string, std::string>, PairHash> results;
 };
 
 std::string time_now();
-
 } // namespace mt_rrt
