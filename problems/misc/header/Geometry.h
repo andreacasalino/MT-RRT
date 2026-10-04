@@ -47,6 +47,10 @@ struct PointAllocated : private std::array<float, 2>, Point {
   PointAllocated() : PointAllocated{0, 0} {}
   explicit PointAllocated(float x, float y);
 
+  static PointAllocated clone_view(const float *data) {
+    return clone(Point{data});
+  }
+
   static PointAllocated clone(const Point &o) {
     return PointAllocated{o.data()[0], o.data()[1]};
   }
