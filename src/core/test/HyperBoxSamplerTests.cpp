@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <MT-RRT/Error.h>
-#include <MT-RRT/Sampler.h>
+#include <MT-RRT/HyperBox.h>
 
 namespace {
 bool almost_equal(const std::vector<float> &a, const std::vector<float> &b) {
