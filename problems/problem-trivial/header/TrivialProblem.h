@@ -7,16 +7,22 @@
 
 #pragma once
 
-#include <MT-RRT/ProblemDescription.h>
-#include <MT-RRT/TunneledConnector.h>
-#include <MT-RRT/Types.h>
+#include <MT-RRT/EuclidianConnector.h>
 
 #include <Primitives.h>
 
 namespace mt_rrt::trivial {
+struct Checker {
+
+  bool check(std::span<const float> state) const;
+
+private:
+  geom::Boxes boxes;
+};
+
 // Universe is a (-1 , -1) x (1 , 1) box, with steer radius
 // equal to 0.05
-class TrivialProblemConnector : public TunneledConnector {
+class TrivialProblemConnector : public EuclidianConnector<> {
 public:
   TrivialProblemConnector(const geom::Boxes &obstacles);
 
