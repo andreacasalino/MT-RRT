@@ -54,3 +54,21 @@ INSTANTIATE_TEST_CASE_P(
     HyperBoxSamplerPositiveTests, HyperBoxSamplerPositiveFixture,
     ::testing::Values(Corners{{0}, {1}}, Corners{{0, 0}, {1, 1}},
                       Corners{{0, 1, -2, -1}, {1, 2, -1, 1}}));
+
+TEST(HyperBoxSamplingTest, samples_remain_in_box) {
+  std::vector<float> min_corner{-1.f, -2.f};
+  std::vector<float> max_corner{2.f, 1.5f};
+
+  HyperBox sampler(min_corner, max_corner);
+
+  std::vector<float> buffer;
+  for (std::size_t i = 0; i < 1000; ++i) {
+    sampler.sampleState(buffer);
+
+    ASSERT_EQ(buffer.size(), 2);
+    ASSERT_TRUE(min_corner[0] <= buffer[0]);
+    ASSERT_TRUE(buffer[0] <= max_corner[0]);
+    ASSERT_TRUE(min_corner[1] <= buffer[1]);
+    ASSERT_TRUE(buffer[1] <= max_corner[1]);
+  }
+}
