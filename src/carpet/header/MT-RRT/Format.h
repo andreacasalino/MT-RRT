@@ -96,6 +96,11 @@ private:
   std::string_view format_;
   std::tuple<const Args &...> args_;
 };
+
+template <typename... Args>
+std::string format(std::string_view format, const Args &...args) {
+  return Format<Args...>{format, args...}.to_string();
+}
 } // namespace mt_rrt
 
 namespace std {

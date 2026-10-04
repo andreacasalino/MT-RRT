@@ -17,8 +17,7 @@ public:
 
   template <typename... Args>
   static Error make(std::string_view format, const Args &...args) {
-    std::string msg = Format<Args...>{format, args...}.to_string();
-    return Error{std::move(msg)};
+    return Error{mt_rrt::format(format, args...)};
   }
 };
 } // namespace mt_rrt
