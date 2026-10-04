@@ -11,7 +11,7 @@
             {
                 "export":true,
                 "name":"MT_RRT_LOG_PATH",
-                "value":"${CMAKE_CURRENT_BINARY_DIR}/log_path"
+                "value":"${LOG_PATH}"
             }
         ]
     }

@@ -1,4 +1,4 @@
-import json, os, argparse, platform
+import json, os, argparse, platform, tempfile
 
 def pathJoin(front, *args):
     res = front
@@ -13,7 +13,8 @@ class Env:
     TEST_SUFFIX='-Tests'
     SAMPLE_SUFFIX='-Samples'
     env={
-        'PREFIX':PREFIX
+        'PREFIX':PREFIX,
+        'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"),
     }
 
     @staticmethod
