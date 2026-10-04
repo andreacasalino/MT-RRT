@@ -11,13 +11,16 @@
 #include <MT-RRT/HyperBox.h>
 #include <MT-RRT/ProblemDescription.h>
 
+#include <JsonConversions.h>
+#include <LogResult.h>
 #include <Primitives.h>
 
-namespace mt_rrt::trivial {
+namespace mt_rrt {
+namespace problem_trivial {
 using BoxesPtr = std::shared_ptr<const geom::Boxes>;
 
-struct TrivialProblemChecker {
-  TrivialProblemChecker(BoxesPtr boxes) : boxes_{boxes} {};
+struct Checker {
+  Checker(BoxesPtr boxes) : boxes_{boxes} {};
 
   bool check_from_to(std::span<const float> from,
                      std::span<const float> to) const;
@@ -30,35 +33,43 @@ private:
 
 // Universe is a (-1 , -1) x (1 , 1) box, with steer radius
 // equal to 0.05
-class TrivialProblemConnector
-    : public EuclidianConnector<TrivialProblemChecker>,
-      public Copiable<TrivialProblemConnector> {
+class Connector : public EuclidianConnector<Checker>,
+                  public Copiable<Connector> {
 public:
-  TrivialProblemConnector(BoxesPtr boxes, SteerIterations steers);
+  Connector(BoxesPtr boxes, SteerIterations steers);
 
-  std::unique_ptr<TrivialProblemConnector> copy() const final {
-    return std::make_unique<TrivialProblemConnector>(get().checker->getBoxes(),
-                                                     get().steers);
+  std::unique_ptr<Connector> copy() const final {
+    return std::make_unique<Connector>(get().checker->getBoxes(), get().steers);
   }
 
   static const float STEER_DEGREE; // 0.05
 };
 
+namespace detail {
 template <ExpansionStrategy ExpansionStrategyT>
-using TrivialProblemDescriptionBase =
-    ProblemDescription<TrivialProblemConnector, HyperBox, true,
-                       ExpansionStrategyT>;
+using DescriptionBase =
+    ProblemDescription<Connector, HyperBox, true, ExpansionStrategyT>;
+}
 
 template <ExpansionStrategy ExpansionStrategyT>
-class TrivialProblemDescription
-    : public TrivialProblemDescriptionBase<ExpansionStrategyT> {
-  TrivialProblemDescription(const std::optional<Seed> &seed,
-                            geom::Boxes obstacles, SteerIterations steers)
-      : TrivialProblemDescriptionBase<ExpansionStrategyT>{
+class Description : public DescriptionBase<ExpansionStrategyT> {
+  Description(const std::optional<Seed> &seed, geom::Boxes obstacles,
+              SteerIterations steers)
+      : DescriptionBase<ExpansionStrategyT>{
             .gamma = 10.f,
             .sampler =
                 std::make_unique<HyperBox>({-1.f, -1.f}, {1.f, 1.f}, seed),
-            .connector = std::make_unique<TrivialProblemConnector>(
+            .connector = std::make_unique<Connector>(
                 std::make_shared<geom::Boxes>(std::move(obstacles)), steer)} {}
 };
-} // namespace mt_rrt::trivial
+} // namespace problem_trivial
+
+template <ExpansionStrategy ExpansionStrategyT>
+void to_json(LogResult &j,
+             const problem_trivial::Description<ExpansionStrategyT> &subject) {
+  to_json(j.addToScene("region"), geom::Box{{-1.f, -1.f}, {1.f, 1.f}});
+  for (const auto &box : subject.getBoxes()) {
+    j.addObstacle(box);
+  }
+}
+} // namespace mt_rrt

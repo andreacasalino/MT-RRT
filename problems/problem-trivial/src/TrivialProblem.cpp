@@ -12,22 +12,19 @@
 #include <algorithm>
 #include <math.h>
 
-namespace mt_rrt::trivial {
+namespace mt_rrt::problem_trivial {
 namespace {
 static const float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
 }
 
-const float TrivialProblemConnector::STEER_DEGREE =
-    STATE_BOX_DIAGONAL_LENGTH / 15.f;
+const float Connector::STEER_DEGREE = STATE_BOX_DIAGONAL_LENGTH / 15.f;
 
-TrivialProblemConnector::TrivialProblemConnector(BoxesPtr boxes,
-                                                 SteerIterations steers)
-    : EuclidianConnector<TrivialProblemChecker>{
-          STEER_DEGREE, steers,
-          std::make_unique<TrivialProblemChecker>(boxes)} {}
+Connector::Connector(BoxesPtr boxes, SteerIterations steers)
+    : EuclidianConnector<Checker>{STEER_DEGREE, steers,
+                                  std::make_unique<Checker>(boxes)} {}
 
-bool TrivialProblemChecker::check_from_to(std::span<const float> from,
-                                          std::span<const float> to) const {
+bool Checker::check_from_to(std::span<const float> from,
+                            std::span<const float> to) const {
   if (boxes_->empty()) {
     return true;
   }
@@ -38,4 +35,4 @@ bool TrivialProblemChecker::check_from_to(std::span<const float> from,
         return obstacle.collides(from_point, to_point);
       });
 }
-} // namespace mt_rrt::trivial
+} // namespace mt_rrt::problem_trivial
