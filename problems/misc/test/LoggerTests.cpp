@@ -7,32 +7,39 @@
 #include <filesystem>
 #include <unordered_map>
 
-TEST(LoggerTest, check_the_logger) {
+#include <algorithm>
+#include <ranges>
 
-  ::testing::UnitTest::GetInstance()->current_test_info();
+struct LoggerTest : ::testing::Test {
+  void SetUp() override {
+    std::sort(labels.begin(), labels.end());
 
-  std::string test_suite_name = test_info->test_suite_name();
-  std::string test_name = test_info->name();
-
-  std::vector<std::string> labels{};
-
-  std::unordered_map<std::string, std::size_t> files{{"tag-a", 3},
-                                                     {"tag-b", 2}};
-  for (const auto &[tag, count] : files) {
-    for (std::size_t k = 0; k < count; ++k) {
-      mt_rrt::Logger::get().add(mt_rrt::format("{}-{}", k, k),
-                                nlohmann::json{});
-    }
+    auto rng =
+        labels | std::views::transform([](auto label) {
+          return mt_rrt::Logger::LOG_PATH /
+                 mt_rrt::format("LoggerTest_check_the_logger_{}.json", label);
+        });
+    expected_files = {rng.begin(), rng.end()};
   }
 
-  for (const auto &[tag, count_expected] : files) {
-    ASSERT_TRUE(
-        std::filesystem::exists(mt_rrt::Logger::get().tmpFolderPath() / tag));
-    std::size_t count = 0;
-    for (auto _ : std::filesystem::directory_iterator{
-             mt_rrt::Logger::get().tmpFolderPath() / tag}) {
-      ++count;
+  void TearDown() override {
+    std::vector<std::filesystem::path> files;
+    for (const auto &entry :
+         std::filesystem::directory_iterator{mt_rrt::Logger::LOG_PATH}) {
+      files.emplace_back(entry);
     }
-    EXPECT_EQ(count, count_expected);
+    std::sort(files.begin(), files.end());
+
+    ASSERT_EQ(files, expected_files)
+        << "Not the expected files left in the log directory by LoggerTest";
+  }
+
+  std::vector<std::string_view> labels{"tag-a", "tag-b", "tag-c"};
+  std::vector<std::filesystem::path> expected_files;
+};
+
+TEST_F(LoggerTest, check_the_logger) {
+  for (auto label : labels) {
+    mt_rrt::Logger::get().add_test_result(nlohmann::json{label}, label);
   }
 }

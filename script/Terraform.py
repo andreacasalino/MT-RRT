@@ -195,11 +195,7 @@ endif()
             'CMAKE_CURRENT_BINARY_DIR':'${CMAKE_CURRENT_BINARY_DIR}'
         }
         return """
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
-    SET({TARGET}-bin-path  "$CMAKE_BINARY_DIR/bin" CACHE INTERNAL "{TARGET}-bin-path")
-else()
-    SET({TARGET}-bin-path  "$CMAKE_BINARY_DIR/bin" CACHE INTERNAL "{TARGET}-bin-path")
-endif()
+SET({TARGET}-bin-path  "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path" CACHE INTERNAL "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path")
 """.format(**frmt)
 
     def gen(self):
