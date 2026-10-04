@@ -65,7 +65,7 @@ public:
   [[nodiscard]] static std::optional<std::array<float, 2>>
   closest_between_lines(const Segment &segment_a, const Segment &segment_b);
 
-  [[nodiscard]] Point at(float coeff) const;
+  [[nodiscard]] PointAllocated at(float coeff) const;
 
   static inline std::string_view type_name = "Segment";
 

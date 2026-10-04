@@ -54,7 +54,7 @@ Segment::closest_between_lines(const Segment &segment_a,
   return std::array<float, 2>{s_min, t_min};
 }
 
-Point Segment::at(float coeff) const {
+PointAllocated Segment::at(float coeff) const {
   const auto &delta = getEndStartDiff();
   return sum(getStart(), delta, coeff);
 }
