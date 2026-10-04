@@ -76,14 +76,15 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
     previous.clear();
     previous.insert(previous.end(), start.begin(), start.end());
   }
-  for (std::size_t i{0}; i < data_.steers.get();
-       ++i, distance_tot += data_.quantized_advancement.get()) {
+  for (std::size_t i{0}; i < data_.steers.get(); ++i) {
     if (distance_tot - distance_done < data_.quantized_advancement.get()) {
       reached.clear();
       reached.insert(reached.end(), target.begin(), target.end());
       return TraverseResult{.target_was_reached = true,
                             .cost2Go = Positive{distance_tot}};
     }
+
+    distance_done += data_.quantized_advancement.get();
 
     float scale = distance_done / distance_tot;
     float scale_complement = 1.f - scale;
@@ -96,6 +97,11 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
       if (!data_.checker->check_from_to(previous, reached)) {
         // back to previous
         std::swap(previous, reached);
+        if (i == 0) {
+          distance_done = 0;
+        } else {
+          distance_done -= data_.quantized_advancement.get();
+        }
         break;
       }
       std::swap(previous, reached);
