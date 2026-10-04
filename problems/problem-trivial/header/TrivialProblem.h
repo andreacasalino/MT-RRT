@@ -52,15 +52,16 @@ using DescriptionBase =
 }
 
 template <ExpansionStrategy ExpansionStrategyT>
-class Description : public DescriptionBase<ExpansionStrategyT> {
+class Description : public detail::DescriptionBase<ExpansionStrategyT> {
   Description(const std::optional<Seed> &seed, geom::Boxes obstacles,
               SteerIterations steers)
-      : DescriptionBase<ExpansionStrategyT>{
+      : detail::DescriptionBase<ExpansionStrategyT>{
             .gamma = 10.f,
             .sampler =
-                std::make_unique<HyperBox>({-1.f, -1.f}, {1.f, 1.f}, seed),
+                std::make_unique<HyperBox>(std::vector<float>{-1.f, -1.f},
+                                           std::vector<float>{1.f, 1.f}, seed),
             .connector = std::make_unique<Connector>(
-                std::make_shared<geom::Boxes>(std::move(obstacles)), steer)} {}
+                std::make_shared<geom::Boxes>(std::move(obstacles)), steers)} {}
 };
 } // namespace problem_trivial
 
