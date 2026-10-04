@@ -74,47 +74,53 @@ geom::PointAllocated all_equals(float value) {
 std::tuple<geom::Boxes, SteerIterations, ProblemParameters,
            geom::PointAllocated, geom::PointAllocated>
 make_empty_scenario() {
-  ProblemParameters pars{Iterations{1500}, Determinism{0.15f}, false, false};
+  ProblemParameters pars{Iterations{1500}, Determinism{0.15f}, false};
   return std::make_tuple(geom::Boxes{}, SteerIterations{3}, pars,
                          all_equals(-1.f), all_equals(1.f));
 }
 
-/*
-ExtendProblem make_no_solution_scenario(ExpansionStrategy expansion_strategy) {
-  geom::Point obstacle_min_corner{-1.f / 3.f, -1.5f};
-  geom::Point obstacle_max_corner{1.f / 3.f, 1.5f};
-  return ExtendProblem{
-      TrivialProblemConnector::make(
-          1, geom::Boxes{geom::Box{obstacle_min_corner, obstacle_max_corner}}),
-      Parameters{expansion_strategy, SteerIterations{3}, Iterations{1500},
-                 Determinism{0.15f}, false},
-      all_equals(-1.f), all_equals(1.f)};
+std::tuple<geom::Boxes, SteerIterations, ProblemParameters,
+           geom::PointAllocated, geom::PointAllocated>
+make_no_solution_scenario() {
+  geom::PointAllocated obstacle_min_corner{-1.f / 3.f, -1.5f};
+  geom::PointAllocated obstacle_max_corner{1.f / 3.f, 1.5f};
+
+  ProblemParameters pars{Iterations{1500}, Determinism{0.15f}, false};
+  geom::Boxes boxes{geom::Box{obstacle_min_corner, obstacle_max_corner}};
+
+  return std::make_tuple(std::move(boxes), SteerIterations{3}, pars,
+                         all_equals(-1.f), all_equals(1.f));
 }
 
-ExtendProblem
-make_small_obstacle_scenario(ExpansionStrategy expansion_strategy) {
-  return ExtendProblem{
-      TrivialProblemConnector::make(
-          1, geom::Boxes{geom::Box{all_equals(-0.8f), all_equals(0.8f)}}),
-      Parameters{expansion_strategy, SteerIterations{3}, Iterations{1500},
-                 Determinism{0.15f}, false},
-      all_equals(-1.f), all_equals(1.f)};
+std::tuple<geom::Boxes, SteerIterations, ProblemParameters,
+           geom::PointAllocated, geom::PointAllocated>
+make_small_obstacle_scenario() {
+  ProblemParameters pars{Iterations{1500}, Determinism{0.15f}, false};
+  geom::Boxes boxes{geom::Box{all_equals(-0.8f), all_equals(0.8f)}};
+
+  return std::make_tuple(std::move(boxes), SteerIterations{3}, pars,
+                         all_equals(-1.f), all_equals(1.f));
 }
 
-ExtendProblem make_cluttered_scenario(ExpansionStrategy expansion_strategy) {
-  geom::Boxes obstacles;
-  obstacles.emplace_back(geom::Box{{-1.f, -0.5f}, {-0.5f, 0.5f}});
-  obstacles.emplace_back(geom::Box{{0, -1.f}, {1.f, -0.5f}});
-  obstacles.emplace_back(geom::Box{{0, 0}, {1.f / 3.f, 1.f}});
-  obstacles.emplace_back(geom::Box{{1.f / 3.f, 2.f / 3.f}, {2.f / 3.f, 1.f}});
-  obstacles.emplace_back(geom::Box{{2.f / 3.f, 0}, {1.f, 1.f / 3.f}});
+std::tuple<geom::Boxes, SteerIterations, ProblemParameters,
+           geom::PointAllocated, geom::PointAllocated>
+make_cluttered_scenario() {
+  ProblemParameters pars{Iterations{2000}, Determinism{0.15f}, false};
+  geom::Boxes boxes;
+  boxes.emplace_back(geom::Box{geom::PointAllocated{-1.f, -0.5f},
+                               geom::PointAllocated{-0.5f, 0.5f}});
+  boxes.emplace_back(geom::Box{geom::PointAllocated{0, -1.f},
+                               geom::PointAllocated{1.f, -0.5f}});
+  boxes.emplace_back(geom::Box{geom::PointAllocated{0, 0},
+                               geom::PointAllocated{1.f / 3.f, 1.f}});
+  boxes.emplace_back(geom::Box{geom::PointAllocated{1.f / 3.f, 2.f / 3.f},
+                               geom::PointAllocated{2.f / 3.f, 1.f}});
+  boxes.emplace_back(geom::Box{geom::PointAllocated{2.f / 3.f, 0},
+                               geom::PointAllocated{1.f, 1.f / 3.f}});
 
-  return ExtendProblem{TrivialProblemConnector::make(1, std::move(obstacles)),
-                       Parameters{expansion_strategy, SteerIterations{3},
-                                  Iterations{2000}, Determinism{0.15f}, true},
-                       all_equals(-1.f), all_equals(1.f)};
+  return std::make_tuple(std::move(boxes), SteerIterations{3}, pars,
+                         all_equals(-1.f), all_equals(1.f));
 }
-*/
 } // namespace
 
 std::tuple<geom::Boxes, SteerIterations, ProblemParameters,
@@ -124,11 +130,11 @@ make_scenario_data(Kind kind) {
   case Kind::Empty:
     return make_empty_scenario();
   case Kind::NoSolution:
-    return make_empty_scenario();
+    return make_no_solution_scenario();
   case Kind::SmallObstacle:
-    return make_empty_scenario();
+    return make_small_obstacle_scenario();
   case Kind::Cluttered:
-    return make_empty_scenario();
+    return make_cluttered_scenario();
   }
 }
 } // namespace mt_rrt::trivial_problem
