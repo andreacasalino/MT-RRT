@@ -23,6 +23,8 @@ public:
 
   auto cost() const { return cost_; }
 
+  std::span<const float> at(std::size_t k) const;
+
   struct Iterator {
     Iterator(std::span<const float> rest, std::size_t state_len)
         : rest_{rest}, state_len_{state_len} {}

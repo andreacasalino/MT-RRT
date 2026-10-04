@@ -33,4 +33,11 @@ void Solution::add(std::span<const float> next, Positive cost2Go) {
   len_ += 1;
   states_.insert(states_.end(), next.begin(), next.end());
 }
+
+std::span<const float> Solution::at(std::size_t k) const {
+  std::size_t offset = state_len_ * k;
+  auto it_b = states_.begin() + offset;
+  auto it_e = it_b + state_len_;
+  return {it_b, it_e};
+}
 } // namespace mt_rrt
