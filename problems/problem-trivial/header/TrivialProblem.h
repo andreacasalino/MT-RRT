@@ -45,18 +45,20 @@ public:
 };
 
 template <ExpansionStrategy ExpansionStrategyT>
-using TrivialProblemDescription =
+using TrivialProblemDescriptionBase =
     ProblemDescription<TrivialProblemConnector, HyperBox, true,
                        ExpansionStrategyT>;
 
 template <ExpansionStrategy ExpansionStrategyT>
-TrivialProblemDescription<ExpansionStrategyT>
-make_problem(const std::optional<Seed> &seed, geom::Boxes obstacles,
-             SteerIterations steers) {
-  return TrivialProblemDescription<ExpansionStrategyT>{
-      .gamma = 10.f,
-      .sampler = std::make_unique<HyperBox>({-1.f, -1.f}, {1.f, 1.f}, seed),
-      .connector = std::make_unique<TrivialProblemConnector>(
-          std::make_shared<geom::Boxes>(std::move(obstacles)), steer)};
-}
+class TrivialProblemDescription
+    : public TrivialProblemDescriptionBase<ExpansionStrategyT> {
+  TrivialProblemDescription(const std::optional<Seed> &seed,
+                            geom::Boxes obstacles, SteerIterations steers)
+      : TrivialProblemDescriptionBase<ExpansionStrategyT>{
+            .gamma = 10.f,
+            .sampler =
+                std::make_unique<HyperBox>({-1.f, -1.f}, {1.f, 1.f}, seed),
+            .connector = std::make_unique<TrivialProblemConnector>(
+                std::make_shared<geom::Boxes>(std::move(obstacles)), steer)} {}
+};
 } // namespace mt_rrt::trivial
