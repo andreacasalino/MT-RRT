@@ -19,31 +19,31 @@ public:
 
   const Point &asPoint() const { return cos_sin; };
 
-  Point asPointScaled(float scale) const {
-    return Point{cos_sin.data()[0] * scale, cos_sin.data()[1] * scale};
+  PointAllocated asPointScaled(float scale) const {
+    return PointAllocated{cos_sin.x() * scale, cos_sin.y() * scale};
   }
 
-  float cos() const { return cos_sin.data()[0]; }
-  float sin() const { return cos_sin.data()[1]; }
+  float cos() const { return cos_sin.x(); }
+  float sin() const { return cos_sin.y(); }
 
-  float angle() const { return atan2f(cos_sin.data()[1], cos_sin.data()[0]); }
+  [[discard]] float angle() const { return atan2f(cos_sin.y(), cos_sin.x()); }
 
-  float cross(const Versor &o) const {
-    return this->cos_sin.data()[0] * o.cos_sin.data()[1] -
-           this->cos_sin.data()[1] * o.cos_sin.data()[0];
+  [[discard]] float cross(const Versor &o) const {
+    return this->cos_sin.x() * o.cos_sin.y() -
+           this->cos_sin.y() * o.cos_sin.x();
   }
 
-  float angleBetween(const Versor &o) const {
-    float cos_val = dot(this->asPoint(), o.asPoint());
+  [[discard]] float angleBetween(const Versor &o) const {
+    float cos_val = dot_product(this->asPoint(), o.asPoint());
     return acosf(cos_val);
   }
 
 private:
-  Point cos_sin;
+  PointAllocated cos_sin;
 };
 
 struct Sphere {
-  Positive<float> ray;
+  Positive ray;
   Point center;
 };
 
@@ -56,31 +56,34 @@ public:
   const Point &getEnd() const { return end; }
   const Point &getEndStartDiff() const { return end_start_diff; }
 
-  float closest_on_line(const Point &point) const;
+  [[discard]] float closest_on_line(const Point &point) const;
 
-  static std::optional<std::array<float, 2>>
-  closest_on_lines(const Segment &segment_a, const Segment &segment_b);
+  [[discard]] static std::optional<std::array<float, 2>>
+  closest_between_lines(const Segment &segment_a, const Segment &segment_b);
 
-  Point at(float coeff) const;
+  [[discard]] Point at(float coeff) const;
 
 private:
-  Point start;
-  Point end;
-  Point end_start_diff;
+  PointAllocated start;
+  PointAllocated end;
+  PointAllocated end_start_diff;
 };
 
 struct Box {
-  Box(const Point &min, const Point &max,
-      const std::optional<Transform> &trsf = std::nullopt);
+  Box(const Point &min, const Point &max);
+  Box(const Point &min, const Point &max, const Transform &t) : Box{min, max} {
+    trsf.emplace(t);
+  }
 
-  Point min_corner; // seen from local frame!!!
-  Point max_corner; // seen from local frame!!!
+  PointAllocated min_corner; // seen from local frame!!!
+  PointAllocated max_corner; // seen from local frame!!!
 
   std::optional<Transform> trsf;
 
-  bool collides(const Segment &segment) const;
+  [[discard]] bool collides(const Segment &segment) const;
 
-  bool collides(const Point &segment_start, const Point &segment_end) const {
+  [[discard]] bool collides(const Point &segment_start,
+                            const Point &segment_end) const {
     return collides(Segment{segment_start, segment_end});
   }
 };
