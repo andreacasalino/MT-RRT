@@ -36,10 +36,22 @@ void Logger::add(std::string_view label, const nlohmann::json &content) {
 }
 
 namespace {
-std::pair<std::string_view, std::string_view> gtest_info() {
+// gtest adds extra '/' that we normalize to '-'
+std::string normalize_name(std::string subject) {
+  for (auto sym : std::string_view{"/"}) {
+    for (auto &c : subject) {
+      if (c == sym) {
+        c = '-';
+      }
+    }
+  }
+  return std::move(subject);
+}
+
+std::pair<std::string, std::string> gtest_info() {
   auto info = ::testing::UnitTest::GetInstance()->current_test_info();
-  return std::make_pair(std::string_view{info->test_suite_name()},
-                        std::string_view{info->name()});
+  return std::make_pair(normalize_name(info->test_suite_name()),
+                        normalize_name(info->name()));
 }
 } // namespace
 
