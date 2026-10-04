@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -27,6 +28,12 @@ template <> struct ToString<std::string> {
 
 template <> struct ToString<std::string_view> {
   static std::string_view to_string(const std::string_view &ref) { return ref; }
+};
+
+template <> struct ToString<std::filesystem::path> {
+  static std::string to_string(const std::filesystem::path &ref) {
+    return ref.string();
+  }
 };
 
 // 2. Fixed syntax for passing a C-style array by reference

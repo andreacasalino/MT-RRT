@@ -28,14 +28,14 @@ public:
   float cos() const { return cos_sin.x(); }
   float sin() const { return cos_sin.y(); }
 
-  [[discard]] float angle() const { return atan2f(cos_sin.y(), cos_sin.x()); }
+  [[nodiscard]] float angle() const { return atan2f(cos_sin.y(), cos_sin.x()); }
 
-  [[discard]] float cross(const Versor &o) const {
+  [[nodiscard]] float cross(const Versor &o) const {
     return this->cos_sin.x() * o.cos_sin.y() -
            this->cos_sin.y() * o.cos_sin.x();
   }
 
-  [[discard]] float angleBetween(const Versor &o) const {
+  [[nodiscard]] float angleBetween(const Versor &o) const {
     float cos_val = dot_product(this->asPoint(), o.asPoint());
     return acosf(cos_val);
   }
@@ -60,12 +60,12 @@ public:
   const Point &getEnd() const { return end; }
   const Point &getEndStartDiff() const { return end_start_diff; }
 
-  [[discard]] float closest_on_line(const Point &point) const;
+  [[nodiscard]] float closest_on_line(const Point &point) const;
 
-  [[discard]] static std::optional<std::array<float, 2>>
+  [[nodiscard]] static std::optional<std::array<float, 2>>
   closest_between_lines(const Segment &segment_a, const Segment &segment_b);
 
-  [[discard]] Point at(float coeff) const;
+  [[nodiscard]] Point at(float coeff) const;
 
   static inline std::string_view type_name = "Segment";
 
@@ -86,10 +86,10 @@ struct Box {
 
   std::optional<Transform> trsf;
 
-  [[discard]] bool collides(const Segment &segment) const;
+  [[nodiscard]] bool collides(const Segment &segment) const;
 
-  [[discard]] bool collides(const Point &segment_start,
-                            const Point &segment_end) const {
+  [[nodiscard]] bool collides(const Point &segment_start,
+                              const Point &segment_end) const {
     return collides(Segment{segment_start, segment_end});
   }
 

@@ -61,7 +61,6 @@ public:
   dotRotationMatrixTrasp(const Point &subject) const;
 
 private:
-  Transform();
   Transform(float angle, PointAllocated tr);
 
   struct RotationInfo {
