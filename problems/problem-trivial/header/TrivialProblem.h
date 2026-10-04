@@ -16,7 +16,7 @@
 #include <Primitives.h>
 
 namespace mt_rrt {
-namespace problem_trivial {
+namespace trivial_problem {
 using BoxesPtr = std::shared_ptr<const geom::Boxes>;
 
 struct Checker {
@@ -63,11 +63,11 @@ class Description : public detail::DescriptionBase<ExpansionStrategyT> {
             .connector = std::make_unique<Connector>(
                 std::make_shared<geom::Boxes>(std::move(obstacles)), steers)} {}
 };
-} // namespace problem_trivial
+} // namespace trivial_problem
 
 template <ExpansionStrategy ExpansionStrategyT>
 void to_json(LogResult &j,
-             const problem_trivial::Description<ExpansionStrategyT> &subject) {
+             const trivial_problem::Description<ExpansionStrategyT> &subject) {
   to_json(j.addToScene("region"), geom::Box{{-1.f, -1.f}, {1.f, 1.f}});
   for (const auto &box : subject.getBoxes()) {
     j.addObstacle(box);

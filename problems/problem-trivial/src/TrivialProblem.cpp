@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <math.h>
 
-namespace mt_rrt::problem_trivial {
+namespace mt_rrt::trivial_problem {
 namespace {
 static const float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
 }
@@ -35,4 +35,4 @@ bool Checker::check_from_to(std::span<const float> from,
         return obstacle.collides(from_point, to_point);
       });
 }
-} // namespace mt_rrt::problem_trivial
+} // namespace mt_rrt::trivial_problem

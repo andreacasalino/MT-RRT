@@ -4,11 +4,11 @@
 
 using namespace mt_rrt;
 using namespace mt_rrt::geom;
-using namespace mt_rrt::problem_trivial;
+using namespace mt_rrt::trivial_problem;
 
 class TrivialProblemTest : public ::testing::Test {
 protected:
-  problem_trivial::Connector connector{
+  trivial_problem::Connector connector{
       std::make_shared<Boxes>(
           Boxes{Box{PointAllocated{-1.f, -1.f}, PointAllocated{1.f, 1.f}}}),
       SteerIterations{10000}};
@@ -18,8 +18,8 @@ protected:
 
 TEST_F(TrivialProblemTest, no_steer_as_blocked) {
   std::vector<float> start{
-      -1.f - problem_trivial::Connector::STEER_DEGREE * 0.1f,
-      -1.f - problem_trivial::Connector::STEER_DEGREE * 0.1f};
+      -1.f - trivial_problem::Connector::STEER_DEGREE * 0.1f,
+      -1.f - trivial_problem::Connector::STEER_DEGREE * 0.1f};
   std::vector<float> end{2.f, 2.f};
 
   auto steered = connector.steer(start, end, steer_buffer);
