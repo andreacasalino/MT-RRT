@@ -10,41 +10,22 @@
 #include <Geometry.h>
 
 namespace mt_rrt::geom {
+float dot_product(std::span<const float> a, std::span<const float> b) {
+  float res = 0;
+  for (int k = 0; k < a.size(); ++k) {
+    res += a[k] * b[k];
+  }
+  return res;
+}
+
 float to_rad(float angle) { return angle * PI / 180.f; }
 
 float to_grad(float angle) { return angle * 180.f / PI; }
 
-Point::Point(float x, float y) {
-  auto &cont = container_.emplace();
-  cont[0] = x;
-  cont[1] = y;
-  data_ = cont.data();
-}
+Point::Point(const float *data) : data_{data, 2} {}
 
-Point::Point(const View &v) {
-  if (v.size != 2) {
-    throw Error{"cannot convert View to Point as size is ", v.size};
-  }
-  data_ = v.data;
-}
-
-Point &Point::operator=(const Point &o) {
-  Point tmp{o.data_[0], o.data_[1]};
-  *this = std::move(tmp);
-  return *this;
-}
-
-Point::Point(Point &&o) { *this = std::move(o); }
-
-Point &Point::operator=(Point &&o) {
-  container_.reset();
-  if (o.container_.has_value()) {
-    data_ = container_.emplace(std::move(o.container_.value())).data();
-  } else {
-    data_ = o.data_;
-  }
-  return *this;
-}
+PointAllocated::PointAllocated(float x, float y)
+    : std::array<float, 2>{x, y}, Point{this->std::array<float, 2>::data()} {}
 
 namespace {
 float distance_(const float *a, const float *b, std::size_t size) {

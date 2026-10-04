@@ -35,6 +35,10 @@ public:
   };
   Iterator iter() const { return Iterator{states_, state_len_}; }
 
+  std::pair<std::size_t, std::span<const float>> getRaw() const {
+    return std::make_pair(state_len_, states_);
+  }
+
 private:
   float cost_{0};
   std::size_t len_{0};

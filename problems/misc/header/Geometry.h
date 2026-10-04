@@ -8,7 +8,7 @@
 #pragma once
 
 #include <MT-RRT/Limited.h>
-#include <MT-RRT/View.h>
+#include <MT-RRT/Solution.h>
 
 #ifdef _WIN32
 #include <corecrt_math_defines.h>
@@ -17,9 +17,13 @@
 
 #include <array>
 #include <optional>
+#include <span>
 #include <variant>
 
 namespace mt_rrt::geom {
+[[nodiscard]] float dot_product(std::span<const float> a,
+                                std::span<const float> b);
+
 static constexpr float PI = static_cast<float>(M_PI);
 static constexpr float PI_HALF = static_cast<float>(M_PI_2);
 
@@ -27,50 +31,54 @@ float to_rad(float angle);
 
 float to_grad(float angle);
 
-// important!!! b is assumed to have the same size of a,
-// but no check is done inside this function
-float distance(const View &a, const View &b);
-
-// important!!! b is assumed to have the same size of a,
-// but no check is done inside this function
-float dot(const View &a, const View &b);
-
 struct Point {
-  Point() : Point{0, 0} {}
-  Point(float x, float y);
-  Point(const View &v);
+  Point(const float *data);
 
-  Point(const Point &o) : Point{o.data_[0], o.data_[1]} {}
-  Point &operator=(const Point &o);
+  float x() const noexcept { return data_[0]; }
+  float y() const noexcept { return data_[1]; }
 
-  Point(Point &&o);
-  Point &operator=(Point &&o);
-
-  const float *data() const { return data_; }
-
-  View asView() const { return View{data_, 2}; }
-
-  std::vector<float> asVec() const {
-    return std::vector<float>{data_[0], data_[1]};
-  }
+  auto data() const { return data_; }
 
 private:
-  std::optional<std::array<float, 2>> container_;
-  const float *data_;
+  std::span<const float> data_;
+};
+
+struct PointAllocated : private std::array<float, 2>, Point {
+  PointAllocated() : PointAllocated{0, 0} {}
+  PointAllocated(float x, float y);
+
+  static PointAllocated clone(const Point &o) {
+    return {o.data()[0], o.data()[1]};
+  }
+
+  PointAllocated(const PointAllocated &o) : PointAllocated{clone(o)} {}
+  PointAllocated &operator=(const PointAllocated &o) {
+    auto *data = this->std::array<float, 2>::data();
+    data[0] = o.x();
+    data[1] = o.y();
+    return *this;
+  }
+
+  PointAllocated(PointAllocated &&o) noexcept : PointAllocated{clone(o)} {}
+  PointAllocated &operator=(PointAllocated &&o) noexcept { return *this = o; }
 };
 
 float distance(const Point &a, const Point &b);
 
-float dot(const Point &a, const Point &b);
+float dot_product(const Point &a, const Point &b);
 
-Point sum(const Point &subject, const Point &to_add,
-          const std::optional<float> &to_add_scale = std::nullopt);
+[[nodiscard]] Point sum(const Point &subject, const Point &to_add);
 
-Point diff(const Point &subject, const Point &to_remove,
-           const std::optional<float> &to_remove_scale = std::nullopt);
+[[nodiscard]] Point sum(const Point &subject, const Point &to_add,
+                        float to_add_scale);
 
-float curve_length(const std::vector<std::vector<float>> &sequence);
+[[nodiscard]] Point diff(const Point &subject, const Point &to_remove);
 
-float curve_similarity(const std::vector<std::vector<float>> &a,
-                       const std::vector<std::vector<float>> &b);
+[[nodiscard]] Point diff(const Point &subject, const Point &to_remove,
+                         float to_remove_scale);
+
+[[nodiscard]] float curve_length(const Solution &curve);
+
+[[nodiscard]] float curve_similarity(const Solution &curve_a,
+                                     const Solution &curve_b);
 } // namespace mt_rrt::geom
