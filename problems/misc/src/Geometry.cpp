@@ -6,6 +6,7 @@
  **/
 
 #include <MT-RRT/Error.h>
+#include <MT-RRT/EuclidianConnector.h>
 
 #include <Geometry.h>
 
@@ -27,69 +28,48 @@ Point::Point(const float *data) : data_{data, 2} {}
 PointAllocated::PointAllocated(float x, float y)
     : std::array<float, 2>{x, y}, Point{this->std::array<float, 2>::data()} {}
 
-namespace {
-float distance_(const float *a, const float *b, std::size_t size) {
-  float res = 0;
-  for (std::size_t k = 0; k < size; ++k) {
-    res += powf(a[k] - b[k], 2.f);
-  }
-  res = sqrtf(res);
-  return res;
-}
-} // namespace
-
-float distance(const View &a, const View &b) {
-  return distance_(a.data, b.data, a.size);
-}
-
 float distance(const Point &a, const Point &b) {
-  return distance_(a.data(), b.data(), 2);
+  return euclidean_distance(a.data(), b.data());
 }
 
-namespace {
-float dot_(const float *a, const float *b, std::size_t size) {
-  float res = 0;
-  for (std::size_t k = 0; k < size; ++k) {
-    res += a[k] * b[k];
+float dot_product(const Point &a, const Point &b) {
+  return dot_product(a.data(), b.data());
+}
+
+PointAllocated sum(const Point &subject, const Point &to_add) {
+  return sum(subject, to_add, 1.f);
+}
+
+PointAllocated sum(const Point &subject, const Point &to_add,
+                   float to_add_scale) {
+  float x = subject.x() + to_add_scale * to_add.x();
+  float y = subject.y() + to_add_scale * to_add.y();
+  return PointAllocated{x, y};
+}
+
+PointAllocated diff(const Point &subject, const Point &to_remove) {
+  return sum(subject, to_remove, -1.f);
+}
+
+PointAllocated diff(const Point &subject, const Point &to_remove,
+                    float to_remove_scale) {
+  return sum(subject, to_remove, -to_remove_scale);
+}
+
+float curve_length(const Solution &curve) {
+  float res{0};
+  auto [len, buffer] = curve.getRaw();
+  auto get_w_ = [&](std::size_t w) {
+    auto it_b = buffer.begin() + w * len;
+    auto it_e = it_b + len;
+    return std::span<const float>{it_b, it_e};
+  };
+
+  std::size_t waypoints = buffer.size() / len;
+  for (std::size_t w = 1; w < waypoints; ++w) {
+    res += euclidean_distance(get_w_(w - 1), get_w_(w));
   }
   return res;
-}
-} // namespace
-
-float dot(const View &a, const View &b) { return dot_(a.data, b.data, a.size); }
-
-float dot(const Point &a, const Point &b) {
-  return dot_(a.data(), b.data(), 2);
-}
-
-Point sum(const Point &subject, const Point &to_add,
-          const std::optional<float> &to_add_scale) {
-  float x = subject.data()[0];
-  x +=
-      to_add_scale ? to_add.data()[0] * to_add_scale.value() : to_add.data()[0];
-  float y = subject.data()[1];
-  y +=
-      to_add_scale ? to_add.data()[1] * to_add_scale.value() : to_add.data()[1];
-  return Point{x, y};
-}
-
-Point diff(const Point &subject, const Point &to_remove,
-           const std::optional<float> &to_remove_scale) {
-  float x = subject.data()[0];
-  x -= to_remove_scale ? to_remove.data()[0] * to_remove_scale.value()
-                       : to_remove.data()[0];
-  float y = subject.data()[1];
-  y -= to_remove_scale ? to_remove.data()[1] * to_remove_scale.value()
-                       : to_remove.data()[1];
-  return Point{x, y};
-}
-
-float curve_length(const std::vector<std::vector<float>> &sequence) {
-  float result = 0;
-  for (std::size_t k = 1; k < sequence.size(); ++k) {
-    result += distance(sequence[k - 1], sequence[k]);
-  }
-  return result;
 }
 
 namespace {

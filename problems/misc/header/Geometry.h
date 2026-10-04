@@ -32,7 +32,7 @@ float to_rad(float angle);
 float to_grad(float angle);
 
 struct Point {
-  Point(const float *data);
+  explicit Point(const float *data);
 
   float x() const noexcept { return data_[0]; }
   float y() const noexcept { return data_[1]; }
@@ -45,10 +45,10 @@ private:
 
 struct PointAllocated : private std::array<float, 2>, Point {
   PointAllocated() : PointAllocated{0, 0} {}
-  PointAllocated(float x, float y);
+  explicit PointAllocated(float x, float y);
 
   static PointAllocated clone(const Point &o) {
-    return {o.data()[0], o.data()[1]};
+    return PointAllocated{o.data()[0], o.data()[1]};
   }
 
   PointAllocated(const PointAllocated &o) : PointAllocated{clone(o)} {}
@@ -67,15 +67,15 @@ float distance(const Point &a, const Point &b);
 
 float dot_product(const Point &a, const Point &b);
 
-[[nodiscard]] Point sum(const Point &subject, const Point &to_add);
+[[nodiscard]] PointAllocated sum(const Point &subject, const Point &to_add);
 
-[[nodiscard]] Point sum(const Point &subject, const Point &to_add,
-                        float to_add_scale);
+[[nodiscard]] PointAllocated sum(const Point &subject, const Point &to_add,
+                                 float to_add_scale);
 
-[[nodiscard]] Point diff(const Point &subject, const Point &to_remove);
+[[nodiscard]] PointAllocated diff(const Point &subject, const Point &to_remove);
 
-[[nodiscard]] Point diff(const Point &subject, const Point &to_remove,
-                         float to_remove_scale);
+[[nodiscard]] PointAllocated diff(const Point &subject, const Point &to_remove,
+                                  float to_remove_scale);
 
 [[nodiscard]] float curve_length(const Solution &curve);
 
