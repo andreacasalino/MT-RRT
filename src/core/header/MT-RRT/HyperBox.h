@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <MT-RRT/Copiable.h>
 #include <MT-RRT/Random.h>
 
 #include <memory>
