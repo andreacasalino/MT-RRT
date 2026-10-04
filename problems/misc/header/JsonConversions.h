@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <MT-RRT/Node.h>
-#include <MT-RRT/TreeHandler.h>
+#include <MT-RRT/Planner.h>
+#include <MT-RRT/Solution.h>
 
 #include <Geometry.h>
 #include <Primitives.h>
@@ -16,10 +16,6 @@
 #include <nlohmann/json.hpp>
 
 namespace mt_rrt {
-void to_json(nlohmann::json &j, const std::vector<float> &subject);
-
-void to_json(nlohmann::json &j, const View &subject);
-
 void to_json(nlohmann::json &j, const geom::Point &subject);
 
 void to_json(nlohmann::json &j, const geom::Versor &subject);
@@ -32,7 +28,7 @@ void to_json(nlohmann::json &j, const geom::Transform &subject);
 
 void to_json(nlohmann::json &j, const geom::Box &subject);
 
-void to_json(nlohmann::json &j, const TreeHandler &subject);
+void to_json(nlohmann::json &j, const Nodes &subject);
 
 template <typename ConnectorT>
 std::vector<std::vector<float>>
@@ -44,7 +40,7 @@ extract_solution(const ConnectorT &connector,
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
-geom::Point from_json_point(const nlohmann::json &src);
+geom::PointAllocated from_json_point(const nlohmann::json &src);
 
 geom::Transform from_json_transform(const nlohmann::json &src);
 

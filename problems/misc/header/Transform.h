@@ -37,6 +37,11 @@ public:
   Transform(const TransformBuilder &builder)
       : Transform{builder.angle_, builder.traslation_} {}
 
+  Transform(const Transform &) = default;
+  Transform &operator=(const Transform &) = default;
+  Transform(Transform &&) noexcept = default;
+  Transform &operator=(Transform &&) noexcept = default;
+
   [[nodiscard]] float getAngle() const {
     return atan2f(rotation.sin_angle, rotation.cos_angle);
   }
