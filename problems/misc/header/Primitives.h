@@ -10,6 +10,8 @@
 #include <Geometry.h>
 #include <Transform.h>
 
+#include <string_view>
+
 namespace mt_rrt::geom {
 class Versor {
 public:
@@ -45,6 +47,8 @@ private:
 struct Sphere {
   Positive ray;
   Point center;
+
+  static inline std::string_view type_name = "Sphere";
 };
 
 class Segment {
@@ -62,6 +66,8 @@ public:
   closest_between_lines(const Segment &segment_a, const Segment &segment_b);
 
   [[discard]] Point at(float coeff) const;
+
+  static inline std::string_view type_name = "Segment";
 
 private:
   PointAllocated start;
@@ -86,6 +92,8 @@ struct Box {
                             const Point &segment_end) const {
     return collides(Segment{segment_start, segment_end});
   }
+
+  static inline std::string_view type_name = "Box";
 };
 using Boxes = std::vector<Box>;
 
