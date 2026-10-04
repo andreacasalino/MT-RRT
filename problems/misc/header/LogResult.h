@@ -18,13 +18,14 @@
 #include <string_view>
 
 namespace mt_rrt {
-// template <typename O>
-// concept RecognizedObstacle = requires(const O obj, nlohmann::json &recipient)
-// {
-//   { mt_rrt::to_json(recipient, obj) } -> std::same_as<void>;
+template <typename O>
+concept RecognizedObstacle = requires(const O obj, nlohmann::json &recipient) {
+  { mt_rrt::to_json(recipient, obj) } -> std::same_as<void>;
 
-//   { O::type_name } -> std::same_as<std::string_view>;
-// };
+  {
+    std::string_view { O::type_name }
+    } -> std::same_as<std::string_view>;
+};
 
 class LogResult {
 public:
@@ -37,7 +38,7 @@ public:
 
   nlohmann::json &addToScene(const std::string &key) { return scene[key]; }
 
-  template <typename O> void addObstacle(const O &subject) {
+  template <RecognizedObstacle O> void addObstacle(const O &subject) {
     auto &added = obstacles.emplace_back();
     to_json(added, subject);
     added["type"] = O::type_name;
