@@ -19,6 +19,17 @@ public:
 
   void add(std::string_view label, const nlohmann::json &content);
 
+  void add(const std::string &label, const nlohmann::json &content) {
+    this->add(std::string_view{label.data(), label.size()}, content);
+  }
+
+  // name label is deduced from gtest test_suite_name_name
+  void add_test_result(const nlohmann::json &content);
+
+  // name label is deduced from gtest test_suite_name_name_name_suffix
+  void add_test_result(const nlohmann::json &content,
+                       std::string_view name_suffix);
+
   static inline const std::filesystem::path LOG_PATH{MT_RRT_LOG_PATH};
 
 private:

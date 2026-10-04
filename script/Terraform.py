@@ -196,9 +196,9 @@ endif()
         }
         return """
 if (CMAKE_GENERATOR MATCHES "Visual Studio")
-    SET({TARGET}-bin-path  "{CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/{TARGET}" CACHE INTERNAL "{TARGET}-bin-path")
+    SET({TARGET}-bin-path  "$CMAKE_BINARY_DIR/bin" CACHE INTERNAL "{TARGET}-bin-path")
 else()
-    SET({TARGET}-bin-path  "{CMAKE_CURRENT_BINARY_DIR}/{TARGET}" CACHE INTERNAL "{TARGET}-bin-path")
+    SET({TARGET}-bin-path  "$CMAKE_BINARY_DIR/bin" CACHE INTERNAL "{TARGET}-bin-path")
 endif()
 """.format(**frmt)
 

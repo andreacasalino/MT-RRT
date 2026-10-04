@@ -3,7 +3,8 @@
     "depends": {
         "PUBLIC": [
             "${PREFIX}core",
-            "nlohmann_json::nlohmann_json"
+            "nlohmann_json::nlohmann_json",
+            "GTest::gtest"
         ]
     },
     "definitions": {
