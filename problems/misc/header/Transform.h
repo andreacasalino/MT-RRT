@@ -12,32 +12,58 @@
 #include <optional>
 
 namespace mt_rrt::geom {
+struct TransformBuilder {
+  TransformBuilder() = default;
+
+  TransformBuilder &angle(float val) {
+    angle_ = val;
+    return *this;
+  }
+
+  TransformBuilder &traslation(const Point &val) {
+    traslation_ = PointAllocated::clone(val);
+    return *this;
+  }
+
+  float angle_{0};
+  PointAllocated traslation_{};
+};
+
+static inline const TransformBuilder NULL_TRASNFORM = TransformBuilder{};
+
 class Transform {
 public:
-  Transform(const std::optional<float> &rotation_angle,
-            const std::optional<Point> &traslation);
+  Transform() : Transform{NULL_TRASNFORM} {}
+  Transform(const TransformBuilder &builder)
+      : Transform{builder.angle_, builder.traslation_} {}
 
-  float getAngle() const {
+  [[nodiscard]] float getAngle() const {
     return atan2f(rotation.sin_angle, rotation.cos_angle);
   }
   const auto &getTraslation() const { return traslation; };
 
-  static Transform combine(const Transform &pre, const Transform &post);
+  [[nodiscard]] static Transform combine(const Transform &pre,
+                                         const Transform &post);
 
-  static Transform rotationAroundCenter(float rotation_angle,
-                                        const Point &center);
+  [[nodiscard]] static Transform rotationAroundCenter(float rotation_angle,
+                                                      const Point &center);
 
-  Point seenFromRelativeFrame(const Point &subject) const;
+  [[nodiscard]] PointAllocated
+  seenFromRelativeFrame(const Point &subject) const;
 
-  Point dotRotationMatrix(const Point &subject) const;
-  Point dotRotationMatrixTrasp(const Point &subject) const;
+  [[nodiscard]] PointAllocated dotRotationMatrix(const Point &subject) const;
+  [[nodiscard]] PointAllocated
+  dotRotationMatrixTrasp(const Point &subject) const;
 
 private:
+  Transform();
+  Transform(float angle, PointAllocated tr);
+
   struct RotationInfo {
     float cos_angle;
     float sin_angle;
   };
   RotationInfo rotation;
-  Point traslation;
+  PointAllocated traslation;
 };
 } // namespace mt_rrt::geom
