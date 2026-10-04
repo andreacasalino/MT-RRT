@@ -16,9 +16,20 @@
 
 namespace mt_rrt {
 template <typename C>
-concept IsConstraintsChecker = requires(C obj, std::span<const float> state) {
-  { obj.check(state) } -> std::same_as<bool>;
+concept TunneledConstraintsChecker = requires(C obj,
+                                              std::span<const float> state) {
+  { obj.check_at(state) } -> std::same_as<bool>;
 };
+
+template <typename C>
+concept SegmentConstraintsChecker = requires(C obj, std::span<const float> from,
+                                             std::span<const float> to) {
+  { obj.check_from_to(from, to) } -> std::same_as<bool>;
+};
+
+template <typename C>
+concept IsConstraintsChecker =
+    TunneledConstraintsChecker<C> || SegmentConstraintsChecker<C>;
 
 [[nodiscard]] float euclidean_distance(std::span<const float> a,
                                        std::span<const float> b);
@@ -60,6 +71,11 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
                                               std::vector<float> &reached) {
   float distance_tot = euclidean_distance(start, target);
   float distance_done{0};
+  static thread_local std::vector<float> previous;
+  if constexpr (SegmentConstraintsChecker<ConstraintsChecker>) {
+    previous.clear();
+    previous.insert(previous.end(), start.begin(), start.end());
+  }
   for (std::size_t i{0}; i < data_.steers_.get();
        ++i, distance_tot += data_.quantized_advancement_.get()) {
     if (distance_tot - distance_done < data_.quantized_advancement_.get()) {
@@ -75,8 +91,18 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
     for (int i = 0; i < start.size(); ++i) {
       reached.push_back(scale_complement * start[i] + scale * target[i]);
     }
-    if (!data_.checker_->check(reached)) {
-      break;
+
+    if constexpr (SegmentConstraintsChecker<ConstraintsChecker>) {
+      if (!data_.checker_->check_from_to(previous, reached)) {
+        // back to previous
+        std::swap(previous, reached);
+        break;
+      }
+      std::swap(previous, reached);
+    } else {
+      if (!data_.checker_->check_at(reached)) {
+        break;
+      }
     }
   }
 

@@ -26,14 +26,16 @@ TrivialProblemConnector::TrivialProblemConnector(BoxesPtr boxes,
           STEER_DEGREE, steers,
           std::make_unique<TrivialProblemChecker>(boxes)} {}
 
-bool TrivialProblemChecker::check(std::span<const float> state) const {
+bool TrivialProblemChecker::check_from_to(std::span<const float> from,
+                                          std::span<const float> to) const {
   if (boxes_->empty()) {
     return true;
   }
-  auto it = std::any_of(
+  return !std::any_of(
       boxes_->begin(), boxes_->end(),
-      [prev = geom::Point{previous_state}, adv = geom::Point{advanced_state}](
-          const geom::Box &obstacle) { return obstacle.collides(prev, adv); });
-  return it == boxes_->end();
+      [from_point = geom::Point{from.data()},
+       to_point = geom::Point{to.data()}](const geom::Box &obstacle) {
+        return obstacle.collides(from_point, to_point);
+      });
 }
 } // namespace mt_rrt::trivial

@@ -19,7 +19,8 @@ using BoxesPtr = std::shared_ptr<const geom::Boxes>;
 struct TrivialProblemChecker {
   TrivialProblemChecker(BoxesPtr boxes) : boxes_{boxes} {};
 
-  bool check(std::span<const float> state) const;
+  bool check_from_to(std::span<const float> from,
+                     std::span<const float> to) const;
 
   auto getBoxes() const { return boxes_; }
 
