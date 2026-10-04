@@ -8,5 +8,5 @@
 #include <MT-RRT/Nodes.h>
 
 namespace mt_rrt {
-Nodes::Nodes() = default;
+Nodes::Nodes() : statesPool_{std::make_unique<ObjectPool<float>>()} {};
 } // namespace mt_rrt

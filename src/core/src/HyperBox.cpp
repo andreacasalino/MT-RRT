@@ -14,13 +14,13 @@ HyperBox::HyperBox(std::vector<float> lowerCorner,
     : UniformEngine(0, 1.f, seed), min_corner{std::move(lowerCorner)},
       delta_corner{std::move(upperCorner)} {
   // validate inputs
-  if (lowerCorner.empty() || upperCorner.empty()) {
+  if (min_corner.empty() || delta_corner.empty()) {
     throw Error{"corners can't be empty"};
   }
-  if (lowerCorner.size() != upperCorner.size()) {
+  if (min_corner.size() != delta_corner.size()) {
     throw Error{"corners should have the same size"};
   }
-  for (std::size_t k = 0; k < lowerCorner.size(); ++k) {
+  for (std::size_t k = 0; k < min_corner.size(); ++k) {
     delta_corner[k] -= min_corner[k];
     if (delta_corner[k] < 0) {
       throw Error{"invalid corners"};
