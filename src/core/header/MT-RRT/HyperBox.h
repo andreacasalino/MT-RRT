@@ -20,7 +20,7 @@ namespace mt_rrt {
  * u3, u4], describe an hyperbox whose points [x1,x2,x3,x4] are all such that:
  * li <= xi <= ui
  */
-class HyperBox : protected UniformEngine {
+class HyperBox : protected UniformEngine, public Copiable<HyperBox> {
 public:
   /**
    * @param the lower corner of the hyperbox
@@ -31,16 +31,21 @@ public:
   HyperBox(std::vector<float> lowerCorner, std::vector<float> upperCorner,
            std::optional<Seed> seed = std::nullopt);
 
-  std::unique_ptr<HyperBox> copy() const {
-    return std::make_unique<HyperBox>(*this);
-  }
-
   void sampleState(std::vector<float> &recipient) const noexcept;
 
   Seed sampleSeed() const noexcept { return this->UniformEngine::sampleSeed(); }
 
   const auto &minCorner() const { return min_corner; }
   std::vector<float> maxCorner() const noexcept;
+
+  std::unique_ptr<HyperBox> copy() const final {
+    static thread_local std::vector<float> buffer;
+    buffer.clear();
+    for (int k = 0; k < min_corner.size(); ++k) {
+      buffer.push_back(min_corner[k] + delta_corner[k]);
+    }
+    return std::make_unique<HyperBox>(min_corner, buffer, sampleSeed());
+  }
 
 private:
   std::vector<float> min_corner;

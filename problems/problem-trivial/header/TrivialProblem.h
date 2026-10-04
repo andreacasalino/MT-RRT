@@ -8,42 +8,54 @@
 #pragma once
 
 #include <MT-RRT/EuclidianConnector.h>
+#include <MT-RRT/HyperBox.h>
+#include <MT-RRT/ProblemDescription.h>
 
 #include <Primitives.h>
 
 namespace mt_rrt::trivial {
-struct Checker {
+using BoxesPtr = std::shared_ptr<const geom::Boxes>;
+
+struct TrivialProblemChecker {
+  TrivialProblemChecker(BoxesPtr boxes) : boxes_{boxes} {};
 
   bool check(std::span<const float> state) const;
 
+  auto getBoxes() const { return boxes_; }
+
 private:
-  geom::Boxes boxes;
+  BoxesPtr boxes_;
 };
 
 // Universe is a (-1 , -1) x (1 , 1) box, with steer radius
 // equal to 0.05
-class TrivialProblemConnector : public EuclidianConnector<> {
+class TrivialProblemConnector
+    : public EuclidianConnector<TrivialProblemChecker>,
+      public Copiable<TrivialProblemConnector> {
 public:
-  TrivialProblemConnector(const geom::Boxes &obstacles);
+  TrivialProblemConnector(BoxesPtr boxes, SteerIterations steers);
 
-  TrivialProblemConnector(const TrivialProblemConnector &o);
-
-  const geom::Boxes &getBoxes() const { return *obstacles; }
-
-  std::unique_ptr<Connector> copy() const final {
-    return std::make_unique<TrivialProblemConnector>(*this);
+  std::unique_ptr<TrivialProblemConnector> copy() const final {
+    return std::make_unique<TrivialProblemConnector>(get().checker->getBoxes(),
+                                                     get().steers);
   }
 
   static const float STEER_DEGREE; // 0.05
-
-  static std::shared_ptr<ProblemDescription>
-  make(const std::optional<Seed> &seed, const geom::Boxes &obstacles);
-
-protected:
-  bool checkAdvancement(const View &previous_state,
-                        const View &advanced_state) const override;
-
-  using BoxesPtr = std::shared_ptr<const geom::Boxes>;
-  BoxesPtr obstacles;
 };
+
+template <ExpansionStrategy ExpansionStrategyT>
+using TrivialProblemDescription =
+    ProblemDescription<TrivialProblemConnector, HyperBox, true,
+                       ExpansionStrategyT>;
+
+template <ExpansionStrategy ExpansionStrategyT>
+TrivialProblemDescription<ExpansionStrategyT>
+make_problem(const std::optional<Seed> &seed, geom::Boxes obstacles,
+             SteerIterations steers) {
+  return TrivialProblemDescription<ExpansionStrategyT>{
+      .gamma = 10.f,
+      .sampler = std::make_unique<HyperBox>({-1.f, -1.f}, {1.f, 1.f}, seed),
+      .connector = std::make_unique<TrivialProblemConnector>(
+          std::make_shared<geom::Boxes>(std::move(obstacles)), steer)};
+}
 } // namespace mt_rrt::trivial

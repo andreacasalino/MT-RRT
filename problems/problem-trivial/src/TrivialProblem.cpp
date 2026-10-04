@@ -20,18 +20,11 @@ static const float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
 const float TrivialProblemConnector::STEER_DEGREE =
     STATE_BOX_DIAGONAL_LENGTH / 15.f;
 
-TrivialProblemConnector::TrivialProblemConnector(const geom::Boxes &obst)
-    : TunneledConnector(2) {
-  this->obstacles = std::make_shared<geom::Boxes>(obst);
-  setSteerDegree(STEER_DEGREE);
-}
-
-TrivialProblemConnector::TrivialProblemConnector(
-    const TrivialProblemConnector &o)
-    : TunneledConnector(o.getStateSpaceSize()) {
-  this->obstacles = std::make_shared<geom::Boxes>(*o.obstacles);
-  setSteerDegree(STEER_DEGREE);
-}
+TrivialProblemConnector::TrivialProblemConnector(BoxesPtr boxes,
+                                                 SteerIterations steers)
+    : EuclidianConnector<TrivialProblemChecker>{
+          STEER_DEGREE, steers,
+          std::make_unique<TrivialProblemChecker>(boxes)} {}
 
 bool TrivialProblemConnector::checkAdvancement(
     const View &previous_state, const View &advanced_state) const {

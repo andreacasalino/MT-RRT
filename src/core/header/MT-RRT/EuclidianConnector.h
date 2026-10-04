@@ -18,15 +18,12 @@ namespace mt_rrt {
 template <typename C>
 concept IsConstraintsChecker = requires(C obj, std::span<const float> state) {
   { obj.check(state) } -> std::same_as<bool>;
-}
-&&std::is_base_of_v<Copiable<C>, C>;
+};
 
 [[nodiscard]] float euclidean_distance(std::span<const float> a,
                                        std::span<const float> b);
 
-template <IsConstraintsChecker ConstraintsChecker>
-class EuclidianConnector
-    : public Copiable<EuclidianConnector<ConstraintsChecker>> {
+template <IsConstraintsChecker ConstraintsChecker> class EuclidianConnector {
 public:
   EuclidianConnector(Positive quantized_advancement, SteerIterations steers,
                      std::unique_ptr<ConstraintsChecker> checker)
