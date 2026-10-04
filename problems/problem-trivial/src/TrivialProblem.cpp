@@ -26,33 +26,14 @@ TrivialProblemConnector::TrivialProblemConnector(BoxesPtr boxes,
           STEER_DEGREE, steers,
           std::make_unique<TrivialProblemChecker>(boxes)} {}
 
-bool TrivialProblemConnector::checkAdvancement(
-    const View &previous_state, const View &advanced_state) const {
-  const auto &boxes = *this->obstacles;
-  if (boxes.empty()) {
-    return false;
+bool TrivialProblemChecker::check(std::span<const float> state) const {
+  if (boxes_->empty()) {
+    return true;
   }
-  return std::any_of(
-      boxes.begin(), boxes.end(),
+  auto it = std::any_of(
+      boxes_->begin(), boxes_->end(),
       [prev = geom::Point{previous_state}, adv = geom::Point{advanced_state}](
           const geom::Box &obstacle) { return obstacle.collides(prev, adv); });
-}
-
-std::shared_ptr<ProblemDescription>
-TrivialProblemConnector::make(const std::optional<Seed> &seed,
-                              const geom::Boxes &obstacles) {
-  auto connector = std::make_unique<TrivialProblemConnector>(obstacles);
-
-  std::vector<float> min_corner, max_corner;
-  for (std::size_t k = 0; k < 2; ++k) {
-    min_corner.push_back(-1.f);
-    max_corner.push_back(1.f);
-  }
-  auto sampler = std::make_unique<HyperBox>(min_corner, max_corner, seed);
-
-  std::shared_ptr<ProblemDescription> result;
-  result.reset(new ProblemDescription{
-      true, Positive<float>{10.f}, std::move(sampler), std::move(connector)});
-  return result;
+  return it == boxes_->end();
 }
 } // namespace mt_rrt::trivial
