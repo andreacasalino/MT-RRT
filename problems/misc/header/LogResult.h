@@ -20,7 +20,7 @@
 namespace mt_rrt {
 template <typename O>
 concept RecognizedObstacle = requires(const O obj, nlohmann::json &recipient) {
-  { to_json(recipient, obj) } -> std::same_as<void>;
+  { mt_rrt::to_json(recipient, obj) } -> std::same_as<void>;
 
   { O::type_name } -> std::same_as<std::string_view>;
 };

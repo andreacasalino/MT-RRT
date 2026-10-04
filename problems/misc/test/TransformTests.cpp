@@ -34,10 +34,12 @@ TEST(TransformTest, seen_from_relative) {
   {
     SCOPED_TRACE("no rotation neither traslation");
 
-    Transform t(std::nullopt, std::nullopt);
+    Transform t;
 
-    for (const auto &point : std::vector<Point>{Point{0, 0}, Point{1, 1},
-                                                Point{1, 2}, Point{-2, 1}}) {
+    const PointAllocated points[] = {PointAllocated{0, 0}, PointAllocated{1, 1},
+                                     PointAllocated{1, 2},
+                                     PointAllocated{-2, 1}};
+    for (const auto &point : std::span<const PointAllocated>{points}) {
       auto point_from_relative = t.seenFromRelativeFrame(point);
       EXPECT_TRUE(almost_equal(point, point_from_relative));
     }
@@ -46,23 +48,27 @@ TEST(TransformTest, seen_from_relative) {
   {
     SCOPED_TRACE("only rotation");
 
-    Transform t(to_rad(45.f), std::nullopt);
+    Transform t(TransformBuilder{}.angle(to_rad(45.f)));
 
-    Point point{1.f, 1.f};
+    PointAllocated point{1.f, 1.f};
 
     auto point_from_relative = t.seenFromRelativeFrame(point);
-    EXPECT_TRUE(almost_equal(point_from_relative, Point{sqrtf(2.f), 0}));
+    EXPECT_TRUE(
+        almost_equal(point_from_relative, PointAllocated{sqrtf(2.f), 0}));
   }
 
   {
     SCOPED_TRACE("traslation and rotation");
 
-    Transform t(to_rad(45.f), Point{0, 1.5f});
+    Transform t(TransformBuilder{}
+                    .angle(to_rad(45.f))
+                    .traslation(PointAllocated{0, 1.5f}));
 
-    Point point{1.f, 2.5f};
+    PointAllocated point{1.f, 2.5f};
 
     auto point_from_relative = t.seenFromRelativeFrame(point);
-    EXPECT_TRUE(almost_equal(point_from_relative, Point{sqrtf(2.f), 0}));
+    EXPECT_TRUE(
+        almost_equal(point_from_relative, PointAllocated{sqrtf(2.f), 0}));
   }
 }
 
@@ -71,10 +77,10 @@ TEST(TransformTest, combined_transform) {
     SCOPED_TRACE("combine with only rotations");
 
     const float angle = to_rad(10.f);
-    Transform t(angle, std::nullopt);
+    Transform t(TransformBuilder{}.angle(angle));
     Transform t2 = Transform::combine(t, t);
 
-    EXPECT_TRUE(almost_equal(t2.getTraslation(), Point{0, 0}));
+    EXPECT_TRUE(almost_equal(t2.getTraslation(), PointAllocated{0, 0}));
 
     auto t2_angle = t2.getAngle();
     EXPECT_TRUE(almost_equal(t2_angle, angle * 2.f));
@@ -83,12 +89,16 @@ TEST(TransformTest, combined_transform) {
   {
     SCOPED_TRACE("combine general");
 
-    auto t = Transform::combine(Transform{to_rad(90.f / 4.f), Point{0, 1.5f}},
-                                Transform{to_rad(90.f / 4.f), std::nullopt});
+    auto t = Transform::combine(
+        Transform{TransformBuilder{}
+                      .angle(to_rad(90.f / 4.f))
+                      .traslation(PointAllocated{0, 1.5f})},
+        Transform{TransformBuilder{}.angle(to_rad(90.f / 4.f))});
 
-    Point point{1.f, 2.5f};
+    PointAllocated point{1.f, 2.5f};
 
     auto point_from_relative = t.seenFromRelativeFrame(point);
-    EXPECT_TRUE(almost_equal(point_from_relative, Point{sqrtf(2.f), 0}));
+    EXPECT_TRUE(
+        almost_equal(point_from_relative, PointAllocated{sqrtf(2.f), 0}));
   }
 }

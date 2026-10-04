@@ -5,6 +5,7 @@
 using namespace mt_rrt;
 using namespace mt_rrt::geom;
 
+#include <JsonConversions.h>
 #include <LogResult.h>
 #include <Logger.h>
 
