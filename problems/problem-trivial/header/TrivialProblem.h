@@ -65,12 +65,5 @@ class Description : public detail::DescriptionBase<ExpansionStrategyT> {
 };
 } // namespace trivial_problem
 
-template <ExpansionStrategy ExpansionStrategyT>
-void to_json(LogResult &j,
-             const trivial_problem::Description<ExpansionStrategyT> &subject) {
-  to_json(j.addToScene("region"), geom::Box{{-1.f, -1.f}, {1.f, 1.f}});
-  for (const auto &box : subject.getBoxes()) {
-    j.addObstacle(box);
-  }
-}
+void to_json(LogResult &j, const trivial_problem::Connector &subject);
 } // namespace mt_rrt

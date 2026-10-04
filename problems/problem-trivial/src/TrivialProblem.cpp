@@ -35,4 +35,16 @@ bool Checker::check_from_to(std::span<const float> from,
         return obstacle.collides(from_point, to_point);
       });
 }
+
 } // namespace mt_rrt::trivial_problem
+
+namespace mt_rrt {
+void to_json(LogResult &j, const trivial_problem::Connector &subject) {
+  mt_rrt::to_json(j.addToScene("region"),
+                  geom::Box{geom::PointAllocated{-1.f, -1.f},
+                            geom::PointAllocated{1.f, 1.f}});
+  for (const auto &box : *subject.get().checker->getBoxes()) {
+    j.addObstacle(box);
+  }
+}
+} // namespace mt_rrt
