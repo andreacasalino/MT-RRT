@@ -17,7 +17,7 @@ struct ExtenderSingleSolution {
   mt_rrt::Solution materialize() const;
 
   std::span<const float> target;
-  const Node &pivot;
+  const Node *pivot;
   Positive cost2Target;
 };
 
@@ -25,8 +25,8 @@ template <IsProblemDescription P, tree::HasBasicMethods T>
 class ExtenderSingle : public Extender<P, ExtenderSingleSolution> {
 public:
   ExtenderSingle(Problem<P> &prblm, std::span<const float> target, T tree)
-      : Extender<P, ExtenderSingleSolution>{prblm}, tree_{std::move(tree)},
-        target_{target} {}
+      : Extender<P, ExtenderSingleSolution>{prblm, target.size()},
+        tree_{std::move(tree)}, target_{target} {}
 
   T tree_;
 
@@ -44,16 +44,16 @@ template <IsProblemDescription P, tree::HasBasicMethods T>
 void ExtenderSingle<P, T>::extend() {
   ExtendResult res;
   if (this->determinismRegulator.shallThisBeDeterministic()) {
-    res = this->template extend<T, true>(target_, tree_);
+    res = this->template extend_<T, true>(target_, tree_);
   } else {
-    res = this->template extend<T, false>(this->sampleState(), tree_);
+    res = this->template extend_<T, false>(this->sampleState(), tree_);
   }
 
   if (const DeterministicTargetReached *trg_reached =
           std::get_if<DeterministicTargetReached>(&res);
       trg_reached) {
     this->pushSolution(ExtenderSingleSolution{
-        trg_reached->parent.cost2Root() + trg_reached->cost2Go.get(), target_,
+        trg_reached->parent->cost2Root() + trg_reached->cost2Go.get(), target_,
         trg_reached->parent, trg_reached->cost2Go});
   }
 }

@@ -28,13 +28,13 @@ concept FoundSolution = requires(const S obj_const) {
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
 
-struct ExtendNotPossible {};
+using ExtendNotPossible = std::monostate;
 struct DeterministicTargetReached {
   Positive cost2Go;
-  const Node &parent;
+  const Node *parent;
 };
 struct Steered {
-  const Node &added;
+  const Node *added;
 };
 using ExtendResult =
     std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
@@ -48,23 +48,24 @@ public:
   bool hasSolution() const { return !solutions_.empty(); }
 
 protected:
-  Extender(Problem<P> &prblm)
+  Extender(Problem<P> &prblm, std::size_t state_space_size)
       : problem{prblm}, determinismRegulator{prblm.first.sampler->sampleSeed(),
-                                             prblm.second.determinism} {}
+                                             prblm.second.determinism},
+        rewiring_{problem.first.gamma, state_space_size} {}
 
   template <typename T>
   const Node *find_nearest_neighbour(std::span<const float> state,
                                      const T &tree);
 
   template <tree::HasBasicMethods T, bool IsDeterministic>
-  ExtendResult extend(std::span<const float> target, T &tree);
+  ExtendResult extend_(std::span<const float> target, T &tree);
 
   void pushSolution(S &&to_add) {
     solutions_.emplace_back(std::forward<S>(to_add));
   }
 
-  std::span<const float> sampleState() const {
-    problem.first.sampler.sampleState(sample_buffer_);
+  std::span<const float> sampleState() {
+    problem.first.sampler->sampleState(sample_buffer_);
     return sample_buffer_;
   }
 
@@ -138,9 +139,8 @@ const Node *Extender<P, S>::find_nearest_neighbour(std::span<const float> state,
 
 template <IsProblemDescription P, FoundSolution S>
 template <tree::HasBasicMethods T, bool IsDeterministic>
-ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
-  const Node *nearest =
-      find_nearest_neighbour(target, tree, *problem.first.connector);
+ExtendResult Extender<P, S>::extend_(std::span<const float> target, T &tree) {
+  const Node *nearest = find_nearest_neighbour(target, tree);
   if (!nearest) {
     return ExtendNotPossible{};
   }
@@ -159,7 +159,7 @@ ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
     return ExtendNotPossible{};
   }
   if (steer_result->target_was_reached) {
-    return DeterministicTargetReached{steer_result->cost2Go, *nearest};
+    return DeterministicTargetReached{steer_result->cost2Go, nearest};
   }
 
   const Node *steer_node =
@@ -181,6 +181,6 @@ ExtendResult Extender<P, S>::extend(std::span<const float> target, T &tree) {
     }
   }
 
-  return Steered{*steer_node};
+  return Steered{steer_node};
 }
 } // namespace mt_rrt

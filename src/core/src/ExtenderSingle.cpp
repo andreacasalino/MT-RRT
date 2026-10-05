@@ -11,7 +11,7 @@ namespace mt_rrt {
 mt_rrt::Solution ExtenderSingleSolution::materialize() const {
   static thread_local std::vector<const Node *> chain;
   chain.clear();
-  const Node *cursor = &pivot;
+  const Node *cursor = pivot;
   while (cursor) {
     chain.push_back(cursor);
     cursor = cursor->data().parent;

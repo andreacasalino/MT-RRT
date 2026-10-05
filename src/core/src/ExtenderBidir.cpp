@@ -11,7 +11,7 @@ namespace mt_rrt {
 mt_rrt::Solution ExtenderBidirectionalSolution::materialize() const {
   static thread_local std::vector<const Node *> chain;
   chain.clear();
-  const Node *cursor = &front;
+  const Node *cursor = front;
   while (cursor) {
     chain.push_back(cursor);
     cursor = cursor->data().parent;
@@ -22,8 +22,8 @@ mt_rrt::Solution ExtenderBidirectionalSolution::materialize() const {
     res.add(node->data().state, node->data().cost2Go);
   });
 
-  res.add(back.data().state, cost2Bridge);
-  cursor = &back;
+  res.add(back->data().state, cost2Bridge);
+  cursor = back;
   while (cursor) {
     res.add(cursor->data().state, cursor->data().cost2Go);
     cursor = cursor->data().parent;

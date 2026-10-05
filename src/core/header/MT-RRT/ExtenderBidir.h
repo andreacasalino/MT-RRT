@@ -18,9 +18,9 @@ struct ExtenderBidirectionalSolution {
   mt_rrt::Solution materialize() const;
 
   // node from the first tree
-  const Node &front;
+  const Node *front;
   // node from the second tree
-  const Node &back;
+  const Node *back;
   Positive cost2Bridge;
 };
 
@@ -29,7 +29,9 @@ class ExtenderBidirectional
     : public Extender<P, ExtenderBidirectionalSolution> {
 public:
   ExtenderBidirectional(Problem<P> &prblm, T first, T second)
-      : Extender<P, ExtenderBidirectionalSolution>{prblm},
+      : Extender<P, ExtenderBidirectionalSolution>{prblm, first.root()
+                                                              ->data()
+                                                              .state.size()},
         trees_{std::make_pair(std::move(first), std::move(second))},
         master_{&trees_.first}, slave_{&trees_.second} {}
 
@@ -55,11 +57,11 @@ private:
   void pushSolution_(const Node &a, const Node &b, Positive cost2Bridge) {
     if (master_ == &trees_.first) {
       this->pushSolution(ExtenderBidirectionalSolution{
-          a.cost2Root() + b.cost2Root() + cost2Bridge.get(), a, b,
+          a.cost2Root() + b.cost2Root() + cost2Bridge.get(), &a, &b,
           cost2Bridge});
     } else {
       this->pushSolution(ExtenderBidirectionalSolution{
-          a.cost2Root() + b.cost2Root() + cost2Bridge.get(), b, a,
+          a.cost2Root() + b.cost2Root() + cost2Bridge.get(), &b, &a,
           cost2Bridge});
     }
   }

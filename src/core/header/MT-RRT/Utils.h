@@ -19,9 +19,7 @@ struct NearestNeighbour {
 
   template <Connector C> void update(const Node &candidate, C &connector) {
     auto cost2Go =
-        connector.makeTrajectory(candidate.data().state, state_to_reach)
-            .minCost2Go()
-            .get();
+        connector.minCost2Go(candidate.data().state, state_to_reach).get();
     if (cost2Go < closestCost) {
       closest = &candidate;
       closestCost = cost2Go;
