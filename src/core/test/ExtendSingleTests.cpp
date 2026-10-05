@@ -38,7 +38,7 @@ TEST(SingleStrategyTest, nodes_deterministically_steered_only_once) {
   const auto &solutions = extender.getSolutions();
   ASSERT_EQ(solutions.size(), 1);
   bool solutions_ok =
-      check_solutions(*problem.first.connector->get().checker,
+      check_solutions(problem.first.connector->getChecker(),
                       extender.materializeAllSolutions(), start, end);
   ASSERT_TRUE(solutions_ok);
 

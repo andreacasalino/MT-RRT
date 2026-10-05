@@ -29,15 +29,18 @@ concept SegmentConstraintsChecker = requires(C obj, std::span<const float> from,
 
 template <typename C>
 concept IsConstraintsChecker =
-    TunneledConstraintsChecker<C> || SegmentConstraintsChecker<C>;
+    (TunneledConstraintsChecker<C> ||
+     SegmentConstraintsChecker<C>)&&std::is_base_of_v<Copiable<C>, C>;
 
 [[nodiscard]] float euclidean_distance(std::span<const float> a,
                                        std::span<const float> b);
 
-template <IsConstraintsChecker ConstraintsChecker> class EuclidianConnector {
+template <IsConstraintsChecker ConstraintsChecker>
+class EuclidianConnector
+    : public Copiable<EuclidianConnector<ConstraintsChecker>> {
 public:
-  EuclidianConnector(Positive quantized_advancement, SteerIterations steers,
-                     std::unique_ptr<ConstraintsChecker> checker)
+  EuclidianConnector(std::unique_ptr<ConstraintsChecker> checker,
+                     Positive quantized_advancement, SteerIterations steers)
       : data_{quantized_advancement, steers, std::move(checker)} {}
 
   // euclidean distance in the state space
@@ -50,6 +53,11 @@ public:
                                       std::span<const float> target,
                                       std::vector<float> &reached);
 
+  std::unique_ptr<EuclidianConnector<ConstraintsChecker>> copy() const final {
+    return std::make_unique<EuclidianConnector<ConstraintsChecker>>(
+        data_.checker->copy(), data_.quantized_advancement, data_.steers);
+  }
+
   struct Data {
     Positive quantized_advancement;
     SteerIterations steers;
@@ -57,6 +65,8 @@ public:
   };
 
   const auto &get() const { return data_; }
+
+  const auto &getChecker() const { return *data_.checker; }
 
 private:
   Data data_;
