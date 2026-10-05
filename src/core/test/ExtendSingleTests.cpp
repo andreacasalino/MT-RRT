@@ -35,14 +35,14 @@ TEST(SingleStrategyTest, nodes_deterministically_steered_only_once) {
 
   extend_many(extender, std::make_shared<KeepSearchPredicate>());
 
-  // extender.search();
+  const auto &solutions = extender.getSolutions();
+  ASSERT_EQ(solutions.size(), 1);
+  bool solutions_ok =
+      check_solutions(*problem.first.connector->get().checker,
+                      extender.materializeAllSolutions(), start, end);
+  ASSERT_TRUE(solutions_ok);
 
-  // const auto &solutions = extender.getSolutions();
-  // ASSERT_EQ(solutions.size(), 1);
-  // ASSERT_TRUE(check_solutions(static_cast<const TrivialProblemConnector &>(
-  //                                 *problem.point_problem->connector),
-  //                             solutions, start, end));
-
+  // TODO
   // mt_rrt::log_test_case("single", "empty_only_deterministic", extender);
 }
 

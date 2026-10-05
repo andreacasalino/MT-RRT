@@ -18,6 +18,7 @@
 
 #include <deque>
 #include <optional>
+#include <ranges>
 #include <variant>
 
 namespace mt_rrt {
@@ -42,6 +43,8 @@ using ExtendResult =
 template <IsProblemDescription P, FoundSolution S> class Extender {
 public:
   std::optional<Solution> materializeBestSolution() const;
+
+  std::vector<Solution> materializeAllSolutions() const;
 
   const auto &getSolutions() const { return solutions_; }
 
@@ -113,6 +116,14 @@ std::optional<Solution> Extender<P, S>::materializeBestSolution() const {
   return it_best == solutions_.end()
              ? std::nullopt
              : std::make_optional(it_best->materialize());
+}
+
+template <IsProblemDescription P, FoundSolution S>
+std::vector<Solution> Extender<P, S>::materializeAllSolutions() const {
+  auto rng = solutions_ | std::views::transform([](const auto &sol) {
+               return sol.materialize();
+             });
+  return {rng.begin(), rng.end()};
 }
 
 template <IsProblemDescription P, FoundSolution S>
