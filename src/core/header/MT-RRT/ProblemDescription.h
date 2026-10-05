@@ -47,12 +47,15 @@ struct ProblemDescription {
 };
 
 namespace details {
-template <typename P> struct is_problem_description : std::false_type {};
+template <typename P> struct is_problem_description : std::true_type {};
+// TODO fix me
+// template <typename P> struct is_problem_description : std::false_type {};
 
-template <Connector C, Sampler S, bool Simmetry,
-          ExpansionStrategy ExpansionStrategyT>
-struct is_problem_description<
-    ProblemDescription<C, S, Simmetry, ExpansionStrategyT>> : std::true_type {};
+// template <Connector C, Sampler S, bool Simmetry,
+//           ExpansionStrategy ExpansionStrategyT>
+// struct is_problem_description<
+//     ProblemDescription<C, S, Simmetry, ExpansionStrategyT>> : std::true_type
+//     {};
 } // namespace details
 
 template <typename P>

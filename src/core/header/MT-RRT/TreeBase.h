@@ -29,6 +29,8 @@ public:
 
   Nodes extractNodes() { return std::move(nodes_); }
 
+  std::size_t size() const noexcept { return nodes_.getNodes().size(); }
+
   const Node *root() const { return &nodes_.getNodes().front(); }
 
   const Node *internalize(std::span<const float> state, const Node &parent,
