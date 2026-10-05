@@ -76,11 +76,12 @@ private:
 };
 
 struct DeterministicSteerRegisterHash {
-  template <typename T, typename U>
   std::size_t
   operator()(const std::pair<const Node *, const float *> &p) const noexcept {
-    std::size_t h1 = std::hash<T *>{}(p.first);
-    std::size_t h2 = std::hash<U *>{}(p.second);
+    static std::hash<const Node *> node_ptr_hasher;
+    static std::hash<const float *> state_ptr_hasher;
+    std::size_t h1 = node_ptr_hasher(p.first);
+    std::size_t h2 = state_ptr_hasher(p.second);
 
     // Combine the hashes using a high-quality mixing formula (from Boost)
     // This avoids collisions like (A, B) having the same hash as (B, A) if T ==
