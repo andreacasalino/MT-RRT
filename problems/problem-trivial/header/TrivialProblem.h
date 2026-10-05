@@ -53,6 +53,7 @@ using DescriptionBase =
 
 template <ExpansionStrategy ExpansionStrategyT>
 class Description : public detail::DescriptionBase<ExpansionStrategyT> {
+public:
   Description(const std::optional<Seed> &seed, geom::Boxes obstacles,
               SteerIterations steers)
       : detail::DescriptionBase<ExpansionStrategyT>{
