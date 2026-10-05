@@ -29,10 +29,12 @@ using TheExtender = ExtenderSingle<TheDescription, TreeBase>;
 TEST(SingleStrategyTest, nodes_deterministically_steered_only_once) {
   auto &&[problem, start, end] =
       make_scenario<ExpansionStrategy::Single>(Kind::Empty);
+  problem.second.determinism.set(1.f);
 
-  // problem.suggested_parameters.determinism.set(1.f);
+  TheExtender extender{problem, end.asView(), TreeBase{start.asView()}};
 
-  // auto extender = makeExtender();
+  extend_many(extender, std::make_shared<KeepSearchPredicate>());
+
   // extender.search();
 
   // const auto &solutions = extender.getSolutions();

@@ -39,6 +39,8 @@ struct Point {
 
   auto data() const { return data_; }
 
+  std::span<const float> asView() const { return data_; }
+
 private:
   std::span<const float> data_;
 };

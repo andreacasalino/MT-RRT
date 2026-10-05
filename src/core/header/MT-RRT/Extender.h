@@ -23,7 +23,7 @@
 namespace mt_rrt {
 template <typename S>
 concept FoundSolution = requires(const S obj_const) {
-  { obj_const.costTot } -> std::same_as<float>;
+  { obj_const.costTot } -> std::same_as<const float &>;
 
   { obj_const.materialize() } -> std::same_as<Solution>;
 };
