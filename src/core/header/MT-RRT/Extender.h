@@ -9,7 +9,6 @@
 
 #include <MT-RRT/Connector.h>
 #include <MT-RRT/ProblemDescription.h>
-#include <MT-RRT/Rewiring.h>
 #include <MT-RRT/Sampler.h>
 #include <MT-RRT/Solution.h>
 #include <MT-RRT/Tree.h>
@@ -49,6 +48,8 @@ public:
   const auto &getSolutions() const { return solutions_; }
 
   bool hasSolution() const { return !solutions_.empty(); }
+
+  const Problem<P> &getProblem() const { return problem; }
 
 protected:
   Extender(Problem<P> &prblm, std::size_t state_space_size)

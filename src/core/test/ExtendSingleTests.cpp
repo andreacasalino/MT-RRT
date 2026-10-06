@@ -1,49 +1,32 @@
 #include <gtest/gtest.h>
 
-#include <MT-RRT/ExtenderSingle.h>
 #include <MT-RRT/TreeBase.h>
 
 #include <TestScenarios.h>
 
-using namespace mt_rrt;
-using namespace mt_rrt::trivial_problem;
+#include "ExtendTests.h"
 
-// void log_test_case(const std::string &tag, const std::string &title,
-//                    mt_rrt::Extender &subject) {
-//   LogResult res;
-//   to_json(res, static_cast<const trivial::TrivialProblemConnector &>(
-//                    *subject.problem().connector));
-//   for (const auto &solution : subject.getSolutions()) {
-//     res.addSolution(*solution);
-//   }
-//   for (auto &&tree : subject.dumpTrees()) {
-//     res.addTree(*tree);
-//   }
-//   Logger::get().add(tag, title, res.get());
-// }
+namespace mt_rrt::testing {
+using TheExtendTest = ExtendTest<ExtenderSingle<
+    trivial_problem::Description<ExpansionStrategy::Single>, TreeBase>>;
 
-using TheDescription = trivial_problem::Description<ExpansionStrategy::Single>;
-
-using TheExtender = ExtenderSingle<TheDescription, TreeBase>;
-
-TEST(SingleStrategyTest, nodes_deterministically_steered_only_once) {
+TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
   auto &&[problem, start, end] =
-      make_scenario<ExpansionStrategy::Single>(Kind::Empty);
+      trivial_problem::make_scenario<ExpansionStrategy::Single>(
+          trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
-  TheExtender extender{problem, end.asView(), TreeBase{start.asView()}};
+  extender.emplace(problem, end.asView(), TreeBase{start.asView()});
 
-  extend_many(extender, std::make_shared<KeepSearchPredicate>());
+  // TODO KeepSearchPredicate does not work as is
+  extend_many(*extender, std::make_shared<KeepSearchPredicate>());
 
-  const auto &solutions = extender.getSolutions();
+  const auto &solutions = extender->getSolutions();
   ASSERT_EQ(solutions.size(), 1);
   bool solutions_ok =
       check_solutions(problem.first.connector->getChecker(),
-                      extender.materializeAllSolutions(), start, end);
+                      extender->materializeAllSolutions(), start, end);
   ASSERT_TRUE(solutions_ok);
-
-  // TODO
-  // mt_rrt::log_test_case("single", "empty_only_deterministic", extender);
 }
 
 /*
@@ -81,3 +64,4 @@ TEST_F(SingleStrategyTest, multiple_search_cycles) {
   mt_rrt::log_test_case("single", "multiple_cycles", extender);
 }
 */
+} // namespace mt_rrt::testing
