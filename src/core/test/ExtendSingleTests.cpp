@@ -5,12 +5,13 @@
 #include "ExtendTests.h"
 
 namespace mt_rrt::testing {
-using TheExtendTest = ExtendTest<ExtenderSingle<
-    trivial_problem::Description<ExpansionStrategy::Single>, TreeBase>>;
+using TheExtendTest = ExtendTest<
+    ExtenderSingle<trivial_problem::Description<ExpansionStrategy::Single>,
+                   TreeBase>,
+    ExpansionStrategy::Single>;
 
 TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
-  auto [problem, start, end] =
-      this->init<ExpansionStrategy::Single>(trivial_problem::Kind::Empty);
+  auto &[problem, start, end] = this->init(trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
   extender.emplace(problem, end.asView(), TreeBase{start.asView()});

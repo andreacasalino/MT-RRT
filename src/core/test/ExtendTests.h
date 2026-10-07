@@ -20,13 +20,14 @@
 #include <optional>
 
 namespace mt_rrt::testing {
-template <typename TheExtender> struct ExtendTest : ::testing::Test {
+template <typename TheExtender, ExpansionStrategy ExpansionStrategyT>
+struct ExtendTest : ::testing::Test {
   void TearDown() override {
     LogResult recipient;
     if constexpr (requires { extender->tree_; }) {
-      nlohmann::to_json(recipient.addToScene("start"), extender->target());
-      nlohmann::to_json(recipient.addToScene("end"),
+      nlohmann::to_json(recipient.addToScene("start"),
                         extender->tree_.root()->data().state);
+      nlohmann::to_json(recipient.addToScene("end"), extender->target());
       recipient.addTree(extender->tree_.getNodes());
     } else {
       nlohmann::to_json(recipient.addToScene("start"),
@@ -40,18 +41,17 @@ template <typename TheExtender> struct ExtendTest : ::testing::Test {
       recipient.addSolution(solution);
     }
 
-    to_json(recipient, *scenario);
+    to_json(recipient,
+            *scenario->problem.first.connector->getChecker().getBoxes());
     Logger::get().add_test_result(recipient.get());
   }
 
-  template <ExpansionStrategy ExpansionStrategyT>
-  auto init(trivial_problem::Kind kind) {
-    auto res = trivial_problem::make_scenario<ExpansionStrategyT>(kind);
-    scenario = res.problem.first.connector->getChecker().getBoxes();
-    return std::move(res);
+  auto &init(trivial_problem::Kind kind) {
+    scenario.emplace(trivial_problem::make_scenario<ExpansionStrategyT>(kind));
+    return scenario.value();
   }
 
-  trivial_problem::BoxesPtr scenario;
+  std::optional<trivial_problem::ExtendProblem<ExpansionStrategyT>> scenario;
   std::optional<TheExtender> extender;
 };
 
