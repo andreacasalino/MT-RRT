@@ -26,4 +26,14 @@ DeterminismRegulator::DeterminismRegulator(const Seed &seed,
                                            const Determinism &determinism)
     : deterministic_rate_sampler{0, 1.f, seed},
       deterministic_rate_sampler_threshold{determinism.get()} {}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template bool KeepSearchPredicate<ExpansionStrategy::Single>::keepSearch(
+    std::size_t) const;
+template bool KeepSearchPredicate<ExpansionStrategy::Bidir>::keepSearch(
+    std::size_t) const;
+template bool
+    KeepSearchPredicate<ExpansionStrategy::Star>::keepSearch(std::size_t) const;
+
 } // namespace mt_rrt
