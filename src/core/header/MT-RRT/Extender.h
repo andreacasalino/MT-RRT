@@ -92,9 +92,10 @@ concept ConcreteExtender = requires(E obj, const E obj_const) {
   { obj_const.hasSolution() } -> std::same_as<bool>;
 };
 
-template <ConcreteExtender E>
-std::size_t extend_many(E &ext,
-                        std::shared_ptr<KeepSearchPredicate> search_predicate) {
+template <ConcreteExtender E, ExpansionStrategy ExpansionStrategyT>
+std::size_t extend_many(
+    E &ext,
+    std::shared_ptr<KeepSearchPredicate<ExpansionStrategyT>> search_predicate) {
   std::size_t iter = 0;
   for (; search_predicate->keepSearch(iter); ++iter) {
     ext.extend();

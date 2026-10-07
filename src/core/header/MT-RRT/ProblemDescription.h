@@ -61,20 +61,6 @@ template <typename P> struct is_problem_description : std::true_type {};
 template <typename P>
 concept IsProblemDescription = details::is_problem_description<P>::value;
 
-struct ProblemParameters {
-  Iterations iterations;
-  Determinism determinism{0.35f};
-
-  /**
-   * @brief If true, the expansion of the tree(s) is arrested as soon as a
-   * solution is found. Otherwise, the search is kept on possibly finding
-   * additional solutions.
-   */
-  bool best_effort{true};
-
-  bool provide_extra_info{false};
-};
-
 /**
  * @brief Groups together all the parameters that a @Planner neeeds to
  * know to solve a specific problem for connecting 2 pair of states.

@@ -52,6 +52,20 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  */
 enum class ExpansionStrategy { Single, Bidir, Star };
 
+struct ProblemParameters {
+  Iterations iterations;
+  Determinism determinism{0.35f};
+
+  /**
+   * @brief If true, the expansion of the tree(s) is arrested as soon as a
+   * solution is found. Otherwise, the search is kept on possibly finding
+   * additional solutions.
+   */
+  bool best_effort{true};
+
+  bool provide_extra_info{false};
+};
+
 template <ExpansionStrategy ExpansionStrategyT> struct KeepSearchPredicate {
   const ProblemParameters &parameters;
 
