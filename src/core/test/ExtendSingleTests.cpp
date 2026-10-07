@@ -2,8 +2,6 @@
 
 #include <MT-RRT/TreeBase.h>
 
-#include <TestScenarios.h>
-
 #include "ExtendTests.h"
 
 namespace mt_rrt::testing {
@@ -11,9 +9,8 @@ using TheExtendTest = ExtendTest<ExtenderSingle<
     trivial_problem::Description<ExpansionStrategy::Single>, TreeBase>>;
 
 TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
-  auto &&[problem, start, end] =
-      trivial_problem::make_scenario<ExpansionStrategy::Single>(
-          trivial_problem::Kind::Empty);
+  auto [problem, start, end] =
+      this->init<ExpansionStrategy::Single>(trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
   extender.emplace(problem, end.asView(), TreeBase{start.asView()});

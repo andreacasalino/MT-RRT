@@ -15,6 +15,7 @@
 
 #include <LogResult.h>
 #include <Logger.h>
+#include <TestScenarios.h>
 
 #include <optional>
 
@@ -39,10 +40,18 @@ template <typename TheExtender> struct ExtendTest : ::testing::Test {
       recipient.addSolution(solution);
     }
 
-    to_json(recipient, extender->getProblem().first.connector->getChecker());
+    to_json(recipient, *scenario);
     Logger::get().add_test_result(recipient.get());
   }
 
+  template <ExpansionStrategy ExpansionStrategyT>
+  auto init(trivial_problem::Kind kind) {
+    auto res = trivial_problem::make_scenario<ExpansionStrategyT>(kind);
+    scenario = res.problem.first.connector->getChecker().getBoxes();
+    return std::move(res);
+  }
+
+  trivial_problem::BoxesPtr scenario;
   std::optional<TheExtender> extender;
 };
 

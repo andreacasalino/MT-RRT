@@ -21,8 +21,6 @@ std::optional<std::span<const float>> Solution::Iterator::next() {
 
 Solution::Solution(std::span<const float> start) : state_len_{start.size()} {
   add(start, 0);
-  states_.insert(states_.end(), start.begin(), start.end());
-  len_ += 1;
 }
 
 void Solution::add(std::span<const float> next, Positive cost2Go) {

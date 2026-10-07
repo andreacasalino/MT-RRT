@@ -38,7 +38,7 @@ public:
     }
     std::memcpy(tail_->buffer + tail_->len, to_add.data(),
                 sizeof(T) * to_add.size());
-    std::span<const T> res{tail_->buffer, to_add.size()};
+    std::span<const T> res{tail_->buffer + tail_->len, to_add.size()};
     tail_->len += to_add.size();
     return res;
   }

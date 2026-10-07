@@ -66,5 +66,5 @@ public:
 };
 } // namespace trivial_problem
 
-void to_json(LogResult &j, const trivial_problem::Checker &subject);
+void to_json(LogResult &j, const geom::Boxes &subject);
 } // namespace mt_rrt

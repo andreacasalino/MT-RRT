@@ -34,11 +34,11 @@ std::unique_ptr<Checker> make_checker(geom::Boxes obstacles) {
 } // namespace mt_rrt::trivial_problem
 
 namespace mt_rrt {
-void to_json(LogResult &j, const trivial_problem::Checker &subject) {
+void to_json(LogResult &j, const geom::Boxes &subject) {
   mt_rrt::to_json(j.addToScene("region"),
                   geom::Box{geom::PointAllocated{-1.f, -1.f},
                             geom::PointAllocated{1.f, 1.f}});
-  for (const auto &box : *subject.getBoxes()) {
+  for (const auto &box : subject) {
     j.addObstacle(box);
   }
 }

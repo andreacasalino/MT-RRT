@@ -150,8 +150,8 @@ ExtendResult Extender<P, S>::extend_(std::span<const float> target, T &tree) {
   }
   if constexpr (IsDeterministic) {
     bool is_new =
-        determinism_register_.emplace(std::make_pair(nearest, target.data()))
-            .second;
+        !determinism_register_.emplace(std::make_pair(nearest, target.data()))
+             .second;
     if (is_new) {
       return ExtendNotPossible{};
     }
