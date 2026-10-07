@@ -52,13 +52,12 @@ using SteerIterations = PositiveIntegerWithDefault<10>;
  */
 enum class ExpansionStrategy { Single, Bidir, Star };
 
-struct KeepSearchPredicate {
-  bool best_effort;
-  std::size_t max_iterations;
-  ExpansionStrategy strategy;
+template <ExpansionStrategy ExpansionStrategyT> struct KeepSearchPredicate {
+  const ProblemParameters &parameters;
+
   std::atomic_bool one_solution_was_found = false;
 
-  bool keepSearch(std::size_t iter) const;
+  [[nodiscard]] bool keepSearch(std::size_t iter) const;
 };
 
 class DeterminismRegulator {

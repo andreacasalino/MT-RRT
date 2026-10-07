@@ -47,8 +47,6 @@ public:
 
   const auto &getSolutions() const { return solutions_; }
 
-  bool hasSolution() const { return !solutions_.empty(); }
-
   const Problem<P> &getProblem() const { return problem; }
 
 protected:
@@ -100,7 +98,7 @@ std::size_t extend_many(E &ext,
   std::size_t iter = 0;
   for (; search_predicate->keepSearch(iter); ++iter) {
     ext.extend();
-    search_predicate->one_solution_was_found.store(ext.hasSolution(),
+    search_predicate->one_solution_was_found.store(!ext.getSolutions().empty(),
                                                    std::memory_order::release);
   }
   return iter;

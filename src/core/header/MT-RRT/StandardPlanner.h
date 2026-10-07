@@ -47,8 +47,10 @@ protected:
   std::pair<std::size_t, std::optional<Solution>> solve_(E extender) {
     std::pair<std::size_t, std::optional<Solution>> res;
 
-    res.first =
-        extend_many(extender, std::make_shared<KeepSearchPredicate>(...));
+    auto pred = std::make_shared<KeepSearchPredicate<P::kExpansionStrategy>>(
+        problem_.second);
+
+    res.first = extend_many(extender, pred);
     res.second = extender.materializeBestSolution();
 
     if (problem_.second.provide_extra_info) {
