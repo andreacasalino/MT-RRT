@@ -8,18 +8,21 @@ using namespace mt_rrt::trivial_problem;
 
 class TrivialProblemTest : public ::testing::Test {
 protected:
-  trivial_problem::Connector connector{
-      std::make_shared<Boxes>(
-          Boxes{Box{PointAllocated{-1.f, -1.f}, PointAllocated{1.f, 1.f}}}),
-      SteerIterations{10000}};
+  static Boxes make_boxes() {
+    return Boxes{
+        Boxes{Box{PointAllocated{-1.f, -1.f}, PointAllocated{1.f, 1.f}}}};
+  }
+
+  trivial_problem::Connector connector{make_checker(make_boxes()),
+                                       trivial_problem::STEER_DEGREE,
+                                       SteerIterations{10000}};
 
   std::vector<float> steer_buffer;
 };
 
 TEST_F(TrivialProblemTest, no_steer_as_blocked) {
-  std::vector<float> start{
-      -1.f - trivial_problem::Connector::STEER_DEGREE * 0.1f,
-      -1.f - trivial_problem::Connector::STEER_DEGREE * 0.1f};
+  std::vector<float> start{-1.f - trivial_problem::STEER_DEGREE.get() * 0.1f,
+                           -1.f - trivial_problem::STEER_DEGREE.get() * 0.1f};
   std::vector<float> end{2.f, 2.f};
 
   auto steered = connector.steer(start, end, steer_buffer);

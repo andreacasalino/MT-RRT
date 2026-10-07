@@ -26,6 +26,11 @@ bool Checker::check_from_to(std::span<const float> from,
       });
 }
 
+std::unique_ptr<Checker> make_checker(geom::Boxes obstacles) {
+  return std::make_unique<Checker>(
+      std::make_shared<geom::Boxes>(std::move(obstacles)));
+}
+
 } // namespace mt_rrt::trivial_problem
 
 namespace mt_rrt {

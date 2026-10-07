@@ -35,22 +35,25 @@ private:
   BoxesPtr boxes_;
 };
 
+using Connector = EuclidianConnector<Checker>;
+
+static const inline float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
+static const inline Positive STEER_DEGREE =
+    Positive{STATE_BOX_DIAGONAL_LENGTH / 15.f};
+
 namespace detail {
 template <ExpansionStrategy ExpansionStrategyT>
-using DescriptionBase = ProblemDescription<EuclidianConnector<Checker>,
-                                           HyperBox, true, ExpansionStrategyT>;
+using DescriptionBase =
+    ProblemDescription<Connector, HyperBox, true, ExpansionStrategyT>;
 }
+
+std::unique_ptr<Checker> make_checker(geom::Boxes obstacles);
 
 // Universe is a (-1 , -1) x (1 , 1) box, with steer radius
 // equal to 0.05
 template <ExpansionStrategy ExpansionStrategyT>
 class Description : public detail::DescriptionBase<ExpansionStrategyT> {
 public:
-  static const inline float STATE_BOX_DIAGONAL_LENGTH = 2.f * sqrtf(1.f);
-
-  static const inline Positive STEER_DEGREE =
-      Positive{STATE_BOX_DIAGONAL_LENGTH / 15.f};
-
   Description(const std::optional<Seed> &seed, geom::Boxes obstacles,
               SteerIterations steers)
       : detail::DescriptionBase<ExpansionStrategyT>{
@@ -58,14 +61,8 @@ public:
             .sampler =
                 std::make_unique<HyperBox>(std::vector<float>{-1.f, -1.f},
                                            std::vector<float>{1.f, 1.f}, seed),
-            .connector = std::make_unique<EuclidianConnector<Checker>>(
+            .connector = std::make_unique<Connector>(
                 make_checker(std::move(obstacles)), STEER_DEGREE, steers)} {}
-
-private:
-  static std::unique_ptr<Checker> make_checker(geom::Boxes obstacles) {
-    return std::make_unique<Checker>(
-        std::make_shared<geom::Boxes>(std::move(obstacles)));
-  }
 };
 } // namespace trivial_problem
 
