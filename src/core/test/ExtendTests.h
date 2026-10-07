@@ -23,13 +23,14 @@ template <typename TheExtender> struct ExtendTest : ::testing::Test {
   void TearDown() override {
     LogResult recipient;
     if constexpr (requires { extender->tree_; }) {
-      nlohmann::to_json(scene["start"], extender->target());
-      nlohmann::to_json(scene["end"], extender->tree_.root()->data().state);
+      nlohmann::to_json(recipient.addToScene("start"), extender->target());
+      nlohmann::to_json(recipient.addToScene("end"),
+                        extender->tree_.root()->data().state);
       recipient.addTree(extender->tree_.getNodes());
     } else {
-      nlohmann::to_json(scene["end"],
+      nlohmann::to_json(recipient.addToScene("start"),
                         extender->trees_.first.root()->data().state);
-      nlohmann::to_json(scene["end"],
+      nlohmann::to_json(recipient.addToScene("end"),
                         extender->trees_.second.root()->data().state);
       recipient.addTree(extender->trees_.first.getNodes());
       recipient.addTree(extender->trees_.second.getNodes());
@@ -37,8 +38,9 @@ template <typename TheExtender> struct ExtendTest : ::testing::Test {
     for (auto &&solution : extender->materializeAllSolutions()) {
       recipient.addSolution(solution);
     }
-    to_json(*this, extender->getProblem());
-    Logger::get().add_test_result(recipient);
+
+    to_json(recipient, extender->getProblem().first.connector->getChecker());
+    Logger::get().add_test_result(recipient.get());
   }
 
   std::optional<TheExtender> extender;

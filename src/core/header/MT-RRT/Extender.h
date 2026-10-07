@@ -85,14 +85,7 @@ private:
   Rewiring rewiring_;
 };
 
-template <typename E>
-concept ConcreteExtender = requires(E obj, const E obj_const) {
-  { obj.extend() } -> std::same_as<void>;
-
-  { obj_const.hasSolution() } -> std::same_as<bool>;
-};
-
-template <ConcreteExtender E, ExpansionStrategy ExpansionStrategyT>
+template <typename E, ExpansionStrategy ExpansionStrategyT>
 std::size_t extend_many(
     E &ext,
     std::shared_ptr<KeepSearchPredicate<ExpansionStrategyT>> search_predicate) {

@@ -18,8 +18,9 @@ TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
 
   extender.emplace(problem, end.asView(), TreeBase{start.asView()});
 
-  // TODO KeepSearchPredicate does not work as is
-  extend_many(*extender, std::make_shared<KeepSearchPredicate>());
+  extend_many(*extender,
+              std::make_shared<KeepSearchPredicate<ExpansionStrategy::Single>>(
+                  problem.second));
 
   const auto &solutions = extender->getSolutions();
   ASSERT_EQ(solutions.size(), 1);
