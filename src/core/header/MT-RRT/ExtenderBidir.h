@@ -73,14 +73,11 @@ template <IsProblemDescription P, tree::HasBasicMethods T>
 void ExtenderBidirectional<P, T>::extend() {
   RAIISwapper swapper{&master_, &slave_};
 
-  ExtendResult res_master;
-  if (this->determinismRegulator.shallThisBeDeterministic()) {
-    res_master =
-        this->template extend_<T, true>(slave_->root()->data().state, *master_);
-  } else {
-    res_master =
-        this->template extend_<T, false>(this->sampleState(), *master_);
-  }
+  ExtendResult res_master =
+      this->determinismRegulator.shallThisBeDeterministic()
+          ? this->template extend_<T, true>(slave_->root()->data().state,
+                                            *master_)
+          : this->template extend_<T, false>(this->sampleState(), *master_);
 
   const Node *master_added{nullptr};
   std::visit(

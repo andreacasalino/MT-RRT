@@ -42,12 +42,10 @@ private:
 
 template <IsProblemDescription P, tree::HasBasicMethods T>
 void ExtenderSingle<P, T>::extend() {
-  ExtendResult res;
-  if (this->determinismRegulator.shallThisBeDeterministic()) {
-    res = this->template extend_<T, true>(target_, tree_);
-  } else {
-    res = this->template extend_<T, false>(this->sampleState(), tree_);
-  }
+  ExtendResult res =
+      this->determinismRegulator.shallThisBeDeterministic()
+          ? this->template extend_<T, true>(target_, tree_)
+          : this->template extend_<T, false>(this->sampleState(), tree_);
 
   if (const DeterministicTargetReached *trg_reached =
           std::get_if<DeterministicTargetReached>(&res);
