@@ -53,19 +53,4 @@ INSTANTIATE_TEST_CASE_P(SingleStrategySearchTest, SingleStrategyFixture,
                                           trivial_problem::Kind::NoSolution,
                                           trivial_problem::Kind::SmallObstacle,
                                           trivial_problem::Kind::Cluttered));
-
-/*
-TEST_F(SingleStrategyTest, multiple_search_cycles) {
-  const std::size_t cycles = 10;
-  problem.suggested_parameters.iterations.set(
-      problem.suggested_parameters.iterations.get() / cycles);
-  auto extender = makeExtender();
-  for (std::size_t k = 0; k < cycles; ++k)
-    extender.search();
-
-  checkSolutions(extender);
-
-  mt_rrt::log_test_case("single", "multiple_cycles", extender);
-}
-*/
 } // namespace mt_rrt::testing
