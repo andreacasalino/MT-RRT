@@ -76,29 +76,25 @@ void ExtenderBidirectional<P, T>::extend() {
   ExtendResult res_master;
   if (this->determinismRegulator.shallThisBeDeterministic()) {
     res_master =
-        this->template extend<T, true>(slave_->root()->data().state, *master_);
+        this->template extend_<T, true>(slave_->root()->data().state, *master_);
   } else {
-    res_master = this->template extend<T, false>(this->sampleState(), *master_);
+    res_master =
+        this->template extend_<T, false>(this->sampleState(), *master_);
   }
 
-  const Node *master_added = std::visit(
+  const Node *master_added{nullptr};
+  std::visit(
       [&](const auto &res_master) {
         if constexpr (std::is_same_v<decltype(res_master),
                                      const DeterministicTargetReached &>) {
           // new solution: master reaches directly the slave root
-          this->pushSolution_(res_master->parent, slave_->root(),
-                              res_master->cost2Go);
-          return nullptr;
+          this->pushSolution_(*res_master.parent, *slave_->root(),
+                              res_master.cost2Go);
         }
 
         else if constexpr (std::is_same_v<decltype(res_master),
                                           const Steered &>) {
-          return &res_master.added;
-
-        }
-
-        else {
-          return nullptr;
+          master_added = res_master.added;
         }
       },
       res_master);
@@ -106,13 +102,13 @@ void ExtenderBidirectional<P, T>::extend() {
   if (master_added) {
     ExtendResult res_slave;
     res_master =
-        this->template extend<T, true>(master_added->data().state, *slave_);
+        this->template extend_<T, true>(master_added->data().state, *slave_);
 
     if (const DeterministicTargetReached *trg_reached =
             std::get_if<DeterministicTargetReached>(&res_slave);
         trg_reached) {
       // new solution
-      this->pushSolution_(*master_added, trg_reached->parent,
+      this->pushSolution_(*master_added, *trg_reached->parent,
                           trg_reached->cost2Go);
     }
   }
