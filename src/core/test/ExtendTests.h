@@ -51,6 +51,11 @@ struct ExtendTest : ::testing::Test {
     return scenario.value();
   }
 
+  auto makeSearchPredicate() const {
+    return std::make_shared<KeepSearchPredicate<ExpansionStrategyT>>(
+        scenario->problem.second);
+  }
+
   std::optional<trivial_problem::ExtendProblem<ExpansionStrategyT>> scenario;
   std::optional<TheExtender> extender;
 };

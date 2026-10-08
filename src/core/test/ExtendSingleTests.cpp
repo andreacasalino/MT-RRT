@@ -16,9 +16,7 @@ TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
 
   extender.emplace(problem, end.asView(), TreeBase{start.asView()});
 
-  extend_many(*extender,
-              std::make_shared<KeepSearchPredicate<ExpansionStrategy::Single>>(
-                  problem.second));
+  extend_many(*extender, makeSearchPredicate());
 
   const auto &solutions = extender->getSolutions();
   ASSERT_EQ(solutions.size(), 1);
