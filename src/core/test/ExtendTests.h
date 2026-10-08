@@ -21,8 +21,8 @@
 
 namespace mt_rrt::testing {
 template <typename TheExtender, ExpansionStrategy ExpansionStrategyT>
-struct ExtendTest : ::testing::Test {
-  void TearDown() override {
+struct ExtendTestBase {
+  ~ExtendTestBase() {
     LogResult recipient;
     if constexpr (requires { extender->tree_; }) {
       nlohmann::to_json(recipient.addToScene("start"),
@@ -60,4 +60,7 @@ struct ExtendTest : ::testing::Test {
   std::optional<TheExtender> extender;
 };
 
+template <typename TheExtender, ExpansionStrategy ExpansionStrategyT>
+struct ExtendTest : ExtendTestBase<TheExtender, ExpansionStrategyT>,
+                    ::testing::Test {};
 } // namespace mt_rrt::testing

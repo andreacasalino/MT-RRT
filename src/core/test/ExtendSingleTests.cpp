@@ -5,12 +5,14 @@
 #include "ExtendTests.h"
 
 namespace mt_rrt::testing {
-using TheExtendTest = ExtendTest<
+using TheExtender =
     ExtenderSingle<trivial_problem::Description<ExpansionStrategy::Single>,
-                   TreeBase>,
-    ExpansionStrategy::Single>;
+                   TreeBase>;
 
-TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
+using ExpansionStrategySingleTest =
+    ExtendTest<TheExtender, ExpansionStrategy::Single>;
+
+TEST_F(ExpansionStrategySingleTest, nodes_deterministically_steered_only_once) {
   auto &[problem, start, end] = this->init(trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
@@ -18,36 +20,41 @@ TEST_F(TheExtendTest, nodes_deterministically_steered_only_once) {
 
   extend_many(*extender, makeSearchPredicate());
 
-  const auto &solutions = extender->getSolutions();
-  ASSERT_EQ(solutions.size(), 1);
+  ASSERT_EQ(extender->getSolutions().size(), 1);
+
   bool solutions_ok =
       check_solutions(problem.first.connector->getChecker(),
                       extender->materializeAllSolutions(), start, end);
   ASSERT_TRUE(solutions_ok);
 }
 
-/*
-using SingleStrategyFixture = ::testing::TestWithParam<Kind>;
+struct SingleStrategyFixture
+    : ExtendTestBase<TheExtender, ExpansionStrategy::Single>,
+      ::testing::TestWithParam<trivial_problem::Kind> {};
 
 TEST_P(SingleStrategyFixture, search) {
-  auto test = ExtendTest<ExpansionStrategy::Single>{GetParam()};
-  auto extender = test.makeExtender();
-  extender.search();
+  auto &[problem, start, end] = this->init(trivial_problem::Kind::Empty);
+  extender.emplace(problem, end.asView(), TreeBase{start.asView()});
 
-  if (GetParam() == Kind::NoSolution) {
-    ASSERT_TRUE(extender.getSolutions().empty());
+  extend_many(*extender, makeSearchPredicate());
+
+  if (GetParam() == trivial_problem::Kind::NoSolution) {
+    ASSERT_TRUE(extender->getSolutions().empty());
   } else {
-    test.checkSolutions(extender);
+    bool solutions_ok =
+        check_solutions(problem.first.connector->getChecker(),
+                        extender->materializeAllSolutions(), start, end);
+    ASSERT_TRUE(solutions_ok);
   }
-
-  mt_rrt::log_test_case("single", make_log_tag(GetParam()), extender);
 }
 
 INSTANTIATE_TEST_CASE_P(SingleStrategySearchTest, SingleStrategyFixture,
-                        ::testing::Values(Kind::Empty, Kind::NoSolution,
-                                          Kind::SmallObstacle,
-                                          Kind::Cluttered));
+                        ::testing::Values(trivial_problem::Kind::Empty,
+                                          trivial_problem::Kind::NoSolution,
+                                          trivial_problem::Kind::SmallObstacle,
+                                          trivial_problem::Kind::Cluttered));
 
+/*
 TEST_F(SingleStrategyTest, multiple_search_cycles) {
   const std::size_t cycles = 10;
   problem.suggested_parameters.iterations.set(
