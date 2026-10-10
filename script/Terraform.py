@@ -116,7 +116,7 @@ def genShowCmd(recipe, info : Info):
             'ENV':CommandEnv.env
         }
         cmd += """
-MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} {ARGS_TEST} {ARGS_SCRIPT})
+MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} '{ARGS_TEST}' '{ARGS_SCRIPT}')
 """.format(**frmt)
     return cmd
 
