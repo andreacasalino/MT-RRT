@@ -1,13 +1,5 @@
 import json, os, argparse, platform, tempfile
 
-def pathJoin(front, *args):
-    res = front
-    for piece in args:
-        res = os.path.join(res, piece)
-    res = os.path.normpath(res)
-    res = str(res).replace('\\', '/')
-    return res
-
 class Env:
     PREFIX='MT-RRT-'
     TEST_SUFFIX='-Tests'
@@ -17,116 +9,11 @@ class Env:
         'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"),
     }
 
-    @staticmethod
-    def expandEnv(json_str):     
-        res = json_str
-        for name, val in Env.env.items():
-            res = res.replace('${' + name + '}', val)
-            res = res.replace('$' + name, val)
-        return res
-
 class Info:
     def __init__(self, path):
         self.path = path
         self.name = os.path.basename(path)
         self.cmake_name = '{}{}'.format(Env.PREFIX, self.name)
-
-def genRequirements(recipe, info : Info):
-    return '\n'.join('find_package({} REQUIRED)'.format(dep) for dep in recipe)
-
-def genDependencies(recipe, info : Info):
-    res = ''
-    for scope, deps in recipe.items():
-        res += """
-{}
-{}""".format(scope, '\n'.join(deps))    
-    return """
-target_link_libraries({} 
-{}
-)""".format(info.cmake_name, res)
-
-def genDefinitions(recipe, info : Info):
-    defs = ''
-    for scope, definitions  in recipe.items():
-        for definition in definitions:
-            frmt = {
-                'CMAKE_NAME':info.cmake_name,
-                'SCOPE':scope,
-                'NAME':definition['name'],
-                'VALUE':definition['value']
-            }
-            defs += """
-target_compile_definitions({CMAKE_NAME} {SCOPE}
--D {NAME}="{VALUE}"
-)""".format(**frmt) 
-            if 'export' in definition and definition['export']:
-                defs += """\nSET({NAME} "{VALUE}" CACHE INTERNAL "{NAME}")""".format(**frmt)
-    return defs
-
-def genFlags(recipe, info : Info):
-    defs = ''
-    for scope, definitions in recipe.items():
-        for definition in definitions:
-            frmt = {
-                'CMAKE_NAME':info.cmake_name,
-                'SCOPE':scope,
-                'OPT_NAME':definition['name'],
-                'NAME':'{}{}'.format(Env.PREFIX, definition['name']),
-                'MSG':definition['msg'],
-                'DEFAULT': 'ON' if definition['default'] else 'OFF'
-            }
-            defs += """
-option({NAME} "{MSG}" {DEFAULT})
-if({NAME})
-target_compile_definitions({CMAKE_NAME} {SCOPE} {OPT_NAME})
-endif()""".format(**frmt)  
-    return defs  
-
-def getEnvVars():
-    return {
-        'PYTHONPATH':'${COMMON_KIT_PATH}',
-        'MT_RRT_LOG_PATH':'${MT_RRT_LOG_PATH}'
-    }
-
-class CommandEnv:
-    @staticmethod
-    def make():
-        frmt = {
-            'Linux':"""export {}={}""",
-            'Windows':"""set {}={}"""
-        }
-        frmt_to_use = 'COMMAND {}'.format(frmt[platform.system()])
-        return '\n'.join(frmt_to_use.format(k, v) for k, v in getEnvVars().items())
-
-    env = make()
-
-def genShowCmd(recipe, info : Info):
-    cmd = ''
-    for rec in recipe:
-        frmt = {
-            'MT_RRT_ROOT':'${MT_RRT_ROOT}',
-            'PARENT':info.cmake_name,
-            'TARGET_TEST':info.cmake_name,
-            'TEST_CASE_NAME':rec['name'],
-            'PYTHON_CMD':'${PYTHON_CMD}',
-            'DIAG_SCRIPT':rec['script'],
-            'PLATFORM':platform.system(),
-            'ARGS_TEST': rec['args'] if 'args' in rec else '',
-            'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
-            'ENV':CommandEnv.env
-        }
-        cmd += """
-MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} '{ARGS_TEST}' '{ARGS_SCRIPT}')
-""".format(**frmt)
-    return cmd
-
-BLOCKS = {
-    'require':genRequirements,
-    'depends':genDependencies,
-    'definitions':genDefinitions,
-    'flags':genFlags,
-    'show':genShowCmd
-}
 
 class Target:
     def __init__(self, path):
@@ -188,9 +75,9 @@ SET({TARGET}-bin-path  "$TESTS_BIN_PATH/{TARGET}" CACHE INTERNAL "$TESTS_BIN_PAT
             content = self.genCore()
             content += '\n{}'.format(self.genExportBinPath_())
             for topic, recipe in self.context.items():                
-                if not topic in BLOCKS:
+                if not topic in GRAMMAR:
                     continue
-                content += '\n{}'.format(BLOCKS[topic](recipe, self.info))
+                content += '\n{}'.format(GRAMMAR[topic](recipe, self.info))
             content = self.decorateWithConditions(content)
             content = self.decorateWithOptional(content)
             stream.write(content)
@@ -323,3 +210,105 @@ if __name__ == '__main__':
         print('===> generating at {}'.format(args.single))
         handler = Library(args.single)
         handler.gen()
+
+#############################################################################################################################
+
+def pathJoin(front, *args):
+    res = front
+    for piece in args:
+        res = os.path.join(res, piece)
+    res = os.path.normpath(res)
+    res = str(res).replace('\\', '/')
+    return res
+
+def expandEnv(json_str):     
+    res = json_str
+    for name, val in Env.env.items():
+        res = res.replace('${' + name + '}', val)
+        res = res.replace('$' + name, val)
+    return res
+
+def genRequirements(recipe, _):
+    return '\n'.join('find_package({} REQUIRED)'.format(dep) for dep in recipe)
+
+def genDependencies(recipe, info : Info):
+    res = '\n'.join(
+        """
+{}
+{}""".format(scope, '\n'.join(deps)) for scope, deps in recipe.items()
+    ) 
+    return """
+target_link_libraries({} 
+{}
+)""".format(info.cmake_name, res)
+
+def genDefinitions(recipe, info : Info):
+    defs = ''
+    for scope, definitions  in recipe.items():
+        for definition in definitions:
+            frmt = {
+                'CMAKE_NAME':info.cmake_name,
+                'SCOPE':scope,
+                'NAME':definition['name'],
+                'VALUE':definition['value']
+            }
+            defs += """
+target_compile_definitions({CMAKE_NAME} {SCOPE}
+-D {NAME}="{VALUE}"
+)""".format(**frmt) 
+            if 'export' in definition and definition['export']:
+                defs += """\nSET({NAME} "{VALUE}" CACHE INTERNAL "{NAME}")""".format(**frmt)
+    return defs
+
+def genFlags(recipe, info : Info):
+    defs = ''
+    for scope, definitions in recipe.items():
+        for definition in definitions:
+            frmt = {
+                'CMAKE_NAME':info.cmake_name,
+                'SCOPE':scope,
+                'OPT_NAME':definition['name'],
+                'NAME':'{}{}'.format(Env.PREFIX, definition['name']),
+                'MSG':definition['msg'],
+                'DEFAULT': 'ON' if definition['default'] else 'OFF'
+            }
+            defs += """
+option({NAME} "{MSG}" {DEFAULT})
+if({NAME})
+target_compile_definitions({CMAKE_NAME} {SCOPE} {OPT_NAME})
+endif()""".format(**frmt)  
+    return defs  
+
+def getEnvVars():
+    return {
+        'PYTHONPATH':'${COMMON_KIT_PATH}',
+        'MT_RRT_LOG_PATH':'${MT_RRT_LOG_PATH}'
+    }
+
+def genShowCmd(recipe, info : Info):
+    cmd = ''
+    for rec in recipe:
+        frmt = {
+            'MT_RRT_ROOT':'${MT_RRT_ROOT}',
+            'PARENT':info.cmake_name,
+            'TARGET_TEST':info.cmake_name,
+            'TEST_CASE_NAME':rec['name'],
+            'PYTHON_CMD':'${PYTHON_CMD}',
+            'DIAG_SCRIPT':rec['script'],
+            'PLATFORM':platform.system(),
+            'ARGS_TEST': rec['args'] if 'args' in rec else '',
+            'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
+            'ENV':CommandEnv.env
+        }
+        cmd += """
+MakeTestDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} '{ARGS_TEST}' '{ARGS_SCRIPT}')
+""".format(**frmt)
+    return cmd
+
+GRAMMAR = {
+    'require':genRequirements,
+    'depends':genDependencies,
+    'definitions':genDefinitions,
+    'flags':genFlags,
+    'show':genShowCmd
+}

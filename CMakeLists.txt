@@ -11,8 +11,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(MT_RRT_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/script)
 
 include(${MT_RRT_SCRIPTS}/Fetch.cmake)
-include(${MT_RRT_SCRIPTS}/Terraform.cmake)
-include(${MT_RRT_SCRIPTS}/MakeTestWithDiag.cmake)
+include(${MT_RRT_SCRIPTS}/terraform/Terraform.cmake)
+include(${MT_RRT_SCRIPTS}/terraform/MakeTestDiag.cmake)
 
 if(DEFINED PYTHON_EXECUTABLE)
     # indeed, this env var is defined by the setup.py script
