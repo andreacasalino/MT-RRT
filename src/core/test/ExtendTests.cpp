@@ -2,19 +2,15 @@
 
 #include <MT-RRT/TreeBase.h>
 
-#include "ExtendTests.h"
+#include "ExtendTestBase.h"
 
 namespace mt_rrt::testing {
-using ExtenderSingleValue =
+using TheExtender =
     ExtenderSingle<trivial_problem::Description<ExpansionStrategy::Single>,
                    TreeBase>;
 
-using ExtenderBidirectionalValue =
-    ExtenderBidirectional<trivial_problem::Description<ExpansionStrategy::Bidir>,
-                   TreeBase>;
-
 TEST(ExtendSingleTest, nodes_deterministically_steered_only_once) {
-  ExtendTestBase<ExtenderSingleValue, ExpansionStrategy::Single> base;
+  ExtendTestBase<TheExtender, ExpansionStrategy::Single> base;
   auto &[problem, start, end] = base.init(trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
@@ -34,7 +30,7 @@ struct ExtendSingleTestFixture
     : ::testing::TestWithParam<trivial_problem::Kind> {};
 
 TEST_P(ExtendSingleTestFixture, search) {
-  ExtendTestBase<ExtenderSingleValue, ExpansionStrategy::Single> base;
+  ExtendTestBase<TheExtender, ExpansionStrategy::Single> base;
   auto &[problem, start, end] = base.init(GetParam());
   base.extender.emplace(problem, end.asView(), start.asView());
 
