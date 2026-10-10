@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os, json
 from common.Geometry import *
 from common.Colors import make_colors
+import sys
 
 class Figure:
     def __init__(self, title, json):
@@ -49,11 +50,25 @@ class Figure:
     def printSolutions(self):
         return
 
-def show(FigureT):
-    figures = []
+def files_gen():
     log_folder = os.environ['MT_RRT_LOG_PATH']
-    for filename in os.listdir(log_folder):
+    if 1 == len(sys.argv):
+        for filename in os.listdir(log_folder):
+            filename_abs = os.path.join(log_folder, filename)
+            yield filename, filename_abs
+    else:
+        filename = str(sys.argv[1])
         filename_abs = os.path.join(log_folder, filename)
+        if not os.path.exists(filename_abs):
+            raise Exception(f"Unable to open file named: '{filename}'")
+        yield filename, filename_abs
+
+def show(FigureT):
+    if 0 < len(sys.argv):
+        pass
+
+    figures = []
+    for filename, filename_abs in files_gen():
         with open(filename_abs, 'r') as stream:
             fig = FigureT(filename, json.load(stream))
             fig.show()
