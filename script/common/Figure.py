@@ -49,21 +49,15 @@ class Figure:
     def printSolutions(self):
         return
 
-def getLogFolder():
-    with open(os.environ['MT_RRT_LOG_PATH']) as stream:
-        return stream.read().strip()
-
 def show(FigureT):
     figures = []
-    log_folder = getLogFolder()
-    for tag in os.listdir(log_folder):
-        subfolder = os.path.join(log_folder, tag)
-        for res in os.listdir(subfolder):
-            filename = os.path.join(subfolder, res)
-            with open(filename, 'r') as stream:
-                fig = FigureT('{}-{}'.format(tag, os.path.basename(res)), json.load(stream))
-                fig.show()
-                figures.append(fig)  
+    log_folder = os.environ['MT_RRT_LOG_PATH']
+    for filename in os.listdir(log_folder):
+        filename_abs = os.path.join(log_folder, filename)
+        with open(filename_abs, 'r') as stream:
+            fig = FigureT(filename, json.load(stream))
+            fig.show()
+            figures.append(fig)  
     plt.autoscale()
     plt.show()
 

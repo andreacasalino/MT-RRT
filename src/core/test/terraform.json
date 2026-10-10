@@ -8,12 +8,12 @@
         {
             "name": "show_single",
             "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
-            "args": "--gtest_filter=*SingleStrategy*"
+            "args": "--gtest_filter=ExtendSingle*"
         },
         {
             "name": "show_bidir",
             "script": "${CMAKE_SOURCE_DIR}/problems/problem-trivial/TrivialProblem.py",
-            "args": "--gtest_filter=*BidirStrategy*"
+            "args": "--gtest_filter=ExtendBidir*"
         },
         {
             "name": "show_star",
