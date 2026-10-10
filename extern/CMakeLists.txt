@@ -13,5 +13,5 @@ if(BUILD_MT_RRT_TESTS)
 endif()
 
 if(BUILD_MT_RRT_TESTS OR BUILD_MT_RRT_SAMPLES)
-    Fetch(https://github.com/nlohmann/json.git v3.10.5 json_lib)
+    Fetch(https://github.com/nlohmann/json.git v3.12.0 json_lib)
 endif()
