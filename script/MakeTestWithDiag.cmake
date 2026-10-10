@@ -8,11 +8,11 @@ if(PLATFORM STREQUAL "Linux")
 
     file(WRITE "${SCRIPT_PATH}" 
     "#!/bin/bash
-    
+
 export PYTHONPATH='${COMMON_KIT_PATH}'
 export MT_RRT_LOG_PATH='${MT_RRT_LOG_PATH}'
 
-${PYTHON_CMD} ${DIAG_SCRIPT} ${ARGS_SCRIPT}
+${PYTHON_CMD} ${DIAG_SCRIPT} ${ARGS_SCRIPT} '$@'
 ")
 
     execute_process(
