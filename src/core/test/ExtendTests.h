@@ -59,8 +59,4 @@ struct ExtendTestBase {
   std::optional<trivial_problem::ExtendProblem<ExpansionStrategyT>> scenario;
   std::optional<TheExtender> extender;
 };
-
-template <typename TheExtender, ExpansionStrategy ExpansionStrategyT>
-struct ExtendTest : ExtendTestBase<TheExtender, ExpansionStrategyT>,
-                    ::testing::Test {};
 } // namespace mt_rrt::testing
