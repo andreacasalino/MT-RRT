@@ -10,6 +10,8 @@
 #include <MT-RRT/Tree.h>
 #include <MT-RRT/Utils.h>
 
+#include <algorithm>
+
 namespace mt_rrt {
 template <Connector C, typename T>
 void Rewiring::update(Node &pivot, const T &tree, C &connector) {
@@ -48,8 +50,8 @@ void Rewiring::computeRewires(NearSetHandler &handler, C &connector) {
       // root can't be rewired
       continue;
     }
-    float cost2RootRewired = cost2RootPivot + cost2GoPrev;
-    if (cost2RootRewired < nodeCost2Root) {
+    float cost2RootRewired = cost2RootPivot + cost2GoPrev.get();
+    if (cost2RootRewired < nodeCost2Root.get()) {
       res.emplace_back(Rewire{node, cost2GoPrev});
     }
   }
