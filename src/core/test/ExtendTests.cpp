@@ -5,16 +5,20 @@
 #include "ExtendTests.h"
 
 namespace mt_rrt::testing {
-using TheExtender =
+using ExtenderSingleValue =
     ExtenderSingle<trivial_problem::Description<ExpansionStrategy::Single>,
                    TreeBase>;
 
+using ExtenderBidirectionalValue =
+    ExtenderBidirectional<trivial_problem::Description<ExpansionStrategy::Bidir>,
+                   TreeBase>;
+
 TEST(ExtendSingleTest, nodes_deterministically_steered_only_once) {
-  ExtendTestBase<TheExtender, ExpansionStrategy::Single> base;
+  ExtendTestBase<ExtenderSingleValue, ExpansionStrategy::Single> base;
   auto &[problem, start, end] = base.init(trivial_problem::Kind::Empty);
   problem.second.determinism.set(1.f);
 
-  base.extender.emplace(problem, end.asView(), TreeBase{start.asView()});
+  base.extender.emplace(problem, end.asView(), start.asView());
 
   extend_many(*base.extender, base.makeSearchPredicate());
 
@@ -30,9 +34,9 @@ struct ExtendSingleTestFixture
     : ::testing::TestWithParam<trivial_problem::Kind> {};
 
 TEST_P(ExtendSingleTestFixture, search) {
-  ExtendTestBase<TheExtender, ExpansionStrategy::Single> base;
+  ExtendTestBase<ExtenderSingleValue, ExpansionStrategy::Single> base;
   auto &[problem, start, end] = base.init(GetParam());
-  base.extender.emplace(problem, end.asView(), TreeBase{start.asView()});
+  base.extender.emplace(problem, end.asView(), start.asView());
 
   extend_many(*base.extender, base.makeSearchPredicate());
 
