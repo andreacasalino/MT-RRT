@@ -106,12 +106,12 @@ def genShowCmd(recipe, info : Info):
         frmt = {
             'MT_RRT_ROOT':'${MT_RRT_ROOT}',
             'PARENT':info.cmake_name,
-            'NAME':'{}-{}'.format(info.cmake_name, rec['name']),
-            'BIN_PATH': '${' + '{}-bin-path'.format(info.cmake_name) + '}',
-            'ARGS': rec['args'] if 'args' in rec else '',
-            'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
+            'TARGET_TEST':info.cmake_name,
+            'TEST_CASE_NAME':rec['name'],
             'PYTHON_CMD':'${PYTHON_CMD}',
-            'SCRIPT':rec['script'],
+            'DIAG_SCRIPT':rec['script'],
+            'ARGS_TEST': rec['args'] if 'args' in rec else '',
+            'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
             'ENV':CommandEnv.env
         }
         pltfrm = platform.system()
@@ -129,13 +129,8 @@ add_dependencies({NAME} {PARENT})
 """.format(**frmt)
         else:
             cmd += """
-add_custom_target({NAME} 
-DEPENDS {PARENT}
-COMMAND {BIN_PATH} {ARGS}
-{ENV}
-COMMAND {PYTHON_CMD} {SCRIPT} {ARGS_SCRIPT}
-SOURCES {SCRIPT}
-)""".format(**frmt)
+MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {ARGS_TEST} {ARGS_SCRIPT})
+""".format(**frmt)
     return cmd
 
 BLOCKS = {
@@ -195,8 +190,8 @@ endif()
             'CMAKE_CURRENT_BINARY_DIR':'${CMAKE_CURRENT_BINARY_DIR}'
         }
         return """
-SET({TARGET}-bin-path  "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}" CACHE INTERNAL "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path")
-""".format(**frmt).replace('$CMAKE_RUNTIME_OUTPUT_DIRECTORY', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}')
+SET({TARGET}-bin-path  "$TESTS_BIN_PATH/{TARGET}" CACHE INTERNAL "$TESTS_BIN_PATH/{TARGET}")
+""".format(**frmt).replace('$TESTS_BIN_PATH', '${TESTS_BIN_PATH}')
 
     def gen(self):
         with open(pathJoin(self.info.path, 'CMakeLists.txt'), 'w') as stream:

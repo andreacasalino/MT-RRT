@@ -12,6 +12,7 @@ set(MT_RRT_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/script)
 
 include(${MT_RRT_SCRIPTS}/Fetch.cmake)
 include(${MT_RRT_SCRIPTS}/Terraform.cmake)
+include(${MT_RRT_SCRIPTS}/MakeTestWithDiag.cmake)
 
 if(DEFINED PYTHON_EXECUTABLE)
     # indeed, this env var is defined by the setup.py script
@@ -32,6 +33,10 @@ option(BUILD_MT_RRT_SAMPLES "Build MT-RRT samples" ON)
 set(MT_RRT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(extern)
+
+if(BUILD_MT_RRT_TESTS)
+    set(TESTS_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
 
 Terraform(src)
 Terraform(problems)
