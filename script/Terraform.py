@@ -110,26 +110,13 @@ def genShowCmd(recipe, info : Info):
             'TEST_CASE_NAME':rec['name'],
             'PYTHON_CMD':'${PYTHON_CMD}',
             'DIAG_SCRIPT':rec['script'],
+            'PLATFORM':platform.system(),
             'ARGS_TEST': rec['args'] if 'args' in rec else '',
             'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
             'ENV':CommandEnv.env
         }
-        pltfrm = platform.system()
-        if pltfrm == 'Windows':
-            frmt['ENV'] = ' '.join(['{}={}'.format(k, v) for k, v, in getEnvVars().items()])
-            cmd += """            
-add_executable({NAME} {MT_RRT_ROOT}/launcher/Main.cpp)
-target_compile_definitions({NAME} PUBLIC -D ENV="{ENV}")
-target_compile_definitions({NAME} PUBLIC -D BIN_PATH="{BIN_PATH}")
-target_compile_definitions({NAME} PUBLIC -D ARGS="{ARGS}")
-target_compile_definitions({NAME} PUBLIC -D PYTHON_CMD="{PYTHON_CMD}")
-target_compile_definitions({NAME} PUBLIC -D SCRIPT="{SCRIPT}")
-target_compile_definitions({NAME} PUBLIC -D ARGS_SCRIPT="{ARGS_SCRIPT}")
-add_dependencies({NAME} {PARENT})
-""".format(**frmt)
-        else:
-            cmd += """
-MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {ARGS_TEST} {ARGS_SCRIPT})
+        cmd += """
+MakeTestWithDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} {ARGS_TEST} {ARGS_SCRIPT})
 """.format(**frmt)
     return cmd
 
