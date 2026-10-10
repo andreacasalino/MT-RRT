@@ -195,8 +195,8 @@ endif()
             'CMAKE_CURRENT_BINARY_DIR':'${CMAKE_CURRENT_BINARY_DIR}'
         }
         return """
-SET({TARGET}-bin-path  "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path" CACHE INTERNAL "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path")
-""".format(**frmt)
+SET({TARGET}-bin-path  "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}" CACHE INTERNAL "$CMAKE_RUNTIME_OUTPUT_DIRECTORY/{TARGET}-bin-path")
+""".format(**frmt).replace('$CMAKE_RUNTIME_OUTPUT_DIRECTORY', '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}')
 
     def gen(self):
         with open(pathJoin(self.info.path, 'CMakeLists.txt'), 'w') as stream:
