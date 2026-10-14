@@ -9,7 +9,7 @@ class Env:
     SAMPLE_SUFFIX='Samples'
     env={
         'PREFIX':PREFIX,
-        'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"),
+        'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"), # TODO shall this be removed ?
     }
 
 class TargetKind(Enum):
@@ -31,7 +31,7 @@ def getCMakeInfo(path):
     if res.name == 'test':
         res.name = "{}-{}".format(res.name, Env.TEST_SUFFIX)
         res.kind = TargetKind.TEST
-    elif res.name == 'sample':
+    elif res.name == 'samples':
         res.name = "{}-{}".format(res.name, Env.SAMPLE_SUFFIX)
         res.kind = TargetKind.SAMPLE
     else:
@@ -121,31 +121,34 @@ def genFlags(target: CMakeFile, content):
         })
         target.append(flag_content)
 
-GRAMMAR = {
-    'require':genRequirements,
-    'depends':genDependencies,
-    'definitions':genDefinitions,
-    'flags':genFlags,
-    # 'show':genShowCmd
-}
 
 def generateTargetContent(target: CMakeFile):
-    for k, v in target.info.context.items():                
+    if not target.info.context:
+        return
+
+    GRAMMAR = {
+        'require':genRequirements,
+        'depends':genDependencies,
+        'definitions':genDefinitions,
+        'flags':genFlags,
+        # 'show':genShowCmd
+    }
+
+    for k, v in target.info.context.items():               
         if not k in GRAMMAR:
             continue
         GRAMMAR[k](target, v)
 
-    if target.info.context:
-        if 'condition' in target.info.context:
-            before = "if({})".format(' OR '.join(target.info.context['condition']))
-            target.decorate(before, "endif()")
-            
-        if 'optional' in target.info.context:
-            before = sourceWithSubstitution("OptionalBuild", {
-                "THE_NAME": target.info.cmake_name,
-                "DEFAULT_VALUE": 'ON' if target.info.context['optional'] else 'OFF'
-            })
-            target.decorate(before, "endif()")
+    if 'condition' in target.info.context:
+        before = "if({})".format(' OR '.join(target.info.context['condition']))
+        target.decorate(before, "endif()")
+        
+    if 'optional' in target.info.context:
+        before = sourceWithSubstitution("OptionalBuild", {
+            "THE_NAME": target.info.cmake_name,
+            "DEFAULT_VALUE": 'ON' if target.info.context['optional'] else 'OFF'
+        })
+        target.decorate(before, "endif()")
 
 class Library:
     def __init__(self, target: CMakeFile):
@@ -156,15 +159,11 @@ class Library:
         self.target.append(content)
 
     def __exit__(self, exc_type_, exc_val_, exc_tb_):
-        tests_path = os.path.join(self.target.info.path, "test")
-        if os.path.exists(tests_path):
-            self.target.append("add_subdirectory(test)")
-            generateTarget(tests_path)
-
-        samples_path = os.path.join(self.target.info.path, "samples")
-        if os.path.exists(samples_path):
-            self.target.append("add_subdirectory(samples)")
-            generateTarget(tests_path)
+        for subpath in ['test', 'samples']:
+            subpath_abs = os.path.join(self.target.info.path, subpath)
+            if os.path.exists(subpath_abs):
+                self.target.append("add_subdirectory({})".format(subpath))
+                generateTarget(subpath_abs)
 
         # Returning False or None will let exceptions propagate normally.
         return False
@@ -185,69 +184,6 @@ def generateTargets(path):
             fd.write("add_subdirectory({})".format(sub_path))
             generateTarget(os.path.join(path, sub_path))
 
-# class Test(Target):
-#     def setUp_(self):
-#         self.initContext_('condition')
-#         self.context['condition'].append('BUILD_MT_RRT_TESTS')
-
-#         self.initContext_('depends', 'PUBLIC')
-#         for dep in ['GTest::gtest', 'GTest::gtest_main', self.info_parent.cmake_name]:
-#             self.context['depends']['PUBLIC'].append(dep)
-
-#         self.initContext_('definitions', 'PUBLIC')
-#         for n, v in [('TEST_TAG', '[{}]'.format(self.info_parent.name)), ('TEST_FOLDER', '${CMAKE_CURRENT_SOURCE_DIR}')]:
-#             self.context['definitions']['PUBLIC'].append({
-#                 'name':n,
-#                 'value':v
-#             })
-
-#     def __init__(self, info:Info):
-#         Target.__init__(self, pathJoin(info.path, 'test'))
-#         self.info_parent = info
-#         self.info.cmake_name = '{}{}'.format(self.info_parent.cmake_name, Env.TEST_SUFFIX)
-#         self.setUp_()
-
-#     def genCore(self):
-#         frmt = {
-#             'PATH':self.info.path,
-#             'NAME':self.info.cmake_name,
-#             'SOURCES':'{SOURCES}'
-#         }
-#         return """
-# file(GLOB_RECURSE SOURCES {PATH}/*h {PATH}/*cpp)
-# add_executable({NAME} ${SOURCES})
-# install(TARGETS {NAME})""".format(**frmt)
-
-# class Sample(Target):
-#     def locateScript_(self):
-#         fldr = os.path.dirname(self.info.path)
-#         for filename in os.listdir(fldr):
-#             if not filename.find('.py') == -1:
-#                 return pathJoin(fldr, filename)
-#         msg = 'Visualization script not located for {}'.format(self.info.cmake_name)
-#         raise Exception(msg)
-
-#     def setUp_(self):
-#         self.initContext_('depends', 'PUBLIC')
-#         self.context['depends']['PUBLIC'].append(self.info_parent.cmake_name)
-
-#         script = self.locateScript_()
-#         self.context['show'] = [{
-#             'name':filename.split('.')[0],
-#             'script':script,
-#             'args':"'{}'".format(pathJoin(self.info.path, filename))
-#         } for filename in filter(lambda name: not name.find('.json') == -1, os.listdir(self.info.path))]
-
-#     def __init__(self, info:Info):
-#         Target.__init__(self, pathJoin(info.path, 'samples'))
-#         self.info_parent = info
-#         self.info.cmake_name = '{}{}'.format(self.info_parent.cmake_name, Env.SAMPLE_SUFFIX)
-#         self.setUp_()
-
-#     def genCore(self):
-#         return """
-# add_executable({} Main.cpp)""".format(self.info.cmake_name)
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--multiple', default=None)
@@ -262,12 +198,6 @@ if __name__ == '__main__':
         generateTarget(args.single)
 
 #############################################################################################################################
-
-# def getEnvVars():
-#     return {
-#         'PYTHONPATH':'${COMMON_KIT_PATH}',
-#         'MT_RRT_LOG_PATH':'${MT_RRT_LOG_PATH}'
-#     }
 
 # def genShowCmd(recipe, info : Info):
 #     cmd = ''
