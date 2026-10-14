@@ -1,5 +1,5 @@
-target_compile_definitions($$TARGET 
-PUBLIC
+target_compile_definitions($$THE_NAME 
+$$THE_SCOPE
     -D $$THE_DEFINITION=$$THE_VALUE
 )
 SET($$THE_DEFINITION $$THE_VALUE CACHE INTERNAL "$$THE_DEFINITION")

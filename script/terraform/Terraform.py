@@ -61,7 +61,7 @@ class CMakeFile:
         self.info = getCMakeInfo(path)
 
     def __enter__(self):
-        self.content = sourceWithSubstitution("Header", {"THE_SCRIPT", os.path.abspath(__file__)})
+        self.content = sourceWithSubstitution("Header", {"THE_SCRIPT": os.path.abspath(__file__)})
         return self
 
     def __exit__(self, exc_type_, exc_val_, exc_tb_):
@@ -93,29 +93,21 @@ def genRequirements(target: CMakeFile, content):
 def genDependencies(target: CMakeFile, content):
     for scope, dep in content.items():
         dep_content = sourceWithSubstitution("Dependencies", {
-            "THE_SCOPE", scope,
-            "THE_NAME", target.info.cmake_name,
-            "THE_DEPS", '\n'.join(dep),
+            "THE_SCOPE": scope,
+            "THE_NAME": target.info.cmake_name,
+            "THE_DEPS": '\n'.join(dep),
         })
         target.append(dep_content)
 
-def genDefinitions(recipe, info : Info):
-    defs = ''
-    for scope, definitions  in recipe.items():
-        for definition in definitions:
-            frmt = {
-                'CMAKE_NAME':info.cmake_name,
-                'SCOPE':scope,
-                'NAME':definition['name'],
-                'VALUE':definition['value']
-            }
-            defs += """
-target_compile_definitions({CMAKE_NAME} {SCOPE}
--D {NAME}="{VALUE}"
-)""".format(**frmt) 
-            if 'export' in definition and definition['export']:
-                defs += """\nSET({NAME} "{VALUE}" CACHE INTERNAL "{NAME}")""".format(**frmt)
-    return defs
+def genDefinitions(target: CMakeFile, content):
+    for scope, dep in content.items():
+        dep_content = sourceWithSubstitution("Dependencies", {
+            "THE_SCOPE": scope,
+            "THE_NAME": target.info.cmake_name,
+            "THE_DEFINITION": dep['name'],
+            "THE_VALUE": dep['value'],
+        })
+        target.append(dep_content)
 
 def genFlags(recipe, info : Info):
     defs = ''
@@ -157,8 +149,8 @@ def generateTargetContent(target: CMakeFile):
             
         if 'optional' in target.info.context:
             before = sourceWithSubstitution("OptionalBuild", {
-                "THE_NAME", target.info.cmake_name,
-                "DEFAULT_VALUE", 'ON' if target.info.context['optional'] else 'OFF'
+                "THE_NAME": target.info.cmake_name,
+                "DEFAULT_VALUE": 'ON' if target.info.context['optional'] else 'OFF'
             })
             target.decorate(before, "endif()")
 
@@ -167,7 +159,7 @@ class Library:
         self.target = target
 
     def __enter__(self):
-        content = sourceWithSubstitution("Library", {"THE_NAME", self.target.info.cmake_name})
+        content = sourceWithSubstitution("Library", {"THE_NAME": self.target.info.cmake_name})
         self.target.append(content)
 
     def __exit__(self, exc_type_, exc_val_, exc_tb_):
