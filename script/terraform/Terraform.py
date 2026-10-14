@@ -101,32 +101,25 @@ def genDependencies(target: CMakeFile, content):
 
 def genDefinitions(target: CMakeFile, content):
     for scope, dep in content.items():
-        dep_content = sourceWithSubstitution("Dependencies", {
+        def_content = sourceWithSubstitution("Definitions", {
             "THE_SCOPE": scope,
             "THE_NAME": target.info.cmake_name,
             "THE_DEFINITION": dep['name'],
             "THE_VALUE": dep['value'],
         })
-        target.append(dep_content)
+        target.append(def_content)
 
-def genFlags(recipe, info : Info):
-    defs = ''
-    for scope, definitions in recipe.items():
-        for definition in definitions:
-            frmt = {
-                'CMAKE_NAME':info.cmake_name,
-                'SCOPE':scope,
-                'OPT_NAME':definition['name'],
-                'NAME':'{}{}'.format(Env.PREFIX, definition['name']),
-                'MSG':definition['msg'],
-                'DEFAULT': 'ON' if definition['default'] else 'OFF'
-            }
-            defs += """
-option({NAME} "{MSG}" {DEFAULT})
-if({NAME})
-target_compile_definitions({CMAKE_NAME} {SCOPE} {OPT_NAME})
-endif()""".format(**frmt)  
-    return defs
+def genFlags(target: CMakeFile, content):
+    for scope, dep in content.items():
+        # TODO check again this one with the previous version
+        flag_content = sourceWithSubstitution("Flags", {
+            "THE_TARGET": target.info.cmake_name,
+            "THE_NAME": '{}{}'.format(Env.PREFIX, dep['name']),
+            "THE_DESCRIPTION": dep['msg'],
+            "THE_VALUE_DEFAULT": 'ON' if dep['default'] else 'OFF',
+            "THE_SCOPE": scope
+        })
+        target.append(flag_content)
 
 GRAMMAR = {
     'require':genRequirements,
