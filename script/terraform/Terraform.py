@@ -100,8 +100,9 @@ def generateLibrary(target: CMakeFile):
     target.append()
 
 def generateTest(target: CMakeFile):
-    content = sourceWithSubstitution("Test", {"THE_NAME", target.info.cmake_name})
-    target.append(content)
+    # content = sourceWithSubstitution("Test", {"THE_NAME", target.info.cmake_name})
+    # target.append(content)
+    pass
 
 def generateSample(target: CMakeFile):
     pass
@@ -113,6 +114,22 @@ def generateSample(target: CMakeFile):
 #     'flags':genFlags,
 #     'show':genShowCmd
 # }
+
+def decorateWithOptional(self, content):
+    if 'optional' in self.context:
+        frmt = {
+            'OPT_NAME':'BUILD_{}'.format(self.info.cmake_name),
+            'NAME':self.info.name,
+            'DEFAULT_VALUE':'ON' if self.context['optional'] else 'OFF',
+            'CONTENT':content
+        }
+        content = """
+option({OPT_NAME} "Build {NAME}" {DEFAULT_VALUE})
+if({OPT_NAME})
+{CONTENT}
+endif()
+        """.format(**frmt)
+    return content
 
 def generateTarget(path):
     with CMakeFile(path) as target:
@@ -130,9 +147,18 @@ def generateTarget(path):
         #     content += '\n{}'.format(GRAMMAR[topic](recipe, self.info))
 
 
-        # TODO content = self.decorateWithConditions(content)
-        # TODO content = self.decorateWithOptional(content)
-
+        if target.info.context:
+            if 'condition' in target.info.context:
+                before = "if({})".format(' OR '.join(target.info.context['condition']))
+                target.decorate(before, "endif()")
+                
+            if 'optional' in target.info.context:
+                before = sourceWithSubstitution("OptionalBuild", {
+                    "THE_NAME", target.info.cmake_name,
+                    "DEFAULT_VALUE", 'ON' if target.info.context['optional'] else 'OFF'
+                })
+                target.decorate(before, "endif()")
+                
 class Test(Target):
     def setUp_(self):
         self.initContext_('condition')
@@ -232,17 +258,7 @@ class Target:
         context_file = pathJoin(self.info.path, 'terraform.json')
         if os.path.exists(context_file):
             self.context = openWithEnvExpansion()
-    
-    def decorateWithConditions(self, content):
-        if 'condition' in self.context:
-            cond = set(self.context['condition'])
-            content = """
-if({})
-{}
-endif()
-            """.format(' OR '.join(cond) , content) 
-        return content
-                    
+                        
     def decorateWithOptional(self, content):
         if 'optional' in self.context:
             frmt = {

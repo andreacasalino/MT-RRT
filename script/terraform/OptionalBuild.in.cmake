@@ -1,0 +1,5 @@
+set(FLAG_NAME "BUILD_$$THE_NAME")
+
+option(${FLAG_NAME} "Build $$THE_NAME" $$DEFAULT_VALUE)
+
+if(${FLAG_NAME})
