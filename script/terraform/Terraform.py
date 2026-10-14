@@ -87,28 +87,6 @@ class CMakeFile:
         with open(dest, 'w') as fd:
             fd.write(self.content)
 
-def generateLibrary(target: CMakeFile):
-    content = sourceWithSubstitution("Library", {"THE_NAME", target.info.cmake_name})
-    target.append(content)
-
-    tests_path = os.path.join(target.info.path, "test")
-    if os.path.exists(tests_path):
-        target.append("add_subdirectory(test)")
-        generateTarget(tests_path)
-
-    samples_path = os.path.join(target.info.path, "samples")
-    if os.path.exists(samples_path):
-        target.append("add_subdirectory(samples)")
-        generateTarget(tests_path)
-
-def generateTest(target: CMakeFile):
-    # content = sourceWithSubstitution("Test", {"THE_NAME", target.info.cmake_name})
-    # target.append(content)
-    pass
-
-def generateSample(target: CMakeFile):
-    pass
-
 def genRequirements(target: CMakeFile, content):
     target.appendMultiple('find_package({} REQUIRED)'.format(dep) for dep in content)
 
@@ -168,31 +146,54 @@ GRAMMAR = {
     # 'show':genShowCmd
 }
 
+def generateTargetContent(target: CMakeFile):
+    for k, v in target.info.context.items():                
+        if not k in GRAMMAR:
+            continue
+        GRAMMAR[k](target, v)
+
+    if target.info.context:
+        if 'condition' in target.info.context:
+            before = "if({})".format(' OR '.join(target.info.context['condition']))
+            target.decorate(before, "endif()")
+            
+        if 'optional' in target.info.context:
+            before = sourceWithSubstitution("OptionalBuild", {
+                "THE_NAME", target.info.cmake_name,
+                "DEFAULT_VALUE", 'ON' if target.info.context['optional'] else 'OFF'
+            })
+            target.decorate(before, "endif()")
+
+class Library:
+    def __init__(self, target: CMakeFile):
+        self.target = target
+
+    def __enter__(self):
+        content = sourceWithSubstitution("Library", {"THE_NAME", self.target.info.cmake_name})
+        self.target.append(content)
+
+    def __exit__(self, exc_type_, exc_val_, exc_tb_):
+        tests_path = os.path.join(self.target.info.path, "test")
+        if os.path.exists(tests_path):
+            self.target.append("add_subdirectory(test)")
+            generateTarget(tests_path)
+
+        samples_path = os.path.join(self.target.info.path, "samples")
+        if os.path.exists(samples_path):
+            self.target.append("add_subdirectory(samples)")
+            generateTarget(tests_path)
+
+        # Returning False or None will let exceptions propagate normally.
+        return False
+
 def generateTarget(path):
     with CMakeFile(path) as target:
         if target.info.kind == TargetKind.LIBRARY:
-            generateLibrary(target)
-        elif target.info.kind == TargetKind.TEST:
-            generateTest(target)
-        elif target.info.kind == TargetKind.SAMPLE:
-            generateSample(target)
+            with Library(target) as _:
+                generateTargetContent(target)
 
-        for k, v in target.info.context.items():                
-            if not k in GRAMMAR:
-                continue
-            GRAMMAR[k](target, v)
-
-        if target.info.context:
-            if 'condition' in target.info.context:
-                before = "if({})".format(' OR '.join(target.info.context['condition']))
-                target.decorate(before, "endif()")
-                
-            if 'optional' in target.info.context:
-                before = sourceWithSubstitution("OptionalBuild", {
-                    "THE_NAME", target.info.cmake_name,
-                    "DEFAULT_VALUE", 'ON' if target.info.context['optional'] else 'OFF'
-                })
-                target.decorate(before, "endif()")
+        else:
+            generateTargetContent(target)
              
 def generateTargets(path):
     path = os.path.abspath(path)
@@ -279,11 +280,11 @@ if __name__ == '__main__':
 
 #############################################################################################################################
 
-def getEnvVars():
-    return {
-        'PYTHONPATH':'${COMMON_KIT_PATH}',
-        'MT_RRT_LOG_PATH':'${MT_RRT_LOG_PATH}'
-    }
+# def getEnvVars():
+#     return {
+#         'PYTHONPATH':'${COMMON_KIT_PATH}',
+#         'MT_RRT_LOG_PATH':'${MT_RRT_LOG_PATH}'
+#     }
 
 # def genShowCmd(recipe, info : Info):
 #     cmd = ''
