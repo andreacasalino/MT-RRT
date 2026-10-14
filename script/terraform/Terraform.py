@@ -94,15 +94,12 @@ def generateLibrary(target: CMakeFile):
     tests_path = os.path.join(target.info.path, "test")
     if os.path.exists(tests_path):
         target.append("add_subdirectory(test)")
-        target_test = generateTarget(tests_path, generateTest)
-        target.append(target_test)
+        generateTarget(tests_path)
 
     samples_path = os.path.join(target.info.path, "samples")
     if os.path.exists(samples_path):
-        # TODO
-        pass
-
-    target.append()
+        target.append("add_subdirectory(samples)")
+        generateTarget(tests_path)
 
 def generateTest(target: CMakeFile):
     # content = sourceWithSubstitution("Test", {"THE_NAME", target.info.cmake_name})
