@@ -90,16 +90,14 @@ class CMakeFile:
 def genRequirements(target: CMakeFile, content):
     target.appendMultiple('find_package({} REQUIRED)'.format(dep) for dep in content)
 
-def genDependencies(target: CMakeFile):
-    res = '\n'.join(
-        """
-{}
-{}""".format(scope, '\n'.join(deps)) for scope, deps in recipe.items()
-    ) 
-    return """
-target_link_libraries({} 
-{}
-)""".format(info.cmake_name, res)
+def genDependencies(target: CMakeFile, content):
+    for scope, dep in content.items():
+        dep_content = sourceWithSubstitution("Dependencies", {
+            "THE_SCOPE", scope,
+            "THE_NAME", target.info.cmake_name,
+            "THE_DEPS", '\n'.join(dep),
+        })
+        target.append(dep_content)
 
 def genDefinitions(recipe, info : Info):
     defs = ''
