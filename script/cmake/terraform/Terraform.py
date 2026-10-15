@@ -29,24 +29,21 @@ def openWithEnvExpansion(path):
     return json.loads(json_str)
 
 def getCMakeInfo(path):
-    res = CMakeInfo()
-    res.path = path
-    res.name = os.path.basename(path)
-    res.cmake_name = '{}{}'.format(Env.PREFIX, res.name)
+    name = os.path.basename(path)
+    cmake_name = '{}{}'.format(Env.PREFIX, name)
+    context_file = os.path.join(path, 'terraform.json')
+    context = openWithEnvExpansion(context_file) if os.path.exists(context_file) else dict()
 
-    context_file = os.path.join(res.path, 'terraform.json')
-    res.context = openWithEnvExpansion(context_file) if os.path.exists(context_file) else dict()
-
-    if res.name == 'test':
-        res.name = "{}-{}".format(res.name, Env.TEST_SUFFIX)
-        res.kind = TargetKind.TEST
-    elif res.name == 'samples':
-        res.name = "{}-{}".format(res.name, Env.SAMPLE_SUFFIX)
-        res.kind = TargetKind.SAMPLE
+    if name == 'test':
+        name = "{}-{}".format(name, Env.TEST_SUFFIX)
+        kind = TargetKind.TEST
+    elif name == 'samples':
+        name = "{}-{}".format(name, Env.SAMPLE_SUFFIX)
+        kind = TargetKind.SAMPLE
     else:
-        res.kind = TargetKind.LIBRARY
+        kind = TargetKind.LIBRARY
 
-    return res
+    return CMakeInfo(path, name, cmake_name, context, kind)
 
 def sourceWithSubstitution(filename, frmt):
     path_abs = os.path.join(Env.TERRAFORM_ROOT, f"{filename}.in.cmake")
@@ -65,7 +62,7 @@ class CMakeFile:
         return self
 
     def __exit__(self, exc_type_, exc_val_, exc_tb_):
-        dest = os.path.join(self.path, "CMakeLists.txt")
+        dest = os.path.join(self.info.path, "CMakeLists.txt")
         print('===> generating at {}'.format(dest))
         with open(dest, 'w') as fd:
             fd.write(self.content)
@@ -173,10 +170,13 @@ def generateTarget(path):
              
 def generateTargets(path):
     path = os.path.abspath(path)
-    with open("CMakeLists.txt", 'w') as fd:
+    with open(os.path.join(path, "CMakeLists.txt"), 'w') as fd:
         for sub_path in os.listdir(path):
+            sub_path_tot = os.path.join(path, sub_path)
+            if not os.path.isdir(sub_path_tot):
+                continue
             fd.write("add_subdirectory({})".format(sub_path))
-            generateTarget(os.path.join(path, sub_path))
+            generateTarget(sub_path_tot)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
