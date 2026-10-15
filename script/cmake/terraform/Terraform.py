@@ -66,8 +66,7 @@ class CMakeFile:
         print('===> generating at {}'.format(dest))
         with open(dest, 'w') as fd:
             fd.write(self.content)
-        # Returning False or None will let exceptions propagate normally.
-        return False
+        return True
 
     def append(self, to_add):
         self.content += f"\n{to_add}"
