@@ -29,7 +29,7 @@ def openWithEnvExpansion(path):
     return json.loads(json_str)
 
 def getCMakeInfo(path):
-    res = CMakeInfo(path)
+    res = CMakeInfo()
     res.path = path
     res.name = os.path.basename(path)
     res.cmake_name = '{}{}'.format(Env.PREFIX, res.name)
