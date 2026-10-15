@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import os, json
-from common.Geometry import *
-from common.Colors import make_colors
+from diag.Geometry import *
+from diag.Colors import make_colors
 import sys
 
 class Figure:

@@ -1,4 +1,4 @@
-from common.Transform import Trasform
+from diag.Transform import Trasform
 import matplotlib.path as mpath
 import matplotlib.patches as mpatches
 from numpy import linspace

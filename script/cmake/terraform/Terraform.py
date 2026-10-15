@@ -9,7 +9,7 @@ class Env:
     SAMPLE_SUFFIX='Samples'
     env={
         'PREFIX':PREFIX,
-        'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"), # TODO shall this be removed ?
+        'LOG_PATH': os.path.join(tempfile.gettempdir(), "MT-RRT-LogPath"),
     }
 
 class TargetKind(Enum):
@@ -19,6 +19,15 @@ class TargetKind(Enum):
 
 CMakeInfo = namedtuple('CMakeInfo', 'path name cmake_name context kind')
 
+def openWithEnvExpansion(path):
+    with open(path, 'r') as stream:
+        json_str = stream.read()
+        # expand env
+        for name, val in Env.env.items():
+            json_str = json_str.replace('${' + name + '}', val)
+            json_str = json_str.replace('$' + name, val)
+    return json.loads(json_str)
+
 def getCMakeInfo(path):
     res = CMakeInfo(path)
     res.path = path
@@ -26,7 +35,7 @@ def getCMakeInfo(path):
     res.cmake_name = '{}{}'.format(Env.PREFIX, res.name)
 
     context_file = os.path.join(res.path, 'terraform.json')
-    res.context = openWithEnvExpansion(context_file) if os.path.exists(context_file) else None
+    res.context = openWithEnvExpansion(context_file) if os.path.exists(context_file) else dict()
 
     if res.name == 'test':
         res.name = "{}-{}".format(res.name, Env.TEST_SUFFIX)
@@ -46,15 +55,6 @@ def sourceWithSubstitution(filename, frmt):
     for k, v in frmt.items():
         content = content.replace(f"$${k}", v)
     return content
-
-def openWithEnvExpansion(path):
-    with open(path, 'r') as stream:
-        json_str = stream.read()
-        # expand env
-        for name, val in Env.env.items():
-            json_str = json_str.replace('${' + name + '}', val)
-            json_str = json_str.replace('$' + name, val)
-    return json.loads(json_str)
 
 class CMakeFile:
     def __init__(self, path):
@@ -120,7 +120,6 @@ def genFlags(target: CMakeFile, content):
             "THE_SCOPE": scope
         })
         target.append(flag_content)
-
 
 def generateTargetContent(target: CMakeFile):
     if not target.info.context:
