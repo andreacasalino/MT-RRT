@@ -1,4 +1,4 @@
-import json, os, argparse, platform, tempfile
+import json, os, argparse, tempfile
 from collections import namedtuple
 from enum import Enum
 
@@ -81,11 +81,6 @@ class CMakeFile:
 
     def decorate(self, before, after):
         self.content = "{}\n{}\n{}".format(before, self.content, after)
-
-    def write(self):
-        dest = os.path.join(self.path, "CMakeLists.txt")
-        with open(dest, 'w') as fd:
-            fd.write(self.content)
 
 def genRequirements(target: CMakeFile, content):
     target.appendMultiple('find_package({} REQUIRED)'.format(dep) for dep in content)
@@ -178,7 +173,7 @@ def generateTarget(path):
              
 def generateTargets(path):
     path = os.path.abspath(path)
-    with open("CMakeLists.txt") as fd:
+    with open("CMakeLists.txt", 'w') as fd:
         for sub_path in os.listdir(path):
             fd.write("add_subdirectory({})".format(sub_path))
             generateTarget(os.path.join(path, sub_path))
@@ -190,7 +185,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if not args.multiple == None:
-        path = os.path.abspath(args.single)
+        path = os.path.abspath(args.multiple)
         generateTargets(path)
 
     elif not args.single == None:
