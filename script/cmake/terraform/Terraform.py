@@ -179,6 +179,42 @@ class Library:
         # Returning False or None will let exceptions propagate normally.
         return False
 
+def generateTest(target: CMakeFile):
+    content = sourceWithSubstitution("Test", {
+        "THE_NAME": target.info.cmake_name,
+        "THE_PARENT_NAME": target.info.cmake_parent_name
+    })
+    target.append(content)
+
+class Sample:
+    def __init__(self, target: CMakeFile):
+        self.target = target
+        content = sourceWithSubstitution("Sample", {
+            "THE_NAME": target.info.cmake_name,
+            "THE_PARENT_NAME": target.info.cmake_parent_name
+        })
+        target.append(content)
+        genShowCmd(target, self.samplesGenerator_(target))
+
+    def locateShowScript_(self):
+        fldr = os.path.dirname(self.target.info.path)
+        for filename in os.listdir(fldr):
+            if not filename.find('.py') == -1:
+                return os.path.join(fldr, filename)
+        msg = 'Visualization script not located for {}'.format(self.target.info.cmake_name)
+        raise Exception(msg)
+
+    def samplesGenerator_(self):
+        show_script = self.locateShowScript_(self.target)
+        for sample_json in filter(lambda name: not name.find('.json') == -1, os.listdir(self.target.info.path)):
+            sample_json_abs = os.path.join(self.target.info.path, sample_json) 
+            sample_json_name_without_ext = sample_json.split('.')[0]
+            yield {
+                'name': "{}-{}".format(self.target.info.name, sample_json_name_without_ext),
+                'script': show_script,
+                'args': "'{}'".format(sample_json_abs)
+            }
+
 def generateTarget(path):
     with CMakeFile(path) as target:
         if target.info.kind == TargetKind.LIBRARY:
@@ -187,15 +223,10 @@ def generateTarget(path):
             return
 
         if target.info.kind == TargetKind.TEST:
-            content = sourceWithSubstitution("Test", {
-                "THE_NAME": target.info.cmake_name,
-                "THE_PARENT_NAME": target.info.cmake_parent_name
-            })
-            target.append(content)
+            generateTest(target)
 
         if target.info.kind == TargetKind.SAMPLE:
-            # TODO
-            pass
+            Sample(target)
 
         generateTargetContent(target)
              
