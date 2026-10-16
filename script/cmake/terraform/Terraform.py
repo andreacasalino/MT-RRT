@@ -1,4 +1,4 @@
-import json, os, argparse, tempfile
+import json, os, argparse, tempfile, platform
 from collections import namedtuple
 from enum import Enum
 
@@ -121,6 +121,18 @@ def genFlags(target: CMakeFile, content):
             })
             target.append(flag_content)
 
+def genShowCmd(target: CMakeFile, content):
+    for cmd in content:
+        diag_content = sourceWithSubstitution("Show", {
+            'TARGET_TEST': target.info.cmake_name,
+            'TEST_CASE_NAME': cmd['name'],
+            'DIAG_SCRIPT': cmd['script'],
+            'PLATFORM': platform.system(),
+            'ARGS_TEST': cmd['args'] if 'args' in cmd else '',
+            'ARGS_SCRIPT': ' '.join(cmd['args_script']) if 'args_script' in cmd else ''
+        })
+        target.append(diag_content)
+
 def generateTargetContent(target: CMakeFile):
     if not target.info.context:
         return
@@ -130,7 +142,7 @@ def generateTargetContent(target: CMakeFile):
         'depends':genDependencies,
         'definitions':genDefinitions,
         'flags':genFlags,
-        # 'show':genShowCmd
+        'show':genShowCmd
     }
 
     for k, v in target.info.context.items():               
@@ -201,25 +213,3 @@ if __name__ == '__main__':
 
     elif not args.single == None:
         generateTarget(args.single)
-
-#############################################################################################################################
-
-# def genShowCmd(recipe, info : Info):
-#     cmd = ''
-#     for rec in recipe:
-#         frmt = {
-#             'MT_RRT_ROOT':'${MT_RRT_ROOT}',
-#             'PARENT':info.cmake_name,
-#             'TARGET_TEST':info.cmake_name,
-#             'TEST_CASE_NAME':rec['name'],
-#             'PYTHON_CMD':'${PYTHON_CMD}',
-#             'DIAG_SCRIPT':rec['script'],
-#             'PLATFORM':platform.system(),
-#             'ARGS_TEST': rec['args'] if 'args' in rec else '',
-#             'ARGS_SCRIPT': ' '.join(rec['args_script']) if 'args_script' in rec else '',
-#             'ENV':CommandEnv.env
-#         }
-#         cmd += """
-# MakeTestDiag({TARGET_TEST} {TEST_CASE_NAME} {DIAG_SCRIPT} {PLATFORM} '{ARGS_TEST}' '{ARGS_SCRIPT}')
-# """.format(**frmt)
-#     return cmd
