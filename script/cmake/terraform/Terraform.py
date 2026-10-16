@@ -84,33 +84,38 @@ def genRequirements(target: CMakeFile, content):
 def genDependencies(target: CMakeFile, content):
     for scope, dep in content.items():
         dep_content = sourceWithSubstitution("Dependencies", {
-            "THE_SCOPE": scope,
             "THE_NAME": target.info.cmake_name,
-            "THE_DEPS": '\n'.join(dep),
+            "THE_SCOPE": scope,
+            "THE_DEPS": ' '.join(dep),
         })
         target.append(dep_content)
 
 def genDefinitions(target: CMakeFile, content):
-    for scope, dep in content.items():
-        def_content = sourceWithSubstitution("Definitions", {
-            "THE_SCOPE": scope,
-            "THE_NAME": target.info.cmake_name,
-            "THE_DEFINITION": dep['name'],
-            "THE_VALUE": dep['value'],
-        })
-        target.append(def_content)
+    for scope, defs in content.items():
+        for definition in defs:
+            frmt = {
+                "THE_NAME": target.info.cmake_name,
+                "THE_SCOPE": scope,
+                "THE_DEFINITION_NAME": definition['name'],
+                "THE_DEFINITION_NAME_VALUE": definition['value'],
+            }
+            def_content = sourceWithSubstitution("Definitions", frmt)
+            target.append(def_content)
+            if definition["export"]:
+                def_export_content = sourceWithSubstitution("Definitions-export", frmt)
+                target.append(def_export_content)
 
 def genFlags(target: CMakeFile, content):
-    for scope, dep in content.items():
-        # TODO check again this one with the previous version
-        flag_content = sourceWithSubstitution("Flags", {
-            "THE_TARGET": target.info.cmake_name,
-            "THE_NAME": '{}{}'.format(Env.PREFIX, dep['name']),
-            "THE_DESCRIPTION": dep['msg'],
-            "THE_VALUE_DEFAULT": 'ON' if dep['default'] else 'OFF',
-            "THE_SCOPE": scope
-        })
-        target.append(flag_content)
+    for scope, flags in content.items():
+        for flag in flags:
+            flag_content = sourceWithSubstitution("Flags", {
+                "THE_NAME": target.info.cmake_name,
+                "THE_SCOPE": scope,
+                "THE_OPTION_NAME": '{}{}'.format(Env.PREFIX, flag['name']),
+                "THE_DESCRIPTION": flag['msg'],
+                "THE_DEFAULT_VALUE": 'ON' if flag['default'] else 'OFF',
+            })
+            target.append(flag_content)
 
 def generateTargetContent(target: CMakeFile):
     if not target.info.context:
