@@ -86,7 +86,7 @@ def genDependencies(target: CMakeFile, content):
         dep_content = sourceWithSubstitution("Dependencies", {
             "THE_NAME": target.info.cmake_name,
             "THE_SCOPE": scope,
-            "THE_DEPS": ' '.join(dep),
+            "THE_DEPS": '\n'.join("   {}".format(d) for d in  dep),
         })
         target.append(dep_content)
 
@@ -97,7 +97,7 @@ def genDefinitions(target: CMakeFile, content):
                 "THE_NAME": target.info.cmake_name,
                 "THE_SCOPE": scope,
                 "THE_DEFINITION_NAME": definition['name'],
-                "THE_DEFINITION_NAME_VALUE": definition['value'],
+                "THE_DEFINITION_VALUE": definition['value'],
             }
             def_content = sourceWithSubstitution("Definitions", frmt)
             target.append(def_content)
