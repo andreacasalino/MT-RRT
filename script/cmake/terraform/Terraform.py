@@ -17,7 +17,7 @@ class TargetKind(Enum):
     TEST = 2
     SAMPLE = 3
 
-CMakeInfo = namedtuple('CMakeInfo', 'path name cmake_name context kind')
+CMakeInfo = namedtuple('CMakeInfo', 'path name cmake_name cmake_parent_name context kind')
 
 def openWithEnvExpansion(path):
     with open(path, 'r') as stream:
@@ -38,16 +38,17 @@ def getCMakeInfo(path):
         info_parent = getCMakeInfo(os.path.dirname(path))
         res_name = "{}-{}".format(info_parent.name, suffix)
         res_cmake_name = "{}-{}".format(info_parent.cmake_name, suffix)
-        return res_name, res_cmake_name
+        return info_parent, res_name, res_cmake_name
 
     if name == 'test':
-        name, cmake_name = manipulate_name(Env.TEST_SUFFIX)
-        return CMakeInfo(path, name, cmake_name, context, TargetKind.TEST)
+        info_parent, name, cmake_name = manipulate_name(Env.TEST_SUFFIX)
+        return CMakeInfo(path, name, cmake_name, info_parent.cmake_name, context, TargetKind.TEST)
     elif name == 'samples':
-        name, cmake_name = manipulate_name(Env.SAMPLE_SUFFIX)
-        return CMakeInfo(path, name, cmake_name, context, TargetKind.SAMPLE)
+        
+        info_parent, name, cmake_name = manipulate_name(Env.SAMPLE_SUFFIX)
+        return CMakeInfo(path, name, cmake_name, info_parent.cmake_name, context, TargetKind.SAMPLE)
     else:
-        return CMakeInfo(path, name, cmake_name, context, TargetKind.LIBRARY)
+        return CMakeInfo(path, name, cmake_name, None, context, TargetKind.LIBRARY)
 
 def sourceWithSubstitution(filename, frmt):
     path_abs = os.path.join(Env.TERRAFORM_ROOT, f"{filename}.in.cmake")
@@ -186,7 +187,10 @@ def generateTarget(path):
             return
 
         if target.info.kind == TargetKind.TEST:
-            content = sourceWithSubstitution("Test", {"THE_NAME": target.info.cmake_name})
+            content = sourceWithSubstitution("Test", {
+                "THE_NAME": target.info.cmake_name,
+                "THE_PARENT_NAME": target.info.cmake_parent_name
+            })
             target.append(content)
 
         if target.info.kind == TargetKind.SAMPLE:

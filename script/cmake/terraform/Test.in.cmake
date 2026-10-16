@@ -5,6 +5,7 @@ add_executable($$THE_NAME ${SOURCES})
 install(TARGETS $$THE_NAME)
 
 target_link_libraries($$THE_NAME PUBLIC
+$$THE_PARENT_NAME
 GTest::gtest
 GTest::gtest_main
 )
