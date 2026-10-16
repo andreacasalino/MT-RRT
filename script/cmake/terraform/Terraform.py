@@ -189,6 +189,10 @@ def generateTarget(path):
             content = sourceWithSubstitution("Test", {"THE_NAME": target.info.cmake_name})
             target.append(content)
 
+        if target.info.kind == TargetKind.SAMPLE:
+            # TODO
+            pass
+
         generateTargetContent(target)
              
 def generateTargets(path):
