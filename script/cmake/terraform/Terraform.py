@@ -34,16 +34,20 @@ def getCMakeInfo(path):
     context_file = os.path.join(path, 'terraform.json')
     context = openWithEnvExpansion(context_file) if os.path.exists(context_file) else dict()
 
-    if name == 'test':
-        name = "{}-{}".format(name, Env.TEST_SUFFIX)
-        kind = TargetKind.TEST
-    elif name == 'samples':
-        name = "{}-{}".format(name, Env.SAMPLE_SUFFIX)
-        kind = TargetKind.SAMPLE
-    else:
-        kind = TargetKind.LIBRARY
+    def manipulate_name(suffix):
+        info_parent = getCMakeInfo(os.path.dirname(path))
+        res_name = "{}-{}".format(info_parent.name, suffix)
+        res_cmake_name = "{}-{}".format(info_parent.cmake_name, suffix)
+        return res_name, res_cmake_name
 
-    return CMakeInfo(path, name, cmake_name, context, kind)
+    if name == 'test':
+        name, cmake_name = manipulate_name(Env.TEST_SUFFIX)
+        return CMakeInfo(path, name, cmake_name, context, TargetKind.TEST)
+    elif name == 'samples':
+        name, cmake_name = manipulate_name(Env.SAMPLE_SUFFIX)
+        return CMakeInfo(path, name, cmake_name, context, TargetKind.SAMPLE)
+    else:
+        return CMakeInfo(path, name, cmake_name, context, TargetKind.LIBRARY)
 
 def sourceWithSubstitution(filename, frmt):
     path_abs = os.path.join(Env.TERRAFORM_ROOT, f"{filename}.in.cmake")
@@ -159,7 +163,6 @@ class Library:
             if os.path.exists(subpath_abs):
                 self.target.append("add_subdirectory({})".format(subpath))
                 generateTarget(subpath_abs)
-
         # Returning False or None will let exceptions propagate normally.
         return False
 
@@ -168,9 +171,13 @@ def generateTarget(path):
         if target.info.kind == TargetKind.LIBRARY:
             with Library(target) as _:
                 generateTargetContent(target)
+            return
 
-        else:
-            generateTargetContent(target)
+        if target.info.kind == TargetKind.TEST:
+            content = sourceWithSubstitution("Test", {"THE_NAME": target.info.cmake_name})
+            target.append(content)
+
+        generateTargetContent(target)
              
 def generateTargets(path):
     path = os.path.abspath(path)

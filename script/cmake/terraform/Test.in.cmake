@@ -1,6 +1,6 @@
 if(BUILD_MT_RRT_TESTS)
 
-GlobSources(test)
+GlobSources(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable($$THE_NAME ${SOURCES})
 install(TARGETS $$THE_NAME)
 

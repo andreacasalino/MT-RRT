@@ -1,5 +1,5 @@
 
-GlobSources("header;src")
+GlobSourcesSubdirs("header;src")
 
 if(LIB_OPT)
     if (WIN32)
