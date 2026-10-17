@@ -181,41 +181,27 @@ class Library:
         # Returning False or None will let exceptions propagate normally.
         return False
 
-class Test:
-    def __init__(self, target: CMakeFile):
-        self.target = target
-
-    def __enter__(self):
-        self.target.append("if(BUILD_MT_RRT_TESTS)")
-        content = sourceWithSubstitution("Test", {
-            "THE_NAME": self.target.info.cmake_name,
-            "THE_PARENT_NAME": self.target.info.cmake_parent_name
-        })
-        self.target.append(content)
-
-    def __exit__(self, exc_type_, exc_val_, exc_tb_):
-        self.target.append("endif()")
-        # Returning False or None will let exceptions propagate normally.
-        return False
+def generateTest(target: CMakeFile):
+    target.addCondition("BUILD_MT_RRT_TESTS")
+    content = sourceWithSubstitution("Test", {
+        "THE_NAME": target.info.cmake_name,
+        "THE_PARENT_NAME": target.info.cmake_parent_name
+    })
+    target.append(content)
+    generateTargetContent(target)
 
 class Sample:
     def __init__(self, target: CMakeFile):
         self.target = target
-        
-    def __enter__(self):
-        self.target.append("if(BUILD_MT_RRT_SAMPLES)")
+        self.target.addCondition("BUILD_MT_RRT_SAMPLES")
         content = sourceWithSubstitution("Sample", {
             "THE_NAME": self.target.info.cmake_name,
             "THE_PARENT_NAME": self.target.info.cmake_parent_name
         })
         self.target.append(content)
+        generateTargetContent(target)
         genShowCmd(self.target, self.samplesGenerator_(self.target))
-
-    def __exit__(self, exc_type_, exc_val_, exc_tb_):
-        self.target.append("endif()")
-        # Returning False or None will let exceptions propagate normally.
-        return False
-    
+ 
     def locateShowScript_(self):
         fldr = os.path.dirname(self.target.info.path)
         for filename in os.listdir(fldr):
@@ -238,14 +224,14 @@ class Sample:
 def generateTarget(path):
     with CMakeFile(path) as target:
         if target.info.kind == TargetKind.LIBRARY:
-            obj_kind = Library
+            with Library(target) as _:
+                generateTargetContent(target)
+
         elif target.info.kind == TargetKind.TEST:
-            obj_kind = Test
+            generateTest(target)
+
         elif target.info.kind == TargetKind.SAMPLE:
-            obj_kind = Sample
-                            
-        with obj_kind(target) as _:
-            generateTargetContent(target)
+            Sample(target)
              
 def generateTargets(path):
     path = os.path.abspath(path)

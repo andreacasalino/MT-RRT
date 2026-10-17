@@ -40,7 +40,7 @@ if(BUILD_MT_RRT_TESTS)
 endif()
 
 Terraform(src)
-# Terraform(problems)
+Terraform(problems)
 
 option(BUILD_MT_RRT_README_SAMPLE "" OFF)
 if(BUILD_MT_RRT_README_SAMPLE)
