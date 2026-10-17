@@ -200,7 +200,7 @@ class Sample:
         })
         self.target.append(content)
         generateTargetContent(target)
-        genShowCmd(self.target, self.samplesGenerator_(self.target))
+        genShowCmd(self.target, self.samplesGenerator_())
  
     def locateShowScript_(self):
         fldr = os.path.dirname(self.target.info.path)
@@ -211,14 +211,14 @@ class Sample:
         raise Exception(msg)
 
     def samplesGenerator_(self):
-        show_script = self.locateShowScript_(self.target)
+        show_script = self.locateShowScript_()
         for sample_json in filter(lambda name: not name.find('.json') == -1, os.listdir(self.target.info.path)):
             sample_json_abs = os.path.join(self.target.info.path, sample_json) 
             sample_json_name_without_ext = sample_json.split('.')[0]
             yield {
                 'name': "{}-{}".format(self.target.info.name, sample_json_name_without_ext),
                 'script': show_script,
-                'args': "'{}'".format(sample_json_abs)
+                'args': "{}".format(sample_json_abs)
             }
 
 def generateTarget(path):
