@@ -63,13 +63,15 @@ class CMakeFile:
         self.info = getCMakeInfo(path)
 
     def __enter__(self):
-        self.content = sourceWithSubstitution("Header", {"THE_SCRIPT": os.path.abspath(__file__)})
+        self.content = ""
         return self
 
     def __exit__(self, exc_type_, exc_val_, exc_tb_):
         dest = os.path.join(self.info.path, "CMakeLists.txt")
         print('===> generating at {}'.format(dest))
         with open(dest, 'w') as fd:
+            fd.write(sourceWithSubstitution("Header", {"THE_SCRIPT": os.path.abspath(__file__)}))
+            fd.write('\n')
             fd.write(self.content)
         return True
 
