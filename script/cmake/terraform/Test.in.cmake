@@ -1,5 +1,3 @@
-if(BUILD_MT_RRT_TESTS)
-
 set(SOURCES "")
 GlobSources(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable($$THE_NAME ${SOURCES})
@@ -14,4 +12,3 @@ GTest::gtest_main
 target_compile_definitions($$THE_NAME PUBLIC
 -D TEST_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}"
 )
-endif()
