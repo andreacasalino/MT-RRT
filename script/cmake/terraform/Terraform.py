@@ -63,6 +63,7 @@ class CMakeFile:
         self.info = getCMakeInfo(path)
 
     def __enter__(self):
+        self.decorators = [(sourceWithSubstitution("Header", {"THE_SCRIPT": os.path.abspath(__file__)}), "")]
         self.content = ""
         return self
 
@@ -70,9 +71,9 @@ class CMakeFile:
         dest = os.path.join(self.info.path, "CMakeLists.txt")
         print('===> generating at {}'.format(dest))
         with open(dest, 'w') as fd:
-            fd.write(sourceWithSubstitution("Header", {"THE_SCRIPT": os.path.abspath(__file__)}))
-            fd.write('\n')
+            fd.write('\n'.join(a for (a, _) in self.decorators))
             fd.write(self.content)
+            fd.write('\n'.join(b for (_, b) in self.decorators))
         return True
 
     def append(self, to_add):
@@ -82,8 +83,8 @@ class CMakeFile:
         for it in iterable:
             self.append(it)
 
-    def decorate(self, before, after):
-        self.content = "{}\n{}\n{}".format(before, self.content, after)
+    def addCondition(self, expression):
+        self.decorators.append((f"if({expression})", "endif()"))
 
 def genRequirements(target: CMakeFile, content):
     target.appendMultiple('find_package({} REQUIRED)'.format(dep) for dep in content)
@@ -154,15 +155,14 @@ def generateTargetContent(target: CMakeFile):
         GRAMMAR[k](target, v)
 
     if 'condition' in target.info.context:
-        before = "if({})".format(' OR '.join(target.info.context['condition']))
-        target.decorate(before, "endif()")
+        target.addCondition(' OR '.join(target.info.context['condition']))
         
     if 'optional' in target.info.context:
-        before = sourceWithSubstitution("OptionalBuild", {
+        content = sourceWithSubstitution("OptionalBuild", {
             "THE_NAME": target.info.cmake_name,
             "DEFAULT_VALUE": 'ON' if target.info.context['optional'] else 'OFF'
         })
-        target.decorate(before, "endif()")
+        target.decorators.append((content, "endif()"))
 
 class Library:
     def __init__(self, target: CMakeFile):
