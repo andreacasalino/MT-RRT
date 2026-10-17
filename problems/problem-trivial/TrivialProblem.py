@@ -1,6 +1,6 @@
-from common.Figure import Figure as FigureBase
-from common.Figure import show
-from common.Geometry import print_edge
+from diag.Figure import Figure as FigureBase
+from diag.Figure import show
+from diag.Geometry import print_edge
 from numpy import linspace
 
 class Figure(FigureBase):
