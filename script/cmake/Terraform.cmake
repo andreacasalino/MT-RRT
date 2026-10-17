@@ -6,6 +6,6 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}
 )
 
-# add_subdirectory(${SUBDIR})
+add_subdirectory(${SUBDIR})
 
 endfunction()

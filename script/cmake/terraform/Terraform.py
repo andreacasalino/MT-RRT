@@ -232,13 +232,15 @@ def generateTarget(path):
              
 def generateTargets(path):
     path = os.path.abspath(path)
+    subpaths = []
+    for sub_path in os.listdir(path):
+        sub_path_tot = os.path.join(path, sub_path)
+        if not os.path.isdir(sub_path_tot):
+            continue
+        generateTarget(sub_path_tot)
+        subpaths.append(sub_path)
     with open(os.path.join(path, "CMakeLists.txt"), 'w') as fd:
-        for sub_path in os.listdir(path):
-            sub_path_tot = os.path.join(path, sub_path)
-            if not os.path.isdir(sub_path_tot):
-                continue
-            fd.write("add_subdirectory({})".format(sub_path))
-            generateTarget(sub_path_tot)
+        fd.write('\n'.join("add_subdirectory({})".format(subpath) for subpath in subpaths))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
