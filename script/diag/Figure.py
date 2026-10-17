@@ -52,7 +52,7 @@ class Figure:
 
 def files_gen():
     log_folder = os.environ['MT_RRT_LOG_PATH']
-    if 1 == len(sys.argv):
+    if 1 == len(sys.argv) or len(sys.argv[1]) == 0:
         for filename in os.listdir(log_folder):
             filename_abs = os.path.join(log_folder, filename)
             yield filename, filename_abs
