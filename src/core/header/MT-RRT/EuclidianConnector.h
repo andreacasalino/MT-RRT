@@ -64,11 +64,20 @@ public:
     std::unique_ptr<ConstraintsChecker> checker;
   };
 
-  const auto &get() const { return data_; }
+  const Data &get() const { return data_; }
 
-  const auto &getChecker() const { return *data_.checker; }
+  const ConstraintsChecker &getChecker() const { return *data_.checker; }
 
 private:
+  [[nodiscard]] bool canAdvance_(std::span<const float> current,
+                                 std::span<const float> next) {
+    if constexpr (SegmentConstraintsChecker<ConstraintsChecker>) {
+      return data_.checker->check_from_to(current, next);
+    } else {
+      return data_.checker->check_at(next);
+    }
+  }
+
   Data data_;
 };
 
@@ -81,17 +90,23 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
                                               std::vector<float> &reached) {
   float distance_tot = euclidean_distance(start, target);
   float distance_done{0};
-  static thread_local std::vector<float> previous;
+  static thread_local std::vector<float> current;
   if constexpr (SegmentConstraintsChecker<ConstraintsChecker>) {
-    previous.clear();
-    previous.insert(previous.end(), start.begin(), start.end());
+    current.clear();
+    current.insert(current.end(), start.begin(), start.end());
   }
   for (std::size_t i{0}; i < data_.steers.get(); ++i) {
-    if (distance_tot - distance_done < data_.quantized_advancement.get()) {
-      reached.clear();
-      reached.insert(reached.end(), target.begin(), target.end());
-      return TraverseResult{.target_was_reached = true,
-                            .cost2Go = Positive{distance_tot}};
+    if (std::abs(distance_tot - distance_done) <= data_.quantized_advancement) {
+      if constexpr (TunneledConstraintsChecker<ConstraintsChecker>) {
+        return TraverseResult{.target_was_reached = true,
+                              .cost2Go = Positive{distance_tot}};
+      } else {
+        if (data_.checker->check_from_to(previous, reached)) {
+          return TraverseResult{.target_was_reached = true,
+                                .cost2Go = Positive{distance_tot}};
+        }
+        break;
+      }
     }
 
     distance_done += data_.quantized_advancement.get();
@@ -103,28 +118,23 @@ EuclidianConnector<ConstraintsChecker>::steer(std::span<const float> start,
       reached.push_back(scale_complement * start[i] + scale * target[i]);
     }
 
-    if constexpr (SegmentConstraintsChecker<ConstraintsChecker>) {
-      if (!data_.checker->check_from_to(previous, reached)) {
-        // back to previous
-        std::swap(previous, reached);
-        if (i == 0) {
-          distance_done = 0;
-        } else {
-          distance_done -= data_.quantized_advancement.get();
-        }
-        break;
+    bool can_advance = canAdvance_(current, reached);
+    if (!can_advance) {
+      if (i == 0) {
+        distance_done = 0;
+      } else {
+        distance_done -= data_.quantized_advancement.get();
       }
-      std::swap(previous, reached);
-    } else {
-      if (!data_.checker->check_at(reached)) {
-        break;
-      }
+      break;
     }
+
+    std::swap(current, reached);
   }
 
   if (distance_done == 0) {
     return std::nullopt;
   } else {
+    std::swap(current, reached);
     return TraverseResult{.target_was_reached = false,
                           .cost2Go = Positive{distance_done}};
   }
