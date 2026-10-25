@@ -73,35 +73,54 @@ template <IsProblemDescription P, tree::HasBasicMethods T>
 void ExtenderBidirectional<P, T>::extend() {
   RAIISwapper swapper{&master_, &slave_};
 
-  ExtendResult res_master =
-      this->determinismRegulator.shallThisBeDeterministic()
-          ? this->template extend_<T, true>(slave_->root()->data().state,
-                                            *master_)
-          : this->template extend_<T, false>(this->sampleState(), *master_);
-
   const Node *master_added{nullptr};
-  std::visit(
-      [&](const auto &res_master) {
-        if constexpr (std::is_same_v<decltype(res_master),
-                                     const DeterministicTargetReached &>) {
-          // new solution: master reaches directly the slave root
-          this->pushSolution_(*res_master.parent, *slave_->root(),
-                              res_master.cost2Go);
-        }
 
-        else if constexpr (std::is_same_v<decltype(res_master),
-                                          const Steered &>) {
-          master_added = res_master.added;
-        }
-      },
-      res_master);
+  ////////// master -> slave //////////
+  if (this->determinismRegulator.shallThisBeDeterministic()) {
+    ExtendResult res =
+        this->template extend_<T, true>(slave_->root()->data().state, *master_);
 
+    std::visit(
+        [&](const auto &res_master) {
+          if constexpr (std::is_same_v<decltype(res_master),
+                                       const DeterministicTargetReached &>) {
+            // new solution: master reaches directly the slave root
+            this->pushSolution_(*res_master.parent, *slave_->root(),
+                                res_master.cost2Go);
+          }
+
+          else if constexpr (std::is_same_v<decltype(res_master),
+                                            const Steered &>) {
+            master_added = res_master.added;
+          }
+        },
+        res);
+  } else {
+    ExtendResult res =
+        this->template extend_<T, false>(this->sampleState(), *master_);
+
+    std::visit(
+        [&](const auto &res_master) {
+          if constexpr (std::is_same_v<decltype(res_master),
+                                       const DeterministicTargetReached &>) {
+            master_added = ;
+          }
+
+          else if constexpr (std::is_same_v<decltype(res_master),
+                                            const Steered &>) {
+            master_added = res_master.added;
+          }
+        },
+        res);
+  }
+
+  ////////// slave -> master //////////
   if (master_added) {
     ExtendResult res_slave;
     res_master =
         this->template extend_<T, true>(master_added->data().state, *slave_);
 
-    if (const DeterministicTargetReached *trg_reached =
+    if (const TargetReached *trg_reached =
             std::get_if<DeterministicTargetReached>(&res_slave);
         trg_reached) {
       // new solution

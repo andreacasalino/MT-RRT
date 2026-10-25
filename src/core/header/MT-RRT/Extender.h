@@ -29,15 +29,15 @@ concept FoundSolution = requires(const S obj_const) {
 };
 
 using ExtendNotPossible = std::monostate;
-struct DeterministicTargetReached {
+struct TargetReached {
   Positive cost2Go;
-  const Node *parent;
+  // the existing node in the tree, from which the target is reachable
+  const Node *pivot;
 };
 struct Steered {
-  const Node *added;
+  const Node *steered;
 };
-using ExtendResult =
-    std::variant<ExtendNotPossible, DeterministicTargetReached, Steered>;
+using ExtendResult = std::variant<ExtendNotPossible, TargetReached, Steered>;
 
 template <IsProblemDescription P, FoundSolution S> class Extender {
 public:
@@ -137,10 +137,6 @@ const Node *Extender<P, S>::find_nearest_neighbour(std::span<const float> state,
   }
 }
 
-// template <IsProblemDescription P, FoundSolution S>
-//   template <tree::HasBasicMethods T, bool IsDeterministic>
-//   ExtendResult extend(std::span<const float> target, T &tree)
-
 template <IsProblemDescription P, FoundSolution S>
 template <tree::HasBasicMethods T, bool IsDeterministic>
 ExtendResult Extender<P, S>::extend_(std::span<const float> target, T &tree) {
@@ -163,24 +159,22 @@ ExtendResult Extender<P, S>::extend_(std::span<const float> target, T &tree) {
     return ExtendNotPossible{};
   }
   if (steer_result->target_was_reached) {
-    return DeterministicTargetReached{steer_result->cost2Go, nearest};
+    return TargetReached{steer_result->cost2Go, nearest};
   }
 
   const Node *steer_node =
       tree.internalize(steer_buffer_, *nearest, steer_result->cost2Go);
 
   if constexpr (P::kExpansionStrategy == ExpansionStrategy::Star) {
-    if (!steer_result->target_was_reached) {
-      /////////////// star rewiring ///////////////
-      rewiring_.update(*steer_node, tree, *problem.first.connector);
+    /////////////// star rewiring ///////////////
+    rewiring_.update(*steer_node, tree, *problem.first.connector);
 
-      if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
-        tree.applyRewiring(*steer_node, rewiring_.getRewires(),
-                           *problem.first.connector);
-      } else {
-        for (const auto &rew : rewiring_.getRewires()) {
-          rew.involved_node->setParent(*steer_node, rew.updatedCost2Go);
-        }
+    if constexpr (tree::HasCustomRewiring<T, typename P::connector_type>) {
+      tree.applyRewiring(*steer_node, rewiring_.getRewires(),
+                         *problem.first.connector);
+    } else {
+      for (const auto &rew : rewiring_.getRewires()) {
+        rew.involved_node->setParent(*steer_node, rew.updatedCost2Go);
       }
     }
   }
