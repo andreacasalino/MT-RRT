@@ -48,8 +48,8 @@ void ExtenderSingle<P, T>::extend() {
     if (const TargetReached *trg_reached = std::get_if<TargetReached>(&res);
         trg_reached) {
       this->pushSolution(ExtenderSingleSolution{
-          trg_reached->parent->cost2Root() + trg_reached->cost2Go.get(),
-          target_, trg_reached->parent, trg_reached->cost2Go});
+          trg_reached->pivot->cost2Root() + trg_reached->cost2Go.get(), target_,
+          trg_reached->pivot, trg_reached->cost2Go});
     }
   } else {
     this->template extend_<T, false>(this->sampleState(), tree_);

@@ -81,50 +81,37 @@ void ExtenderBidirectional<P, T>::extend() {
         this->template extend_<T, true>(slave_->root()->data().state, *master_);
 
     std::visit(
-        [&](const auto &res_master) {
-          if constexpr (std::is_same_v<decltype(res_master),
-                                       const DeterministicTargetReached &>) {
+        [&](const auto &res) {
+          if constexpr (std::is_same_v<decltype(res), const TargetReached &>) {
             // new solution: master reaches directly the slave root
-            this->pushSolution_(*res_master.parent, *slave_->root(),
-                                res_master.cost2Go);
+            this->pushSolution_(*res.pivot, *slave_->root(), res.cost2Go);
           }
 
-          else if constexpr (std::is_same_v<decltype(res_master),
-                                            const Steered &>) {
-            master_added = res_master.added;
-          }
-        },
-        res);
-  } else {
-    ExtendResult res =
-        this->template extend_<T, false>(this->sampleState(), *master_);
-
-    std::visit(
-        [&](const auto &res_master) {
-          if constexpr (std::is_same_v<decltype(res_master),
-                                       const DeterministicTargetReached &>) {
-            master_added = ;
-          }
-
-          else if constexpr (std::is_same_v<decltype(res_master),
-                                            const Steered &>) {
-            master_added = res_master.added;
+          else if constexpr (std::is_same_v<decltype(res), const Steered &>) {
+            master_added = res.steered;
           }
         },
         res);
   }
 
+  else {
+    ExtendResult res =
+        this->template extend_<T, false>(this->sampleState(), *master_);
+
+    if (const Steered *as_steered = std::get_if<Steered>(&res); as_steered) {
+      master_added = as_steered->steered;
+    }
+  }
+
   ////////// slave -> master //////////
   if (master_added) {
-    ExtendResult res_slave;
-    res_master =
+    ExtendResult res =
         this->template extend_<T, true>(master_added->data().state, *slave_);
 
-    if (const TargetReached *trg_reached =
-            std::get_if<DeterministicTargetReached>(&res_slave);
+    if (const TargetReached *trg_reached = std::get_if<TargetReached>(&res);
         trg_reached) {
       // new solution
-      this->pushSolution_(*master_added, *trg_reached->parent,
+      this->pushSolution_(*master_added, *trg_reached->pivot,
                           trg_reached->cost2Go);
     }
   }

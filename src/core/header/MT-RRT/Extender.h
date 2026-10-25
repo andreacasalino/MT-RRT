@@ -158,8 +158,10 @@ ExtendResult Extender<P, S>::extend_(std::span<const float> target, T &tree) {
   if (!steer_result.has_value()) {
     return ExtendNotPossible{};
   }
-  if (steer_result->target_was_reached) {
-    return TargetReached{steer_result->cost2Go, nearest};
+  if constexpr (IsDeterministic) {
+    if (steer_result->target_was_reached) {
+      return TargetReached{steer_result->cost2Go, nearest};
+    }
   }
 
   const Node *steer_node =
